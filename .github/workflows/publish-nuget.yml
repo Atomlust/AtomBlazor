@@ -29,6 +29,10 @@
 #     打标签时请确保标签版本与 csproj 版本一致。
 #   - AtomBlazor 构建期会用 Tailwind CLI（仓库根 npm 依赖中的 @tailwindcss/cli）
 #     生成 wwwroot/atomblazor.css，因此流程中必须先 npm ci。
+#   - 推 v* 标签时，github-release job 会在 nuget.org 发布成功后创建 GitHub Release
+#     （--generate-notes 自动摘要 + 全部 .nupkg 作为附件）。若仓库 Settings → Actions
+#     → General → Workflow permissions 设为 Read written，该 job 会因 GITHUB_TOKEN
+#     无 contents 写权限而失败，需改为 Read and write。
 # =============================================================================
 name: publish-nuget
 
@@ -134,3 +138,44 @@ jobs:
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
           echo "::notice::已推送 $PACK_DIR 下全部包到 nuget.org（已存在的版本将被跳过）"
+
+  # 推 v* 标签时创建 GitHub Release 记录，并把本次打出的 .nupkg 作为附件挂上去。
+  # 权限只在本 job 收窄到 contents: write，主发布 job 仍保持仓库级 contents: read。
+  github-release:
+    needs: pack-and-publish
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: 下载打包产物
+        uses: actions/download-artifact@v4
+        with:
+          name: nupkg-${{ github.sha }}
+          path: ${{ env.PACK_DIR }}
+
+      - name: 创建 Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          assets=("$PACK_DIR"/*.nupkg)
+          if [ ${#assets[@]} -eq 0 ]; then
+            echo "::error::$PACK_DIR 下没有 .nupkg，取消创建 Release"
+            exit 1
+          fi
+          # 本 job 未检出代码，gh 没有 git remote 上下文，必须显式 --repo
+          if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
+            echo "::notice::Release $TAG 已存在，仅补挂缺失的附件"
+            gh release upload "$TAG" "${assets[@]}" --clobber --repo "$REPO"
+          else
+            gh release create "$TAG" \
+              --repo "$REPO" \
+              --title "$TAG" \
+              --generate-notes \
+              "${assets[@]}"
+          fi
+          echo "::notice::已创建/更新 Release $TAG，附件 ${#assets[@]} 个包"
