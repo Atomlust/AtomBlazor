@@ -79,7 +79,7 @@ builder.Services.AddAtomBlazorComponents(
 ```razor
 @using AtomBlazor
 @using AtomBlazor.Primitives
-@using AtomBlazor.Icons.Lucide.Components
+@using AtomBlazor.Icons.Lucide
 ```
 
 **5. 使用组件**

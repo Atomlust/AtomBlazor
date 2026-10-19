@@ -79,7 +79,7 @@ Full signature: `AddAtomBlazorComponents(Action<DefaultLocalizer>? , Action<Them
 ```razor
 @using AtomBlazor
 @using AtomBlazor.Primitives
-@using AtomBlazor.Icons.Lucide.Components
+@using AtomBlazor.Icons.Lucide
 ```
 
 **5. Use the components**
