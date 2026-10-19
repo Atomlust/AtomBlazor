@@ -10,12 +10,12 @@ using Microsoft.JSInterop;
 using Xunit;
 // 双层同名家族（照 Accordion/Collapsible 先例）：本文件测基元层，别名钉死到 Primitives 侧
 // 避免与 AtomBlazor.Components 同名类型发生 CS0104 歧义。
-using Tabs = AtomBlazor.Primitives.TabsPrimitive;
-using TabsActivationMode = AtomBlazor.Primitives.TabsActivationMode;
-using TabsContent = AtomBlazor.Primitives.TabsContent;
-using TabsList = AtomBlazor.Primitives.TabsList;
-using TabsOrientation = AtomBlazor.Primitives.TabsOrientation;
-using TabsTrigger = AtomBlazor.Primitives.TabsTrigger;
+using PTabs = AtomBlazor.Primitives.TabsPrimitive;
+using PTabsActivationMode = AtomBlazor.Primitives.TabsActivationMode;
+using PTabsContent = AtomBlazor.Primitives.TabsContent;
+using PTabsList = AtomBlazor.Primitives.TabsList;
+using PTabsOrientation = AtomBlazor.Primitives.TabsOrientation;
+using PTabsTrigger = AtomBlazor.Primitives.TabsTrigger;
 
 namespace AtomBlazor.Tests.Components;
 
@@ -36,31 +36,30 @@ public class PrimitiveTabsTests
     {
         var stub = new NoopJavaScript();
         js = stub;
-        var services = new ServiceCollection();
-        services.AddSingleton<IJSRuntime>(stub);
+        var services = new ServiceCollection().AddAtomBlazorTestDefaults(stub);
         return new ComponentTestRenderer(services.BuildServiceProvider(), NullLoggerFactory.Instance);
     }
 
     /// <summary>三个标签 + 三个面板：第三枚禁用，用于键盘绕回与点击拒绝。</summary>
     private static RenderFragment ThreeTabs() => builder =>
     {
-        builder.OpenComponent<TabsList>(0);
-        builder.AddAttribute(1, nameof(TabsList.ChildContent), (RenderFragment)(inner =>
+        builder.OpenComponent<PTabsList>(0);
+        builder.AddAttribute(1, nameof(PTabsList.ChildContent), (RenderFragment)(inner =>
         {
-            inner.OpenComponent<TabsTrigger>(0);
-            inner.AddAttribute(1, nameof(TabsTrigger.Value), "one");
-            inner.AddAttribute(2, nameof(TabsTrigger.ChildContent), (RenderFragment)(b => b.AddContent(0, "标签一")));
+            inner.OpenComponent<PTabsTrigger>(0);
+            inner.AddAttribute(1, nameof(PTabsTrigger.Value), "one");
+            inner.AddAttribute(2, nameof(PTabsTrigger.ChildContent), (RenderFragment)(b => b.AddContent(0, "标签一")));
             inner.CloseComponent();
 
-            inner.OpenComponent<TabsTrigger>(3);
-            inner.AddAttribute(4, nameof(TabsTrigger.Value), "two");
-            inner.AddAttribute(5, nameof(TabsTrigger.ChildContent), (RenderFragment)(b => b.AddContent(0, "标签二")));
+            inner.OpenComponent<PTabsTrigger>(3);
+            inner.AddAttribute(4, nameof(PTabsTrigger.Value), "two");
+            inner.AddAttribute(5, nameof(PTabsTrigger.ChildContent), (RenderFragment)(b => b.AddContent(0, "标签二")));
             inner.CloseComponent();
 
-            inner.OpenComponent<TabsTrigger>(6);
-            inner.AddAttribute(7, nameof(TabsTrigger.Value), "three");
-            inner.AddAttribute(8, nameof(TabsTrigger.Disabled), true);
-            inner.AddAttribute(9, nameof(TabsTrigger.ChildContent), (RenderFragment)(b => b.AddContent(0, "标签三")));
+            inner.OpenComponent<PTabsTrigger>(6);
+            inner.AddAttribute(7, nameof(PTabsTrigger.Value), "three");
+            inner.AddAttribute(8, nameof(PTabsTrigger.Disabled), true);
+            inner.AddAttribute(9, nameof(PTabsTrigger.ChildContent), (RenderFragment)(b => b.AddContent(0, "标签三")));
             inner.CloseComponent();
         }));
         builder.CloseComponent();
@@ -73,9 +72,9 @@ public class PrimitiveTabsTests
     /// <summary>仅面板部分（触发器已由 TabsList 承载）。</summary>
     private static RenderFragment PairContent(string value) => builder =>
     {
-        builder.OpenComponent<TabsContent>(0);
-        builder.AddAttribute(1, nameof(TabsContent.Value), value);
-        builder.AddAttribute(2, nameof(TabsContent.ChildContent), (RenderFragment)(b => b.AddContent(0, $"内容-{value}")));
+        builder.OpenComponent<PTabsContent>(0);
+        builder.AddAttribute(1, nameof(PTabsContent.Value), value);
+        builder.AddAttribute(2, nameof(PTabsContent.ChildContent), (RenderFragment)(b => b.AddContent(0, $"内容-{value}")));
         builder.CloseComponent();
     };
 
@@ -83,8 +82,8 @@ public class PrimitiveTabsTests
         Dictionary<string, object?> parameters, RenderFragment? childContent = null)
     {
         var renderer = CreateRenderer(out var js);
-        parameters.TryAdd(nameof(Tabs.ChildContent), childContent ?? TwoTabs());
-        await renderer.MountAsync<Tabs>(parameters);
+        parameters.TryAdd(nameof(PTabs.ChildContent), childContent ?? TwoTabs());
+        await renderer.MountAsync<PTabs>(parameters);
         await renderer.Dispatcher.InvokeAsync(() => { });
         return (renderer, js);
     }
@@ -92,17 +91,17 @@ public class PrimitiveTabsTests
     /// <summary>两个可用标签 + 两个面板的默认内容树。</summary>
     private static RenderFragment TwoTabs() => builder =>
     {
-        builder.OpenComponent<TabsList>(0);
-        builder.AddAttribute(1, nameof(TabsList.ChildContent), (RenderFragment)(inner =>
+        builder.OpenComponent<PTabsList>(0);
+        builder.AddAttribute(1, nameof(PTabsList.ChildContent), (RenderFragment)(inner =>
         {
-            inner.OpenComponent<TabsTrigger>(0);
-            inner.AddAttribute(1, nameof(TabsTrigger.Value), "one");
-            inner.AddAttribute(2, nameof(TabsTrigger.ChildContent), (RenderFragment)(b => b.AddContent(0, "标签一")));
+            inner.OpenComponent<PTabsTrigger>(0);
+            inner.AddAttribute(1, nameof(PTabsTrigger.Value), "one");
+            inner.AddAttribute(2, nameof(PTabsTrigger.ChildContent), (RenderFragment)(b => b.AddContent(0, "标签一")));
             inner.CloseComponent();
 
-            inner.OpenComponent<TabsTrigger>(3);
-            inner.AddAttribute(4, nameof(TabsTrigger.Value), "two");
-            inner.AddAttribute(5, nameof(TabsTrigger.ChildContent), (RenderFragment)(b => b.AddContent(0, "标签二")));
+            inner.OpenComponent<PTabsTrigger>(3);
+            inner.AddAttribute(4, nameof(PTabsTrigger.Value), "two");
+            inner.AddAttribute(5, nameof(PTabsTrigger.ChildContent), (RenderFragment)(b => b.AddContent(0, "标签二")));
             inner.CloseComponent();
         }));
         builder.CloseComponent();
@@ -139,7 +138,7 @@ public class PrimitiveTabsTests
     {
         var (renderer, _) = await MountAsync(new Dictionary<string, object?>
         {
-            [nameof(Tabs.DefaultValue)] = "one",
+            [nameof(PTabs.DefaultValue)] = "one",
         });
 
         var markup = renderer.Markup();
@@ -154,7 +153,7 @@ public class PrimitiveTabsTests
     {
         var (renderer, _) = await MountAsync(new Dictionary<string, object?>
         {
-            [nameof(Tabs.DefaultValue)] = "one",
+            [nameof(PTabs.DefaultValue)] = "one",
         });
 
         await ClickAsync(renderer, 1);
@@ -173,8 +172,8 @@ public class PrimitiveTabsTests
         var reports = new List<string?>();
         var (renderer, _) = await MountAsync(new Dictionary<string, object?>
         {
-            [nameof(Tabs.DefaultValue)] = "one",
-            [nameof(Tabs.OnValueChange)] = EventCallback.Factory.Create<string?>(new object(), reports.Add),
+            [nameof(PTabs.DefaultValue)] = "one",
+            [nameof(PTabs.OnValueChange)] = EventCallback.Factory.Create<string?>(new object(), reports.Add),
         });
 
         await ClickAsync(renderer, 1);
@@ -188,8 +187,8 @@ public class PrimitiveTabsTests
         var reports = new List<string?>();
         var (renderer, _) = await MountAsync(new Dictionary<string, object?>
         {
-            [nameof(Tabs.Value)] = "one",
-            [nameof(Tabs.ValueChanged)] = EventCallback.Factory.Create<string?>(new object(), reports.Add),
+            [nameof(PTabs.Value)] = "one",
+            [nameof(PTabs.ValueChanged)] = EventCallback.Factory.Create<string?>(new object(), reports.Add),
         });
 
         Assert.Contains(">内容-one<", renderer.Markup());
@@ -211,15 +210,15 @@ public class PrimitiveTabsTests
         var callback = EventCallback.Factory.Create<string?>(new object(), reports.Add);
         var (renderer, _) = await MountAsync(new Dictionary<string, object?>
         {
-            [nameof(Tabs.Value)] = "one",
-            [nameof(Tabs.ValueChanged)] = callback,
+            [nameof(PTabs.Value)] = "one",
+            [nameof(PTabs.ValueChanged)] = callback,
         });
 
         await renderer.Dispatcher.InvokeAsync(() => renderer.RerenderRootAsync(0, new Dictionary<string, object?>
         {
-            [nameof(Tabs.Value)] = "two",
-            [nameof(Tabs.ValueChanged)] = callback,
-            [nameof(Tabs.ChildContent)] = TwoTabs(),
+            [nameof(PTabs.Value)] = "two",
+            [nameof(PTabs.ValueChanged)] = callback,
+            [nameof(PTabs.ChildContent)] = TwoTabs(),
         }));
         await renderer.Dispatcher.InvokeAsync(() => { });
 
@@ -236,7 +235,7 @@ public class PrimitiveTabsTests
         // 判定，只传 Value 不传回调时状态仍由内部维护——初始激活值来自 DefaultValue 兜底为空。
         var (renderer, _) = await MountAsync(new Dictionary<string, object?>
         {
-            [nameof(Tabs.Value)] = "one",
+            [nameof(PTabs.Value)] = "one",
         });
 
         Assert.DoesNotContain(">内容-one<", renderer.Markup());
@@ -250,8 +249,8 @@ public class PrimitiveTabsTests
     {
         var (renderer, _) = await MountAsync(new Dictionary<string, object?>
         {
-            [nameof(Tabs.DefaultValue)] = "one",
-            [nameof(Tabs.ChildContent)] = ThreeTabs(),
+            [nameof(PTabs.DefaultValue)] = "one",
+            [nameof(PTabs.ChildContent)] = ThreeTabs(),
         });
 
         var markup = renderer.Markup();
@@ -268,7 +267,7 @@ public class PrimitiveTabsTests
     {
         var (renderer, _) = await MountAsync(new Dictionary<string, object?>
         {
-            [nameof(Tabs.DefaultValue)] = "one",
+            [nameof(PTabs.DefaultValue)] = "one",
         });
 
         var markup = renderer.Markup();
@@ -296,27 +295,27 @@ public class PrimitiveTabsTests
     {
         var (renderer, _) = await MountAsync(new Dictionary<string, object?>
         {
-            [nameof(Tabs.DefaultValue)] = "one",
-            [nameof(Tabs.ChildContent)] = (RenderFragment)(builder =>
+            [nameof(PTabs.DefaultValue)] = "one",
+            [nameof(PTabs.ChildContent)] = (RenderFragment)(builder =>
             {
-                builder.OpenComponent<TabsList>(0);
-                builder.AddAttribute(1, nameof(TabsList.ChildContent), (RenderFragment)(inner =>
+                builder.OpenComponent<PTabsList>(0);
+                builder.AddAttribute(1, nameof(PTabsList.ChildContent), (RenderFragment)(inner =>
                 {
-                    inner.OpenComponent<TabsTrigger>(0);
-                    inner.AddAttribute(1, nameof(TabsTrigger.Value), "one");
+                    inner.OpenComponent<PTabsTrigger>(0);
+                    inner.AddAttribute(1, nameof(PTabsTrigger.Value), "one");
                     inner.CloseComponent();
 
-                    inner.OpenComponent<TabsTrigger>(2);
-                    inner.AddAttribute(3, nameof(TabsTrigger.Value), "two");
+                    inner.OpenComponent<PTabsTrigger>(2);
+                    inner.AddAttribute(3, nameof(PTabsTrigger.Value), "two");
                     inner.CloseComponent();
                 }));
                 builder.CloseComponent();
 
                 builder.AddContent(2, PairContent("one"));
-                builder.OpenComponent<TabsContent>(3);
-                builder.AddAttribute(4, nameof(TabsContent.Value), "two");
-                builder.AddAttribute(5, nameof(TabsContent.ForceMount), true);
-                builder.AddAttribute(6, nameof(TabsContent.ChildContent), (RenderFragment)(b => b.AddContent(0, "内容-two")));
+                builder.OpenComponent<PTabsContent>(3);
+                builder.AddAttribute(4, nameof(PTabsContent.Value), "two");
+                builder.AddAttribute(5, nameof(PTabsContent.ForceMount), true);
+                builder.AddAttribute(6, nameof(PTabsContent.ChildContent), (RenderFragment)(b => b.AddContent(0, "内容-two")));
                 builder.CloseComponent();
             }),
         });
@@ -332,7 +331,7 @@ public class PrimitiveTabsTests
     {
         var (renderer, _) = await MountAsync(new Dictionary<string, object?>
         {
-            [nameof(Tabs.DefaultValue)] = "one",
+            [nameof(PTabs.DefaultValue)] = "one",
         });
 
         await PressAsync(renderer, "ArrowRight");
@@ -348,9 +347,9 @@ public class PrimitiveTabsTests
         var reports = new List<string?>();
         var (renderer, _) = await MountAsync(new Dictionary<string, object?>
         {
-            [nameof(Tabs.DefaultValue)] = "one",
-            [nameof(Tabs.ActivationMode)] = TabsActivationMode.Manual,
-            [nameof(Tabs.OnValueChange)] = EventCallback.Factory.Create<string?>(new object(), reports.Add),
+            [nameof(PTabs.DefaultValue)] = "one",
+            [nameof(PTabs.ActivationMode)] = PTabsActivationMode.Manual,
+            [nameof(PTabs.OnValueChange)] = EventCallback.Factory.Create<string?>(new object(), reports.Add),
         });
 
         await PressAsync(renderer, "ArrowRight");
@@ -364,8 +363,8 @@ public class PrimitiveTabsTests
     {
         var (renderer, _) = await MountAsync(new Dictionary<string, object?>
         {
-            [nameof(Tabs.DefaultValue)] = "two",
-            [nameof(Tabs.ChildContent)] = ThreeTabs(),
+            [nameof(PTabs.DefaultValue)] = "two",
+            [nameof(PTabs.ChildContent)] = ThreeTabs(),
         });
 
         // End：末项 three 禁用，回落到最后一个可用项 two —— 位置不变，因此不产生切换。
@@ -387,8 +386,8 @@ public class PrimitiveTabsTests
     {
         var (renderer, _) = await MountAsync(new Dictionary<string, object?>
         {
-            [nameof(Tabs.DefaultValue)] = "one",
-            [nameof(Tabs.Orientation)] = TabsOrientation.Vertical,
+            [nameof(PTabs.DefaultValue)] = "one",
+            [nameof(PTabs.Orientation)] = PTabsOrientation.Vertical,
         });
 
         Assert.Contains("aria-orientation=\"vertical\"", renderer.Markup());
@@ -405,7 +404,7 @@ public class PrimitiveTabsTests
     {
         var (renderer, _) = await MountAsync(new Dictionary<string, object?>
         {
-            [nameof(Tabs.DefaultValue)] = "one",
+            [nameof(PTabs.DefaultValue)] = "one",
         });
 
         await PressAsync(renderer, "Enter", occurrence: 1);
@@ -471,7 +470,7 @@ public class PrimitiveTabsTests
     {
         var (renderer, _) = await MountAsync(new Dictionary<string, object?>
         {
-            [nameof(Tabs.DefaultValue)] = "one",
+            [nameof(PTabs.DefaultValue)] = "one",
         });
 
         await PressAsync(renderer, "ArrowRight", ctrl: true);
@@ -484,9 +483,9 @@ public class PrimitiveTabsTests
     public async Task TabsTrigger脱离Tabs应抛异常()
     {
         var renderer = CreateRenderer(out _);
-        var mount = renderer.MountAsync<TabsTrigger>(new Dictionary<string, object?>
+        var mount = renderer.MountAsync<PTabsTrigger>(new Dictionary<string, object?>
         {
-            [nameof(TabsTrigger.Value)] = "one",
+            [nameof(PTabsTrigger.Value)] = "one",
         });
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await mount);
         Assert.Contains("TabsTrigger 必须在 Tabs 组件内使用。", ex.Message);
@@ -496,9 +495,9 @@ public class PrimitiveTabsTests
     public async Task TabsContent脱离Tabs应抛异常()
     {
         var renderer = CreateRenderer(out _);
-        var mount = renderer.MountAsync<TabsContent>(new Dictionary<string, object?>
+        var mount = renderer.MountAsync<PTabsContent>(new Dictionary<string, object?>
         {
-            [nameof(TabsContent.Value)] = "one",
+            [nameof(PTabsContent.Value)] = "one",
         });
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await mount);
         Assert.Contains("TabsContent 必须在 Tabs 组件内使用。", ex.Message);
@@ -509,7 +508,7 @@ public class PrimitiveTabsTests
     {
         var (renderer, js) = await MountAsync(new Dictionary<string, object?>
         {
-            [nameof(Tabs.DefaultValue)] = "one",
+            [nameof(PTabs.DefaultValue)] = "one",
         });
 
         // 命名空间点分标识符 + 不带点分的清理句柄调用（照）。
@@ -517,7 +516,7 @@ public class PrimitiveTabsTests
         var setup = Assert.Single(js.Invocations, i => i.Identifier == "keyboardNav.setupKeyboardNav");
         Assert.Single(setup.Args!);
 
-        var list = await renderer.Dispatcher.InvokeAsync(() => renderer.FindComponent<TabsList>());
+        var list = await renderer.Dispatcher.InvokeAsync(() => renderer.FindComponent<PTabsList>());
         await renderer.Dispatcher.InvokeAsync(() => ((IAsyncDisposable)list).DisposeAsync().AsTask());
 
         Assert.Contains("dispose", js.Invocations.Select(i => i.Identifier));

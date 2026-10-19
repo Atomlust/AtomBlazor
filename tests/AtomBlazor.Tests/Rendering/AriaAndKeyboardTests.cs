@@ -8,8 +8,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.JSInterop;
 
-using ToggleGroup = AtomBlazor.Primitives.ToggleGroup<string>;
-using ToggleItem = AtomBlazor.Primitives.ToggleGroupItem<string>;
+using PToggleGroup = AtomBlazor.Primitives.ToggleGroup<string>;
+using PToggleItem = AtomBlazor.Primitives.ToggleGroupItem<string>;
 using PrimitiveToggleType = AtomBlazor.Primitives.ToggleGroupType;
 
 namespace AtomBlazor.Tests.Rendering;
@@ -82,14 +82,14 @@ public class AriaAndKeyboardTests
     [Fact]
     public async Task SingleSelectToggleGroupIsARadioGroup()
     {
-        var markup = await Render<ToggleGroup>(new()
+        var markup = await Render<PToggleGroup>(new()
         {
-            [nameof(ToggleGroup.Type)] = PrimitiveToggleType.Single,
-            [nameof(ToggleGroup.DefaultValue)] = "a",
-            [nameof(ToggleGroup.ChildContent)] = (RenderFragment)(builder =>
+            [nameof(PToggleGroup.Type)] = PrimitiveToggleType.Single,
+            [nameof(PToggleGroup.DefaultValue)] = "a",
+            [nameof(PToggleGroup.ChildContent)] = (RenderFragment)(builder =>
             {
-                builder.OpenComponent<ToggleItem>(0);
-                builder.AddAttribute(1, nameof(ToggleItem.Value), "a");
+                builder.OpenComponent<PToggleItem>(0);
+                builder.AddAttribute(1, nameof(PToggleItem.Value), "a");
                 builder.CloseComponent();
             })
         });
@@ -104,15 +104,15 @@ public class AriaAndKeyboardTests
     [Fact]
     public async Task MultiSelectToggleGroupKeepsTheButtonRole()
     {
-        var markup = await Render<ToggleGroup>(new()
+        var markup = await Render<PToggleGroup>(new()
         {
-            [nameof(ToggleGroup.Type)] = PrimitiveToggleType.Multiple,
-            [nameof(ToggleGroup.Values)] = new List<string> { "a" },
-            [nameof(ToggleGroup.ValuesChanged)] = EventCallback.Factory.Create<List<string>>(this, _ => { }),
-            [nameof(ToggleGroup.ChildContent)] = (RenderFragment)(builder =>
+            [nameof(PToggleGroup.Type)] = PrimitiveToggleType.Multiple,
+            [nameof(PToggleGroup.Values)] = new List<string> { "a" },
+            [nameof(PToggleGroup.ValuesChanged)] = EventCallback.Factory.Create<List<string>>(this, _ => { }),
+            [nameof(PToggleGroup.ChildContent)] = (RenderFragment)(builder =>
             {
-                builder.OpenComponent<ToggleItem>(0);
-                builder.AddAttribute(1, nameof(ToggleItem.Value), "a");
+                builder.OpenComponent<PToggleItem>(0);
+                builder.AddAttribute(1, nameof(PToggleItem.Value), "a");
                 builder.CloseComponent();
             })
         });

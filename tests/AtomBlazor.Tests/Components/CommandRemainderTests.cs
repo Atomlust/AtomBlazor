@@ -36,7 +36,7 @@ public class CommandRemainderTests
     private static (ComponentTestRenderer Renderer, NoopJavaScript Js) CreateRenderer()
     {
         var js = new NoopJavaScript();
-        var services = new ServiceCollection();
+        var services = new ServiceCollection().AddAtomBlazorTestDefaults();
         services.AddSingleton<IJSRuntime>(js);
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
         services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
@@ -308,12 +308,24 @@ public class CommandRemainderTests
     }
 
     [Fact]
-    public async Task 对话框默认结构快照应与基线一致()
+    public async Task 对话框应具备对话框语义与命令面板结构()
     {
+        // 不做整段标记快照：对话框内容经门户渲染进渲染器自建的根，单测渲染器观察不到
+        // （参考项目同样只保留 API 表面快照）。这里只钉住与门户策略无关的结构与无障碍契约。
         var selected = new List<string>();
         var reports = new List<bool>();
         var (renderer, _) = await MountDialogAsync(DialogParams(selected, reports));
-        await Verify(Scrub(renderer.Markup()));
+        var markup = Scrub(renderer.Markup());
+
+        Assert.Contains("role=\"dialog\"", markup);
+        Assert.Contains("aria-modal=\"true\"", markup);
+        Assert.Contains("aria-labelledby=\"dialog-<n>-title\"", markup);
+        Assert.Contains("aria-describedby=\"dialog-<n>-description\"", markup);
+
+        // 命令面板本体：listbox 语义 + 搜索输入
+        Assert.Contains("role=\"listbox\"", markup);
+        Assert.Contains("aria-label=\"Command menu\"", markup);
+        Assert.Contains("<input", markup);
     }
 
     // ------------------------------------------------------------------

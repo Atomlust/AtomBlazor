@@ -30,7 +30,7 @@ public class SignatureTests
     private static (ComponentTestRenderer Renderer, NoopJavaScript Js) CreateRenderer()
     {
         var js = new NoopJavaScript();
-        var services = new ServiceCollection();
+        var services = new ServiceCollection().AddAtomBlazorTestDefaults();
         services.AddSingleton<IJSRuntime>(js);
         services.AddSingleton<ILocalizer>(new DefaultLocalizer());
         return (new ComponentTestRenderer(services.BuildServiceProvider(), NullLoggerFactory.Instance), js);

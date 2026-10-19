@@ -10,10 +10,10 @@ using Microsoft.JSInterop;
 using Xunit;
 // 双层同名家族（照 Collapsible 先例）：本文件测基元层，别名钉死到 Primitives 侧，
 // 避免与 AtomBlazor.Components 同名类型（ILocalizer 所在的 using）发生 CS0104 歧义。
-using Accordion = AtomBlazor.Primitives.AccordionPrimitive;
-using AccordionContent = AtomBlazor.Primitives.AccordionContent;
-using AccordionItem = AtomBlazor.Primitives.AccordionItem;
-using AccordionTrigger = AtomBlazor.Primitives.AccordionTrigger;
+using PAccordion = AtomBlazor.Primitives.AccordionPrimitive;
+using PAccordionContent = AtomBlazor.Primitives.AccordionContent;
+using PAccordionItem = AtomBlazor.Primitives.AccordionItem;
+using PAccordionTrigger = AtomBlazor.Primitives.AccordionTrigger;
 
 namespace AtomBlazor.Tests.Components;
 
@@ -40,17 +40,17 @@ public class PrimitiveAccordionTests
     /// <summary>单个基元条目片段：触发器标题 + 可展开内容。</summary>
     private static RenderFragment ItemFragment(string value, string heading, string body, bool disabled = false) => builder =>
     {
-        builder.OpenComponent<AccordionItem>(0);
-        builder.AddAttribute(1, nameof(AccordionItem.Value), value);
-        builder.AddAttribute(2, nameof(AccordionItem.Disabled), disabled);
-        builder.AddAttribute(3, nameof(AccordionItem.ChildContent), (RenderFragment)(ib =>
+        builder.OpenComponent<PAccordionItem>(0);
+        builder.AddAttribute(1, nameof(PAccordionItem.Value), value);
+        builder.AddAttribute(2, nameof(PAccordionItem.Disabled), disabled);
+        builder.AddAttribute(3, nameof(PAccordionItem.ChildContent), (RenderFragment)(ib =>
         {
-            ib.OpenComponent<AccordionTrigger>(0);
-            ib.AddAttribute(1, nameof(AccordionTrigger.ChildContent), (RenderFragment)(tb => tb.AddContent(0, heading)));
+            ib.OpenComponent<PAccordionTrigger>(0);
+            ib.AddAttribute(1, nameof(PAccordionTrigger.ChildContent), (RenderFragment)(tb => tb.AddContent(0, heading)));
             ib.CloseComponent();
 
-            ib.OpenComponent<AccordionContent>(10);
-            ib.AddAttribute(11, nameof(AccordionContent.ChildContent), (RenderFragment)(cb => cb.AddContent(0, body)));
+            ib.OpenComponent<PAccordionContent>(10);
+            ib.AddAttribute(11, nameof(PAccordionContent.ChildContent), (RenderFragment)(cb => cb.AddContent(0, body)));
             ib.CloseComponent();
         }));
         builder.CloseComponent();
@@ -324,9 +324,9 @@ public class PrimitiveAccordionTests
     public async Task AccordionItem脱离Accordion应抛异常()
     {
         var renderer = CreateRenderer();
-        var mount = renderer.MountAsync<AccordionItem>(new Dictionary<string, object?>
+        var mount = renderer.MountAsync<PAccordionItem>(new Dictionary<string, object?>
         {
-            [nameof(AccordionItem.Value)] = "one",
+            [nameof(PAccordionItem.Value)] = "one",
         });
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await mount);
         Assert.Contains("AccordionItem 必须在 Accordion 组件内使用", ex.Message);
@@ -336,7 +336,7 @@ public class PrimitiveAccordionTests
     public async Task AccordionTrigger脱离AccordionItem应抛异常()
     {
         var renderer = CreateRenderer();
-        var mount = renderer.MountAsync<AccordionTrigger>(new Dictionary<string, object?>());
+        var mount = renderer.MountAsync<PAccordionTrigger>(new Dictionary<string, object?>());
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await mount);
         Assert.Contains("AccordionTrigger 必须在 AccordionItem 组件内使用", ex.Message);
     }
@@ -345,7 +345,7 @@ public class PrimitiveAccordionTests
     public async Task AccordionContent脱离AccordionItem应抛异常()
     {
         var renderer = CreateRenderer();
-        var mount = renderer.MountAsync<AccordionContent>(new Dictionary<string, object?>());
+        var mount = renderer.MountAsync<PAccordionContent>(new Dictionary<string, object?>());
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await mount);
         Assert.Contains("AccordionContent 必须在 AccordionItem 组件内使用", ex.Message);
     }
@@ -358,17 +358,17 @@ public class PrimitiveAccordionTests
         {
             [nameof(Accordion.ChildContent)] = (RenderFragment)(builder =>
             {
-                builder.OpenComponent<AccordionItem>(0);
-                builder.AddAttribute(1, nameof(AccordionItem.Value), "one");
-                builder.AddAttribute(2, nameof(AccordionItem.ChildContent), (RenderFragment)(ib =>
+                builder.OpenComponent<PAccordionItem>(0);
+                builder.AddAttribute(1, nameof(PAccordionItem.Value), "one");
+                builder.AddAttribute(2, nameof(PAccordionItem.ChildContent), (RenderFragment)(ib =>
                 {
-                    ib.OpenComponent<AccordionTrigger>(0);
-                    ib.AddAttribute(1, nameof(AccordionTrigger.ChildContent), (RenderFragment)(tb => tb.AddContent(0, "标题一")));
+                    ib.OpenComponent<PAccordionTrigger>(0);
+                    ib.AddAttribute(1, nameof(PAccordionTrigger.ChildContent), (RenderFragment)(tb => tb.AddContent(0, "标题一")));
                     ib.CloseComponent();
 
-                    ib.OpenComponent<AccordionContent>(10);
-                    ib.AddAttribute(11, nameof(AccordionContent.ForceMount), true);
-                    ib.AddAttribute(12, nameof(AccordionContent.ChildContent), (RenderFragment)(cb => cb.AddContent(0, "内容一")));
+                    ib.OpenComponent<PAccordionContent>(10);
+                    ib.AddAttribute(11, nameof(PAccordionContent.ForceMount), true);
+                    ib.AddAttribute(12, nameof(PAccordionContent.ChildContent), (RenderFragment)(cb => cb.AddContent(0, "内容一")));
                     ib.CloseComponent();
                 }));
                 builder.CloseComponent();
@@ -388,13 +388,13 @@ public class PrimitiveAccordionTests
         {
             [nameof(Accordion.ChildContent)] = (RenderFragment)(builder =>
             {
-                builder.OpenComponent<AccordionItem>(0);
-                builder.AddAttribute(1, nameof(AccordionItem.Value), "one");
-                builder.AddAttribute(2, nameof(AccordionItem.ChildContent), (RenderFragment)(ib =>
+                builder.OpenComponent<PAccordionItem>(0);
+                builder.AddAttribute(1, nameof(PAccordionItem.Value), "one");
+                builder.AddAttribute(2, nameof(PAccordionItem.ChildContent), (RenderFragment)(ib =>
                 {
-                    ib.OpenComponent<AccordionTrigger>(0);
-                    ib.AddAttribute(1, nameof(AccordionTrigger.As), "h2");
-                    ib.AddAttribute(2, nameof(AccordionTrigger.ChildContent), (RenderFragment)(tb => tb.AddContent(0, "标题一")));
+                    ib.OpenComponent<PAccordionTrigger>(0);
+                    ib.AddAttribute(1, nameof(PAccordionTrigger.As), "h2");
+                    ib.AddAttribute(2, nameof(PAccordionTrigger.ChildContent), (RenderFragment)(tb => tb.AddContent(0, "标题一")));
                     ib.CloseComponent();
                 }));
                 builder.CloseComponent();

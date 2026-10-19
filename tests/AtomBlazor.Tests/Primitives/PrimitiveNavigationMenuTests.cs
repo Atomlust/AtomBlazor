@@ -10,12 +10,12 @@ using Microsoft.JSInterop;
 using Xunit;
 // 双层同名家族（照 Accordion/Tabs/ScrollArea 先例）：本文件测基元层，
 // 别名钉死到 Primitives 侧，避免与 AtomBlazor.Components 同名类型发生 CS0104 歧义。
-using NavigationMenu = AtomBlazor.Primitives.NavigationMenuPrimitive;
-using NavigationMenuContent = AtomBlazor.Primitives.NavigationMenuContent;
-using NavigationMenuItem = AtomBlazor.Primitives.NavigationMenuItem;
-using NavigationMenuLink = AtomBlazor.Primitives.NavigationMenuLink;
-using NavigationMenuList = AtomBlazor.Primitives.NavigationMenuList;
-using NavigationMenuTrigger = AtomBlazor.Primitives.NavigationMenuTrigger;
+using PNavigationMenu = AtomBlazor.Primitives.NavigationMenuPrimitive;
+using PNavigationMenuContent = AtomBlazor.Primitives.NavigationMenuContent;
+using PNavigationMenuItem = AtomBlazor.Primitives.NavigationMenuItem;
+using PNavigationMenuLink = AtomBlazor.Primitives.NavigationMenuLink;
+using PNavigationMenuList = AtomBlazor.Primitives.NavigationMenuList;
+using PNavigationMenuTrigger = AtomBlazor.Primitives.NavigationMenuTrigger;
 
 namespace AtomBlazor.Tests.Primitives;
 
@@ -33,7 +33,7 @@ public class PrimitiveNavigationMenuTests
     {
         var stub = new NoopJavaScript();
         js = stub;
-        var services = new ServiceCollection();
+        var services = new ServiceCollection().AddAtomBlazorTestDefaults();
         services.AddSingleton<IJSRuntime>(stub);
         services.AddSingleton(navigation ?? new TestNavigationManager("https://localhost/", "https://localhost/home"));
         return new ComponentTestRenderer(services.BuildServiceProvider(), NullLoggerFactory.Instance);
@@ -60,37 +60,37 @@ public class PrimitiveNavigationMenuTests
     /// <summary>List 包两枚 Item：各带 Trigger 与 Content，第一枚值锚定 "docs"。</summary>
     private static RenderFragment TwoItems() => builder =>
     {
-        builder.OpenComponent<NavigationMenuList>(0);
-        builder.AddAttribute(1, nameof(NavigationMenuList.ChildContent), (RenderFragment)(inner =>
+        builder.OpenComponent<PNavigationMenuList>(0);
+        builder.AddAttribute(1, nameof(PNavigationMenuList.ChildContent), (RenderFragment)(inner =>
         {
-            inner.OpenComponent<NavigationMenuItem>(0);
-            inner.AddAttribute(1, nameof(NavigationMenuItem.Value), "docs");
-            inner.AddAttribute(2, nameof(NavigationMenuItem.ChildContent), (RenderFragment)(leaf =>
+            inner.OpenComponent<PNavigationMenuItem>(0);
+            inner.AddAttribute(1, nameof(PNavigationMenuItem.Value), "docs");
+            inner.AddAttribute(2, nameof(PNavigationMenuItem.ChildContent), (RenderFragment)(leaf =>
             {
-                leaf.OpenComponent<NavigationMenuTrigger>(0);
-                leaf.AddAttribute(1, nameof(NavigationMenuTrigger.ChildContent), (RenderFragment)(b => b.AddContent(0, "文档")));
+                leaf.OpenComponent<PNavigationMenuTrigger>(0);
+                leaf.AddAttribute(1, nameof(PNavigationMenuTrigger.ChildContent), (RenderFragment)(b => b.AddContent(0, "文档")));
                 leaf.CloseComponent();
-                leaf.OpenComponent<NavigationMenuContent>(2);
-                leaf.AddAttribute(3, nameof(NavigationMenuContent.ChildContent), (RenderFragment)(b =>
+                leaf.OpenComponent<PNavigationMenuContent>(2);
+                leaf.AddAttribute(3, nameof(PNavigationMenuContent.ChildContent), (RenderFragment)(b =>
                 {
-                    b.OpenComponent<NavigationMenuLink>(0);
-                    b.AddAttribute(1, nameof(NavigationMenuLink.Href), "/docs");
-                    b.AddAttribute(2, nameof(NavigationMenuLink.ChildContent), (RenderFragment)(x => x.AddContent(0, "开始")));
+                    b.OpenComponent<PNavigationMenuLink>(0);
+                    b.AddAttribute(1, nameof(PNavigationMenuLink.Href), "/docs");
+                    b.AddAttribute(2, nameof(PNavigationMenuLink.ChildContent), (RenderFragment)(x => x.AddContent(0, "开始")));
                     b.CloseComponent();
                 }));
                 leaf.CloseComponent();
             }));
             inner.CloseComponent();
 
-            inner.OpenComponent<NavigationMenuItem>(3);
-            inner.AddAttribute(4, nameof(NavigationMenuItem.Value), "blog");
-            inner.AddAttribute(5, nameof(NavigationMenuItem.ChildContent), (RenderFragment)(leaf =>
+            inner.OpenComponent<PNavigationMenuItem>(3);
+            inner.AddAttribute(4, nameof(PNavigationMenuItem.Value), "blog");
+            inner.AddAttribute(5, nameof(PNavigationMenuItem.ChildContent), (RenderFragment)(leaf =>
             {
-                leaf.OpenComponent<NavigationMenuTrigger>(0);
-                leaf.AddAttribute(1, nameof(NavigationMenuTrigger.ChildContent), (RenderFragment)(b => b.AddContent(0, "博客")));
+                leaf.OpenComponent<PNavigationMenuTrigger>(0);
+                leaf.AddAttribute(1, nameof(PNavigationMenuTrigger.ChildContent), (RenderFragment)(b => b.AddContent(0, "博客")));
                 leaf.CloseComponent();
-                leaf.OpenComponent<NavigationMenuContent>(2);
-                leaf.AddAttribute(3, nameof(NavigationMenuContent.ChildContent), (RenderFragment)(b => b.AddContent(0, "博文列表")));
+                leaf.OpenComponent<PNavigationMenuContent>(2);
+                leaf.AddAttribute(3, nameof(PNavigationMenuContent.ChildContent), (RenderFragment)(b => b.AddContent(0, "博文列表")));
                 leaf.CloseComponent();
             }));
             inner.CloseComponent();
@@ -98,12 +98,12 @@ public class PrimitiveNavigationMenuTests
         builder.CloseComponent();
     };
 
-    private static async Task<(ComponentTestRenderer Renderer, NoopJavaScript Js, NavigationMenu Root)> MountAsync(
+    private static async Task<(ComponentTestRenderer Renderer, NoopJavaScript Js, PNavigationMenu Root)> MountAsync(
         Dictionary<string, object?> parameters, RenderFragment? childContent = null)
     {
         var renderer = CreateRenderer(out var js);
-        parameters.TryAdd(nameof(NavigationMenu.ChildContent), childContent ?? TwoItems());
-        var root = await renderer.MountAsync<NavigationMenu>(parameters);
+        parameters.TryAdd(nameof(PNavigationMenu.ChildContent), childContent ?? TwoItems());
+        var root = await renderer.MountAsync<PNavigationMenu>(parameters);
         await renderer.Dispatcher.InvokeAsync(() => { });
         return (renderer, js, root);
     }
@@ -391,20 +391,20 @@ public class PrimitiveNavigationMenuTests
 
     private static RenderFragment SingleItemWithHomeLink() => builder =>
     {
-        builder.OpenComponent<NavigationMenuItem>(0);
-        builder.AddAttribute(1, nameof(NavigationMenuItem.Value), "home");
-        builder.AddAttribute(2, nameof(NavigationMenuItem.ChildContent), (RenderFragment)(inner =>
+        builder.OpenComponent<PNavigationMenuItem>(0);
+        builder.AddAttribute(1, nameof(PNavigationMenuItem.Value), "home");
+        builder.AddAttribute(2, nameof(PNavigationMenuItem.ChildContent), (RenderFragment)(inner =>
         {
-            inner.OpenComponent<NavigationMenuTrigger>(0);
-            inner.AddAttribute(1, nameof(NavigationMenuTrigger.ChildContent), (RenderFragment)(b => b.AddContent(0, "首页")));
+            inner.OpenComponent<PNavigationMenuTrigger>(0);
+            inner.AddAttribute(1, nameof(PNavigationMenuTrigger.ChildContent), (RenderFragment)(b => b.AddContent(0, "首页")));
             inner.CloseComponent();
-            inner.OpenComponent<NavigationMenuContent>(2);
-            inner.AddAttribute(3, nameof(NavigationMenuContent.ChildContent), (RenderFragment)(b =>
+            inner.OpenComponent<PNavigationMenuContent>(2);
+            inner.AddAttribute(3, nameof(PNavigationMenuContent.ChildContent), (RenderFragment)(b =>
             {
-                b.OpenComponent<NavigationMenuLink>(0);
-                b.AddAttribute(1, nameof(NavigationMenuLink.Href), "/home");
-                b.AddAttribute(2, nameof(NavigationMenuLink.Match), NavLinkMatch.Prefix);
-                b.AddAttribute(3, nameof(NavigationMenuLink.ChildContent), (RenderFragment)(x => x.AddContent(0, "回首页")));
+                b.OpenComponent<PNavigationMenuLink>(0);
+                b.AddAttribute(1, nameof(PNavigationMenuLink.Href), "/home");
+                b.AddAttribute(2, nameof(PNavigationMenuLink.Match), NavLinkMatch.Prefix);
+                b.AddAttribute(3, nameof(PNavigationMenuLink.ChildContent), (RenderFragment)(x => x.AddContent(0, "回首页")));
                 b.CloseComponent();
             }));
             inner.CloseComponent();
@@ -417,9 +417,9 @@ public class PrimitiveNavigationMenuTests
     {
         var navigation = new TestNavigationManager("https://localhost/", "https://localhost/home");
         var renderer = CreateRenderer(out _, navigation);
-        await renderer.MountAsync<NavigationMenu>(new Dictionary<string, object?>
+        await renderer.MountAsync<PNavigationMenu>(new Dictionary<string, object?>
         {
-            [nameof(NavigationMenu.ChildContent)] = TwoItems(),
+            [nameof(PNavigationMenu.ChildContent)] = TwoItems(),
         });
         await renderer.Dispatcher.InvokeAsync(() => { });
 
@@ -481,11 +481,11 @@ public class PrimitiveNavigationMenuTests
 
     private static RenderFragment ValuelessItem() => builder =>
     {
-        builder.OpenComponent<NavigationMenuItem>(0);
-        builder.AddAttribute(1, nameof(NavigationMenuItem.ChildContent), (RenderFragment)(inner =>
+        builder.OpenComponent<PNavigationMenuItem>(0);
+        builder.AddAttribute(1, nameof(PNavigationMenuItem.ChildContent), (RenderFragment)(inner =>
         {
-            inner.OpenComponent<NavigationMenuTrigger>(0);
-            inner.AddAttribute(1, nameof(NavigationMenuTrigger.ChildContent), (RenderFragment)(b => b.AddContent(0, "自动")));
+            inner.OpenComponent<PNavigationMenuTrigger>(0);
+            inner.AddAttribute(1, nameof(PNavigationMenuTrigger.ChildContent), (RenderFragment)(b => b.AddContent(0, "自动")));
             inner.CloseComponent();
         }));
         builder.CloseComponent();
@@ -496,7 +496,7 @@ public class PrimitiveNavigationMenuTests
     {
         var (renderer, _, root) = await MountAsync(new Dictionary<string, object?>
         {
-            [nameof(NavigationMenu.AdditionalAttributes)] = new Dictionary<string, object> { ["data-nav-root"] = "on" },
+            [nameof(PNavigationMenu.AdditionalAttributes)] = new Dictionary<string, object> { ["data-nav-root"] = "on" },
         }, childContent: SplatCarryingTree());
 
         var markup = renderer.Markup();
@@ -509,21 +509,21 @@ public class PrimitiveNavigationMenuTests
     /// <summary>List/Item/Trigger 各带一枚唯一 data-* 透传属性的小树。</summary>
     private static RenderFragment SplatCarryingTree() => builder =>
     {
-        builder.OpenComponent<NavigationMenuList>(0);
-        builder.AddAttribute(1, nameof(NavigationMenuList.AdditionalAttributes),
+        builder.OpenComponent<PNavigationMenuList>(0);
+        builder.AddAttribute(1, nameof(PNavigationMenuList.AdditionalAttributes),
             new Dictionary<string, object> { ["data-splat-list"] = "1" });
-        builder.AddAttribute(2, nameof(NavigationMenuList.ChildContent), (RenderFragment)(inner =>
+        builder.AddAttribute(2, nameof(PNavigationMenuList.ChildContent), (RenderFragment)(inner =>
         {
-            inner.OpenComponent<NavigationMenuItem>(0);
-            inner.AddAttribute(1, nameof(NavigationMenuItem.Value), "docs");
-            inner.AddAttribute(2, nameof(NavigationMenuItem.AdditionalAttributes),
+            inner.OpenComponent<PNavigationMenuItem>(0);
+            inner.AddAttribute(1, nameof(PNavigationMenuItem.Value), "docs");
+            inner.AddAttribute(2, nameof(PNavigationMenuItem.AdditionalAttributes),
                 new Dictionary<string, object> { ["data-splat-item"] = "1" });
-            inner.AddAttribute(3, nameof(NavigationMenuItem.ChildContent), (RenderFragment)(leaf =>
+            inner.AddAttribute(3, nameof(PNavigationMenuItem.ChildContent), (RenderFragment)(leaf =>
             {
-                leaf.OpenComponent<NavigationMenuTrigger>(0);
-                leaf.AddAttribute(1, nameof(NavigationMenuTrigger.AdditionalAttributes),
+                leaf.OpenComponent<PNavigationMenuTrigger>(0);
+                leaf.AddAttribute(1, nameof(PNavigationMenuTrigger.AdditionalAttributes),
                     new Dictionary<string, object> { ["data-splat-trigger"] = "1" });
-                leaf.AddAttribute(2, nameof(NavigationMenuTrigger.ChildContent), (RenderFragment)(b => b.AddContent(0, "文档")));
+                leaf.AddAttribute(2, nameof(PNavigationMenuTrigger.ChildContent), (RenderFragment)(b => b.AddContent(0, "文档")));
                 leaf.CloseComponent();
             }));
             inner.CloseComponent();
@@ -536,7 +536,7 @@ public class PrimitiveNavigationMenuTests
     {
         var (renderer, _, root) = await MountAsync(new Dictionary<string, object?>
         {
-            [nameof(NavigationMenu.EnableKeyboardNavigation)] = true,
+            [nameof(PNavigationMenu.EnableKeyboardNavigation)] = true,
         });
 
         await FireAsync(renderer, "onclick", new MouseEventArgs());

@@ -9,11 +9,11 @@ using Microsoft.JSInterop;
 using Xunit;
 // 双层同名家族（照 Accordion/Tabs 先例）：本文件测基元层，别名钉死到 Primitives 侧，
 // 避免与 AtomBlazor.Components 同名类型（ScrollArea/ScrollAreaOrientation 等在册）发生 CS0104 歧义。
-using ScrollArea = AtomBlazor.Primitives.ScrollAreaPrimitive;
-using ScrollAreaOrientation = AtomBlazor.Primitives.ScrollAreaOrientation;
-using ScrollAreaScrollbar = AtomBlazor.Primitives.ScrollAreaScrollbar;
-using ScrollAreaThumb = AtomBlazor.Primitives.ScrollAreaThumb;
-using ScrollAreaViewport = AtomBlazor.Primitives.ScrollAreaViewport;
+using PScrollArea = AtomBlazor.Primitives.ScrollAreaPrimitive;
+using PScrollAreaOrientation = AtomBlazor.Primitives.ScrollAreaOrientation;
+using PScrollAreaScrollbar = AtomBlazor.Primitives.ScrollAreaScrollbar;
+using PScrollAreaThumb = AtomBlazor.Primitives.ScrollAreaThumb;
+using PScrollAreaViewport = AtomBlazor.Primitives.ScrollAreaViewport;
 
 namespace AtomBlazor.Tests.Components;
 
@@ -34,7 +34,7 @@ public class PrimitiveScrollAreaTests
     {
         var stub = new NoopJavaScript();
         js = stub;
-        var services = new ServiceCollection();
+        var services = new ServiceCollection().AddAtomBlazorTestDefaults();
         services.AddSingleton<IJSRuntime>(stub);
         services.AddSingleton<ILocalizer, DefaultLocalizer>();
         return new ComponentTestRenderer(services.BuildServiceProvider(), NullLoggerFactory.Instance);
@@ -43,24 +43,24 @@ public class PrimitiveScrollAreaTests
     /// <summary>Viewport + 双方向滚动条（各带 Thumb）的完整内容树。</summary>
     private static RenderFragment FullTree() => builder =>
     {
-        builder.OpenComponent<ScrollAreaViewport>(0);
-        builder.AddAttribute(1, nameof(ScrollAreaViewport.ChildContent),
+        builder.OpenComponent<PScrollAreaViewport>(0);
+        builder.AddAttribute(1, nameof(PScrollAreaViewport.ChildContent),
             (RenderFragment)(b => b.AddContent(0, "滚动内容")));
         builder.CloseComponent();
 
-        builder.OpenComponent<ScrollAreaScrollbar>(2);
-        builder.AddAttribute(3, nameof(ScrollAreaScrollbar.ChildContent), (RenderFragment)(sb =>
+        builder.OpenComponent<PScrollAreaScrollbar>(2);
+        builder.AddAttribute(3, nameof(PScrollAreaScrollbar.ChildContent), (RenderFragment)(sb =>
         {
-            sb.OpenComponent<ScrollAreaThumb>(0);
+            sb.OpenComponent<PScrollAreaThumb>(0);
             sb.CloseComponent();
         }));
         builder.CloseComponent();
 
-        builder.OpenComponent<ScrollAreaScrollbar>(4);
-        builder.AddAttribute(5, nameof(ScrollAreaScrollbar.Orientation), ScrollAreaOrientation.Horizontal);
-        builder.AddAttribute(6, nameof(ScrollAreaScrollbar.ChildContent), (RenderFragment)(sb =>
+        builder.OpenComponent<PScrollAreaScrollbar>(4);
+        builder.AddAttribute(5, nameof(PScrollAreaScrollbar.Orientation), PScrollAreaOrientation.Horizontal);
+        builder.AddAttribute(6, nameof(PScrollAreaScrollbar.ChildContent), (RenderFragment)(sb =>
         {
-            sb.OpenComponent<ScrollAreaThumb>(0);
+            sb.OpenComponent<PScrollAreaThumb>(0);
             sb.CloseComponent();
         }));
         builder.CloseComponent();
@@ -69,15 +69,15 @@ public class PrimitiveScrollAreaTests
     /// <summary>仅 Viewport + 纵向滚动条的默认内容树。</summary>
     private static RenderFragment VerticalTree() => builder =>
     {
-        builder.OpenComponent<ScrollAreaViewport>(0);
-        builder.AddAttribute(1, nameof(ScrollAreaViewport.ChildContent),
+        builder.OpenComponent<PScrollAreaViewport>(0);
+        builder.AddAttribute(1, nameof(PScrollAreaViewport.ChildContent),
             (RenderFragment)(b => b.AddContent(0, "滚动内容")));
         builder.CloseComponent();
 
-        builder.OpenComponent<ScrollAreaScrollbar>(2);
-        builder.AddAttribute(3, nameof(ScrollAreaScrollbar.ChildContent), (RenderFragment)(sb =>
+        builder.OpenComponent<PScrollAreaScrollbar>(2);
+        builder.AddAttribute(3, nameof(PScrollAreaScrollbar.ChildContent), (RenderFragment)(sb =>
         {
-            sb.OpenComponent<ScrollAreaThumb>(0);
+            sb.OpenComponent<PScrollAreaThumb>(0);
             sb.CloseComponent();
         }));
         builder.CloseComponent();
@@ -87,8 +87,8 @@ public class PrimitiveScrollAreaTests
         Dictionary<string, object?> parameters, RenderFragment? childContent = null)
     {
         var renderer = CreateRenderer(out var js);
-        parameters.TryAdd(nameof(ScrollArea.ChildContent), childContent ?? VerticalTree());
-        await renderer.MountAsync<ScrollArea>(parameters);
+        parameters.TryAdd(nameof(PScrollArea.ChildContent), childContent ?? VerticalTree());
+        await renderer.MountAsync<PScrollArea>(parameters);
         await renderer.Dispatcher.InvokeAsync(() => { });
         return (renderer, js);
     }
@@ -110,7 +110,7 @@ public class PrimitiveScrollAreaTests
     {
         var (renderer, _) = await MountAsync(new Dictionary<string, object?>
         {
-            [nameof(ScrollArea.Orientation)] = ScrollAreaOrientation.Horizontal,
+            [nameof(PScrollArea.Orientation)] = PScrollAreaOrientation.Horizontal,
         });
 
         var markup = renderer.Markup();
@@ -119,13 +119,13 @@ public class PrimitiveScrollAreaTests
     }
 
     [Theory]
-    [InlineData(ScrollAreaOrientation.Vertical, "overflow-x: hidden; overflow-y: scroll")]
-    [InlineData(ScrollAreaOrientation.Both, "overflow: scroll")]
-    public async Task Viewport基础样式应随朝向映射(ScrollAreaOrientation orientation, string expected)
+    [InlineData(PScrollAreaOrientation.Vertical, "overflow-x: hidden; overflow-y: scroll")]
+    [InlineData(PScrollAreaOrientation.Both, "overflow: scroll")]
+    public async Task Viewport基础样式应随朝向映射(PScrollAreaOrientation orientation, string expected)
     {
         var (renderer, _) = await MountAsync(new Dictionary<string, object?>
         {
-            [nameof(ScrollArea.Orientation)] = orientation,
+            [nameof(PScrollArea.Orientation)] = orientation,
         });
 
         var markup = renderer.Markup();
@@ -185,7 +185,7 @@ public class PrimitiveScrollAreaTests
     public async Task ScrollAreaViewport脱离ScrollArea应抛异常()
     {
         var renderer = CreateRenderer(out _);
-        var mount = renderer.MountAsync<ScrollAreaViewport>(new Dictionary<string, object?>());
+        var mount = renderer.MountAsync<PScrollAreaViewport>(new Dictionary<string, object?>());
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await mount);
         Assert.Contains("ScrollAreaViewport 必须在 ScrollArea 组件内使用", ex.Message);
     }
@@ -194,7 +194,7 @@ public class PrimitiveScrollAreaTests
     public async Task ScrollAreaScrollbar脱离ScrollArea应抛异常()
     {
         var renderer = CreateRenderer(out _);
-        var mount = renderer.MountAsync<ScrollAreaScrollbar>(new Dictionary<string, object?>());
+        var mount = renderer.MountAsync<PScrollAreaScrollbar>(new Dictionary<string, object?>());
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await mount);
         Assert.Contains("ScrollAreaScrollbar 必须在 ScrollArea 组件内使用", ex.Message);
     }
@@ -203,7 +203,7 @@ public class PrimitiveScrollAreaTests
     public async Task ScrollAreaThumb脱离ScrollArea应抛异常()
     {
         var renderer = CreateRenderer(out _);
-        var mount = renderer.MountAsync<ScrollAreaThumb>(new Dictionary<string, object?>());
+        var mount = renderer.MountAsync<PScrollAreaThumb>(new Dictionary<string, object?>());
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await mount);
         Assert.Contains("ScrollAreaThumb 必须在 ScrollArea 组件内使用", ex.Message);
     }
@@ -214,7 +214,7 @@ public class PrimitiveScrollAreaTests
         var (renderer, _) = await MountAsync(new Dictionary<string, object?>());
 
         var scrollbar = await renderer.Dispatcher.InvokeAsync(
-            () => renderer.FindComponent<ScrollAreaScrollbar>());
+            () => renderer.FindComponent<PScrollAreaScrollbar>());
         await renderer.Dispatcher.InvokeAsync(() => scrollbar.JsUpdateScrollState(50, "visible"));
 
         var markup = renderer.Markup();
@@ -233,7 +233,7 @@ public class PrimitiveScrollAreaTests
         var (renderer, _) = await MountAsync(new Dictionary<string, object?>());
 
         var scrollbar = await renderer.Dispatcher.InvokeAsync(
-            () => renderer.FindComponent<ScrollAreaScrollbar>());
+            () => renderer.FindComponent<PScrollAreaScrollbar>());
         await renderer.Dispatcher.InvokeAsync(() => scrollbar.JsUpdateScrollState(value, "visible"));
 
         Assert.Contains($"aria-valuenow=\"{expected}\"", renderer.Markup());
@@ -245,7 +245,7 @@ public class PrimitiveScrollAreaTests
         var (renderer, _) = await MountAsync(new Dictionary<string, object?>());
 
         var scrollbar = await renderer.Dispatcher.InvokeAsync(
-            () => renderer.FindComponent<ScrollAreaScrollbar>());
+            () => renderer.FindComponent<PScrollAreaScrollbar>());
         await renderer.Dispatcher.InvokeAsync(() => ((IAsyncDisposable)scrollbar).DisposeAsync().AsTask());
 
         await renderer.Dispatcher.InvokeAsync(() => scrollbar.JsUpdateScrollState(50, "visible"));
@@ -274,7 +274,7 @@ public class PrimitiveScrollAreaTests
         Assert.IsAssignableFrom<IJSObjectReference>(args[1]);
         Assert.IsType<Microsoft.AspNetCore.Components.ElementReference>(args[2]);
         Assert.NotNull(args[3]);
-        Assert.True(args[3]!.GetType().IsGenericType); // DotNetObjectReference<ScrollAreaScrollbar>
+        Assert.True(args[3]!.GetType().IsGenericType); // DotNetObjectReference<PScrollAreaScrollbar>
         Assert.Equal("vertical", args[4]!.GetType().GetProperty("orientation")!.GetValue(args[4]));
     }
 
@@ -303,7 +303,7 @@ public class PrimitiveScrollAreaTests
         var instanceId = Assert.IsType<string>(initialize.Args![0]);
 
         var scrollbar = await renderer.Dispatcher.InvokeAsync(
-            () => renderer.FindComponent<ScrollAreaScrollbar>());
+            () => renderer.FindComponent<PScrollAreaScrollbar>());
         await renderer.Dispatcher.InvokeAsync(() => ((IAsyncDisposable)scrollbar).DisposeAsync().AsTask());
 
         var dispose = Assert.Single(js.Invocations, i => i.Identifier == "scrollArea.dispose");
@@ -316,7 +316,7 @@ public class PrimitiveScrollAreaTests
     {
         var (renderer, _) = await MountAsync(new Dictionary<string, object?>
         {
-            [nameof(ScrollArea.AdditionalAttributes)] = new Dictionary<string, object>
+            [nameof(PScrollArea.AdditionalAttributes)] = new Dictionary<string, object>
             {
                 ["style"] = "color: red",
                 ["data-custom"] = "yes",
@@ -336,12 +336,12 @@ public class PrimitiveScrollAreaTests
     public async Task Viewport消费者样式应追加在基础溢出样式之后()
     {
         var renderer = CreateRenderer(out _);
-        await renderer.MountAsync<ScrollArea>(new Dictionary<string, object?>
+        await renderer.MountAsync<PScrollArea>(new Dictionary<string, object?>
         {
-            [nameof(ScrollArea.ChildContent)] = (RenderFragment)(builder =>
+            [nameof(PScrollArea.ChildContent)] = (RenderFragment)(builder =>
             {
-                builder.OpenComponent<ScrollAreaViewport>(0);
-                builder.AddAttribute(1, nameof(ScrollAreaViewport.AdditionalAttributes),
+                builder.OpenComponent<PScrollAreaViewport>(0);
+                builder.AddAttribute(1, nameof(PScrollAreaViewport.AdditionalAttributes),
                     new Dictionary<string, object> { ["style"] = "background: blue" });
                 builder.CloseComponent();
             }),
@@ -355,10 +355,10 @@ public class PrimitiveScrollAreaTests
     public void 朝向枚举应保声明序三值()
     {
         // 声明序断言照 TimelineTests 先例以序号取值。
-        Assert.Equal(0, (int)ScrollAreaOrientation.Vertical);
-        Assert.Equal(1, (int)ScrollAreaOrientation.Horizontal);
-        Assert.Equal(2, (int)ScrollAreaOrientation.Both);
-        Assert.Equal(3, Enum.GetNames<ScrollAreaOrientation>().Length);
+        Assert.Equal(0, (int)PScrollAreaOrientation.Vertical);
+        Assert.Equal(1, (int)PScrollAreaOrientation.Horizontal);
+        Assert.Equal(2, (int)PScrollAreaOrientation.Both);
+        Assert.Equal(3, Enum.GetNames<PScrollAreaOrientation>().Length);
     }
 
     [Fact]

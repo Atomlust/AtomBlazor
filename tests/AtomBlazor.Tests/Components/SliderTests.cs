@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text.RegularExpressions;
 using AtomBlazor.Primitives;
 using AtomBlazor.Tests.Rendering;
 using Microsoft.AspNetCore.Components;
@@ -24,7 +26,7 @@ public class SliderTests
     private static (ComponentTestRenderer Renderer, NoopJavaScript Js) CreateRenderer()
     {
         var js = new NoopJavaScript();
-        var services = new ServiceCollection();
+        var services = new ServiceCollection().AddAtomBlazorTestDefaults();
         services.AddSingleton<IJSRuntime>(js);
         return (new ComponentTestRenderer(services.BuildServiceProvider(), NullLoggerFactory.Instance), js);
     }
@@ -49,6 +51,18 @@ public class SliderTests
             renderer.MountTypeAsync(typeof(Slider), dict));
         await FlushAsync(renderer);
         return (renderer, js, (Slider)component);
+    }
+
+    /// <summary>
+    /// 读取渲染出的当前值：Thumb 以 aria-valuenow 呈现基元的 CurrentValue。
+    /// 非受控模式下 styled Slider 的 Value 只是输入参数，实例上读不回步进结果，
+    /// 因此键盘步进语义必须从 DOM 断言。
+    /// </summary>
+    private static double ValueNow(ComponentTestRenderer renderer)
+    {
+        var match = Regex.Match(renderer.Markup(), "aria-valuenow=\"([0-9.]+)\"");
+        Assert.True(match.Success, "渲染输出中没有 aria-valuenow，滑块轨道/滑块子树可能未渲染");
+        return double.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
     }
 
     /// <summary>挂载 Components 层 Slider 组件（内部包装基元）。</summary>
@@ -178,7 +192,7 @@ public class SliderTests
         await KeyAsync(renderer, "ArrowUp");
         await FlushAsync(renderer);
 
-        Assert.Equal(0, slider.Value);
+        Assert.Equal(0, ValueNow(renderer));
     }
 
     // ------------------------------------------------------------------
@@ -205,7 +219,7 @@ public class SliderTests
         await KeyAsync(renderer, key);
         await FlushAsync(renderer);
 
-        Assert.Equal(expected, slider.Value);
+        Assert.Equal(expected, ValueNow(renderer));
     }
 
     [Fact]
@@ -221,11 +235,11 @@ public class SliderTests
         // largeStep = 200 / 10 = 20。
         await KeyAsync(renderer, "PageUp");
         await FlushAsync(renderer);
-        Assert.Equal(70, slider.Value);
+        Assert.Equal(70, ValueNow(renderer));
 
         await KeyAsync(renderer, "PageDown");
         await FlushAsync(renderer);
-        Assert.Equal(50, slider.Value);
+        Assert.Equal(50, ValueNow(renderer));
     }
 
     [Fact]
@@ -241,16 +255,16 @@ public class SliderTests
         var rtl = await MountInDirectionAsync(TextDirection.RightToLeft);
         await KeyAsync(rtl.Renderer, "ArrowLeft");
         await FlushAsync(rtl.Renderer);
-        Assert.Equal(55, rtl.Component.Value);
+        Assert.Equal(55, ValueNow(rtl.Renderer));
 
         await KeyAsync(rtl.Renderer, "ArrowRight");
         await FlushAsync(rtl.Renderer);
-        Assert.Equal(50, rtl.Component.Value);
+        Assert.Equal(50, ValueNow(rtl.Renderer));
 
         // LTR 基线：同样的按键向反方向走。
         await KeyAsync(renderer, "ArrowLeft");
         await FlushAsync(renderer);
-        Assert.Equal(45, slider.Value);
+        Assert.Equal(45, ValueNow(renderer));
     }
 
     /// <summary>用 RTL/LTR 级联上下文包住一个基元 Slider，用于方向键语义测试。</summary>
@@ -481,8 +495,9 @@ public class SliderTests
         await KeyAsync(renderer, "ArrowUp");
         await FlushAsync(renderer);
 
-        var primitive = renderer.FindComponent<Slider>();
-        Assert.Equal(30, primitive.Value);
+        // 根组件自身不在 FindComponent 可见范围内，且非受控态读不回 Value：
+        // 直接断言 Thumb 渲染出的 aria-valuenow。
+        Assert.Equal(30, ValueNow(renderer));
         Assert.Contains("aria-valuenow=\"30\"", renderer.Markup());
 
         // 组件层的 CSS 类：水平默认布局。

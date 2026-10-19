@@ -5,9 +5,9 @@
     点击时关闭对话框。
 *@
 
-<DialogClose @attributes="AdditionalAttributes">
+<AtomBlazor.DialogClose AsChild="@AsChild" @attributes="FilteredAttributes">
     @ChildContent
-</DialogClose>
+</AtomBlazor.DialogClose>
 
 @code {
     /// <summary>
@@ -17,8 +17,35 @@
     public RenderFragment? ChildContent { get; set; }
 
     /// <summary>
+    /// 为 true 时不渲染默认按钮外壳，关闭行为经级联上下文传给子组件
+    /// （需要由自定义按钮如 Button 充当触发器时使用）。
+    /// </summary>
+    [Parameter]
+    public bool AsChild { get; set; } = true;
+
+    /// <summary>
     /// 获取或设置要应用到根元素的额外 HTML 属性。
     /// </summary>
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>返回移除了已显式处理参数（AsChild）的 AdditionalAttributes。</summary>
+    private Dictionary<string, object>? FilteredAttributes
+    {
+        get
+        {
+            if (AdditionalAttributes == null) return null;
+
+            var filtered = new Dictionary<string, object>();
+            foreach (var kvp in AdditionalAttributes)
+            {
+                if (!kvp.Key.Equals("AsChild", StringComparison.OrdinalIgnoreCase))
+                {
+                    filtered[kvp.Key] = kvp.Value;
+                }
+            }
+
+            return filtered.Count > 0 ? filtered : null;
+        }
+    }
 }

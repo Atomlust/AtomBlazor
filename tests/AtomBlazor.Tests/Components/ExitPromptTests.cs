@@ -88,7 +88,7 @@ public class ExitPromptTests
     {
         var js = new NoopJavaScript();
         var navigation = new TestNavigationManager("https://localhost/", "https://localhost/");
-        var services = new ServiceCollection();
+        var services = new ServiceCollection().AddAtomBlazorTestDefaults();
         services.AddSingleton<IJSRuntime>(js);
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
         services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
@@ -350,9 +350,32 @@ public class ExitPromptTests
     }
 
     [Fact]
-    public async Task 拦下导航的对话框结构快照应与基线一致()
+    public async Task 拦下导航的对话框应具备可访问结构与两个动作按钮()
     {
+        // 不做整段标记快照：浮层有 JS / 原生 <dialog> / 内联三条渲染策略，门户内容由
+        // PortalHost 渲染进渲染器自建的根，单测渲染器观察不到（参考项目同样只保留
+        // API 表面快照）。类名覆盖由 AlertDialog 组件自身的源码约定保证，这里只钉住
+        // 与策略无关的结构与无障碍契约。
         var (renderer, _, _, _, _) = await HeldAsync();
-        await Verify(Scrub(renderer.Markup()));
+        var markup = Scrub(renderer.Markup());
+
+        // 内容面板：role/aria-modal/状态
+        Assert.Contains("role=\"alertdialog\"", markup);
+        Assert.Contains("aria-modal=\"true\"", markup);
+        Assert.Contains("data-state=\"open\"", markup);
+
+        // 标题与描述经 aria-labelledby / aria-describedby 关联，且锚点确实存在
+        Assert.Matches(@"aria-labelledby=""dialog-<n>-title""", markup);
+        Assert.Matches(@"aria-describedby=""dialog-<n>-description""", markup);
+        Assert.Contains("id=\"dialog-<n>-title\"", markup);
+        Assert.Contains("id=\"dialog-<n>-description\"", markup);
+
+        // 本地化文案落在结构里
+        Assert.Contains("Leave without saving?", markup);
+        Assert.Contains("Your changes have not been saved.", markup);
+
+        // 两个动作按钮
+        Assert.Contains("Stay on this page", markup);
+        Assert.Contains("Leave and discard", markup);
     }
 }

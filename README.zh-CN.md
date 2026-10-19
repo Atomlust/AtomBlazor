@@ -8,7 +8,7 @@
 
 [![NuGet](https://img.shields.io/nuget/v/AtomBlazor.svg)](https://www.nuget.org/packages/AtomBlazor)
 ![.NET](https://img.shields.io/badge/.NET-11.0+-512BD4?logo=.net&logoColor=white)
-![AOT](https://img.shields.io/badge/AOT-compatible-success)
+![可裁剪](https://img.shields.io/badge/trim-AOT%20ready-success)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38BDF8?logo=tailwindcss&logoColor=white)
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
 
@@ -24,7 +24,7 @@
 - **双层架构。** 在 **AtomBlazor.Primitives**（无样式、完全可组合的基元，内置 ARIA 属性与完整键盘导航）之上构建你自己的设计系统；或直接使用其上的预样式组件，即刻交付。
 - **真正可用的主题系统。** 单一 OKLCH 设计令牌体系驱动亮/暗双模、5 套基础色、10+ 主色、圆角与密度预设——全部支持**运行时切换**并跨刷新持久化。无需双份样式表，没有 `!important` 大战。
 - **Blazor 能跑的地方它都能跑。** 四种宿主模型全部实测通过：Blazor Server、WebAssembly、Auto、MAUI Blazor Hybrid。
-- **AOT 与裁剪就绪。** 库工程开启 `IsAotCompatible`，经 ILLink 裁剪实测**零裁剪警告**——Native AOT 部署是一等公民。
+- **默认可裁剪，零裁剪警告。** 库工程开启 `IsAotCompatible`，经 ILLink 分析构建干净。**Native AOT 有一点需注意**：动态筛选与排序路径会编译为 LINQ 表达式树，需要动态代码——以 Native AOT 部署时，请在内存中预先完成筛选与排序（或改用强类型 LINQ）。
 - **JS 互操作不添乱。** 交互模块在首次渲染时惰性 `import`，按运行时缓存并附版本戳；仅主题引导脚本预加载。
 - **图标零网络请求。** 四个图标包——Lucide（1,753 枚）、Heroicons（Outline/Solid/Mini/Micro 四变体）、Feather（286 枚）、Font Awesome（Solid/Regular/Brands）——以内联 SVG 编译进程序集。无 HTTP 往返，离线可用。
 

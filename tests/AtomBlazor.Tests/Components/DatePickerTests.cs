@@ -44,7 +44,7 @@ public class DatePickerTests
     private static (ComponentTestRenderer Renderer, NoopJavaScript Js) CreateRenderer()
     {
         var js = new NoopJavaScript();
-        var services = new ServiceCollection();
+        var services = new ServiceCollection().AddAtomBlazorTestDefaults();
         services.AddSingleton<IJSRuntime>(js);
         services.AddSingleton<IPortalService>(new PortalService(NullLogger<PortalService>.Instance));
         services.AddSingleton<IPositioningService>(new PositioningService(js));

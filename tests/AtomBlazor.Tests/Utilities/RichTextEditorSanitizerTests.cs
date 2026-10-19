@@ -19,11 +19,16 @@ public class RichTextEditorSanitizerTests
 {
     private static readonly HtmlSanitizer sanitizer = ResolveSanitizer();
 
+    /// <summary>
+    /// 反射直取 RichTextEditor 的私有静态净化器实例。
+    /// 字段改名时抛出明确信息，避免整个测试类因静态构造失败而静默全灭。
+    /// </summary>
     private static HtmlSanitizer ResolveSanitizer()
     {
-        var field = typeof(RichTextEditor).GetField("Sanitizer", BindingFlags.NonPublic | BindingFlags.Static);
-        Assert.False(field is null, " no longer has a private static `Sanitizer` field; update this test to reach the editor's sanitizer.");
-        return (HtmlSanitizer)field!.GetValue(null)!;
+        var field = typeof(RichTextEditor).GetField("sanitizer", BindingFlags.NonPublic | BindingFlags.Static)
+            ?? throw new InvalidOperationException(
+                "RichTextEditor 上未找到私有静态字段 sanitizer；若该字段已改名，请同步本测试的反射查找名。");
+        return (HtmlSanitizer)field.GetValue(null)!;
     }
 
     [Fact]

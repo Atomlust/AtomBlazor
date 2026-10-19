@@ -36,7 +36,10 @@ public class DataExtractorTests
 
     private static ConcurrentSnapshot Cache()
     {
-        var field = typeof(DataExtractor).GetField("PropertyCache", BindingFlags.NonPublic | BindingFlags.Static)!;
+        // 字段改名时给出明确失败信息，而不是让整类测试因静态 NRE 静默全灭
+        var field = typeof(DataExtractor).GetField("propertyCache", BindingFlags.NonPublic | BindingFlags.Static)
+            ?? throw new InvalidOperationException(
+                "DataExtractor 上未找到私有静态字段 propertyCache；若该字段已改名，请同步本测试的反射查找名。");
         var cache = (IDictionary)field.GetValue(null)!;
         var keys = new List<ITuple>();
         foreach (var key in cache.Keys)

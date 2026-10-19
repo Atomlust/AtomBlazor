@@ -31,11 +31,12 @@ public partial class OverlayRepaintTests
     /// </summary>
     private static readonly string[] overlayRoots =
     [
-        "Popover",
-        "DropdownMenu",
-        "HoverCard",
-        "Dialog",
-        "Sheet",
+        // 扁平化重构后浮层根统一带 Primitive 后缀（原名见上游 BbPopover 等）
+        "PopoverPrimitive",
+        "DropdownMenuPrimitive",
+        "HoverCardPrimitive",
+        "DialogPrimitive",
+        "SheetPrimitive",
     ];
 
     [Fact]

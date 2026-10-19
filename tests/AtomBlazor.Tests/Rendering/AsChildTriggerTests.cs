@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.JSInterop;
 using Xunit;
+using AtomBlazor.Tests.Rendering;
 
 namespace AtomBlazor.Tests.Rendering;
 
@@ -216,7 +217,7 @@ public sealed class AsChildTriggerTests : IDisposable
     private static async Task<Run> RenderAsync(TriggerCase trigger, Child child, bool? asChild = null, string? pageClass = null)
     {
         var logs = new CapturingLoggerFactory();
-        var services = new ServiceCollection();
+        var services = new ServiceCollection().AddAtomBlazorTestDefaults();
         services.AddSingleton<ILoggerFactory>(logs);
         services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
         services.AddSingleton<IJSRuntime, NoopJavaScript>();

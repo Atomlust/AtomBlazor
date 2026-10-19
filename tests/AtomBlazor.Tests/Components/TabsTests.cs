@@ -13,10 +13,10 @@ using Xunit;
 // 双层同名家族（照 AccordionTests 先例）：本文件测组件包装层，别名钉死到 Components 侧，
 // 枚举沿仍来自 Primitives 侧，避免 CS0104 歧义。
 using Tabs = AtomBlazor.Tabs;
-using TabsActivationMode = AtomBlazor.Primitives.TabsActivationMode;
+using PTabsActivationMode = AtomBlazor.Primitives.TabsActivationMode;
 using TabsContent = AtomBlazor.TabsContent;
 using TabsList = AtomBlazor.TabsList;
-using TabsOrientation = AtomBlazor.Primitives.TabsOrientation;
+using PTabsOrientation = AtomBlazor.Primitives.TabsOrientation;
 using TabsTrigger = AtomBlazor.TabsTrigger;
 
 namespace AtomBlazor.Tests.Components;
@@ -202,8 +202,8 @@ public class TabsTests
         var (renderer, _) = await MountAsync(new Dictionary<string, object?>
         {
             [nameof(Tabs.DefaultValue)] = "one",
-            [nameof(Tabs.Orientation)] = TabsOrientation.Vertical,
-            [nameof(Tabs.ActivationMode)] = TabsActivationMode.Manual,
+            [nameof(Tabs.Orientation)] = PTabsOrientation.Vertical,
+            [nameof(Tabs.ActivationMode)] = PTabsActivationMode.Manual,
         });
 
         var markup = renderer.Markup();

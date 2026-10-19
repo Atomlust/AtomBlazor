@@ -8,21 +8,28 @@ using Xunit;
 namespace AtomBlazor.Tests.Components;
 
 /// <summary>
-/// 自写补全波：ECharts* 内部 POCO 图的序列化形状——以 ChartBase 私有静态 SerializerOptions
-/// 的同一实例（经反射直取， thereby 证明断言所用配置与送达 JS 者同源）驱动，
+/// 自写补全波：ECharts* 内部 POCO 图的序列化形状——以 ChartBase 私有静态 serializerOptions
+/// 的同一实例（经反射直取，以证明断言所用配置与送达 JS 者同源）驱动，
 /// 断言 JsonPropertyName 落点、camelCase 命名策略与 WhenWritingNull 的省略边界，
 /// 以及各 POCO 的 C# 侧默认值（animation/category/show/containLabel/scroll 等）。
 /// </summary>
 public class EChartsSerializationTests
 {
+    private static readonly FieldInfo serializerOptionsField = ChartBaseSerializerOptionsField();
+
     private static readonly JsonSerializerOptions options = ChartBaseSerializerOptions();
 
-    private static JsonSerializerOptions ChartBaseSerializerOptions()
-    {
-        var field = typeof(ChartBase).GetField("SerializerOptions", BindingFlags.NonPublic | BindingFlags.Static)!;
-        var options = (JsonSerializerOptions)field.GetValue(null)!;
-        return options;
-    }
+    /// <summary>
+    /// 反射直取 ChartBase 的私有静态序列化配置字段。
+    /// 字段改名时抛出明确信息，避免整个测试类因静态构造 NRE 而静默全灭。
+    /// </summary>
+    private static FieldInfo ChartBaseSerializerOptionsField() =>
+        typeof(ChartBase).GetField("serializerOptions", BindingFlags.NonPublic | BindingFlags.Static)
+        ?? throw new InvalidOperationException(
+            "ChartBase 上未找到私有静态字段 serializerOptions；若该字段已改名，请同步本测试的反射查找名。");
+
+    private static JsonSerializerOptions ChartBaseSerializerOptions() =>
+        (JsonSerializerOptions)serializerOptionsField.GetValue(null)!;
 
     private static string Json(object value) => JsonSerializer.Serialize(value, options);
 
@@ -35,9 +42,7 @@ public class EChartsSerializationTests
     [Fact]
     public void 序列化配置与图表基类同源()
     {
-        var field = typeof(ChartBase).GetField("SerializerOptions", BindingFlags.NonPublic | BindingFlags.Static)!;
-
-        Assert.Same(field.GetValue(null), options);
+        Assert.Same(serializerOptionsField.GetValue(null), options);
         Assert.Equal(JsonNamingPolicy.CamelCase, options.PropertyNamingPolicy);
         Assert.Equal(JsonIgnoreCondition.WhenWritingNull, options.DefaultIgnoreCondition);
     }

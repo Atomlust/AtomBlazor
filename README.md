@@ -8,7 +8,7 @@
 
 [![NuGet](https://img.shields.io/nuget/v/AtomBlazor.svg)](https://www.nuget.org/packages/AtomBlazor)
 ![.NET](https://img.shields.io/badge/.NET-11.0+-512BD4?logo=.net&logoColor=white)
-![AOT](https://img.shields.io/badge/AOT-compatible-success)
+![Trimmable](https://img.shields.io/badge/trim-AOT%20ready-success)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38BDF8?logo=tailwindcss&logoColor=white)
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
 
@@ -24,7 +24,7 @@
 - **A two-layer architecture.** Build your own design system on **AtomBlazor.Primitives** — headless, fully composable primitives with built-in ARIA attributes and complete keyboard navigation — or ship today with the pre-styled components built on top of them.
 - **Theming that actually works.** A single OKLCH-based design-token system drives light/dark modes, 5 base palettes, 10+ primary colors, radius and density presets — every one switchable at runtime and persisted across reloads. No duplicate stylesheets, no `!important` wars.
 - **Runs everywhere Blazor runs.** Verified on all four hosting models: Blazor Server, WebAssembly, Auto, and MAUI Blazor Hybrid.
-- **AOT and trimming ready.** Library projects enable `IsAotCompatible` and ship with **zero trimming warnings** — Native AOT deployments are first-class.
+- **Trimmable, zero trimming warnings.** Library projects enable `IsAotCompatible` and ship clean under ILLink analysis. One caveat for **Native AOT**: the dynamic filtering and sorting paths compile to LINQ expression trees, which require dynamic code — pre-filter and pre-sort in memory (or use strongly-typed LINQ) when you deploy with Native AOT.
 - **JS interop that stays out of the way.** Interactive modules are lazily imported on first render and cached per runtime with version stamps. Only the theme bootstrapper preloads.
 - **Icons without network requests.** Four icon packs — Lucide (1,753 icons), Heroicons (Outline/Solid/Mini/Micro), Feather (286), Font Awesome (Solid/Regular/Brands) — compiled inline as SVG into the assembly. Zero HTTP round-trips, works offline.
 

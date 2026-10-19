@@ -8,7 +8,7 @@
                                                    OnClick="@OnClick"
                                                    CustomClickHandling="@CustomClickHandling"
                                                    class="@(AsChild ? null : "atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2")"
-                                                   @attributes="FilteredAttributes">
+                                                   @attributes="AdditionalAttributes">
     @ChildContent
 </AtomBlazor.Primitives.PopoverTrigger>
 
@@ -32,30 +32,4 @@
 
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string, object>? AdditionalAttributes { get; set; }
-
-    /// <summary>
-    /// 返回移除了已显式处理参数（class, aschild, onclick, customclickhandling）的 AdditionalAttributes。
-    /// </summary>
-    private Dictionary<string, object>? FilteredAttributes
-    {
-        get
-        {
-            if (AdditionalAttributes == null) return null;
-            
-            var filtered = new Dictionary<string, object>();
-            foreach (var kvp in AdditionalAttributes)
-            {
-                var key = kvp.Key.ToLowerInvariant();
-                if (key != "class" && 
-                    key != "aschild" && 
-                    key != "onclick" && 
-                    key != "customclickhandling")
-                {
-                    filtered[kvp.Key] = kvp.Value;
-                }
-            }
-            
-            return filtered.Count > 0 ? filtered : null;
-        }
-    }
 }
