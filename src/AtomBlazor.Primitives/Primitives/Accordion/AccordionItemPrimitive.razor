@@ -1,0 +1,89 @@
+@namespace AtomBlazor.Primitives
+@implements IDisposable
+
+@* AccordionItemPrimitive 基元——单个 Accordion 条目的容器 *@
+<div @attributes="AdditionalAttributes">
+    <CascadingValue Value="this" IsFixed="true">
+        @ChildContent
+    </CascadingValue>
+</div>
+
+@code {
+    /// <summary>
+    /// 级联参数，接收 Accordion 上下文。
+    /// </summary>
+    [CascadingParameter]
+    public AccordionContext Context { get; set; } = null!;
+
+    /// <summary>
+    /// 唯一标识本 Accordion 条目的值。
+    /// </summary>
+    [Parameter, EditorRequired]
+    public string Value { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 本 Accordion 条目是否被禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 在 Accordion 条目内渲染的子内容。
+    /// 应当包含 AccordionTriggerPrimitive 与 AccordionContentPrimitive 组件。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 要应用到条目容器 div 元素的额外属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取本条目当前是否展开。
+    /// </summary>
+    public bool IsOpen => Context.IsItemOpen(Value);
+
+    /// <summary>
+    /// 获取本条目标题的 ID。
+    /// </summary>
+    public string HeaderId => Context.GetHeaderId(Value);
+
+    /// <summary>
+    /// 获取本条目触发按钮的 ID。
+    /// </summary>
+    public string TriggerId => Context.GetTriggerId(Value);
+
+    /// <summary>
+    /// 获取本条目内容区域的 ID。
+    /// </summary>
+    public string ContentId => Context.GetContentId(Value);
+
+    protected override void OnInitialized()
+    {
+        if (Context == null)
+        {
+            throw new InvalidOperationException("AccordionItemPrimitive 必须在 Accordion 组件内使用。");
+        }
+
+        // 订阅上下文变化以更新展开状态
+        Context.OnStateChanged += StateHasChanged;
+    }
+
+    /// <summary>
+    /// 切换本 Accordion 条目的展开或收起状态。
+    /// </summary>
+    internal void Toggle()
+    {
+        if (!Disabled)
+        {
+            Context.ToggleItem(Value);
+        }
+    }
+
+    public void Dispose()
+    {
+        Context.OnStateChanged -= StateHasChanged;
+    }
+}

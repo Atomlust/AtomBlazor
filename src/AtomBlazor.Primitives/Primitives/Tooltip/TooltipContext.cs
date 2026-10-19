@@ -91,7 +91,7 @@ public class TooltipContext : PrimitiveContextWithEvents<TooltipState>
         UpdateState(state => state.Placement = placement);
 
     /// <summary>
-    /// 设置用于定位的触发器元素引用。由 TooltipTrigger 调用，
+    /// 设置用于定位的触发器元素引用。由 TooltipTriggerPrimitive 调用，
     /// 以便即便气泡是以编程方式（例如 <c>@bind-Open</c>）展开的，元素也已就位。
     /// </summary>
     /// <param name="triggerElement">触发器元素引用。</param>

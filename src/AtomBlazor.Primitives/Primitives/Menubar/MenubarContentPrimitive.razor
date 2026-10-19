@@ -1,0 +1,161 @@
+@namespace AtomBlazor.Primitives
+@using AtomBlazor.Primitives.Utilities
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+@{
+    var isOpen = Menu?.IsOpen == true;
+}
+
+<div @ref="contentRef"
+     style="@MergedContentStyle"
+     data-state="@(isOpen ? "open" : "closed")"
+     role="menu"
+     tabindex="-1"
+     @onclick:stopPropagation="true"
+     @attributes="@InlineStyleMerge.WithoutStyle(AdditionalAttributes)">
+    <CascadingValue Value="menuScope" IsFixed="true">
+        @ChildContent
+    </CascadingValue>
+</div>
+
+@code {
+    private MenuScope menuScope = null!;
+    [CascadingParameter]
+    private MenubarMenuContext? Menu { get; set; }
+
+    [CascadingParameter]
+    private MenubarContext? Context { get; set; }
+
+    /// <summary>
+    /// 子内容（菜单项）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 键盘导航是否循环回绕。默认值为 <c>true</c>。
+    /// </summary>
+    [Parameter]
+    public bool Loop { get; set; } = true;
+
+    /// <summary>
+    /// 附加的 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 先应用面板自身的样式，再叠加使用者的样式，以使提供的 <c>style</c> 是在其基础上追加
+    /// 而非将其替换掉。
+    /// </summary>
+    /// <remarks>
+    /// 过去属性展开会覆盖用于隐藏已关闭菜单的 <c>display:none</c>，导致任何传了 <c>style</c> 的
+    /// 使用者都会得到一个始终显示在屏幕上的菜单。
+    /// </remarks>
+    private string? MergedContentStyle =>
+        InlineStyleMerge.Merge(Menu?.IsOpen == true ? null : "display:none", AdditionalAttributes);
+
+    private ElementReference contentRef;
+    private bool wasClosed = true;
+    private IJSObjectReference? menuKeyboardModule;
+    private DotNetObjectReference<MenubarContentPrimitive>? dotNetRef;
+    private readonly string instanceId = Guid.NewGuid().ToString("N")[..8];
+    private bool disposed;
+
+    protected override void OnInitialized()
+    {
+        menuScope = new MenuScope(() => Menu?.IsOpen == true, CloseRootAsync);
+    }
+
+    private Task CloseRootAsync()
+    {
+        Menu?.Close();
+        return Task.CompletedTask;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Menu?.IsOpen == true && wasClosed)
+        {
+            wasClosed = false;
+            try
+            {
+                menuKeyboardModule ??= await PrimitiveModules.GetAsync(JSRuntime);
+                dotNetRef ??= DotNetObjectReference.Create(this);
+
+                await menuKeyboardModule.InvokeVoidAsync("menuKeyboard.initialize", contentRef, dotNetRef, instanceId,
+                    new { mode = "menubar", loop = Loop, initialFocus = "first" });
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            {
+                // Expected during circuit disconnect
+            }
+            catch (InvalidOperationException)
+            {
+                // JS interop not available during prerendering
+            }
+        }
+        else if (Menu?.IsOpen != true && !wasClosed)
+        {
+            wasClosed = true;
+            await CleanupKeyboardAsync();
+        }
+    }
+
+    /// <summary>按下 Escape 键时由 JS 调用。</summary>
+    [JSInvokable]
+    public async Task JsOnEscapeKey()
+    {
+        if (!disposed)
+        {
+            Menu?.Close();
+            if (Menu?.FocusTrigger is { } focus) await focus();
+        }
+    }
+
+    /// <summary>按下 ArrowRight 键时由 JS 调用。</summary>
+    [JSInvokable]
+    public void JsOnNextMenu()
+    {
+        if (!disposed)
+        {
+            Context?.NavigateToNextMenu();
+        }
+    }
+
+    /// <summary>按下 ArrowLeft 键时由 JS 调用。</summary>
+    [JSInvokable]
+    public void JsOnPreviousMenu()
+    {
+        if (!disposed)
+        {
+            Context?.NavigateToPreviousMenu();
+        }
+    }
+
+    private async Task CleanupKeyboardAsync()
+    {
+        if (menuKeyboardModule != null)
+        {
+            try
+            {
+                await menuKeyboardModule.InvokeVoidAsync("menuKeyboard.dispose", instanceId);
+            }
+            catch
+            {
+                // Cleanup may already be disposed
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        GC.SuppressFinalize(this);
+        disposed = true;
+
+        await CleanupKeyboardAsync();
+
+        dotNetRef?.Dispose();
+    }
+}

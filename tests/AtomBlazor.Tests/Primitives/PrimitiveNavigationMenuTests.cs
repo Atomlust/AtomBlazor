@@ -11,11 +11,11 @@ using Xunit;
 // 双层同名家族（照 Accordion/Tabs/ScrollArea 先例）：本文件测基元层，
 // 别名钉死到 Primitives 侧，避免与 AtomBlazor.Components 同名类型发生 CS0104 歧义。
 using PNavigationMenu = AtomBlazor.Primitives.NavigationMenuPrimitive;
-using PNavigationMenuContent = AtomBlazor.Primitives.NavigationMenuContent;
-using PNavigationMenuItem = AtomBlazor.Primitives.NavigationMenuItem;
-using PNavigationMenuLink = AtomBlazor.Primitives.NavigationMenuLink;
-using PNavigationMenuList = AtomBlazor.Primitives.NavigationMenuList;
-using PNavigationMenuTrigger = AtomBlazor.Primitives.NavigationMenuTrigger;
+using PNavigationMenuContent = AtomBlazor.Primitives.NavigationMenuContentPrimitive;
+using PNavigationMenuItem = AtomBlazor.Primitives.NavigationMenuItemPrimitive;
+using PNavigationMenuLink = AtomBlazor.Primitives.NavigationMenuLinkPrimitive;
+using PNavigationMenuList = AtomBlazor.Primitives.NavigationMenuListPrimitive;
+using PNavigationMenuTrigger = AtomBlazor.Primitives.NavigationMenuTriggerPrimitive;
 
 namespace AtomBlazor.Tests.Primitives;
 

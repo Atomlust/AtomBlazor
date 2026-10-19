@@ -27,7 +27,7 @@
     /// <summary>
     /// 接受此参数是为了让带样式的包装层能把自身属性 splat 到这个根上，但它不产生任何效果：
     /// HoverCard 不渲染自己的元素——它只向子组件提供上下文。
-    /// 请把额外属性放到 HoverCardContent 或 HoverCardTrigger 上。
+    /// 请把额外属性放到 HoverCardContentPrimitive 或 HoverCardTriggerPrimitive 上。
     /// 在这里提供属性会让每个组件实例记录一次警告。
     /// </summary>
     [Parameter(CaptureUnmatchedValues = true)]
@@ -36,7 +36,7 @@
     private bool rootAttributesWarningLogged;
 
     /// <summary>
-    /// 在悬浮卡片上下文中渲染的子内容，通常包含 HoverCardTrigger 与 HoverCardContent。
+    /// 在悬浮卡片上下文中渲染的子内容，通常包含 HoverCardTriggerPrimitive 与 HoverCardContentPrimitive。
     /// </summary>
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -103,7 +103,7 @@
             Logger,
             rootAttributesWarningLogged,
             "HoverCard",
-            "请把额外属性放到 HoverCardContent 或 HoverCardTrigger 上。",
+            "请把额外属性放到 HoverCardContentPrimitive 或 HoverCardTriggerPrimitive 上。",
             AdditionalAttributes);
 
         // 受控值变化时跟进
@@ -124,7 +124,7 @@
 
     private void HandleContextStateChanged()
     {
-        // 上下文状态变化（例如来自 HoverCardTrigger）时更新可控状态
+        // 上下文状态变化（例如来自 HoverCardTriggerPrimitive）时更新可控状态
         var newOpenState = _context.State.IsOpen;
 
         if (lastNotifiedOpen != newOpenState)

@@ -12,10 +12,10 @@ using Xunit;
 // 避免与 AtomBlazor.Components 同名类型发生 CS0104 歧义。
 using PTabs = AtomBlazor.Primitives.TabsPrimitive;
 using PTabsActivationMode = AtomBlazor.Primitives.TabsActivationMode;
-using PTabsContent = AtomBlazor.Primitives.TabsContent;
-using PTabsList = AtomBlazor.Primitives.TabsList;
+using PTabsContent = AtomBlazor.Primitives.TabsContentPrimitive;
+using PTabsList = AtomBlazor.Primitives.TabsListPrimitive;
 using PTabsOrientation = AtomBlazor.Primitives.TabsOrientation;
-using PTabsTrigger = AtomBlazor.Primitives.TabsTrigger;
+using PTabsTrigger = AtomBlazor.Primitives.TabsTriggerPrimitive;
 
 namespace AtomBlazor.Tests.Components;
 
@@ -488,7 +488,7 @@ public class PrimitiveTabsTests
             [nameof(PTabsTrigger.Value)] = "one",
         });
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await mount);
-        Assert.Contains("TabsTrigger 必须在 Tabs 组件内使用。", ex.Message);
+        Assert.Contains("TabsTriggerPrimitive 必须在 Tabs 组件内使用。", ex.Message);
     }
 
     [Fact]
@@ -500,7 +500,7 @@ public class PrimitiveTabsTests
             [nameof(PTabsContent.Value)] = "one",
         });
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await mount);
-        Assert.Contains("TabsContent 必须在 Tabs 组件内使用。", ex.Message);
+        Assert.Contains("TabsContentPrimitive 必须在 Tabs 组件内使用。", ex.Message);
     }
 
     [Fact]

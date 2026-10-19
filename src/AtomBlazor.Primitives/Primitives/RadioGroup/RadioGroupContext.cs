@@ -1,11 +1,11 @@
 namespace AtomBlazor.Primitives;
 
 /// <summary>
-/// 用于在 RadioGroup 与 RadioGroupItem 组件之间共享状态的上下文类。
+/// 用于在 RadioGroup 与 RadioGroupItemPrimitive 组件之间共享状态的上下文类。
 /// </summary>
 /// <typeparam name="TValue">与单选组各项关联的值类型。</typeparam>
 /// <remarks>
-/// 该上下文由 RadioGroup 通过 Blazor 的 <c>CascadingValue</c> 机制下发给子级 RadioGroupItem。
+/// 该上下文由 RadioGroup 通过 Blazor 的 <c>CascadingValue</c> 机制下发给子级 RadioGroupItemPrimitive。
 /// </remarks>
 public class RadioGroupContext<TValue>
 {
@@ -27,7 +27,7 @@ public class RadioGroupContext<TValue>
     /// <summary>
     /// 获取或设置已注册的单选项列表。
     /// </summary>
-    public List<RadioGroupItem<TValue>> Items { get; set; } = new();
+    public List<RadioGroupItemPrimitive<TValue>> Items { get; set; } = new();
 
     /// <summary>
     /// 获取或设置应用到组内所有各项的默认 CSS 类。

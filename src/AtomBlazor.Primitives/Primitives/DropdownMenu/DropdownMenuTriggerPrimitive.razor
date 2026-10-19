@@ -1,0 +1,206 @@
+@namespace AtomBlazor.Primitives
+@using AtomBlazor.Primitives.Utilities
+@inject IServiceProvider Services
+
+@* DropdownMenu 触发器 —— 点击时打开 DropdownMenu。 *@
+@if (AsChild)
+{
+    @* 当 AsChild 为 true 时，将触发上下文传递给子组件由其处理。 *@
+    <CascadingValue Value="TriggerContext" Name="TriggerContext">
+        @ChildContent
+    </CascadingValue>
+}
+else
+{
+    <button type="button"
+            id="@Context.TriggerId"
+            @ref="@_triggerRef"
+            @onclick="HandleClick"
+            @onkeydown="HandleKeyDown"
+            @attributes="AdditionalAttributes"
+            aria-haspopup="menu"
+            aria-expanded="@Context.IsOpen.ToString().ToLower()"
+            aria-controls="@Context.ContentId">
+        @ChildContent
+    </button>
+}
+
+@code {
+    [CascadingParameter]
+    private DropdownMenuContext Context { get; set; } = null!;
+
+    private ElementReference _triggerRef;
+
+    /// <summary>
+    /// 触发器按钮内部显示的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 为 true 时，触发器不渲染自身的按钮元素。
+    /// 相反，它通过 TriggerContext 将触发行为传递给子组件。
+    /// 子组件必须消费 TriggerContext 并应用点击/aria 行为。
+    /// </summary>
+    [Parameter]
+    public bool AsChild { get; set; } = false;
+
+    /// <summary>
+    /// 应用于触发器按钮元素的附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 自定义点击处理程序。若提供，则会在默认切换行为之外被调用。
+    /// </summary>
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    /// <summary>
+    /// 触发器是否被禁用。
+    /// 默认值为 false。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; } = false;
+
+    /// <summary>
+    /// 是否使用自定义点击处理。为 true 时，仅调用 OnClick。
+    /// 默认值为 false（点击时打开 DropdownMenu）。
+    /// </summary>
+    [Parameter]
+    public bool CustomClickHandling { get; set; } = false;
+
+    /// <summary>
+    /// 使用 AsChild 模式时，存储触发器元素的引用。
+    /// </summary>
+    private ElementReference? _asChildTriggerRef;
+
+    private static readonly AsChildTriggerDescription diagnostic = new("DropdownMenuTriggerPrimitive", "open this menu", "<button>");
+
+    // The context the last render cascaded, kept so the first after-render can ask whether
+    // anything read it.
+    private TriggerContext? lastTriggerContext;
+
+    /// <summary>
+    /// AsChild 为 true 时传递给子组件的上下文。
+    /// </summary>
+    private TriggerContext TriggerContext => lastTriggerContext = new()
+    {
+        TriggerId = Context.TriggerId,
+        IsOpen = Context.IsOpen,
+        Toggle = () => Context.Toggle(_asChildTriggerRef),
+        Open = () => Context.Open(_asChildTriggerRef),
+        Close = () => Context.Close(),
+        AriaHasPopup = "menu",
+        AriaControls = Context.ContentId,
+        OnKeyDown = HandleKeyDownAsync,
+        SetTriggerElement = (ElementReference el) => _asChildTriggerRef = el
+    };
+
+    private async Task HandleClick(MouseEventArgs args)
+    {
+        if (Disabled) return;
+
+        if (CustomClickHandling && OnClick.HasDelegate)
+        {
+            // Custom handling only
+            await OnClick.InvokeAsync(args);
+        }
+        else
+        {
+            // Default: toggle dropdown menu and store trigger element for positioning
+            Context.Toggle(_triggerRef);
+
+            // Also invoke custom handler if provided
+            if (OnClick.HasDelegate)
+            {
+                await OnClick.InvokeAsync(args);
+            }
+        }
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs args)
+    {
+        if (Disabled) return;
+
+        // Space/Enter intentionally NOT handled here: this is a native <button>, so the browser
+        // activates it on Space/Enter and fires a click (handled by HandleClick). Toggling here as
+        // well opened then closed the menu in one press. Arrow keys still need explicit handling —
+        // they open the menu AND move focus to the first/last item, which a click does not.
+        // Arrow Down to open and focus first item
+        if (args.Key == "ArrowDown" && !Context.IsOpen)
+        {
+            Context.Open(_triggerRef);
+            Context.SetFocusedIndex(0);
+        }
+        // Arrow Up to open and focus last item
+        else if (args.Key == "ArrowUp" && !Context.IsOpen)
+        {
+            Context.Open(_triggerRef);
+            // Will be set to last item by DropdownMenuContentPrimitive
+            Context.SetFocusedIndex(-1);
+        }
+    }
+
+    /// <summary>
+    /// 通过触发器上下文提供给 <c>AsChild</c> 子项的按键处理。
+    /// </summary>
+    /// <remarks>
+    /// 此处刻意不包含空格键和 Enter 键，原因与触发器自身按钮不包含它们相同：子项本身就是一个可激活元素 ——
+    /// <c>Button</c> 渲染原生的 <c>&lt;button&gt;</c> —— 因此浏览器在这些按键上会激活它并触发一次点击，
+    /// 而该点击已经切换了菜单。在此处也切换会导致两者都执行，一次 Enter 按下就会在用户看到之前把菜单
+    /// 打开又关闭。方向键保留，因为它们能完成点击所不能做的事：打开菜单并将焦点移入其中。
+    /// </remarks>
+    private Task HandleKeyDownAsync(KeyboardEventArgs args)
+    {
+        if (Disabled) return Task.CompletedTask;
+
+        // Arrow Down to open and focus first item
+        if (args.Key == "ArrowDown" && !Context.IsOpen)
+        {
+            Context.Open(_asChildTriggerRef);
+            Context.SetFocusedIndex(0);
+        }
+        // Arrow Up to open and focus last item
+        else if (args.Key == "ArrowUp" && !Context.IsOpen)
+        {
+            Context.Open(_asChildTriggerRef);
+            Context.SetFocusedIndex(-1);
+        }
+        return Task.CompletedTask;
+    }
+
+    protected override void OnInitialized()
+    {
+        if (Context == null)
+        {
+            throw new InvalidOperationException(
+                "DropdownMenuTriggerPrimitive must be used within a DropdownMenu component. " +
+                "Ensure DropdownMenuTriggerPrimitive is a child of a DropdownMenu component.");
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        // Proactively set the trigger element reference so it's available
+        // even when the dropdown is opened programmatically (via @bind-Open)
+        // This runs after every render to ensure the reference stays current
+        if (!AsChild)
+        {
+            Context.SetTriggerElement(_triggerRef);
+        }
+        else if (_asChildTriggerRef.HasValue)
+        {
+            // When using AsChild pattern, the child component (e.g., Button) sets
+            // _asChildTriggerRef via TriggerContext.SetTriggerElement. We need to
+            // propagate this to the context so Content can position relative to it.
+            Context.SetTriggerElement(_asChildTriggerRef.Value);
+        }
+
+        if (firstRender)
+        {
+            AsChildDiagnostics.WarnIfUnconsumed<DropdownMenuTriggerPrimitive>(Services, diagnostic, AsChild, lastTriggerContext, AdditionalAttributes);
+        }
+    }
+}

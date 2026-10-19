@@ -14,7 +14,7 @@ namespace AtomBlazor.Primitives;
 /// </para>
 /// <para>
 /// 该基元管理一组互斥的单选项，其中同一时刻只能有一项
-/// 被选中。它通过 Blazor 的 CascadingValue 机制向子级 RadioGroupItem 组件
+/// 被选中。它通过 Blazor 的 CascadingValue 机制向子级 RadioGroupItemPrimitive 组件
 /// 提供上下文。
 /// </para>
 /// <para>
@@ -32,15 +32,15 @@ namespace AtomBlazor.Primitives;
 /// 基础无外观单选组：
 /// <code>
 /// &lt;RadioGroup @bind-Value="selectedOption"&gt;
-///     &lt;RadioGroupItem Value="@("option1")" /&gt;
-///     &lt;RadioGroupItem Value="@("option2")" /&gt;
+///     &lt;RadioGroupItemPrimitive Value="@("option1")" /&gt;
+///     &lt;RadioGroupItemPrimitive Value="@("option2")" /&gt;
 /// &lt;/RadioGroup&gt;
 /// </code>
 /// </example>
 public partial class RadioGroupPrimitive<TValue> : ComponentBase
 {
     private RadioGroupContext<TValue> context = new();
-    private List<RadioGroupItem<TValue>>? _cachedEnabledItems;
+    private List<RadioGroupItemPrimitive<TValue>>? _cachedEnabledItems;
     private int _lastItemsVersion;
 
     /// <summary>
@@ -92,13 +92,13 @@ public partial class RadioGroupPrimitive<TValue> : ComponentBase
     /// 获取或设置在单选组内部渲染的内容。
     /// </summary>
     /// <remarks>
-    /// 应包含 RadioGroupItem 组件。
+    /// 应包含 RadioGroupItemPrimitive 组件。
     /// </remarks>
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
     /// <summary>
-    /// 获取或设置应用到所有 RadioGroupItem 子项的默认 CSS 类。
+    /// 获取或设置应用到所有 RadioGroupItemPrimitive 子项的默认 CSS 类。
     /// 各项会把它与自己的 class 特性合并。
     /// </summary>
     [Parameter]
@@ -231,7 +231,7 @@ public partial class RadioGroupPrimitive<TValue> : ComponentBase
     /// 获取可用项列表；
     /// 尽可能使用缓存版本，避免每次键盘导航都分配。
     /// </summary>
-    private List<RadioGroupItem<TValue>> GetEnabledItems()
+    private List<RadioGroupItemPrimitive<TValue>> GetEnabledItems()
     {
         // 以项数作为简单版本判据——数量变了说明项变了。
         var currentVersion = context.Items.Count;
@@ -246,7 +246,7 @@ public partial class RadioGroupPrimitive<TValue> : ComponentBase
     /// <summary>
     /// 导航到下一个单选项目。
     /// </summary>
-    private async Task NavigateNext(List<RadioGroupItem<TValue>> enabledItems)
+    private async Task NavigateNext(List<RadioGroupItemPrimitive<TValue>> enabledItems)
     {
         if (enabledItems.Count == 0)
         {
@@ -267,7 +267,7 @@ public partial class RadioGroupPrimitive<TValue> : ComponentBase
     /// <summary>
     /// 导航到上一个单选项目。
     /// </summary>
-    private async Task NavigatePrevious(List<RadioGroupItem<TValue>> enabledItems)
+    private async Task NavigatePrevious(List<RadioGroupItemPrimitive<TValue>> enabledItems)
     {
         if (enabledItems.Count == 0)
         {

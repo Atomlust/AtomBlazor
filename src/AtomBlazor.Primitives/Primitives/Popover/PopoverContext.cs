@@ -109,14 +109,14 @@ public class PopoverContext : PrimitiveContextWithEvents<PopoverState>
 
     /// <summary>
     /// 通知订阅方浮层内容已完全就绪。
-    /// 由 PopoverContent 在初始化完成后调用。
+    /// 由 PopoverContentPrimitive 在初始化完成后调用。
     /// </summary>
     public void NotifyContentReady() =>
         OnContentReady?.Invoke();
 
     /// <summary>
     /// 为定位设置触发元素引用。
-    /// 由 PopoverTrigger 调用，确保即使浮层被程序化打开，元素引用依然可用。
+    /// 由 PopoverTriggerPrimitive 调用，确保即使浮层被程序化打开，元素引用依然可用。
     /// </summary>
     /// <param name="triggerElement">触发元素引用。</param>
     public void SetTriggerElement(ElementReference triggerElement)

@@ -6,7 +6,7 @@ namespace AtomBlazor.Primitives.Utilities;
 /// AsChild 触发器在其内部没有任何组件读取它的 <see cref="TriggerContext"/> 时，
 /// 如何在所记录的警告里描述自己。
 /// </summary>
-/// <param name="Name">触发器在标记中的写法，例如 <c>CollapsibleTrigger</c>。</param>
+/// <param name="Name">触发器在标记中的写法，例如 <c>CollapsibleTriggerPrimitive</c>。</param>
 /// <param name="Action">因此做不到的事，例如 <c>折叠或展开此面板</c>。</param>
 /// <param name="Element">AsChild 关闭时触发器渲染的元素，例如 <c>&lt;button&gt;</c>。</param>
 public sealed record AsChildTriggerDescription(string Name, string Action, string Element);

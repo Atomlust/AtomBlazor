@@ -5,7 +5,7 @@ namespace AtomBlazor;
 
 public partial class TreeItem : ComponentBase
 {
-    private AtomBlazor.Primitives.TreeItem? primitiveRef;
+    private AtomBlazor.Primitives.TreeItemPrimitive? primitiveRef;
 
     /// <summary>
     /// 本节点的唯一值/标识。
@@ -95,7 +95,7 @@ public partial class TreeItem : ComponentBase
     /// 级联参数：接收父级基元树节点。
     /// </summary>
     [CascadingParameter]
-    public AtomBlazor.Primitives.TreeItem? ParentPrimitiveItem { get; set; }
+    public AtomBlazor.Primitives.TreeItemPrimitive? ParentPrimitiveItem { get; set; }
 
     private int Depth => (ParentPrimitiveItem?.Depth + 1) ?? 0;
 

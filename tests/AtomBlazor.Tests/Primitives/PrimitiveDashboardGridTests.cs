@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.JSInterop;
 using Xunit;
 using PrimitiveDashboardGrid = AtomBlazor.Primitives.DashboardGridPrimitive;
-using PrimitiveDashboardWidget = AtomBlazor.Primitives.DashboardWidget;
+using PrimitiveDashboardWidget = AtomBlazor.Primitives.DashboardWidgetPrimitive;
 
 namespace AtomBlazor.Tests.Primitives;
 
@@ -512,7 +512,7 @@ public class PrimitiveDashboardGridTests
             {
                 [nameof(PrimitiveDashboardWidget.Id)] = "w1",
             }));
-        Assert.Contains("DashboardWidget must be used within a DashboardGrid component.", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("DashboardWidgetPrimitive must be used within a DashboardGrid component.", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]

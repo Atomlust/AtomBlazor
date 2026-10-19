@@ -132,7 +132,7 @@ public class DropdownMenuContext : PrimitiveContextWithEvents<DropdownMenuState>
 
     /// <summary>
     /// 设置用于定位的触发器元素引用。
-    /// 该方法由 DropdownMenuTrigger 调用，以确保即使 DropdownMenu 以编程方式打开时元素也可用。
+    /// 该方法由 DropdownMenuTriggerPrimitive 调用，以确保即使 DropdownMenu 以编程方式打开时元素也可用。
     /// </summary>
     /// <param name="triggerElement">触发器元素的引用。</param>
     public void SetTriggerElement(ElementReference triggerElement)

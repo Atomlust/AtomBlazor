@@ -35,7 +35,7 @@ namespace AtomBlazor;
 /// </example>
 public partial class RadioGroupItem<TValue> : ComponentBase
 {
-    private AtomBlazor.Primitives.RadioGroupItem<TValue>? primitiveRef;
+    private AtomBlazor.Primitives.RadioGroupItemPrimitive<TValue>? primitiveRef;
 
     /// <summary>
     /// 获取或设置从父级级联而来的 RadioGroup 上下文。

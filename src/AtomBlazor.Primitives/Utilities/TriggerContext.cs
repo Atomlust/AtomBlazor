@@ -78,7 +78,7 @@ public class TriggerContext
 
     /// <summary>
     /// 需要键盘支持的触发器的键盘事件处理器。
-    /// 供 DropdownMenuTrigger 的方向键导航使用。
+    /// 供 DropdownMenuTriggerPrimitive 的方向键导航使用。
     /// </summary>
     public Func<Microsoft.AspNetCore.Components.Web.KeyboardEventArgs, Task>? OnKeyDown { get => Consume(onKeyDown); init => onKeyDown = value; }
 

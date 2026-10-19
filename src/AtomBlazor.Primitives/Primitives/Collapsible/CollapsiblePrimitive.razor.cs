@@ -15,8 +15,8 @@ namespace AtomBlazor.Primitives;
 /// 这是一个由以下成员组成的复合组件模式：
 /// <list type="bullet">
 /// <item><see cref="CollapsiblePrimitive"/>——管理状态并向下提供上下文的容器</item>
-/// <item><see cref="CollapsibleTrigger"/>——切换展开/收起状态的按钮</item>
-/// <item><see cref="CollapsibleContent"/>——随之展开/收起的内容区</item>
+/// <item><see cref="CollapsibleTriggerPrimitive"/>——切换展开/收起状态的按钮</item>
+/// <item><see cref="CollapsibleContentPrimitive"/>——随之展开/收起的内容区</item>
 /// </list>
 /// </para>
 /// <para>
@@ -40,24 +40,24 @@ namespace AtomBlazor.Primitives;
 /// 基础折叠面板（非受控）：
 /// <code>
 /// &lt;Collapsible&gt;
-///     &lt;CollapsibleTrigger&gt;
+///     &lt;CollapsibleTriggerPrimitive&gt;
 ///         Toggle
-///     &lt;/CollapsibleTrigger&gt;
-///     &lt;CollapsibleContent&gt;
+///     &lt;/CollapsibleTriggerPrimitive&gt;
+///     &lt;CollapsibleContentPrimitive&gt;
 ///         This content can be expanded or collapsed.
-///     &lt;/CollapsibleContent&gt;
+///     &lt;/CollapsibleContentPrimitive&gt;
 /// &lt;/Collapsible&gt;
 /// </code>
 ///
 /// 受控折叠面板：
 /// <code>
 /// &lt;Collapsible @bind-Open="isOpen"&gt;
-///     &lt;CollapsibleTrigger&gt;
+///     &lt;CollapsibleTriggerPrimitive&gt;
 ///         @(isOpen ? "Collapse" : "Expand")
-///     &lt;/CollapsibleTrigger&gt;
-///     &lt;CollapsibleContent&gt;
+///     &lt;/CollapsibleTriggerPrimitive&gt;
+///     &lt;CollapsibleContentPrimitive&gt;
 ///         Controlled content visibility.
-///     &lt;/CollapsibleContent&gt;
+///     &lt;/CollapsibleContentPrimitive&gt;
 /// &lt;/Collapsible&gt;
 ///
 /// @@code {

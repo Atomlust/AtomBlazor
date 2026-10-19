@@ -66,7 +66,7 @@ public partial class TreeItemNode<TItem> : ComponentBase
     public TreeViewContext? TreeContext { get; set; }
 
     [CascadingParameter]
-    public AtomBlazor.Primitives.TreeItem? ParentPrimitiveItem { get; set; }
+    public AtomBlazor.Primitives.TreeItemPrimitive? ParentPrimitiveItem { get; set; }
 
     private string NodeValue => ValueField(Item);
 

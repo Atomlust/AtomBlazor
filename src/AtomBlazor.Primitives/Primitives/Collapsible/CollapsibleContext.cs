@@ -6,7 +6,7 @@ namespace AtomBlazor.Primitives;
 /// <remarks>
 /// <para>
 /// CollapsibleContext 由 Collapsible 基元系统内部使用，通过 Blazor 的 CascadingValue 机制
-/// 在容器（Collapsible）、触发器（CollapsibleTrigger）与内容（CollapsibleContent）之间协调状态。
+/// 在容器（Collapsible）、触发器（CollapsibleTriggerPrimitive）与内容（CollapsibleContentPrimitive）之间协调状态。
 /// </para>
 /// <para>
 /// 该上下文模式实现：

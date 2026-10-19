@@ -311,7 +311,7 @@ public class RadioGroupTests
         var seq = 0;
         foreach (var value in values)
         {
-            builder.OpenComponent<AtomBlazor.Primitives.RadioGroupItem<string>>(seq++);
+            builder.OpenComponent<AtomBlazor.Primitives.RadioGroupItemPrimitive<string>>(seq++);
             builder.AddAttribute(seq++, "Value", value);
             builder.AddAttribute(seq++, "Id", $"r-{value}");
             builder.CloseComponent();

@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.JSInterop;
-using PrimitiveToggle = AtomBlazor.Primitives.ToggleGroup<string>;
+using PrimitiveToggle = AtomBlazor.Primitives.ToggleGroupPrimitive<string>;
 using PrimitiveToggleType = AtomBlazor.Primitives.ToggleGroupType;
 
 namespace AtomBlazor.Tests.Components;

@@ -13,12 +13,12 @@
 @code {
     private AccordionContext _context = new();
     private UseControllableState<HashSet<string>> _state = null!;
-    private List<AccordionTrigger> _triggers = new();
+    private List<AccordionTriggerPrimitive> _triggers = new();
     private bool _disposed;
 
     /// <summary>
     /// 在 Accordion 上下文内渲染的子内容。
-    /// 应当包含 AccordionItem 组件。
+    /// 应当包含 AccordionItemPrimitive 组件。
     /// </summary>
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -106,7 +106,7 @@
     /// <summary>
     /// 注册一个 Accordion 触发器，用于键盘导航。
     /// </summary>
-    internal void RegisterTrigger(AccordionTrigger trigger)
+    internal void RegisterTrigger(AccordionTriggerPrimitive trigger)
     {
         if (!_triggers.Contains(trigger))
         {
@@ -117,7 +117,7 @@
     /// <summary>
     /// 注销一个 Accordion 触发器。
     /// </summary>
-    internal void UnregisterTrigger(AccordionTrigger trigger)
+    internal void UnregisterTrigger(AccordionTriggerPrimitive trigger)
     {
         _triggers.Remove(trigger);
     }
@@ -199,7 +199,7 @@
 
     private void HandleContextStateChanged()
     {
-        // 当上下文状态变化时（例如由 AccordionTrigger 触发），
+        // 当上下文状态变化时（例如由 AccordionTriggerPrimitive 触发），
         // 更新可控状态
         var newOpenValues = _context.State.OpenValues;
 

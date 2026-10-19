@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.JSInterop;
 using Xunit;
 using PTree = AtomBlazor.Primitives.TreeViewPrimitive;
-using PTreeItem = AtomBlazor.Primitives.TreeItem;
+using PTreeItem = AtomBlazor.Primitives.TreeItemPrimitive;
 using PTreeViewContext = AtomBlazor.Primitives.TreeViewContext;
 using PTreeViewState = AtomBlazor.Primitives.TreeViewState;
 
@@ -627,7 +627,7 @@ public class TreeViewTests
         var (renderer, _) = CreateRenderer();
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             renderer.MountAsync<PTreeItem>(new Dictionary<string, object?> { ["Value"] = "a" }));
-        Assert.Equal("TreeItem 必须用在 TreeView 组件内部。", ex.Message);
+        Assert.Equal("TreeItemPrimitive 必须用在 TreeView 组件内部。", ex.Message);
     }
 
     // ------------------------------------------------------------------

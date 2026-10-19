@@ -11,9 +11,9 @@ using Xunit;
 // 双层同名家族（照 Collapsible 先例）：本文件测基元层，别名钉死到 Primitives 侧，
 // 避免与 AtomBlazor.Components 同名类型（ILocalizer 所在的 using）发生 CS0104 歧义。
 using PAccordion = AtomBlazor.Primitives.AccordionPrimitive;
-using PAccordionContent = AtomBlazor.Primitives.AccordionContent;
-using PAccordionItem = AtomBlazor.Primitives.AccordionItem;
-using PAccordionTrigger = AtomBlazor.Primitives.AccordionTrigger;
+using PAccordionContent = AtomBlazor.Primitives.AccordionContentPrimitive;
+using PAccordionItem = AtomBlazor.Primitives.AccordionItemPrimitive;
+using PAccordionTrigger = AtomBlazor.Primitives.AccordionTriggerPrimitive;
 
 namespace AtomBlazor.Tests.Components;
 
@@ -329,7 +329,7 @@ public class PrimitiveAccordionTests
             [nameof(PAccordionItem.Value)] = "one",
         });
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await mount);
-        Assert.Contains("AccordionItem 必须在 Accordion 组件内使用", ex.Message);
+        Assert.Contains("AccordionItemPrimitive 必须在 Accordion 组件内使用", ex.Message);
     }
 
     [Fact]
@@ -338,7 +338,7 @@ public class PrimitiveAccordionTests
         var renderer = CreateRenderer();
         var mount = renderer.MountAsync<PAccordionTrigger>(new Dictionary<string, object?>());
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await mount);
-        Assert.Contains("AccordionTrigger 必须在 AccordionItem 组件内使用", ex.Message);
+        Assert.Contains("AccordionTriggerPrimitive 必须在 AccordionItemPrimitive 组件内使用", ex.Message);
     }
 
     [Fact]
@@ -347,7 +347,7 @@ public class PrimitiveAccordionTests
         var renderer = CreateRenderer();
         var mount = renderer.MountAsync<PAccordionContent>(new Dictionary<string, object?>());
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await mount);
-        Assert.Contains("AccordionContent 必须在 AccordionItem 组件内使用", ex.Message);
+        Assert.Contains("AccordionContentPrimitive 必须在 AccordionItemPrimitive 组件内使用", ex.Message);
     }
 
     [Fact]

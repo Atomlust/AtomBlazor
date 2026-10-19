@@ -1,0 +1,38 @@
+@namespace AtomBlazor.Primitives
+
+@*
+    SheetDescriptionPrimitive 为 Sheet 提供描述元素。
+    用于无障碍访问（aria-describedby）。
+*@
+
+<p id="@Context.DescriptionId"
+   @attributes="AdditionalAttributes">
+    @ChildContent
+</p>
+
+@code {
+    [CascadingParameter]
+    private SheetContext Context { get; set; } = null!;
+
+    /// <summary>
+    /// 描述文本或内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用到描述元素的附加特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (Context == null)
+        {
+            throw new InvalidOperationException(
+                "SheetDescriptionPrimitive must be used within a Sheet component. " +
+                "Ensure SheetDescriptionPrimitive is a child of a Sheet component.");
+        }
+    }
+}

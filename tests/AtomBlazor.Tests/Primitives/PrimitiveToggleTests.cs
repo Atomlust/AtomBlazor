@@ -7,8 +7,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.JSInterop;
 using Xunit;
 using PrimitiveToggle = AtomBlazor.Primitives.TogglePrimitive;
-using PrimitiveToggleGroup = AtomBlazor.Primitives.ToggleGroup<string>;
-using PrimitiveToggleGroupItem = AtomBlazor.Primitives.ToggleGroupItem<string>;
+using PrimitiveToggleGroup = AtomBlazor.Primitives.ToggleGroupPrimitive<string>;
+using PrimitiveToggleGroupItem = AtomBlazor.Primitives.ToggleGroupItemPrimitive<string>;
 using PrimitiveToggleGroupType = AtomBlazor.Primitives.ToggleGroupType;
 
 namespace AtomBlazor.Tests.Primitives;

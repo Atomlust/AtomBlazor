@@ -23,7 +23,7 @@ public partial class TreeViewPrimitive : IAsyncDisposable
     private HashSet<string>? lastSyncedExpandedValues;
 
     /// <summary>
-    /// 在树内渲染的子内容。应包含 TreeItem 组件。
+    /// 在树内渲染的子内容。应包含 TreeItemPrimitive 组件。
     /// </summary>
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -166,7 +166,7 @@ public partial class TreeViewPrimitive : IAsyncDisposable
         SyncStateToContext();
         context.OnStateChanged += HandleContextStateChanged;
 
-        // 在子 TreeItem 渲染之前设置自动展开标志，让节点在注册过程中
+        // 在子 TreeItemPrimitive 渲染之前设置自动展开标志，让节点在注册过程中
         // 逐级展开（每次渲染推进一层）。
         // 仅在非受控模式（未绑定 ExpandedValues）下生效。
         if (ExpandedValues == null)
@@ -248,7 +248,7 @@ public partial class TreeViewPrimitive : IAsyncDisposable
     {
         if (firstRender)
         {
-            // 首次渲染之后应用默认展开——此时子 TreeItem 已在各自的
+            // 首次渲染之后应用默认展开——此时子 TreeItemPrimitive 已在各自的
             // OnInitialized 中注册进节点注册表，可以判断哪些节点有子节点。
             if (!defaultExpandApplied && ExpandedValues == null)
             {
@@ -409,7 +409,7 @@ public partial class TreeViewPrimitive : IAsyncDisposable
     private async Task HandleContextStateChangedAsync()
     {
         // 把上下文状态变化经由 EventCallback 传播到绑定的参数。
-        // 此处不要调用 StateHasChanged()——TreeItem 实例通过各自的
+        // 此处不要调用 StateHasChanged()——TreeItemPrimitive 实例通过各自的
         // OnStateChanged 订阅重渲染，中间渲染会让 SyncStateToContext
         // 用过期的参数值覆盖上下文状态。
         try

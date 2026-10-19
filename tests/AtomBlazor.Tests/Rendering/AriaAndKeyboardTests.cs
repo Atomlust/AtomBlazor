@@ -8,8 +8,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.JSInterop;
 
-using PToggleGroup = AtomBlazor.Primitives.ToggleGroup<string>;
-using PToggleItem = AtomBlazor.Primitives.ToggleGroupItem<string>;
+using PToggleGroup = AtomBlazor.Primitives.ToggleGroupPrimitive<string>;
+using PToggleItem = AtomBlazor.Primitives.ToggleGroupItemPrimitive<string>;
 using PrimitiveToggleType = AtomBlazor.Primitives.ToggleGroupType;
 
 namespace AtomBlazor.Tests.Rendering;
@@ -63,9 +63,9 @@ public class AriaAndKeyboardTests
         {
             [nameof(AtomBlazor.Primitives.CollapsiblePrimitive.ChildContent)] = (RenderFragment)(builder =>
             {
-                builder.OpenComponent<AtomBlazor.Primitives.CollapsibleTrigger>(0);
+                builder.OpenComponent<AtomBlazor.Primitives.CollapsibleTriggerPrimitive>(0);
                 builder.CloseComponent();
-                builder.OpenComponent<AtomBlazor.Primitives.CollapsibleContent>(1);
+                builder.OpenComponent<AtomBlazor.Primitives.CollapsibleContentPrimitive>(1);
                 builder.AddAttribute(2, "ForceMount", true);
                 builder.CloseComponent();
             })

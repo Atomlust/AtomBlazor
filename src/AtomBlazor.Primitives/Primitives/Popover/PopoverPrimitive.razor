@@ -27,7 +27,7 @@
     /// <summary>
     /// 接受此参数是为了让带样式的包装层能把自身属性 splat 到这个根上，但它不产生任何效果：
     /// Popover 不渲染自己的元素——它只向子组件提供上下文。
-    /// 请把额外属性放到 PopoverContent 或 PopoverTrigger 上。
+    /// 请把额外属性放到 PopoverContentPrimitive 或 PopoverTriggerPrimitive 上。
     /// 在这里提供属性会让每个组件实例记录一次警告。
     /// </summary>
     [Parameter(CaptureUnmatchedValues = true)]
@@ -37,7 +37,7 @@
 
     /// <summary>
     /// 在浮层上下文中渲染的子内容。
-    /// 通常包含 PopoverTrigger 与 PopoverContent。
+    /// 通常包含 PopoverTriggerPrimitive 与 PopoverContentPrimitive。
     /// </summary>
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -110,7 +110,7 @@
             Logger,
             rootAttributesWarningLogged,
             "Popover",
-            "请把额外属性放到 PopoverContent 或 PopoverTrigger 上。",
+            "请把额外属性放到 PopoverContentPrimitive 或 PopoverTriggerPrimitive 上。",
             AdditionalAttributes);
 
         if (_state.IsControlled && Open.HasValue)
@@ -124,7 +124,7 @@
                 // HandleContextStateChanged 拿 _context.State.IsOpen 与 _state.Value 比较
                 // 先调上下文 API 保证 _state.Value 仍是旧值，守卫（_state.Value != newOpenState）
                 // 得以通过，从而触发 OpenChanged、完成使用者的收尾（例如 Combobox 重置
-                // _focusDone、PopoverContent 释放 click-outside 监听器）。
+                // _focusDone、PopoverContentPrimitive 释放 click-outside 监听器）。
                 // 若把 _state.ControlledValue 的赋值挪到上下文调用之上，这些通知会被无声吞掉。
                 if (Open.Value)
                 {
@@ -153,7 +153,7 @@
 
     private void HandleContextStateChanged()
     {
-        // 上下文状态变化时（例如来自 PopoverTrigger 的点击或点击外部）
+        // 上下文状态变化时（例如来自 PopoverTriggerPrimitive 的点击或点击外部）
         // 同步更新可控状态
         var newOpenState = _context.State.IsOpen;
 

@@ -30,11 +30,11 @@ public class SelectTriggerLifecycleTests
             {
                 ["ChildContent"] = (RenderFragment)(builder =>
                 {
-                    builder.OpenComponent<AtomBlazor.Primitives.SelectTrigger<string>>(0);
+                    builder.OpenComponent<AtomBlazor.Primitives.SelectTriggerPrimitive<string>>(0);
                     builder.CloseComponent();
                 })
             });
-            var trigger = renderer.FindComponent<AtomBlazor.Primitives.SelectTrigger<string>>();
+            var trigger = renderer.FindComponent<AtomBlazor.Primitives.SelectTriggerPrimitive<string>>();
             var context = ComponentProbe.Field<SelectContext<string>>(select, "_context");
             ComponentProbe.Call(trigger, "HandleKeyDown", new KeyboardEventArgs { Key = "Enter" });
             Assert.True(context.IsOpen);

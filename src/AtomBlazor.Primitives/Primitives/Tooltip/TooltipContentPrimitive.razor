@@ -1,0 +1,157 @@
+@namespace AtomBlazor.Primitives
+@using AtomBlazor.Primitives.Services
+@implements IAsyncDisposable
+
+@*
+    TooltipContentPrimitive 是提示气泡的内容容器。
+    使用 FloatingPortal 承接门户/定位基础设施。
+    自身维护无障碍所需的 ARIA 特性。
+*@
+
+<FloatingPortal IsOpen="@(Context.IsOpen && Context.State.TriggerElement.HasValue)"
+                AnchorElement="@Context.State.TriggerElement"
+                PortalId="@_portalId"
+                Side="@EffectiveSide"
+                Align="@EffectiveAlign"
+                Offset="@Offset"
+                Strategy="PositioningStrategy.Absolute"
+                ZIndex="50">
+    @RenderTooltipContent()
+</FloatingPortal>
+
+@code {
+    [CascadingParameter]
+    private TooltipContext Context { get; set; } = null!;
+
+    /// <summary>
+    /// 气泡内渲染的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 追加到内容容器上的附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 定位的偏好边。未设置时取自父级 Tooltip 上下文的 Placement，默认 Top。
+    /// </summary>
+    [Parameter]
+    public PopoverSide? Side { get; set; }
+
+    /// <summary>
+    /// 相对触发器的对齐方式。未设置时取自父级 Tooltip 上下文的 Placement，默认 Center。
+    /// </summary>
+    [Parameter]
+    public PopoverAlign? Align { get; set; }
+
+    /// <summary>
+    /// 与触发器元素的偏移距离（像素），默认 8。
+    /// </summary>
+    [Parameter]
+    public int Offset { get; set; } = 8;
+
+    private string _portalId = "";
+
+    /// <summary>
+    /// 获取实际用于定位的边：显式设置了 Side 则用之，否则由上下文的 Placement 推导。
+    /// </summary>
+    private PopoverSide EffectiveSide
+    {
+        get
+        {
+            // 显式设置了 Side 则直接采用
+            if (Side.HasValue)
+            {
+                return Side.Value;
+            }
+
+            // 否则由上下文的 Placement 推导
+            var placement = Context?.Placement ?? "top";
+            var basePlacement = placement.Split('-')[0];
+
+            return basePlacement switch
+            {
+                "top" => PopoverSide.Top,
+                "bottom" => PopoverSide.Bottom,
+                "left" => PopoverSide.Left,
+                "right" => PopoverSide.Right,
+                _ => PopoverSide.Top
+            };
+        }
+    }
+
+    /// <summary>
+    /// 获取实际用于定位的对齐方式：显式设置了 Align 则用之，否则由上下文的 Placement 推导。
+    /// </summary>
+    private PopoverAlign EffectiveAlign
+    {
+        get
+        {
+            // 显式设置了 Align 则直接采用
+            if (Align.HasValue)
+            {
+                return Align.Value;
+            }
+
+            // 否则由上下文的 Placement 推导
+            var placement = Context?.Placement ?? "top";
+            var parts = placement.Split('-');
+
+            if (parts.Length < 2)
+            {
+                return PopoverAlign.Center;
+            }
+
+            return parts[1] switch
+            {
+                "start" => PopoverAlign.Start,
+                "end" => PopoverAlign.End,
+                _ => PopoverAlign.Center
+            };
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        if (Context == null)
+        {
+            throw new InvalidOperationException(
+                "TooltipContentPrimitive 必须在 Tooltip 组件内使用。" +
+                "请确保 TooltipContentPrimitive 是 Tooltip 组件的子组件。");
+        }
+
+        _portalId = $"tooltip-portal-{Context.TooltipId}";
+
+        // 订阅上下文变化
+        Context.OnStateChanged += HandleContextStateChanged;
+    }
+
+    private RenderFragment RenderTooltipContent() => __builder =>
+    {
+        <div id="@Context.TooltipId"
+             role="tooltip"
+             @attributes="AdditionalAttributes"
+             data-state="@(Context.IsOpen ? "open" : "closed")">
+            @ChildContent
+        </div>
+    };
+
+    private void HandleContextStateChanged()
+    {
+        // 气泡状态变化时触发重渲染
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        if (Context != null)
+        {
+            Context.OnStateChanged -= HandleContextStateChanged;
+        }
+
+        return ValueTask.CompletedTask;
+    }
+}

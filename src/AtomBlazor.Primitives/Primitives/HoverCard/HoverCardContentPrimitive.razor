@@ -1,0 +1,143 @@
+@namespace AtomBlazor.Primitives
+@using System.Linq
+@using AtomBlazor.Primitives.Services
+@implements IAsyncDisposable
+
+@*
+    HoverCardContentPrimitive 是悬浮卡片的内容容器。
+    使用 FloatingPortal 承接门户/定位基础设施。
+    自身维护 HoverCard 专属行为：悬停保持。
+*@
+
+<FloatingPortal IsOpen="@(Context.IsOpen && Context.State.TriggerElement.HasValue)"
+                AnchorElement="@Context.State.TriggerElement"
+                PortalId="@_portalId"
+                Side="@Side"
+                Align="@Align"
+                Offset="@Offset"
+                Strategy="PositioningStrategy.Absolute"
+                ZIndex="50">
+    @RenderHoverCardContent()
+</FloatingPortal>
+
+@code {
+    [CascadingParameter]
+    private HoverCardContext Context { get; set; } = null!;
+
+    /// <summary>
+    /// 卡片内渲染的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 追加到内容容器上的附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 定位的偏好边，默认 Bottom。
+    /// </summary>
+    [Parameter]
+    public PopoverSide Side { get; set; } = PopoverSide.Bottom;
+
+    /// <summary>
+    /// 相对触发器的对齐方式，默认 Center。
+    /// </summary>
+    [Parameter]
+    public PopoverAlign Align { get; set; } = PopoverAlign.Center;
+
+    /// <summary>
+    /// 与触发器元素的偏移距离（像素），默认 4。
+    /// </summary>
+    [Parameter]
+    public int Offset { get; set; } = 4;
+
+    private System.Timers.Timer? _closeTimer;
+    private string _portalId = "";
+
+    protected override void OnInitialized()
+    {
+        if (Context == null)
+        {
+            throw new InvalidOperationException("HoverCardContentPrimitive 必须在 HoverCard 组件内使用。");
+        }
+
+        _portalId = $"hovercard-portal-{Context.ContentId}";
+
+        // 指针回到触发器上时，触发器经同一个信号取消收起。
+        Context.PendingCloseCancelled += CancelCloseTimer;
+    }
+
+    private RenderFragment RenderHoverCardContent() => __builder =>
+    {
+        // 鼠标处理器必须挂在这个内层 div 上，才能维持悬停保持
+        <div id="@Context.ContentId"
+             role="dialog"
+             aria-describedby="@Context.TriggerId"
+             tabindex="-1"
+             @onmouseenter="HandleMouseEnter"
+             @onmouseleave="HandleMouseLeave"
+             data-state="@(Context.IsOpen ? "open" : "closed")"
+             data-side="@Side.ToValue()"
+             @attributes="GetNonStyleAttributes()">
+            @ChildContent
+        </div>
+    };
+
+    private void HandleMouseEnter()
+    {
+        // 触发器在指针离开它的那一刻就启动了自己的收起定时器。如果只取消本组件的定时器，
+        // 那个定时器仍在跑，于是卡片在指针抵达后几百毫秒被收起——而这里恰恰是它最该保持展开的地方。
+        Context.CancelPendingClose();
+    }
+
+    private void HandleMouseLeave()
+    {
+        // 离开内容时延后收起
+        _closeTimer?.Dispose();
+        _closeTimer = new System.Timers.Timer(Context.CloseDelay);
+        _closeTimer.Elapsed += (sender, e) =>
+        {
+            InvokeAsync(() =>
+            {
+                Context.Close();
+                StateHasChanged();
+            });
+        };
+        _closeTimer.AutoReset = false;
+        _closeTimer.Start();
+    }
+
+    private void CancelCloseTimer()
+    {
+        if (_closeTimer != null)
+        {
+            _closeTimer.Stop();
+            _closeTimer.Dispose();
+            _closeTimer = null;
+        }
+    }
+
+    private Dictionary<string, object>? GetNonStyleAttributes()
+    {
+        if (AdditionalAttributes == null) return null;
+
+        // 过滤掉 'style'：定位样式由 FloatingPortal 负责
+        return AdditionalAttributes
+            .Where(kvp => kvp.Key != "style")
+            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        if (Context is not null)
+        {
+            Context.PendingCloseCancelled -= CancelCloseTimer;
+        }
+
+        CancelCloseTimer();
+        return ValueTask.CompletedTask;
+    }
+}

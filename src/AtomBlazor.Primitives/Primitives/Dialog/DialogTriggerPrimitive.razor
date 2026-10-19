@@ -1,0 +1,120 @@
+@namespace AtomBlazor.Primitives
+@using AtomBlazor.Primitives.Utilities
+@inject IServiceProvider Services
+
+@* Dialog 触发按钮——点击时打开对话框 *@
+@if (AsChild)
+{
+    @* 当 AsChild 为 true 时，将触发上下文传递给子组件由其处理 *@
+    <CascadingValue Value="TriggerContext" Name="TriggerContext">
+        @ChildContent
+    </CascadingValue>
+}
+else
+{
+    <button type="button"
+            id="@Context.TriggerId"
+            @onclick="HandleClick"
+            @attributes="AdditionalAttributes"
+            aria-haspopup="dialog"
+            aria-expanded="@Context.IsOpen.ToString().ToLower()"
+            aria-controls="@Context.ContentId">
+        @ChildContent
+    </button>
+}
+
+@code {
+    [CascadingParameter]
+    private DialogContext Context { get; set; } = null!;
+
+    /// <summary>
+    /// 显示在触发按钮内部的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 为 true 时，触发器不渲染自身的按钮元素。
+    /// 而是通过 TriggerContext 将触发行为传递给子组件。
+    /// 子组件必须消费 TriggerContext 并应用点击 / aria 行为。
+    /// </summary>
+    [Parameter]
+    public bool AsChild { get; set; } = false;
+
+    /// <summary>
+    /// 应用到触发按钮元素的附加特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 自定义点击处理程序。若提供，则调用它而非默认的切换行为。
+    /// </summary>
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    /// <summary>
+    /// 是否使用自定义点击处理。为 true 时，仅调用 OnClick。
+    /// 默认值为 false（点击时打开对话框）。
+    /// </summary>
+    [Parameter]
+    public bool CustomClickHandling { get; set; } = false;
+
+    private static readonly AsChildTriggerDescription diagnostic = new("DialogTriggerPrimitive (or AlertDialogTriggerPrimitive, which is built on it)", "open this dialog", "<button>");
+
+    // The context the last render cascaded, kept so the first after-render can ask whether
+    // anything read it.
+    private TriggerContext? lastTriggerContext;
+
+    /// <summary>
+    /// 当 AsChild 为 true 时传递给子组件的上下文。
+    /// </summary>
+    private TriggerContext TriggerContext => lastTriggerContext = new()
+    {
+        TriggerId = Context.TriggerId,
+        IsOpen = Context.IsOpen,
+        Toggle = () => Context.Toggle(),
+        Open = () => Context.Open(),
+        Close = () => Context.Close(),
+        AriaHasPopup = "dialog",
+        AriaControls = Context.ContentId
+    };
+
+    private async Task HandleClick(MouseEventArgs args)
+    {
+        if (CustomClickHandling && OnClick.HasDelegate)
+        {
+            // Custom handling only
+            await OnClick.InvokeAsync(args);
+        }
+        else
+        {
+            // Default: toggle dialog
+            Context.Toggle();
+
+            // Also invoke custom handler if provided
+            if (OnClick.HasDelegate)
+            {
+                await OnClick.InvokeAsync(args);
+            }
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        if (Context == null)
+        {
+            throw new InvalidOperationException(
+                "DialogTriggerPrimitive must be used within a Dialog component. " +
+                "Ensure DialogTriggerPrimitive is a child of a Dialog component.");
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            AsChildDiagnostics.WarnIfUnconsumed<DialogTriggerPrimitive>(Services, diagnostic, AsChild, lastTriggerContext, AdditionalAttributes);
+        }
+    }
+}

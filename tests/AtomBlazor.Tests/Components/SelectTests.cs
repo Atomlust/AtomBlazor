@@ -12,10 +12,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.JSInterop;
 using Xunit;
 using PSelect = AtomBlazor.Primitives.SelectPrimitive<string>;
-using PSelectContent = AtomBlazor.Primitives.SelectContent<string>;
+using PSelectContent = AtomBlazor.Primitives.SelectContentPrimitive<string>;
 using PSelectContext = AtomBlazor.Primitives.SelectContext<string>;
-using PSelectItem = AtomBlazor.Primitives.SelectItem<string>;
-using PSelectTrigger = AtomBlazor.Primitives.SelectTrigger<string>;
+using PSelectItem = AtomBlazor.Primitives.SelectItemPrimitive<string>;
+using PSelectTrigger = AtomBlazor.Primitives.SelectTriggerPrimitive<string>;
 using CSelect = AtomBlazor.Select<string>;
 
 namespace AtomBlazor.Tests.Components;

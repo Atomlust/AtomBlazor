@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace AtomBlazor.Primitives;
 
 /// <summary>
-/// 定义切换按钮组（ToggleGroup）的选择模式。
+/// 定义切换按钮组（ToggleGroupPrimitive）的选择模式。
 /// </summary>
 [SuppressMessage("Naming", "CA1720:Identifier contains type name", Justification = "Single 是选择模式的领域术语")]
 public enum ToggleGroupType

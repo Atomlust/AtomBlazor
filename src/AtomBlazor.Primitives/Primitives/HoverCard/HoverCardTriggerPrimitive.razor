@@ -1,0 +1,374 @@
+@namespace AtomBlazor.Primitives
+@using System.Timers
+@using AtomBlazor.Primitives.Utilities
+@using Microsoft.Extensions.Logging
+@implements IAsyncDisposable
+@inject ILogger<HoverCardTriggerPrimitive> Logger
+@inject IServiceProvider Services
+@inject IJSRuntime JSRuntime
+
+@* HoverCardTriggerPrimitive 基元——悬停即展开卡片的触发器 *@
+@if (AsChild)
+{
+    @* AsChild 为真时，把触发器上下文级联给子组件，由子组件自行消费 *@
+    <CascadingValue Value="TriggerContext" Name="TriggerContext">
+        @ChildContent
+    </CascadingValue>
+}
+else
+{
+    <div id="@Context.TriggerId"
+         @ref="_triggerRef"
+         tabindex="0"
+         @onmouseenter="HandleMouseEnter"
+         @onmouseleave="HandleMouseLeave"
+         @onfocus="HandleFocus"
+         @onblur="HandleBlur"
+         @attributes="AdditionalAttributes">
+        @ChildContent
+    </div>
+}
+
+@code {
+    private ElementReference _triggerRef;
+    private IJSObjectReference? _elementUtils;
+    private System.Timers.Timer? _openTimer;
+    private System.Timers.Timer? _closeTimer;
+    private bool _disposed;
+
+    /// <summary>
+    /// 接收悬浮卡片上下文的级联参数。
+    /// </summary>
+    [CascadingParameter]
+    public HoverCardContext Context { get; set; } = null!;
+
+    /// <summary>
+    /// 接收来自父级的 TriggerContext（例如 DialogTriggerPrimitive、SheetTriggerPrimitive、DropdownMenuTriggerPrimitive），
+    /// 使基于悬停的触发器能把父级的点击/ARIA 行为与自身的悬停/聚焦行为合并。
+    /// </summary>
+    [CascadingParameter(Name = "TriggerContext")]
+    private TriggerContext? ParentTriggerContext { get; set; }
+
+    /// <summary>
+    /// 触发器内渲染的子内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 为 true 时触发器不渲染自己的元素，只级联
+    /// <see cref="Utilities.TriggerContext"/>，由子组件负责消费该上下文并完成接线：
+    /// 把触发器 id 与 aria 特性挂到自己的元素上，并调用 <c>OnMouseEnter</c>/<c>OnMouseLeave</c>、
+    /// <c>OnFocus</c>/<c>OnBlur</c> 与 <c>SetTriggerElement</c>。
+    /// </summary>
+    /// <remarks>
+    /// 此模式下既不渲染元素也不挂处理器，因此忽略该上下文的子组件将没有任何东西
+    /// 监听悬停或聚焦，卡片永远不会展开。纯标记、纯文本或裸图标（例如 <c>LucideIcon</c>）
+    /// 需要 <c>AsChild="false"</c>，让触发器渲染自带处理器的 <c>div</c>。
+    /// 只有会消费 <see cref="Utilities.TriggerContext"/> 的子组件（即为触发器角色而建的组件）
+    /// 才应使用 <c>AsChild="true"</c>。未消费的上下文会在 Development 环境下
+    /// 经 <c>ILogger</c> 报告为警告。
+    /// </remarks>
+    [Parameter]
+    public bool AsChild { get; set; } = false;
+
+    /// <summary>
+    /// 追加到触发器元素上的附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 使用 AsChild 模式时缓存的触发器元素引用。
+    /// </summary>
+    private ElementReference? _asChildTriggerRef;
+
+    /// <summary>
+    /// 最近一次渲染交给子组件的上下文，保留它以便事后检查其是否被消费。
+    /// 每次渲染都新建上下文——这是有意的，好让子组件看到当前的 IsOpen 与 id——
+    /// 而本字段始终指向当前正被级联出去的那一个。
+    /// </summary>
+    private TriggerContext? lastTriggerContext;
+
+    /// <summary>
+    /// AsChild 为真时传给子组件的上下文。存在父级 TriggerContext（例如来自 DialogTriggerPrimitive）时，
+    /// 会把父级的点击/ARIA 行为与 HoverCard 的悬停/聚焦行为合并，使嵌套触发器正常工作。
+    /// </summary>
+    private TriggerContext TriggerContext => lastTriggerContext = new()
+    {
+        TriggerId = ParentTriggerContext?.TriggerId ?? Context.TriggerId,
+        IsOpen = ParentTriggerContext?.IsOpen ?? Context.IsOpen,
+        Toggle = ParentTriggerContext?.Toggle,
+        Open = () => Context.Open(_asChildTriggerRef),
+        Close = () => Context.Close(),
+        AriaHasPopup = ParentTriggerContext?.AriaHasPopup,
+        AriaControls = ParentTriggerContext?.AriaControls,
+        OnKeyDown = ParentTriggerContext?.OnKeyDown,
+        OnMouseEnter = HandleMouseEnterForContext,
+        OnMouseLeave = HandleMouseLeaveForContext,
+        OnFocus = HandleFocusForContext,
+        OnBlur = HandleBlurForContext,
+        SetTriggerElement = (el) =>
+        {
+            _asChildTriggerRef = el;
+            ParentTriggerContext?.SetTriggerElement?.Invoke(el);
+        }
+    };
+
+    private void HandleMouseEnterForContext()
+    {
+        Context.CancelPendingClose();
+        if (!Context.IsOpen)
+        {
+            _openTimer?.Dispose();
+            _openTimer = new System.Timers.Timer(Context.OpenDelay);
+            _openTimer.Elapsed += OnOpenTimerElapsedForContext;
+            _openTimer.AutoReset = false;
+            _openTimer.Start();
+        }
+    }
+
+    private void HandleMouseLeaveForContext()
+    {
+        CancelOpenTimer();
+        if (Context.IsOpen)
+        {
+            _closeTimer?.Dispose();
+            _closeTimer = new System.Timers.Timer(Context.CloseDelay);
+            _closeTimer.Elapsed += OnCloseTimerElapsed;
+            _closeTimer.AutoReset = false;
+            _closeTimer.Start();
+        }
+    }
+
+    private void HandleFocusForContext()
+    {
+        Context.CancelPendingClose();
+
+        // TriggerContext.OnFocus 是 Action，把它放宽成 Func<Task> 会破坏每一个
+        // 实现 AsChild 模式的消费方。改为在此处启动工作并观察其故障，以免留下未处理的异常。
+        _ = OpenOnVisibleFocusAsync(_asChildTriggerRef)
+            .ContinueWith(
+                t => Logger.LogDebug(t.Exception, "HoverCardTriggerPrimitive 聚焦展开失败。"),
+                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
+    }
+
+    private void HandleBlurForContext()
+    {
+        CancelOpenTimer();
+        if (Context.IsOpen)
+        {
+            _closeTimer?.Dispose();
+            _closeTimer = new System.Timers.Timer(Context.CloseDelay);
+            _closeTimer.Elapsed += OnCloseTimerElapsed;
+            _closeTimer.AutoReset = false;
+            _closeTimer.Start();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        if (Context == null)
+        {
+            throw new InvalidOperationException("HoverCardTriggerPrimitive 必须在 HoverCard 组件内使用。");
+        }
+
+        // 指针移到卡片上时，内容经同一个信号取消收起。
+        Context.PendingCloseCancelled += CancelCloseTimer;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                _elementUtils = await PrimitiveModules.GetAsync(JSRuntime);
+            }
+            catch (Exception ex) when (ex is JSException or InvalidOperationException or TaskCanceledException)
+            {
+                // 预渲染阶段，或导入过程中电路被断开。没有模块时聚焦沿按老样子展开，
+                // 而不是变成不可达。
+                Logger.LogDebug(ex, "HoverCardTriggerPrimitive 无法加载 element-utils；聚焦将不做键盘到达判定直接展开。");
+            }
+        }
+
+        // 主动写入触发器元素引用，使卡片以编程方式（经 @bind-Open）展开时元素也已就位
+        if (!AsChild)
+        {
+            Context.SetTriggerElement(_triggerRef);
+        }
+        else if (_asChildTriggerRef.HasValue)
+        {
+            // AsChild 模式下由子组件（例如 Button）经 TriggerContext.SetTriggerElement
+            // 写入 _asChildTriggerRef，此处再向上传播，使内容侧可相对于它定位。
+            Context.SetTriggerElement(_asChildTriggerRef.Value);
+        }
+
+        if (firstRender)
+        {
+            WarnIfTriggerContextUnconsumed();
+        }
+    }
+
+    private static readonly AsChildTriggerDescription diagnostic = new("HoverCardTriggerPrimitive", "展开此悬浮卡片", "<div> 包裹层");
+
+    private void WarnIfTriggerContextUnconsumed() =>
+        AsChildDiagnostics.WarnIfUnconsumed<HoverCardTriggerPrimitive>(Services, diagnostic, AsChild, lastTriggerContext, AdditionalAttributes);
+
+    private void HandleMouseEnter()
+    {
+        Context.CancelPendingClose();
+
+        if (!Context.IsOpen)
+        {
+            _openTimer?.Dispose();
+            _openTimer = new System.Timers.Timer(Context.OpenDelay);
+            _openTimer.Elapsed += OnOpenTimerElapsed;
+            _openTimer.AutoReset = false;
+            _openTimer.Start();
+        }
+    }
+
+    private void HandleMouseLeave()
+    {
+        CancelOpenTimer();
+
+        if (Context.IsOpen)
+        {
+            _closeTimer?.Dispose();
+            _closeTimer = new System.Timers.Timer(Context.CloseDelay);
+            _closeTimer.Elapsed += OnCloseTimerElapsed;
+            _closeTimer.AutoReset = false;
+            _closeTimer.Start();
+        }
+    }
+
+    /// <summary>
+    /// 触发器是否为一次有意的键盘聚焦所到达，而非由焦点陷阱或显式的 <c>.focus()</c>
+    /// 调用以编程方式移动过来的焦点。
+    /// </summary>
+    /// <remarks>
+    /// 刻意不使用 <c>:focus-visible</c>。Chrome 对 <c>div[tabindex="0"]</c> 上的
+    /// 编程式 <c>.focus()</c>——哪怕紧跟在一次真实鼠标点击之后——也会把该选择器报为 true，
+    /// 因此它区分不了这两种情形；JS 侧改为以"最近是否按过 Tab"为判据。
+    ///
+    /// 判定无法执行时返回 true——预渲染阶段或模块不可用。WCAG 1.4.13 要求卡片可被键盘触达，
+    /// 因此不可用的判定绝不能把它扣下。
+    /// </remarks>
+    private async Task<bool> IsKeyboardFocusAsync(ElementReference element)
+    {
+        if (_elementUtils == null) return true;
+
+        try
+        {
+            return await _elementUtils.InvokeAsync<bool>("elementUtils.isKeyboardFocus", element);
+        }
+        catch (Exception ex) when (ex is JSException or JSDisconnectedException or ObjectDisposedException or TaskCanceledException)
+        {
+            Logger.LogDebug(ex, "HoverCardTriggerPrimitive 无法判定键盘聚焦；按有意聚焦处理。");
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// 聚焦时展开，但仅在焦点可见时展开。对任意聚焦都展开意味着一次焦点陷阱，
+    /// 或任何显式的 <c>.focus()</c>，都会在毫无用户意图的情况下把卡片弹开。
+    /// </summary>
+    private async Task OpenOnVisibleFocusAsync(ElementReference? element)
+    {
+        if (_disposed || Context.IsOpen || !element.HasValue) return;
+
+        if (!await IsKeyboardFocusAsync(element.Value)) return;
+
+        // 复查：await 给了失焦或鼠标路径落地的时间。
+        if (_disposed || Context.IsOpen) return;
+
+        Context.Open(element.Value);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleFocus()
+    {
+        Context.CancelPendingClose();
+        await OpenOnVisibleFocusAsync(_triggerRef);
+    }
+
+    private void HandleBlur()
+    {
+        CancelOpenTimer();
+
+        if (Context.IsOpen)
+        {
+            // 失焦时延后收起
+            _closeTimer?.Dispose();
+            _closeTimer = new System.Timers.Timer(Context.CloseDelay);
+            _closeTimer.Elapsed += OnCloseTimerElapsed;
+            _closeTimer.AutoReset = false;
+            _closeTimer.Start();
+        }
+    }
+
+    private void OnOpenTimerElapsed(object? sender, ElapsedEventArgs e)
+    {
+        _ = InvokeAsync(() =>
+        {
+            if (_disposed) { return; }
+            Context.Open(_triggerRef);
+            StateHasChanged();
+        });
+    }
+
+    private void OnOpenTimerElapsedForContext(object? sender, ElapsedEventArgs e)
+    {
+        _ = InvokeAsync(() =>
+        {
+            if (_disposed) { return; }
+            Context.Open(_asChildTriggerRef);
+            StateHasChanged();
+        });
+    }
+
+    private void OnCloseTimerElapsed(object? sender, ElapsedEventArgs e)
+    {
+        _ = InvokeAsync(() =>
+        {
+            if (_disposed) { return; }
+            Context.Close();
+            StateHasChanged();
+        });
+    }
+
+    private void CancelOpenTimer()
+    {
+        if (_openTimer != null)
+        {
+            _openTimer.Stop();
+            _openTimer.Dispose();
+            _openTimer = null;
+        }
+    }
+
+    private void CancelCloseTimer()
+    {
+        if (_closeTimer != null)
+        {
+            _closeTimer.Stop();
+            _closeTimer.Dispose();
+            _closeTimer = null;
+        }
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        if (Context is not null)
+        {
+            Context.PendingCloseCancelled -= CancelCloseTimer;
+        }
+
+        _disposed = true;
+        CancelOpenTimer();
+        CancelCloseTimer();
+        return ValueTask.CompletedTask;
+    }
+}
