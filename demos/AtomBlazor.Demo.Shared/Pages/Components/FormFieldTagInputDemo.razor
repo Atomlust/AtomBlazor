@@ -1,0 +1,173 @@
+@page "/components/form-field-tag-input"
+
+<PageTitle>@L.T("FormFieldTagInput 标签输入字段 - Atom BlazorUI", "FormFieldTagInput Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">FormFieldTagInput</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("带内置标签、辅助文本与错误提示的 TagInput 表单字段封装。", "A form field wrapper for TagInput with built-in label, helper text, and error messages.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带标签与辅助文本的标签输入框。按 Enter 或逗号即可添加标签。", "A tag input with a label and helper text. Press Enter or comma to add tags.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldTagInput @bind-Tags="_skills"
+                                Label="@(L.T("技能", "Skills"))"
+                                Placeholder="@(L.T("输入一项技能…", "Type a skill..."))"
+                                HelperText="@(L.T("按 Enter 或逗号即可添加。", "Press Enter or comma to add."))" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("标签：", "Tags:")</p>
+            <p class="text-sm font-mono">@((_skills?.Any() == true) ? string.Join(", ", _skills) : L.T("（无）", "(none)"))</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldTagInput/basic.txt" />
+    </div>
+
+    <!-- With Constraints -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("数量限制", "With Constraints")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">MaxTags</code> 限制标签数量，并开启
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Clearable</code>。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Limit the number of tags with <code class="text-xs bg-muted px-1 py-0.5 rounded">MaxTags</code>
+                    and enable <code class="text-xs bg-muted px-1 py-0.5 rounded">Clearable</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldTagInput @bind-Tags="_categories"
+                                Label="@(L.T("分类", "Categories"))"
+                                Placeholder="@(L.T("添加一个分类…", "Add a category..."))"
+                                HelperText="@(L.T("最多 5 个分类。", "Up to 5 categories."))"
+                                MaxTags="5"
+                                Clearable="true" />
+        </div>
+        <CodeBlock Source="Components/FormFieldTagInput/constraints.txt" />
+    </div>
+
+    <!-- With Suggestions -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带建议项", "With Suggestions")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("提供一份静态建议列表，帮助用户添加标签。", "Provide a static list of suggestions to help users add tags.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldTagInput @bind-Tags="_languages"
+                                Label="@(L.T("编程语言", "Programming languages"))"
+                                Placeholder="@(L.T("输入以搜索…", "Type to search..."))"
+                                HelperText="@(L.T("可以从建议中选择，也可以自行输入。", "Select from suggestions or type your own."))"
+                                Suggestions="@_languageSuggestions" />
+        </div>
+        <CodeBlock Source="Components/FormFieldTagInput/suggestions.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("一个处于禁用状态的标签输入表单字段。", "A disabled tag input form field.")</p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldTagInput Tags="@_readOnlyTags"
+                                Label="@(L.T("标签（已锁定）", "Tags (locked)"))"
+                                HelperText="@(L.T("这些标签不可修改。", "These tags cannot be modified."))"
+                                Disabled="true" />
+        </div>
+        <CodeBlock Source="Components/FormFieldTagInput/disabled.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("标签与标签输入框在视觉上关联", "Label visually associated with the tag input")</AccessibilityItem>
+            <AccessibilityItem>@L.T("描述通过 aria-describedby 关联", "Description linked via aria-describedby")</AccessibilityItem>
+        </AriaAttributes>
+            <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可用的表单控件之间移动", "Move between enabled form controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("添加当前标签，或选中一条建议", "Add the current tag or choose a suggestion"))"><Kbd>Enter</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("输入框为空时删除最后一个标签", "Remove the last tag when the input is empty"))"><Kbd>Backspace</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭建议列表", "Close suggestions"))"><Kbd>Escape</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="FormFieldTagInput">
+                <ApiParameter Name="Label" Type="string?" Default="null">@L.T("标签文本。", "The label text.")</ApiParameter>
+                <ApiParameter Name="HelperText" Type="string?" Default="null">@L.T("输入框下方的辅助文本。", "Helper text below the input.")</ApiParameter>
+                <ApiParameter Name="ErrorText" Type="string?" Default="null">@L.T("手动错误文本覆盖。", "Manual error text override.")</ApiParameter>
+                <ApiParameter Name="Tags" Type="IReadOnlyList&lt;string&gt;?" Default="null">@L.T("标签列表。使用 @bind-Tags。", "The tag list. Use @bind-Tags.")</ApiParameter>
+                <ApiParameter Name="TagsChanged" Type="EventCallback&lt;IReadOnlyList&lt;string&gt;?&gt;">@L.T("标签发生变化时调用的回调。", "Callback when tags change.")</ApiParameter>
+                <ApiParameter Name="Placeholder" Type="string?" Default="null">@L.T("占位文本。", "Placeholder text.")</ApiParameter>
+                <ApiParameter Name="MaxTags" Type="int" Default="int.MaxValue">@L.T("允许的最大标签数量。", "Maximum tags allowed.")</ApiParameter>
+                <ApiParameter Name="MaxTagLength" Type="int" Default="50">@L.T("每个标签的最大字符数。", "Maximum characters per tag.")</ApiParameter>
+                <ApiParameter Name="AllowDuplicates" Type="bool" Default="false">@L.T("是否允许重复的标签。", "Allow duplicate tags.")</ApiParameter>
+                <ApiParameter Name="AddTrigger" Type="TagInputTrigger" Default="Enter | Comma">@L.T("触发创建标签的按键。", "Keys that trigger tag creation.")</ApiParameter>
+                <ApiParameter Name="Suggestions" Type="IEnumerable&lt;string&gt;?" Default="null">@L.T("静态建议列表。", "Static suggestion list.")</ApiParameter>
+                <ApiParameter Name="Variant" Type="TagInputVariant" Default="Default">@L.T("标签的视觉样式。", "Visual variant for tags.")</ApiParameter>
+                <ApiParameter Name="Clearable" Type="bool" Default="false">@L.T("是否显示一键清空按钮。", "Show a clear-all button.")</ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("输入框是否被禁用。", "Whether the input is disabled.")</ApiParameter>
+                <ApiParameter Name="InputClass" Type="string?" Default="null">@L.T("内部容器的 CSS 类。", "CSS classes for the inner container.")</ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private IReadOnlyList<string>? _skills;
+    private IReadOnlyList<string>? _categories;
+    private IReadOnlyList<string>? _languages;
+    private IReadOnlyList<string> _readOnlyTags = new[] { "blazor", "dotnet", "csharp" };
+
+    private static readonly string[] _languageSuggestions =
+    [
+        "C#", "JavaScript", "TypeScript", "Python", "Go", "Rust", "Java", "Kotlin", "Swift", "Ruby"
+    ];
+}

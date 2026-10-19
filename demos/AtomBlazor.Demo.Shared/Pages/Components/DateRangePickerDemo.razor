@@ -1,0 +1,787 @@
+@page "/components/date-range-picker"
+<PageTitle>@L.T("日期范围选择器组件 - Atom BlazorUI", "DateRangePicker Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("日期范围选择器组件", "DateRangePicker Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("带双月视图、预设范围与范围约束的日期范围选择组件。", "A date range selection component with two-month view, presets, and range constraints.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本示例", "Basic Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("双月视图并带预设日期范围。在移动端，快捷选择下拉框会显示与所选日期匹配的预设；其他范围则显示 Custom。", "Two-month view with preset date ranges. On mobile, the quick-select dropdown shows the preset matching your selected dates, or Custom for other ranges.")
+            </p>
+        </div>
+        <DateRangePicker AriaLabel="@(L.T("选择日期范围", "Choose a date range"))" @bind-Value="_basicRange" />
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                @if (_basicRange != null)
+                {
+                    @($"已选择：{_basicRange.Start:MMM d, yyyy} - {_basicRange.End:MMM d, yyyy}（{_basicRange.Days} 天）")
+                }
+                else
+                {
+                    @("未选择日期范围")
+                }
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                @if (_basicRange != null)
+                {
+                    @($"Selected: {_basicRange.Start:MMM d, yyyy} - {_basicRange.End:MMM d, yyyy} ({_basicRange.Days} days)")
+                }
+                else
+                {
+                    @("No range selected")
+                }
+            </p>
+                </text>
+}
+        <CodeBlock Source="Components/DateRangePicker/basic.txt" />
+    </div>
+
+    <!-- Single Month View -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("单月视图", "Single Month View")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("紧凑的单日历视图。", "Compact single calendar view.")
+            </p>
+        </div>
+        <DateRangePicker @bind-Value="_singleMonth" ShowTwoMonths="false" />
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                @if (_singleMonth != null)
+                {
+                    @($"已选择：{_singleMonth.Days} 天")
+                }
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                @if (_singleMonth != null)
+                {
+                    @($"Selected: {_singleMonth.Days} days")
+                }
+            </p>
+                </text>
+}
+        <CodeBlock Source="Components/DateRangePicker/single-month.txt" />
+    </div>
+
+    <!-- Without Presets -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("不带预设", "Without Presets")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("仅日历，无快捷选择预设。", "Calendar only, no quick select presets.")
+            </p>
+        </div>
+        <DateRangePicker @bind-Value="_noPresets" ShowPresets="false" />
+        <CodeBlock Source="Components/DateRangePicker/without-presets.txt" />
+    </div>
+
+    <!-- Custom Presets -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义预设", "Custom Presets")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("完全自定义的快捷预设，支持用户定义的标签与日期范围逻辑。", "Fully custom quick-pick presets with user-defined labels and date range logic.")
+            </p>
+        </div>
+        <DateRangePicker @bind-Value="_customPresets" Presets="_fullyCustomPresets" />
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                @if (_customPresets != null)
+                {
+                    @($"已选择：{_customPresets.Start:MMM d, yyyy} - {_customPresets.End:MMM d, yyyy}（{_customPresets.Days} 天）")
+                }
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                @if (_customPresets != null)
+                {
+                    @($"Selected: {_customPresets.Start:MMM d, yyyy} - {_customPresets.End:MMM d, yyyy} ({_customPresets.Days} days)")
+                }
+            </p>
+                </text>
+}
+        <CodeBlock Source="Components/DateRangePicker/custom-presets.txt" />
+    </div>
+
+    <!-- Mixed Presets -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("混合预设", "Mixed Presets")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    把内置预设（自带本地化）与自定义条目混合使用。
+                    内置预设通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">DateRangePreset</code> 的隐式转换获得。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Combine built-in presets (with automatic localization) and custom entries.
+                    Built-in presets use implicit conversion from <code class="text-xs bg-muted px-1 py-0.5 rounded">DateRangePreset</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <DateRangePicker @bind-Value="_mixedPresets" Presets="_mixedPresetList" />
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                @if (_mixedPresets != null)
+                {
+                    @($"已选择：{_mixedPresets.Start:MMM d, yyyy} - {_mixedPresets.End:MMM d, yyyy}（{_mixedPresets.Days} 天）")
+                }
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                @if (_mixedPresets != null)
+                {
+                    @($"Selected: {_mixedPresets.Start:MMM d, yyyy} - {_mixedPresets.End:MMM d, yyyy} ({_mixedPresets.Days} days)")
+                }
+            </p>
+                </text>
+}
+        <CodeBlock Source="Components/DateRangePicker/mixed-presets.txt" />
+    </div>
+
+    <!-- Many Presets (Scroll) -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("大量预设（滚动）", "Many Presets (Scroll)")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("当预设数量较多时，侧边栏在桌面端会变为可滚动。", "When many presets are provided, the sidebar becomes scrollable on desktop.")
+            </p>
+        </div>
+        <DateRangePicker @bind-Value="_manyPresets" Presets="_manyPresetList" />
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                @if (_manyPresets != null)
+                {
+                    @($"已选择：{_manyPresets.Start:MMM d, yyyy} - {_manyPresets.End:MMM d, yyyy}（{_manyPresets.Days} 天）")
+                }
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                @if (_manyPresets != null)
+                {
+                    @($"Selected: {_manyPresets.Start:MMM d, yyyy} - {_manyPresets.End:MMM d, yyyy} ({_manyPresets.Days} days)")
+                }
+            </p>
+                </text>
+}
+    </div>
+
+    <!-- With Date Constraints -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("日期约束", "With Date Constraints")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("仅最近 30 天内的日期可选择。", "Only dates within the last 30 days are selectable.")
+            </p>
+        </div>
+        <DateRangePicker @bind-Value="_constrained"
+                         MinDate="@DateTime.Today.AddDays(-30)"
+                         MaxDate="@DateTime.Today" />
+        <CodeBlock Source="Components/DateRangePicker/constraints.txt" />
+    </div>
+
+    <!-- Min/Max Days -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("最少/最多天数约束", "Min/Max Days Constraint")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("所选范围必须介于 3 到 14 天之间。", "Range must be between 3 and 14 days.")
+            </p>
+        </div>
+        <DateRangePicker @bind-Value="_minMaxDays" MinDays="3" MaxDays="14" />
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                @if (_minMaxDays != null)
+                {
+                    @($"已选择：{_minMaxDays.Days} 天（最少 3 天，最多 14 天）")
+                }
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                @if (_minMaxDays != null)
+                {
+                    @($"Selected: {_minMaxDays.Days} days (min: 3, max: 14)")
+                }
+            </p>
+                </text>
+}
+        <CodeBlock Source="Components/DateRangePicker/min-max-days.txt" />
+    </div>
+
+    <!-- With Disabled Dates -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用周末", "Disabled Weekends")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("周六与周日被禁用。", "Saturdays and Sundays are disabled.")
+            </p>
+        </div>
+        <DateRangePicker @bind-Value="_noWeekends"
+                         DisabledDates="@(date => date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday)" />
+        <CodeBlock Source="Components/DateRangePicker/disabled-weekends.txt" />
+    </div>
+
+    <!-- Pre-selected Value -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("预选值", "Pre-selected Value")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("初始化为最近 7 天。", "Initialized with last 7 days.")
+            </p>
+        </div>
+        <DateRangePicker @bind-Value="_preselected" />
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                @if (_preselected != null)
+                {
+                    @($"已选择：{_preselected.Start:MMM d} - {_preselected.End:MMM d}")
+                }
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                @if (_preselected != null)
+                {
+                    @($"Selected: {_preselected.Start:MMM d} - {_preselected.End:MMM d}")
+                }
+            </p>
+                </text>
+}
+        <CodeBlock Source="Components/DateRangePicker/preselected.txt" />
+    </div>
+
+    <!-- Custom Date Format -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义日期格式", "Custom Date Format")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("使用 ISO 日期格式。", "Using ISO date format.")
+            </p>
+        </div>
+        <DateRangePicker @bind-Value="_customFormat" DateFormat="yyyy-MM-dd" />
+        <CodeBlock Source="Components/DateRangePicker/custom-format.txt" />
+    </div>
+
+    <!-- Custom Placeholder -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义占位文案", "Custom Placeholder")</h2>
+        </div>
+        <DateRangePicker @bind-Value="_placeholder" Placeholder="@(L.T("请选择预订日期", "Choose booking dates"))" />
+        <CodeBlock Source="Components/DateRangePicker/custom-placeholder.txt" />
+    </div>
+
+    <!-- Monday First -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("周一为每周首日", "Monday First")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一周从星期一开始。", "Week starts on Monday.")
+            </p>
+        </div>
+        <DateRangePicker @bind-Value="_mondayFirst" FirstDayOfWeek="DayOfWeek.Monday" />
+        <CodeBlock Source="Components/DateRangePicker/monday-first.txt" />
+    </div>
+
+    <!-- Auto-apply without buttons -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("无需按钮自动应用", "Auto-apply without buttons")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    开启 <code class="text-xs bg-muted px-1 py-0.5 rounded">AutoApply</code> 后，一旦选出完整范围就会立即应用所选并关闭浮层，无需点击 Apply。<code class="text-xs bg-muted px-1 py-0.5 rounded">ShowButtons="false"</code> 会隐藏 Clear/Apply 底部按钮（同时也意味着自动应用）。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    With <code class="text-xs bg-muted px-1 py-0.5 rounded">AutoApply</code> the selection is applied and the popover closes as soon as a complete range is picked — no Apply click required. <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowButtons="false"</code> hides the Clear/Apply footer buttons (and implies auto-apply).
+                </p>
+                        </text>
+}
+        </div>
+        <DateRangePicker @bind-Value="_autoApply" AutoApply="true" ShowButtons="false" />
+        @if (_autoApply != null)
+        {
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">已选择：@_autoApply.Start.ToShortDateString() - @_autoApply.End.ToShortDateString()</p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">Selected: @_autoApply.Start.ToShortDateString() - @_autoApply.End.ToShortDateString()</p>
+                        </text>
+}
+        }
+        <CodeBlock Source="Components/DateRangePicker/auto-apply.txt" />
+    </div>
+
+    <!-- Per-Day Customization -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("逐日自定义", "Per-Day Customization")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">DayTemplate</code> 在每个日历日内渲染自定义内容 —— 上下文通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">IsInRange</code> 携带范围状态 —— 并用 <code class="text-xs bg-muted px-1 py-0.5 rounded">DayClassFunc</code> 给单个日期设置样式。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">DayTemplate</code> to render custom content inside each calendar day — the context includes range state via <code class="text-xs bg-muted px-1 py-0.5 rounded">IsInRange</code> — and <code class="text-xs bg-muted px-1 py-0.5 rounded">DayClassFunc</code> to style individual days.
+                </p>
+                        </text>
+}
+        </div>
+        <DateRangePicker @bind-Value="_customDayRange" DayClassFunc="@GetWeekendDayClass">
+            <DayTemplate>
+                <div class="relative flex h-full w-full items-center justify-center">
+                    @context.Date.Day
+                    @if (HasEvent(context.Date))
+                    {
+                        <span class="absolute bottom-1 h-1 w-1 rounded-full @(context.IsSelected ? "bg-primary-foreground" : "bg-primary")"></span>
+                    }
+                </div>
+            </DayTemplate>
+        </DateRangePicker>
+        <CodeBlock Source="Components/DateRangePicker/day-customization.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用状态", "Disabled")</h2>
+        </div>
+        <DateRangePicker Value="@(new DateRange(DateTime.Today.AddDays(-7), DateTime.Today))" Disabled="true" />
+        <CodeBlock Source="Components/DateRangePicker/disabled.txt" />
+    </div>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    触发按钮通过 Popover 基础件带上 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-haspopup</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code>
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Trigger button includes <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-haspopup</code> and <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> via the Popover primitive
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    日历网格使用语义化的 <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;table&gt;</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;thead&gt;</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;tbody&gt;</code> 元素
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Calendar grid uses semantic <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;table&gt;</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;thead&gt;</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;tbody&gt;</code> elements
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    被禁用的日期与整体禁用状态都通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code> 属性传达
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Disabled dates and the disabled state are conveyed via the <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code> attribute
+                </AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("打开/关闭日期范围选择器", "Open/close the date range picker"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭弹出层", "Close the popover"))">
+                <Kbd>Escape</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在选择器内移动焦点", "Navigate within the picker"))">
+                <Kbd>Tab</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="DateRangePicker">
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">@L.T("转发给交互控件或分组的无障碍名称。", "Accessible name forwarded to the interactive control or group.")</ApiParameter>
+                <ApiParameter Name="Value" Type="DateRange?">
+                    @L.T("所选的日期范围（Start、End）。", "Selected date range (Start, End).")
+                </ApiParameter>
+                <ApiParameter Name="MinDate" Type="DateTime?">
+                    @L.T("可选择的最小日期。", "Minimum selectable date.")
+                </ApiParameter>
+                <ApiParameter Name="MaxDate" Type="DateTime?">
+                    @L.T("可选择的最大日期。", "Maximum selectable date.")
+                </ApiParameter>
+                <ApiParameter Name="MinDays" Type="int?">
+                    @L.T("范围的最少天数。", "Minimum range span in days.")
+                </ApiParameter>
+                <ApiParameter Name="MaxDays" Type="int?">
+                    @L.T("范围的最多天数。", "Maximum range span in days.")
+                </ApiParameter>
+                <ApiParameter Name="DisabledDates" Type="Func&lt;DateTime, bool&gt;?">
+                    @L.T("判断某个日期是否应当禁用的函数。", "Function to disable specific dates.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="DayTemplate" Type="RenderFragment&lt;CalendarDayContext&gt;?" Default="null">
+                        在每个日历日期按钮内渲染自定义内容的模板。上下文通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">IsInRange</code> 携带范围状态。为 null 时渲染日期数字。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="DayTemplate" Type="RenderFragment&lt;CalendarDayContext&gt;?" Default="null">
+                        Template for rendering custom content inside each calendar day button. The context includes range state via <code class="text-xs bg-muted px-1 py-0.5 rounded">IsInRange</code>. When null, the day number is rendered.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="DayClassFunc" Type="Func&lt;DateTime, string?&gt;?" Default="null">
+                    @L.T("为指定日历日期按钮返回额外 CSS 类的函数。", "Function returning additional CSS classes for a specific calendar day button.")
+                </ApiParameter>
+                <ApiParameter Name="ShowTwoMonths" Type="bool" Default="true">
+                    @L.T("并排显示两个月份。", "Show two calendars side by side.")
+                </ApiParameter>
+                <ApiParameter Name="ShowPresets" Type="bool" Default="true">
+                    @L.T("显示快捷选择预设。", "Show quick select presets.")
+                </ApiParameter>
+                <ApiParameter Name="ShowButtons" Type="bool" Default="true">
+                    @L.T("在浮层底部显示 Clear 与 Apply 按钮。为 false 时，选完的范围会自动应用。", "Show the Clear and Apply buttons in the popover footer. When false, completed selections are applied automatically.")
+                </ApiParameter>
+                <ApiParameter Name="AutoApply" Type="bool" Default="false">
+                    @L.T("一旦选出完整范围，立即应用所选并关闭浮层，无需点击 Apply 按钮。", "Apply the selection and close the popover as soon as a complete range is selected, without requiring the Apply button.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Presets" Type="IReadOnlyList&lt;DateRangeQuickPick&gt;?" Default="null">
+                        完全自定义的快捷预设列表。内置预设通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">DateRangePreset</code> 的隐式转换支持，自定义条目通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">DateRangeQuickPick.Custom(label, rangeFactory)</code> 支持。为 null 时显示默认的内置预设。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Presets" Type="IReadOnlyList&lt;DateRangeQuickPick&gt;?" Default="null">
+                        Custom list of quick-pick presets. Supports built-in presets via implicit conversion from <code class="text-xs bg-muted px-1 py-0.5 rounded">DateRangePreset</code> and custom entries via <code class="text-xs bg-muted px-1 py-0.5 rounded">DateRangeQuickPick.Custom(label, rangeFactory)</code>. When null, the default built-in presets are shown.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="FirstDayOfWeek" Type="DayOfWeek" Default="Sunday">
+                    @L.T("一周的第一天。", "First day of week.")
+                </ApiParameter>
+                <ApiParameter Name="DateFormat" Type="string" Default="&quot;MMM d, yyyy&quot;">
+                    @L.T("显示格式。", "Display format.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("禁用选择器。", "Disables the picker.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="DateRange">
+                <ApiParameter Name="Start" Type="DateTime">
+                    @L.T("范围的起始日期。", "Start date of range.")
+                </ApiParameter>
+                <ApiParameter Name="End" Type="DateTime">
+                    @L.T("范围的结束日期。", "End date of range.")
+                </ApiParameter>
+                <ApiParameter Name="Days" Type="int">
+                    @L.T("天数（含首尾）。", "Number of days (inclusive).")
+                </ApiParameter>
+                <ApiParameter Name="Contains(date)" Type="bool">
+                    @L.T("检查指定日期是否落在范围内。", "Check if date is within range.")
+                </ApiParameter>
+            </ApiReference>
+
+            <div class="border rounded-lg p-6">
+                <h3 class="font-mono text-sm font-semibold mb-2">@L.T("预设范围", "Preset Ranges")</h3>
+                <div class="text-sm text-muted-foreground space-y-2">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <p><strong>默认：</strong>今天、昨天、最近 7 天、最近 30 天、本月、上个月</p>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <p><strong>Default:</strong> Today, Yesterday, Last 7 days, Last 30 days, This month, Last month</p>
+                                        </text>
+}
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <p><strong>可用内置预设：</strong>Today, Yesterday, Last7Days, Last30Days, ThisMonth, LastMonth, ThisYear</p>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <p><strong>Available built-in:</strong> Today, Yesterday, Last7Days, Last30Days, ThisMonth, LastMonth, ThisYear</p>
+                                        </text>
+}
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <p>使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">DateRangeQuickPick.Custom(label, rangeFactory)</code> 定义完全自定义的预设。</p>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <p>Use <code class="text-xs bg-muted px-1 py-0.5 rounded">DateRangeQuickPick.Custom(label, rangeFactory)</code> for fully custom presets.</p>
+                                        </text>
+}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <LocalizationSection
+        Description="@(L.T("日期范围选择器的占位文案、预设标签与操作按钮都可以配置。", "Date range picker placeholder, preset labels, and action buttons are configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("Placeholder", "Select date range", L.T("未选择范围时显示的占位文本", "Placeholder text when no range is selected")),
+            new("QuickSelect", "Quick Select", L.T("预设面板的标题", "Header for the preset panel")),
+            new("SelectEndDate", "Select end date", L.T("选完起始日期后显示的提示", "Shown after selecting the start date")),
+            new("DaysSelected", "{days} day(s) selected", L.T("显示所选天数的底部文本（Func<int, string>）", "Footer text showing the number of days (Func<int, string>)")),
+            new("Clear", "Clear", L.T("清空按钮的文案", "Label for the clear button")),
+            new("Apply", "Apply", L.T("应用按钮的文案", "Label for the apply button")),
+            new("Today", "Today", L.T("预设标签", "Preset label")),
+            new("Yesterday", "Yesterday", L.T("预设标签", "Preset label")),
+            new("Last7Days", "Last 7 days", L.T("预设标签", "Preset label")),
+            new("Last30Days", "Last 30 days", L.T("预设标签", "Preset label")),
+            new("ThisMonth", "This month", L.T("预设标签", "Preset label")),
+            new("LastMonth", "Last month", L.T("预设标签", "Preset label")),
+            new("ThisYear", "This year", L.T("预设标签", "Preset label")),
+            new("Custom", "Custom", L.T("预设标签", "Preset label")),
+        })"
+        CultureAware="true"
+        CultureDescription="@(L.T("内部日历用 CultureInfo.CurrentCulture 取月份名、星期名与每周起始日。", "The internal calendars use CultureInfo.CurrentCulture for month/day names and first day of week."))"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""DateRangePicker.Placeholder"", ""Zeitraum wählen"");
+    localizer.Set(""DateRangePicker.Apply"", ""Übernehmen"");
+    localizer.Set(""DateRangePicker.Clear"", ""Löschen"");
+    localizer.Set(""DateRangePicker.Today"", ""Heute"");
+});")" />
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private DateRange? _basicRange;
+    private DateRange? _singleMonth;
+    private DateRange? _noPresets;
+    private DateRange? _customPresets;
+    private DateRange? _mixedPresets;
+    private DateRange? _constrained;
+    private DateRange? _minMaxDays;
+    private DateRange? _noWeekends;
+    private DateRange? _preselected = new DateRange(DateTime.Today.AddDays(-6), DateTime.Today);
+    private DateRange? _customFormat;
+    private DateRange? _placeholder;
+    private DateRange? _mondayFirst;
+    private DateRange? _autoApply;
+    private DateRange? _customDayRange;
+
+    private static readonly HashSet<int> eventDays = new() { 3, 8, 12, 17, 21, 26 };
+
+    private bool HasEvent(DateTime date) =>
+        date.Month == DateTime.Today.Month && date.Year == DateTime.Today.Year && eventDays.Contains(date.Day);
+
+    private string? GetWeekendDayClass(DateTime date) =>
+        date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday ? "text-destructive" : null;
+
+    private readonly List<DateRangeQuickPick> _fullyCustomPresets = new()
+    {
+        DateRangeQuickPick.Custom("Last Quarter", () =>
+        {
+            var today = DateTime.Today;
+            var quarterStart = new DateTime(today.Year, ((today.Month - 1) / 3) * 3 + 1, 1).AddMonths(-3);
+            return new DateRange(quarterStart, quarterStart.AddMonths(3).AddDays(-1));
+        }),
+        DateRangeQuickPick.Custom("Next 14 Days", () =>
+            new DateRange(DateTime.Today, DateTime.Today.AddDays(13))),
+        DateRangeQuickPick.Custom("Year to Date", () =>
+            new DateRange(new DateTime(DateTime.Today.Year, 1, 1), DateTime.Today)),
+    };
+
+    private DateRange? _manyPresets;
+
+    private readonly List<DateRangeQuickPick> _manyPresetList = new()
+    {
+        DateRangePreset.Today,
+        DateRangePreset.Yesterday,
+        DateRangePreset.Last7Days,
+        DateRangePreset.Last30Days,
+        DateRangePreset.ThisMonth,
+        DateRangePreset.LastMonth,
+        DateRangePreset.ThisYear,
+        DateRangeQuickPick.Custom("Last Quarter", () =>
+        {
+            var today = DateTime.Today;
+            var quarterStart = new DateTime(today.Year, ((today.Month - 1) / 3) * 3 + 1, 1).AddMonths(-3);
+            return new DateRange(quarterStart, quarterStart.AddMonths(3).AddDays(-1));
+        }),
+        DateRangeQuickPick.Custom("Next 14 Days", () =>
+            new DateRange(DateTime.Today, DateTime.Today.AddDays(13))),
+        DateRangeQuickPick.Custom("Next 30 Days", () =>
+            new DateRange(DateTime.Today, DateTime.Today.AddDays(29))),
+        DateRangeQuickPick.Custom("Last 60 Days", () =>
+            new DateRange(DateTime.Today.AddDays(-59), DateTime.Today)),
+        DateRangeQuickPick.Custom("Last 90 Days", () =>
+            new DateRange(DateTime.Today.AddDays(-89), DateTime.Today)),
+        DateRangeQuickPick.Custom("Last 6 Months", () =>
+            new DateRange(DateTime.Today.AddMonths(-6), DateTime.Today)),
+        DateRangeQuickPick.Custom("Last 12 Months", () =>
+            new DateRange(DateTime.Today.AddMonths(-12), DateTime.Today)),
+        DateRangeQuickPick.Custom("Next 7 Days", () =>
+            new DateRange(DateTime.Today, DateTime.Today.AddDays(6))),
+        DateRangeQuickPick.Custom("Next Quarter", () =>
+        {
+            var today = DateTime.Today;
+            var quarterStart = new DateTime(today.Year, ((today.Month - 1) / 3) * 3 + 1, 1).AddMonths(3);
+            return new DateRange(quarterStart, quarterStart.AddMonths(3).AddDays(-1));
+        }),
+        DateRangeQuickPick.Custom("Next 60 Days", () =>
+            new DateRange(DateTime.Today, DateTime.Today.AddDays(59))),
+        DateRangeQuickPick.Custom("Next 90 Days", () =>
+            new DateRange(DateTime.Today, DateTime.Today.AddDays(89))),
+        DateRangeQuickPick.Custom("Next 6 Months", () =>
+            new DateRange(DateTime.Today, DateTime.Today.AddMonths(6))),
+        DateRangeQuickPick.Custom("Next 12 Months", () =>
+            new DateRange(DateTime.Today, DateTime.Today.AddMonths(12))),
+    };
+
+    private readonly List<DateRangeQuickPick> _mixedPresetList = new()
+    {
+        DateRangePreset.Today,
+        DateRangePreset.Last7Days,
+        DateRangePreset.ThisMonth,
+        DateRangePreset.ThisYear,
+        DateRangeQuickPick.Custom("Last Quarter", () =>
+        {
+            var today = DateTime.Today;
+            var quarterStart = new DateTime(today.Year, ((today.Month - 1) / 3) * 3 + 1, 1).AddMonths(-3);
+            return new DateRange(quarterStart, quarterStart.AddMonths(3).AddDays(-1));
+        }),
+    };
+}

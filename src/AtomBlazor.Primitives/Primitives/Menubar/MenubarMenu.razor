@@ -1,0 +1,33 @@
+@namespace AtomBlazor.Primitives
+@implements IDisposable
+
+<CascadingValue Value="menuContext" IsFixed="false">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    private MenubarMenuContext menuContext = null!;
+
+    [CascadingParameter]
+    private MenubarContext? Context { get; set; }
+
+    /// <summary>
+    /// 子内容（触发器 + 内容）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 每个菜单各自的上下文，向 Components 层公开以供访问。
+    /// </summary>
+    public MenubarMenuContext MenuContext => menuContext;
+
+    protected override void OnInitialized()
+    {
+        menuContext = new MenubarMenuContext(Context!);
+        Context?.RegisterMenu(menuContext);
+    }
+
+    public void Dispose() =>
+        Context?.UnregisterMenu(menuContext);
+}

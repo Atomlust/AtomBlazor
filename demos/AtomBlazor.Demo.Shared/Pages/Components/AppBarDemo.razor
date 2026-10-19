@@ -1,0 +1,67 @@
+@page "/components/app-bar"
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("App Bar 应用栏 - Atom BlazorUI", "App Bar - Atom BlazorUI")</PageTitle>
+<div class="max-w-4xl space-y-8">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("App Bar 应用栏", "App Bar")</h1>
+        <p class="text-xl text-muted-foreground">@L.T("带标题、返回导航与右侧操作区的紧凑页眉。", "A compact header with a title, back navigation and trailing actions.")</p>
+    </div>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("标题与操作", "Title and actions")</h2>
+        <div class="rounded-lg border p-6 space-y-4">
+<AppBar Title="@(L.T("项目笔记", "Project notes"))" Description="@(L.T("内容刚刚更新", "Updated just now"))" ShowBack="true" Sticky="false" OnBack="@(() => status = L.T("已选择返回", "Back selected"))">
+    <Actions><Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Icon" aria-label="@(L.T("保存笔记", "Save notes"))" OnClick="@(() => status = L.T("笔记已保存", "Notes saved"))"><LucideIcon Name="check" Size="20" /></Button></Actions>
+</AppBar>
+<p role="status" class="text-sm text-muted-foreground">@status</p>
+        </div>
+        <CodeBlock Source="Components/AppBar/basic.txt" />
+    </section>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("自定义内容", "Custom content")</h2>
+        <div class="rounded-lg border p-6 space-y-4">
+<AppBar Sticky="false">
+    <LeadingContent><LucideIcon Name="notebook-pen" Size="24" /></LeadingContent>
+    <TitleContent><span class="font-semibold">@L.T("团队日志", "Team journal")</span><span class="ml-2 text-xs text-muted-foreground">@L.T("共享工作区", "Shared workspace")</span></TitleContent>
+    <Actions><a href="/recipes/mobile-shop" class="text-sm text-primary hover:underline">@L.T("查看完整布局示例", "See a full layout")</a></Actions>
+</AppBar>
+        </div>
+        <CodeBlock Source="Components/AppBar/custom.txt" />
+    </section>
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("返回按钮自带无障碍名称；BackLabel 可覆盖它的默认文案。", "The back button has an accessible name; BackLabel overrides its default label.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("自定义图标按钮需要自行提供无障碍名称。吸顶定位与安全区留白不会改变键盘行为。", "Provide accessible names for custom icon buttons. Sticky positioning and safe-area spacing do not change keyboard behavior.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可交互控件之间移动", "Move between interactive controls"))"><Kbd>Tab / Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("激活已聚焦的按钮", "Activate a focused button"))"><Kbd>Enter / Space</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+<ApiReference Since="v4" ComponentName="AppBar">
+        <ApiParameter Name="Title / Description" Type="string?">@L.T("标题与次级文本。", "Title and secondary text.")</ApiParameter>
+        <ApiParameter Name="TitleContent / LeadingContent / Actions" Type="RenderFragment?">@L.T("自定义标题、前导区域与右侧操作区。LeadingContent 会取代返回按钮。", "Custom title, leading area and trailing actions. LeadingContent replaces the back button.")</ApiParameter>
+        <ApiParameter Name="ShowBack / BackLabel / OnBack" Type="bool / string? / EventCallback&lt;MouseEventArgs&gt;" Default="false">@L.T("返回按钮的显隐、无障碍标签与导航回调。", "Back-button visibility, accessible label and navigation callback.")</ApiParameter>
+        <ApiParameter Name="Sticky / SafeArea" Type="bool" Default="true / true">@L.T("吸顶定位与顶部安全区内边距。", "Sticky positioning and top safe-area padding.")</ApiParameter>
+    <ApiParameter Name="Class / AdditionalAttributes" Type="string? / Dictionary&lt;string, object&gt;?">@L.T("追加到根元素的 CSS 类与 HTML 属性。", "Additional root CSS classes and HTML attributes.")</ApiParameter>
+    </ApiReference>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string status = "Use the back or save action.";
+
+    /// <summary>状态行的初始提示随显示语言回落，英文态保持基线文案原样。</summary>
+    protected override void OnParametersSet()
+    {
+        if (L.IsChinese && status == "Use the back or save action.")
+        {
+            status = "试试返回按钮或保存按钮。";
+        }
+    }
+}

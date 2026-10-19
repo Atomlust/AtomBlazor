@@ -1,0 +1,361 @@
+@page "/components/toggle-group"
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("Toggle Group 切换按钮组 - Atom BlazorUI", "Toggle Group Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Toggle Group 切换按钮组组件", "Toggle Group Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("一组可以开启或关闭的两态按钮。", "A set of two-state buttons that can be toggled on or off.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Single Selection -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("单选", "Single Selection")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一次只能选择一个项目。", "Only one item can be selected at a time.")
+            </p>
+        </div>
+        <AtomBlazor.ToggleGroup TValue="string" @bind-Value="_alignment" Variant="ToggleVariant.Outline">
+            <AtomBlazor.ToggleGroupItem TValue="string" Value="@("left")">
+                <LucideIcon Name="align-left" Class="h-4 w-4" />
+            </AtomBlazor.ToggleGroupItem>
+            <AtomBlazor.ToggleGroupItem TValue="string" Value="@("center")">
+                <LucideIcon Name="align-center" Class="h-4 w-4" />
+            </AtomBlazor.ToggleGroupItem>
+            <AtomBlazor.ToggleGroupItem TValue="string" Value="@("right")">
+                <LucideIcon Name="align-right" Class="h-4 w-4" />
+            </AtomBlazor.ToggleGroupItem>
+        </AtomBlazor.ToggleGroup>
+        <p class="text-sm text-muted-foreground">@L.F("已选择：{0}", "Selected: {0}", _alignment ?? "none")</p>
+        <CodeBlock Source="Components/ToggleGroup/single-selection.txt" />
+    </div>
+
+    <!-- Multiple Selection -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("多选", "Multiple Selection")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("可以同时选择多个项目。", "Multiple items can be selected at once.")
+            </p>
+        </div>
+        <AtomBlazor.ToggleGroup TValue="string" @bind-Values="_formatting" Type="AtomBlazor.ToggleGroupType.Multiple" Variant="ToggleVariant.Outline">
+            <AtomBlazor.ToggleGroupItem TValue="string" Value="@("bold")">
+                <LucideIcon Name="bold" Class="h-4 w-4" />
+            </AtomBlazor.ToggleGroupItem>
+            <AtomBlazor.ToggleGroupItem TValue="string" Value="@("italic")">
+                <LucideIcon Name="italic" Class="h-4 w-4" />
+            </AtomBlazor.ToggleGroupItem>
+            <AtomBlazor.ToggleGroupItem TValue="string" Value="@("underline")">
+                <LucideIcon Name="underline" Class="h-4 w-4" />
+            </AtomBlazor.ToggleGroupItem>
+        </AtomBlazor.ToggleGroup>
+        <p class="text-sm text-muted-foreground">@(L.F("已选择：{0}", "Selected: {0}", string.Join(", ", _formatting ?? new List<string>())))</p>
+        <CodeBlock Source="Components/ToggleGroup/multiple-selection.txt" />
+    </div>
+
+    <!-- Variants -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("样式变体", "Variants")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("切换按钮组有 default 与 outline 两种变体。", "Toggle groups come in default and outline variants.")
+            </p>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <p class="text-sm mb-2">@L.T("默认：", "Default:")</p>
+                <AtomBlazor.ToggleGroup TValue="string" DefaultValue="@("center")" Variant="ToggleVariant.Default">
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("left")">
+                        <LucideIcon Name="align-left" Class="h-4 w-4" />
+                    </AtomBlazor.ToggleGroupItem>
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("center")">
+                        <LucideIcon Name="align-center" Class="h-4 w-4" />
+                    </AtomBlazor.ToggleGroupItem>
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("right")">
+                        <LucideIcon Name="align-right" Class="h-4 w-4" />
+                    </AtomBlazor.ToggleGroupItem>
+                </AtomBlazor.ToggleGroup>
+            </div>
+            <div>
+                <p class="text-sm mb-2">@L.T("描边：", "Outline:")</p>
+                <AtomBlazor.ToggleGroup TValue="string" DefaultValue="@("center")" Variant="ToggleVariant.Outline">
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("left")">
+                        <LucideIcon Name="align-left" Class="h-4 w-4" />
+                    </AtomBlazor.ToggleGroupItem>
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("center")">
+                        <LucideIcon Name="align-center" Class="h-4 w-4" />
+                    </AtomBlazor.ToggleGroupItem>
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("right")">
+                        <LucideIcon Name="align-right" Class="h-4 w-4" />
+                    </AtomBlazor.ToggleGroupItem>
+                </AtomBlazor.ToggleGroup>
+            </div>
+        </div>
+        <CodeBlock Source="Components/ToggleGroup/variants.txt" />
+    </div>
+
+    <!-- Sizes -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("尺寸", "Sizes")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("切换按钮组有 small、default 与 large 三种尺寸。", "Toggle groups come in small, default, and large sizes.")
+            </p>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <p class="text-sm mb-2">@L.T("小号：", "Small:")</p>
+                <AtomBlazor.ToggleGroup TValue="string" DefaultValue="@("center")" Variant="ToggleVariant.Outline" Size="ToggleSize.Small">
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("left")">
+                        <LucideIcon Name="align-left" Class="h-3 w-3" />
+                    </AtomBlazor.ToggleGroupItem>
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("center")">
+                        <LucideIcon Name="align-center" Class="h-3 w-3" />
+                    </AtomBlazor.ToggleGroupItem>
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("right")">
+                        <LucideIcon Name="align-right" Class="h-3 w-3" />
+                    </AtomBlazor.ToggleGroupItem>
+                </AtomBlazor.ToggleGroup>
+            </div>
+            <div>
+                <p class="text-sm mb-2">@L.T("默认：", "Default:")</p>
+                <AtomBlazor.ToggleGroup TValue="string" DefaultValue="@("center")" Variant="ToggleVariant.Outline" Size="ToggleSize.Default">
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("left")">
+                        <LucideIcon Name="align-left" Class="h-4 w-4" />
+                    </AtomBlazor.ToggleGroupItem>
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("center")">
+                        <LucideIcon Name="align-center" Class="h-4 w-4" />
+                    </AtomBlazor.ToggleGroupItem>
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("right")">
+                        <LucideIcon Name="align-right" Class="h-4 w-4" />
+                    </AtomBlazor.ToggleGroupItem>
+                </AtomBlazor.ToggleGroup>
+            </div>
+            <div>
+                <p class="text-sm mb-2">@L.T("大号：", "Large:")</p>
+                <AtomBlazor.ToggleGroup TValue="string" DefaultValue="@("center")" Variant="ToggleVariant.Outline" Size="ToggleSize.Large">
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("left")">
+                        <LucideIcon Name="align-left" Class="h-5 w-5" />
+                    </AtomBlazor.ToggleGroupItem>
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("center")">
+                        <LucideIcon Name="align-center" Class="h-5 w-5" />
+                    </AtomBlazor.ToggleGroupItem>
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("right")">
+                        <LucideIcon Name="align-right" Class="h-5 w-5" />
+                    </AtomBlazor.ToggleGroupItem>
+                </AtomBlazor.ToggleGroup>
+            </div>
+        </div>
+        <CodeBlock Source="Components/ToggleGroup/sizes.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("可以整体禁用切换按钮组，也可以只禁用其中个别项目。", "Toggle group can be disabled entirely or individual items can be disabled.")
+            </p>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <p class="text-sm mb-2">@L.T("整组禁用：", "Entire group disabled:")</p>
+                <AtomBlazor.ToggleGroup TValue="string" DefaultValue="@("center")" Variant="ToggleVariant.Outline" Disabled="true">
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("left")">
+                        <LucideIcon Name="align-left" Class="h-4 w-4" />
+                    </AtomBlazor.ToggleGroupItem>
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("center")">
+                        <LucideIcon Name="align-center" Class="h-4 w-4" />
+                    </AtomBlazor.ToggleGroupItem>
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("right")">
+                        <LucideIcon Name="align-right" Class="h-4 w-4" />
+                    </AtomBlazor.ToggleGroupItem>
+                </AtomBlazor.ToggleGroup>
+            </div>
+            <div>
+                <p class="text-sm mb-2">@L.T("单项禁用：", "Single item disabled:")</p>
+                <AtomBlazor.ToggleGroup TValue="string" DefaultValue="@("left")" Variant="ToggleVariant.Outline">
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("left")">
+                        <LucideIcon Name="align-left" Class="h-4 w-4" />
+                    </AtomBlazor.ToggleGroupItem>
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("center")" Disabled="true">
+                        <LucideIcon Name="align-center" Class="h-4 w-4" />
+                    </AtomBlazor.ToggleGroupItem>
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("right")">
+                        <LucideIcon Name="align-right" Class="h-4 w-4" />
+                    </AtomBlazor.ToggleGroupItem>
+                </AtomBlazor.ToggleGroup>
+            </div>
+        </div>
+        <CodeBlock Source="Components/ToggleGroup/disabled.txt" />
+    </div>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("必选与滚动", "Required selection and scrolling")</h2>
+<div class="max-w-xs rounded-lg border p-2">
+    <AtomBlazor.ToggleGroup TValue="string" @bind-Value="requiredTab" Required="true" Scrollable="true" aria-label="@(L.T("工作区区块", "Workspace section"))">
+        @foreach (var tab in new[] { "Overview", "Activity", "Projects", "Members", "Settings" })
+        {
+            <AtomBlazor.ToggleGroupItem TValue="string" Value="@tab">@tab</AtomBlazor.ToggleGroupItem>
+        }
+    </AtomBlazor.ToggleGroup>
+</div>
+<p class="text-sm">@L.F("已选择：{0}", "Selected: {0}", requiredTab)</p>
+        <CodeBlock Source="Components/ToggleGroup/extended.txt" />
+
+    </section>
+
+    <!-- API Reference -->
+
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>容器上使用 <code>role="group"</code> 来表达分组语义</text>
+                }
+                else
+                {
+                    <text>Uses <code>role="group"</code> on the container for grouping semantics</text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text><code>aria-pressed</code> 表示每个项目的切换状态</text>
+                }
+                else
+                {
+                    <text><code>aria-pressed</code> indicates toggle state on each item</text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>@L.T("被禁用的项目会被辅助技术播报为不可用", "Disabled items are announced as unavailable by assistive technologies")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在切换项目之间移动焦点", "Move focus between toggle items"))">
+                <Kbd>Tab</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("激活获得焦点的切换按钮", "Activate focused toggle"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件的属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="ToggleGroup&lt;TValue&gt;">
+                <ApiParameter Name="Value" Type="TValue?" Default="null">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            单选模式下当前选中的值。支持用 <code>@@bind-Value</code> 进行双向绑定。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Currently selected value for single selection mode. Supports two-way binding with <code>@@bind-Value</code>.
+                        </text>
+                    }
+                </ApiParameter>
+                <ApiParameter Name="Values" Type="List&lt;TValue&gt;?" Default="null">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            多选模式下当前选中的值集合。支持用 <code>@@bind-Values</code> 进行双向绑定。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Currently selected values for multiple selection mode. Supports two-way binding with <code>@@bind-Values</code>.
+                        </text>
+                    }
+                </ApiParameter>
+                <ApiParameter Name="DefaultValue" Type="TValue?" Default="null">
+                    @L.T("组件初始化时的初始值。", "Initial value on component initialization.")
+                </ApiParameter>
+                <ApiParameter Name="Type" Type="ToggleGroupType" Default="Single">
+                    @L.T("决定该组允许 Single（单选）还是 Multiple（多选）。", "Determines if group allows Single or Multiple selections.")
+                </ApiParameter>
+                <ApiParameter Name="Variant" Type="ToggleVariant" Default="Default">
+                    @L.T("视觉样式。可选值：Default、Outline。", "Visual style. Options: Default, Outline.")
+                </ApiParameter>
+                <ApiParameter Name="Size" Type="ToggleSize" Default="Default">
+                    @L.T("按钮尺寸。可选值：Small、Default、Large。", "Button size. Options: Small, Default, Large.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("禁用组内的所有项目。", "Disables all items in the group.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("追加到组容器上的额外 CSS 类。", "Additional CSS classes for the group container.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            应用到组件根元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="ToggleGroupItem&lt;TValue&gt;">
+                <ApiParameter Name="Value" Type="TValue?" Default="null">
+                    @L.T("与该个项目关联的值。", "The value associated with this item.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("禁用这一具体项目。", "Disables this specific item.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("追加到该项目上的额外 CSS 类。", "Additional CSS classes for this item.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            应用到组件根元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+        </div>
+
+<ApiReference ComponentName="ToggleGroup"><ApiParameter Since="v4" Name="Required" Type="bool" Default="false">@L.T("在 Single 或 Multiple 模式下阻止取消选中最后一项。需要提供初始选中项；它不会自动选中，也不会强制执行 EditForm 校验。", "Prevents deselecting the last chosen item in Single or Multiple mode. Supply an initial selection; does not auto-select or enforce EditForm validation.")</ApiParameter>
+<ApiParameter Since="v4" Name="Scrollable" Type="bool" Default="false">@L.T("项目不收缩的横向溢出滚动。键盘聚焦时会把项目滚动到可视范围内。", "Horizontal overflow with nonshrinking items. Keyboard focus scrolls items into view.")</ApiParameter></ApiReference>
+    </section>
+
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string requiredTab = "Overview";
+    private string? _alignment = "center";
+    private List<string>? _formatting = new() { "bold" };
+}

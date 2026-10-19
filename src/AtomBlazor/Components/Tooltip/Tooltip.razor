@@ -1,0 +1,62 @@
+@namespace AtomBlazor
+
+@* 带样式的 Tooltip 组件——Tooltip 基元之上的薄封装 *@
+<AtomBlazor.Primitives.TooltipPrimitive Open="@Open"
+                                          OpenChanged="@OpenChanged"
+                                          DefaultOpen="@DefaultOpen"
+                                          DelayDuration="@DelayDuration"
+                                          HideDelay="@HideDelay"
+                                          Placement="@Placement.ToValue()"
+                                          @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.TooltipPrimitive>
+
+@code {
+    /// <summary>
+    /// 在 Tooltip 内渲染的子内容，通常包含 TooltipTrigger 与 TooltipContent。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 控制气泡是否展开（受控模式）。为 null 时气泡自行管理状态（非受控模式）。
+    /// </summary>
+    [Parameter]
+    public bool? Open { get; set; }
+
+    /// <summary>
+    /// 开合状态变化时调用的事件回调，配合 <c>@bind-Open</c> 实现双向绑定。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>
+    /// 非受控模式下的默认展开状态。
+    /// </summary>
+    [Parameter]
+    public bool DefaultOpen { get; set; } = false;
+
+    /// <summary>
+    /// 展开前的延时（毫秒），默认 300（基元缺省为 700，本封装按 shadcn 手感调快）。
+    /// </summary>
+    [Parameter]
+    public int DelayDuration { get; set; } = 300;
+
+    /// <summary>
+    /// 鼠标移出后收起前的延时（毫秒），默认 0（立即收起）。
+    /// </summary>
+    [Parameter]
+    public int HideDelay { get; set; } = 0;
+
+    /// <summary>
+    /// 气泡的放置方位，默认 <see cref="PopoverPlacement.Top"/>。
+    /// </summary>
+    [Parameter]
+    public PopoverPlacement Placement { get; set; } = PopoverPlacement.Top;
+
+    /// <summary>
+    /// 获取或设置应用到根元素的其他 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}

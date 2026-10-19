@@ -1,0 +1,21 @@
+<BarChart Data="@data" Height="300px"
+            OnDataPointClick="HandlePointClick"
+            OnChartClick="ClearSelection">
+    <XAxis DataKey="date" />
+    <YAxis />
+    <Bar DataKey="desktop" Name="Desktop" Color="var(--chart-2)" />
+</BarChart>
+
+@code {
+    private string? selection;
+
+    private void HandlePointClick(ChartClickEventArgs e)
+    {
+        // DataIndex maps straight back to the collection you bound,
+        // which is what makes a drill-down straightforward.
+        var row = data[e.DataIndex];
+        selection = $"{e.SeriesName} — {e.Name}: {e.Value}";
+    }
+
+    private void ClearSelection() => selection = null;
+}

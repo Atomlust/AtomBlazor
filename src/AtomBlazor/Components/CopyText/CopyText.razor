@@ -1,0 +1,40 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+
+<span @ref="anchorRef"
+      class="@TextCssClass"
+      role="button"
+      tabindex="0"
+      aria-label="@(AriaLabel ?? Localizer["CopyText.ClickToCopy"])"
+      @onclick="HandleClickAsync"
+      @onkeydown="HandleKeyDownAsync"
+      @onmouseenter="HandleMouseEnter"
+      @onmouseleave="HandleMouseLeave"
+      @onfocus="HandleFocusAsync"
+      @onblur="HandleBlur"
+      @attributes="AdditionalAttributes">
+
+    @ChildContent
+</span>
+
+@* 经门户渲染，而不是作为嵌套的绝对定位 span，这样带 overflow: hidden|auto 的祖先
+   就裁剪不到它。绝对定位仍受其包含块的 overflow 约束——z-index 并不能豁免——
+   这正是提示曾经在可滚动容器里
+   消失的原因。 *@
+<FloatingPortal IsOpen="@isHovered"
+                  AnchorElement="@anchorRef"
+                  PortalId="@portalId"
+                  Side="PopoverSide.Top"
+                  Align="PopoverAlign.Center"
+                  Offset="8"
+                  Strategy="PositioningStrategy.Fixed"
+                  ZIndex="50">
+    <span aria-hidden="true"
+          data-state="open"
+          class="@tooltipCssClass">
+        <LucideIcon Name="@CurrentIconName" Class="@TooltipIconCssClass" />
+
+        <span class="@TooltipTextCssClass">@CurrentTooltipText</span>
+
+    </span>
+</FloatingPortal>

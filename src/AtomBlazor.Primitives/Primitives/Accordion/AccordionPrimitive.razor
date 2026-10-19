@@ -1,0 +1,230 @@
+@namespace AtomBlazor.Primitives
+@implements IDisposable
+
+@* Accordion 基元根组件——headless，仅承载行为、不含样式 *@
+<div @attributes="AdditionalAttributes">
+    <CascadingValue Value="@_context" IsFixed="false">
+        <CascadingValue Value="this" IsFixed="true">
+            @ChildContent
+        </CascadingValue>
+    </CascadingValue>
+</div>
+
+@code {
+    private AccordionContext _context = new();
+    private UseControllableState<HashSet<string>> _state = null!;
+    private List<AccordionTrigger> _triggers = new();
+    private bool _disposed;
+
+    /// <summary>
+    /// 在 Accordion 上下文内渲染的子内容。
+    /// 应当包含 AccordionItem 组件。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 控制哪些条目处于展开状态（受控模式）。
+    /// 为 null 时由 Accordion 自行管理状态（非受控模式）。
+    /// </summary>
+    [Parameter]
+    public HashSet<string>? Value { get; set; }
+
+    /// <summary>
+    /// 展开条目变化时调用的事件回调。
+    /// 配合 @bind-Value 使用即可实现双向绑定。
+    /// </summary>
+    [Parameter]
+    public EventCallback<HashSet<string>> ValueChanged { get; set; }
+
+    /// <summary>
+    /// 非受控模式下的初始展开条目集合。
+    /// </summary>
+    [Parameter]
+    public HashSet<string>? DefaultValue { get; set; }
+
+    /// <summary>
+    /// 展开条目变化时调用的事件回调。
+    /// 参数为变化后的展开条目值集合。
+    /// </summary>
+    [Parameter]
+    public EventCallback<HashSet<string>> OnValueChange { get; set; }
+
+    /// <summary>
+    /// Accordion 的类型（单开或多开）。
+    /// 默认值为单开。
+    /// </summary>
+    [Parameter]
+    public AccordionType Type { get; set; } = AccordionType.Single;
+
+    /// <summary>
+    /// 单开模式下条目是否允许收起。
+    /// 默认值为 false（必须始终有一个条目保持展开）。
+    /// </summary>
+    [Parameter]
+    public bool Collapsible { get; set; } = false;
+
+    /// <summary>
+    /// 要应用到根 div 元素的额外属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    protected override void OnInitialized()
+    {
+        // 初始化可控状态
+        _state = new UseControllableState<HashSet<string>>(DefaultValue ?? new HashSet<string>())
+        {
+            ControlledValue = Value ?? new HashSet<string>(),
+            OnValueChanged = ValueChanged,
+            IsControlled = ValueChanged.HasDelegate
+        };
+
+        // 将初始状态同步到上下文
+        _context.State.OpenValues = new HashSet<string>(_state.Value);
+        _context.State.Type = Type;
+        _context.State.Collapsible = Collapsible;
+
+        // 订阅上下文状态变化
+        _context.OnStateChanged += HandleContextStateChanged;
+    }
+
+    protected override void OnParametersSet()
+    {
+        // 若受控值已变化则更新
+        if (_state.IsControlled && Value != null && _state.ControlledValue != null && !Value.SetEquals(_state.ControlledValue))
+        {
+            _state.ControlledValue = Value;
+            _context.State.OpenValues = new HashSet<string>(Value);
+        }
+
+        // 更新类型与可收起设置
+        _context.State.Type = Type;
+        _context.State.Collapsible = Collapsible;
+    }
+
+    /// <summary>
+    /// 注册一个 Accordion 触发器，用于键盘导航。
+    /// </summary>
+    internal void RegisterTrigger(AccordionTrigger trigger)
+    {
+        if (!_triggers.Contains(trigger))
+        {
+            _triggers.Add(trigger);
+        }
+    }
+
+    /// <summary>
+    /// 注销一个 Accordion 触发器。
+    /// </summary>
+    internal void UnregisterTrigger(AccordionTrigger trigger)
+    {
+        _triggers.Remove(trigger);
+    }
+
+    /// <summary>
+    /// 处理 Accordion 触发器之间的键盘导航。
+    /// </summary>
+    internal void HandleKeyNavigation(string currentValue, string key)
+    {
+        if (_triggers.Count == 0) return;
+
+        var currentIndex = _triggers.FindIndex(t => t.Value == currentValue);
+        if (currentIndex == -1) return;
+
+        var nextIndex = key switch
+        {
+            "ArrowDown" => GetNextIndex(currentIndex),
+            "ArrowUp" => GetPreviousIndex(currentIndex),
+            "Home" => GetFirstEnabledIndex(),
+            "End" => GetLastEnabledIndex(),
+            _ => -1
+        };
+
+        if (nextIndex != -1 && nextIndex != currentIndex)
+        {
+            _ = _triggers[nextIndex].FocusAsync();
+        }
+    }
+
+    private int GetNextIndex(int currentIndex)
+    {
+        for (int i = currentIndex + 1; i < _triggers.Count; i++)
+        {
+            if (!_triggers[i].Disabled)
+            {
+                return i;
+            }
+        }
+        // 回绕到第一个可用项
+        return GetFirstEnabledIndex();
+    }
+
+    private int GetPreviousIndex(int currentIndex)
+    {
+        for (int i = currentIndex - 1; i >= 0; i--)
+        {
+            if (!_triggers[i].Disabled)
+            {
+                return i;
+            }
+        }
+        // 回绕到最后一个可用项
+        return GetLastEnabledIndex();
+    }
+
+    private int GetFirstEnabledIndex()
+    {
+        for (int i = 0; i < _triggers.Count; i++)
+        {
+            if (!_triggers[i].Disabled)
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private int GetLastEnabledIndex()
+    {
+        for (int i = _triggers.Count - 1; i >= 0; i--)
+        {
+            if (!_triggers[i].Disabled)
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void HandleContextStateChanged()
+    {
+        // 当上下文状态变化时（例如由 AccordionTrigger 触发），
+        // 更新可控状态
+        var newOpenValues = _context.State.OpenValues;
+
+        if (!_state.Value.SetEquals(newOpenValues))
+        {
+            _ = _state.SetValueAsync(new HashSet<string>(newOpenValues));
+
+            // 若提供了额外回调则调用
+            if (OnValueChange.HasDelegate)
+            {
+                _ = OnValueChange.InvokeAsync(new HashSet<string>(newOpenValues));
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        _context.OnStateChanged -= HandleContextStateChanged;
+    }
+}

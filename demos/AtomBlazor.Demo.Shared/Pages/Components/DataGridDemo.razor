@@ -1,0 +1,2865 @@
+@page "/components/datagrid"
+@using AtomBlazor.Demo.Services
+@using System.Text.Json
+@inject MockDataService MockDataService
+@inject IJSRuntime Js
+
+<PageTitle>@L.T("Data Grid 组件 - Atom BlazorUI", "Data Grid Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-7xl">
+    <div class="space-y-4">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Data Grid 组件", "Data Grid Component")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("面向表格数据的企业级数据网格，支持多列排序、分页、行选择、行虚拟化与完整的状态持久化。",
+                 "An enterprise-grade data grid for tabular data with multi-column sorting, pagination, row selection, row virtualization, and full state persistence.")
+        </p>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground leading-relaxed max-w-3xl">
+                用声明式方式定义列：需要类型安全的数据绑定时使用 <code class="bg-muted px-1 py-0.5 rounded">DataGridPropertyColumn</code>，
+                需要完全自定义单元格与表头内容时使用 <code class="bg-muted px-1 py-0.5 rounded">DataGridTemplateColumn</code>。
+                网格同时支持内存集合与通过 <code class="bg-muted px-1 py-0.5 rounded">ItemsProvider</code> 提供的异步服务端数据，
+                其中包含用于以 LINQ 组合排序与分页的 <code class="bg-muted px-1 py-0.5 rounded">IQueryable</code>。
+                列可以拖拽缩放、拖放重排、固定到左侧或右侧边缘，并通过内置的可见性下拉菜单开启或关闭。
+                使用 <code class="bg-muted px-1 py-0.5 rounded">@@bind-State</code> 配合
+                <code class="bg-muted px-1 py-0.5 rounded">Save()</code> /
+                <code class="bg-muted px-1 py-0.5 rounded">Restore()</code>，即可跨会话持久化完整的网格布局
+                （排序顺序、列宽、列顺序、可见性与每页条数）。
+                底层由无头 Primitives 构建以保障无障碍，样式使用 Tailwind CSS。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground leading-relaxed max-w-3xl">
+                Define columns declaratively with <code class="bg-muted px-1 py-0.5 rounded">DataGridPropertyColumn</code> for
+                type-safe data binding or <code class="bg-muted px-1 py-0.5 rounded">DataGridTemplateColumn</code> for fully
+                custom cell and header content. The grid supports both in-memory collections and async server-side data via
+                <code class="bg-muted px-1 py-0.5 rounded">ItemsProvider</code>, including
+                <code class="bg-muted px-1 py-0.5 rounded">IQueryable</code> for LINQ-composed sorting and pagination.
+                Columns can be resized by dragging, reordered via drag-and-drop, pinned to the left or right edge,
+                and toggled on or off through a built-in visibility dropdown. Use
+                <code class="bg-muted px-1 py-0.5 rounded">@@bind-State</code> with
+                <code class="bg-muted px-1 py-0.5 rounded">Save()</code> /
+                <code class="bg-muted px-1 py-0.5 rounded">Restore()</code> to persist the full grid layout
+                (sort order, column widths, column order, visibility, and page size) across sessions.
+                Built on headless Primitives for accessibility, with Tailwind CSS styling.
+            </p>
+                </text>
+}
+    </div>
+
+    <!-- ── Basic DataGrid ──────────────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基础 DataGrid", "Basic DataGrid")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    使用 <code class="bg-muted px-1 py-0.5 rounded">DataGridPropertyColumn</code> 定义列，
+                    并传入类型安全的 <code class="bg-muted px-1 py-0.5 rounded">Property</code> 表达式。
+                    列标题默认由属性名自动推断。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Define columns using <code class="bg-muted px-1 py-0.5 rounded">DataGridPropertyColumn</code>
+                    with a type-safe <code class="bg-muted px-1 py-0.5 rounded">Property</code> expression.
+                    Column titles are auto-inferred from property names.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@people" InitialPageSize="5">
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Role)" />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/basic.txt" />
+    </div>
+
+    <!-- ── Multi-Column Sorting ────────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("多列排序", "Multi-Column Sorting")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    点击表头即可排序。按住 <kbd class="bg-muted px-1 py-0.5 rounded text-xs">Ctrl</kbd>
+                    并点击其他表头可执行多列排序。每个已排序列旁会显示优先级序号。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Click a column header to sort. Hold <kbd class="bg-muted px-1 py-0.5 rounded text-xs">Ctrl</kbd>
+                    and click additional headers for multi-column sorting. Priority numbers appear next to each sorted column.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@people" InitialPageSize="5">
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Age)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Status)" Sortable />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/multi-sort.txt" />
+    </div>
+
+    <!-- ── Column Filtering ──────────────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("列筛选", "Column Filtering")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    给属性列加上 <code class="bg-muted px-1 py-0.5 rounded">Filterable="true"</code> 即可启用按列筛选。
+                    表头中会出现一个筛选图标——悬停时显现，筛选生效时则保持可见。点击该图标会打开一个浮层，
+                    其中包含运算符与取值输入框。筛选类型会依据属性类型自动推断（文本、数字、日期/日期时间、布尔、枚举）。
+                    枚举列会根据类型自动生成下拉选项。可空类型（<code class="bg-muted px-1 py-0.5 rounded">DateTimeOffset?</code>、
+                    <code class="bg-muted px-1 py-0.5 rounded">SeniorityLevel?</code>）额外提供“为空”运算符，用于查找 null 值。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Add <code class="bg-muted px-1 py-0.5 rounded">Filterable="true"</code> to property columns to enable
+                    per-column filtering. A filter icon appears in the column header — hover to reveal it, or it stays
+                    visible when a filter is active. Click the icon to open a popover with operator and value inputs.
+                    Filter types are auto-inferred from the property type (text, number, date/datetime, boolean, enum).
+                    Enum columns auto-generate dropdown options from the type. Nullable types (<code class="bg-muted px-1 py-0.5 rounded">DateTimeOffset?</code>,
+                    <code class="bg-muted px-1 py-0.5 rounded">SeniorityLevel?</code>) include an "is empty" operator to find null values.
+                </p>
+                        </text>
+}
+        </div>
+        @if (_gridState.Filtering.HasFilters)
+        {
+            <div class="flex items-center gap-2">
+                <Badge Variant="BadgeVariant.Secondary">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            @_gridState.Filtering.ActiveFilterCount 个生效筛选
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            @_gridState.Filtering.ActiveFilterCount active filter@(_gridState.Filtering.ActiveFilterCount != 1 ? "s" : "")
+                                        </text>
+}
+                </Badge>
+            </div>
+        }
+        <DataGrid TData="Person" Items="@people" InitialPageSize="5"
+                   @bind-State="_gridState" Resizable="true">
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable Filterable Width="200px" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" Sortable Filterable Width="250px" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable Filterable
+                    FilterType="FilterFieldType.Enum"
+                    FilterOptions="@(new[] { "Engineering", "Sales", "Marketing", "Support", "HR", "Finance", "Operations", "Product" }.Select(d => new SelectOption<string>(d, d)))"
+                    Width="150px" />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Age)" Sortable Filterable Width="100px" />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable Filterable Width="130px" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Status)" Sortable Filterable
+                    FilterType="FilterFieldType.Enum"
+                    FilterOptions="@(new[] { "Active", "Inactive", "Pending", "Suspended" }.Select(s => new SelectOption<string>(s, s)))"
+                    Width="120px" />
+                <DataGridPropertyColumn TData="Person" TProp="PersonStatus" Property="@(p => p.StatusEnum)" Title="@(L.T("状态（枚举）", "Status (Enum)"))" Sortable Filterable Width="140px" />
+                <DataGridPropertyColumn TData="Person" TProp="SeniorityLevel?" Property="@(p => p.Seniority)" Title="@(L.T("职级", "Seniority"))" Sortable Filterable Width="130px" />
+                <DataGridPropertyColumn TData="Person" TProp="DateTimeOffset?" Property="@(p => p.LastPromotionDate)" Title="@(L.T("最近晋升", "Last Promotion"))" Format="d" Sortable Filterable Width="160px" />
+                <DataGridPropertyColumn TData="Person" TProp="DateTime" Property="@(p => p.JoinDate)" Title="@(L.T("入职日期", "Join Date"))" Sortable Filterable Format="d" Width="130px" />
+                <DataGridPropertyColumn TData="Person" TProp="DateTime" Property="@(p => p.LastActivity)" Title="@(L.T("最近活动", "Last Activity"))" Sortable Filterable Format="g" Width="170px" />
+                <DataGridPropertyColumn TData="Person" TProp="bool" Property="@(p => p.IsActive)" Title="@(L.T("激活", "Active"))" Sortable Filterable Width="100px" />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/column-filtering.txt" />
+    </div>
+
+    <!-- ── Inline Row Editing ─────────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("行内编辑", "Inline Row Editing")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    设置 <code class="bg-muted px-1 py-0.5 rounded">EditMode="DataGridEditMode.Row"</code>，给用户可修改的每一列
+                    配上 <code class="bg-muted px-1 py-0.5 rounded">EditTemplate</code>，再加一个
+                    <code class="bg-muted px-1 py-0.5 rounded">DataGridEditColumn</code> 提供编辑、保存与取消按钮。
+                    模板直接绑定到该行，因此一个普通的 <code class="bg-muted px-1 py-0.5 rounded">@@bind-Value</code> 就够了。
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    按 <strong>Enter</strong> 保存，按 <strong>Escape</strong> 取消，无需去点按钮。
+                    取消会把原值放回去，所以不必手工复制。没有编辑模板的列继续显示常规单元格——下面的 Department 是只读的。
+                    <code class="bg-muted px-1 py-0.5 rounded">OnRowCommit</code> 可以拒绝保存并让该行保持打开、
+                    同时保留用户已输入的内容；试试清空姓名再保存。校验经由该行自己的
+                    <code class="bg-muted px-1 py-0.5 rounded">EditContext</code>，因此模型上的
+                    <code class="bg-muted px-1 py-0.5 rounded">DataAnnotations</code> 原样生效。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Set <code class="bg-muted px-1 py-0.5 rounded">EditMode="DataGridEditMode.Row"</code>, give each
+                    column the user may change an <code class="bg-muted px-1 py-0.5 rounded">EditTemplate</code>, and
+                    add a <code class="bg-muted px-1 py-0.5 rounded">DataGridEditColumn</code> for the Edit, Save and
+                    Cancel buttons. The template binds straight to the row, so an ordinary
+                    <code class="bg-muted px-1 py-0.5 rounded">@@bind-Value</code> is all it takes.
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    Press <strong>Enter</strong> to save or <strong>Escape</strong> to cancel without reaching for the
+                    buttons. Cancel puts the original values back, so nothing needs copying by hand. A column with no
+                    edit template keeps showing its normal cell — Department below is read-only.
+                    <code class="bg-muted px-1 py-0.5 rounded">OnRowCommit</code> can refuse the save and keep the row
+                    open with the user's typing intact; try clearing a name and saving.
+                    Validation runs through the row's own <code class="bg-muted px-1 py-0.5 rounded">EditContext</code>,
+                    so <code class="bg-muted px-1 py-0.5 rounded">DataAnnotations</code> on your model apply unchanged.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@editablePeople" InitialPageSize="6"
+                   EditMode="DataGridEditMode.Row"
+                   OnRowCommit="HandleRowCommit"
+                   OnRowCancel="HandleRowCancel">
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable Width="220px">
+                    <EditTemplate>
+                        <Input @bind-Value="context.Name" Class="h-8" />
+                    </EditTemplate>
+                </DataGridPropertyColumn>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable Width="150px" />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Age)" Sortable Width="120px">
+                    <EditTemplate>
+                        <NumericInput TValue="int" @bind-Value="context.Age" Class="h-8" />
+                    </EditTemplate>
+                </DataGridPropertyColumn>
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable Width="150px">
+                    <EditTemplate>
+                        <NumericInput TValue="int" @bind-Value="context.Salary" Class="h-8" />
+                    </EditTemplate>
+                </DataGridPropertyColumn>
+                <DataGridEditColumn TData="Person" />
+            </Columns>
+        </DataGrid>
+        @if (_editMessage != null)
+        {
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">@_editMessageZh</p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">@_editMessage</p>
+                        </text>
+}
+        }
+        <CodeBlock Source="Components/DataGrid/inline-row-editing.txt" />
+    </div>
+
+    @if (L.IsChinese)
+    {
+        <text>
+            <p><a href="/components/datagrid-editing" class="text-primary underline">继续了解单元格与批量编辑</a>，其中包含独立草稿、校验与事务式保存回调。</p>
+        </text>
+}
+    else
+    {
+        <text>
+            <p><a href="/components/datagrid-editing" class="text-primary underline">Explore cell and batch editing</a> for isolated drafts, validation and transactional save callbacks.</p>
+        </text>
+}
+
+    <!-- ── CSV Export ─────────────────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("CSV 导出", "CSV Export")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    设置 <code class="bg-muted px-1 py-0.5 rounded">ShowExport="true"</code>，工具栏就会出现导出按钮。
+                    导出的是用户此刻看到的内容：经过当前搜索、筛选与排序后保留下来的行，按可见列、按当前顺序——
+                    覆盖所有页，而不只是屏幕上的这一页。
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    先搜索或重排列，再导出，文件就会随之变化。Status 列导出的是它的标签而不是背后的数字，
+                    因为它设置了 <code class="bg-muted px-1 py-0.5 rounded">SortAndFilterBy</code>。
+                    在网格引用上调用 <code class="bg-muted px-1 py-0.5 rounded">ExportToCsvAsync()</code>
+                    就能用你自己的按钮导出；改用 <code class="bg-muted px-1 py-0.5 rounded">BuildCsv()</code>
+                    可以只取文本而不触发下载。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Set <code class="bg-muted px-1 py-0.5 rounded">ShowExport="true"</code> to put an Export button
+                    in the toolbar. It downloads what the user sees: the rows that survive the current search,
+                    filters and sort, in the visible columns, in their current order — across every page, not just
+                    the one on screen.
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    Search or reorder the columns first, then export, and the file follows. The Status column
+                    exports its label rather than the number behind it, because it sets
+                    <code class="bg-muted px-1 py-0.5 rounded">SortAndFilterBy</code>. Call
+                    <code class="bg-muted px-1 py-0.5 rounded">ExportToCsvAsync()</code> on a grid reference to
+                    export from a button of your own, or
+                    <code class="bg-muted px-1 py-0.5 rounded">BuildCsv()</code> to get the text without
+                    downloading it.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid @ref="exportGrid" TData="Person" Items="@people" InitialPageSize="5"
+                   ShowSearch="true" ShowExport="true" ExportFileName="employees.csv"
+                   Resizable="true" Reorderable="true">
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable Filterable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" Filterable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable Filterable />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Id)" Id="export-office"
+                    Title="@(L.T("办公地点", "Office"))" Sortable Filterable
+                    SortAndFilterBy="@(p => OfficeFor(p))">
+                    <CellTemplate>@OfficeFor(context)</CellTemplate>
+                </DataGridPropertyColumn>
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable Filterable />
+            </Columns>
+        </DataGrid>
+        <div class="space-y-2">
+            <Button Variant="ButtonVariant.Secondary" Size="ButtonSize.Small" OnClick="ShowCsvPreview">
+                @L.T("预览 CSV 而不是直接下载", "Preview the CSV instead of downloading")
+            </Button>
+            @if (_csvPreview != null)
+            {
+                <pre class="max-h-48 overflow-auto rounded-md border bg-muted p-3 text-xs">@_csvPreview</pre>
+            }
+        </div>
+        <CodeBlock Source="Components/DataGrid/csv-export.txt" />
+    </div>
+
+    <!-- ── Sort and Filter by a Different Value ────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("按不同的值排序与筛选", "Sort and Filter by a Different Value")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    一列显示的内容若并非它的原始属性——最常见的情形就是用
+                    <code class="bg-muted px-1 py-0.5 rounded">CellTemplate</code> 把键解析成标签——默认仍然按那个键排序与筛选。
+                    用户看到的是办公地点名称，点击表头，行却按一个他们看不见的数字重排。
+                    <code class="bg-muted px-1 py-0.5 rounded">SortAndFilterBy</code> 让排序、筛选、分组与搜索改为指向该列显示的值。
+                    一个参数管住这四件事，它们因此不可能各说各话。
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    把下面两列各排一次序对比看看。两者解析的是同一个办公地点，但只有第二列会按地点名称的字母顺序排列。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    A column that displays something other than its raw property — the common case being a
+                    <code class="bg-muted px-1 py-0.5 rounded">CellTemplate</code> that resolves a key to a label —
+                    still sorts and filters on the key by default. The user sees office names, clicks the header,
+                    and the rows reorder by a number they cannot see.
+                    <code class="bg-muted px-1 py-0.5 rounded">SortAndFilterBy</code> points sorting, filtering,
+                    grouping and search at the value the column displays instead. One parameter covers all four,
+                    so they cannot disagree.
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    Sort the two columns below and compare them. Both resolve the same office, but only the second
+                    orders alphabetically by office name.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@people" InitialPageSize="5">
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable Width="200px" />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Id)" Title="@(L.T("办公地点（按 id 排序）", "Office (sorts by id)"))"
+                    Sortable Width="180px">
+                    <CellTemplate>
+                        <Badge Variant="BadgeVariant.Secondary">@OfficeFor(context)</Badge>
+                    </CellTemplate>
+                </DataGridPropertyColumn>
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Id)" Id="office-by-name"
+                    Title="@(L.T("办公地点（按名称排序）", "Office (sorts by name)"))" Sortable Filterable Groupable Width="200px"
+                    SortAndFilterBy="@(p => OfficeFor(p))"
+                    FilterType="FilterFieldType.Enum"
+                    FilterOptions="@(officeNames.Select(o => new SelectOption<string>(o, o)))">
+                    <CellTemplate>
+                        <Badge Variant="BadgeVariant.Secondary">@OfficeFor(context)</Badge>
+                    </CellTemplate>
+                </DataGridPropertyColumn>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable Width="150px" />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/sort-filter-by.txt" />
+    </div>
+
+    <!-- ── Row Selection ───────────────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("行选择", "Row Selection")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="bg-muted px-1 py-0.5 rounded">DataGridSelectColumn</code> 实现基于复选框的行选择。
+                    表头的复选框可切换当页的全选。已选数量会显示在分页底栏中。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="bg-muted px-1 py-0.5 rounded">DataGridSelectColumn</code> for checkbox-based
+                    row selection. The header checkbox toggles select-all for the current page.
+                    Selected count is shown in the pagination footer.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@people" InitialPageSize="5"
+                   SelectionMode="DataTableSelectionMode.Multiple"
+                   SelectedItemsChanged="HandleSelectionChanged">
+            <Columns>
+                <DataGridSelectColumn TData="Person" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable />
+            </Columns>
+        </DataGrid>
+        @if (_selectedPeople.Count > 0)
+        {
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    已选中：@string.Join("、", _selectedPeople.Select(p => p.Name))
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Selected: @string.Join(", ", _selectedPeople.Select(p => p.Name))
+                </p>
+                        </text>
+}
+        }
+        <CodeBlock Source="Components/DataGrid/row-selection.txt" />
+    </div>
+
+    <!-- ── Selection Behaviour (Replace) ──────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("选择行为", "Selection Behaviour")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    默认情况下，点击某一行只切换那一行，其余行不受影响。把
+                    <code class="bg-muted px-1 py-0.5 rounded">SelectionBehavior="DataGridSelectionBehavior.Replace"</code>
+                    设好后，就得到用户从文件管理器带来的那套习惯：普通单击只选中被点击的行，
+                    <strong>Shift+单击</strong> 选中从锚点行起的区间，
+                    <strong>Ctrl+单击</strong>（macOS 上是 Cmd+单击）逐行增删。点击唯一选中的那行会清空选择。
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    区间从<em>锚点</em>起算——也就是最后一次普通单击或 Ctrl+单击所在的行——而不是从最后被选中的行起算。
+                    先点一行，再 Ctrl+点第二行，然后 Shift+点第三行：区间从被 Ctrl+点的那一行开始。
+                    这里没有选择列，因为行点击本身才是主角；若存在选择列，它的复选框仍是切换语义，
+                    聚焦行上的空格键与回车键也一样。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    By default a row click toggles that one row and leaves the rest alone. Set
+                    <code class="bg-muted px-1 py-0.5 rounded">SelectionBehavior="DataGridSelectionBehavior.Replace"</code>
+                    for the conventions a user brings from a file explorer: a plain click selects only the clicked
+                    row, <strong>Shift+Click</strong> selects the range from the anchor row, and
+                    <strong>Ctrl+Click</strong> (Cmd+Click on macOS) adds or removes one row. Clicking the only
+                    selected row clears the selection.
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    The range extends from the <em>anchor</em> — the row of the last plain click or Ctrl+Click —
+                    not from the last selected row. Click a row, Ctrl+Click a second, then Shift+Click a third:
+                    the range starts at the Ctrl+Clicked row. There is no select column here, because a row click
+                    is the whole point; where a select column is present its checkboxes keep toggle semantics, and
+                    so do the Space and Enter keys on a focused row.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@people" InitialPageSize="8"
+                   SelectionMode="DataTableSelectionMode.Multiple"
+                   SelectionBehavior="DataGridSelectionBehavior.Replace"
+                   SelectedItemsChanged="HandleReplaceSelectionChanged">
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable />
+            </Columns>
+        </DataGrid>
+        <p class="text-sm text-muted-foreground">
+            @if (_replaceSelectedPeople.Count > 0)
+            {
+                @if (L.IsChinese)
+                {
+                    <text>已选中 @_replaceSelectedPeople.Count 项：@string.Join("、", _replaceSelectedPeople.Select(p => p.Name))</text>
+                }
+                else
+                {
+                    <text>Selected @_replaceSelectedPeople.Count: @string.Join(", ", _replaceSelectedPeople.Select(p => p.Name))</text>
+                }
+            }
+            else
+            {
+                @if (L.IsChinese)
+                {
+                    <text>未选中任何行。</text>
+                }
+                else
+                {
+                    <text>Nothing selected.</text>
+                }
+            }
+        </p>
+        <CodeBlock Source="Components/DataGrid/selection-behavior.txt" />
+    </div>
+
+    <!-- ── Per-Page Select-All (SelectAllScope) ──────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("当页全选", "Per-Page Select-All")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    默认情况下，分页网格的表头复选框会打开一个菜单，用来选择当前页的所有行或跨越所有页的所有行。
+                    设置
+                    <code class="bg-muted px-1 py-0.5 rounded">SelectAllScope="DataGridSelectAllScope.CurrentPage"</code>
+                    就能去掉这个菜单——此后表头复选框只切换当前页的行，其他页上的选择原样不动。
+                    选中若干行后翻页，上一页的选择依然保留。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    By default, the header checkbox of a paginated grid opens a menu to select all rows on the
+                    current page or across every page. Set
+                    <code class="bg-muted px-1 py-0.5 rounded">SelectAllScope="DataGridSelectAllScope.CurrentPage"</code>
+                    to remove that menu — the header checkbox then toggles only the current page's rows and leaves
+                    selections on other pages untouched. Select some rows, change pages, and the previous page's
+                    selection is preserved.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@people" InitialPageSize="5"
+                   SelectionMode="DataTableSelectionMode.Multiple"
+                   SelectedItemsChanged="HandlePerPageSelectionChanged">
+            <Columns>
+                <DataGridSelectColumn TData="Person" SelectAllScope="DataGridSelectAllScope.CurrentPage" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+            </Columns>
+        </DataGrid>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                跨页已选中：<span class="font-medium">@_perPageSelectedCount</span> 行
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Selected across all pages: <span class="font-medium">@_perPageSelectedCount</span>
+            </p>
+                </text>
+}
+        <CodeBlock Source="Components/DataGrid/select-all-scope.txt" />
+    </div>
+
+    <!-- ── Compact Rows (CellClass / HeaderClass) ─────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("紧凑行（CellClass / HeaderClass）", "Compact Rows (CellClass / HeaderClass)")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    每一列 &mdash; 包括 <code class="bg-muted px-1 py-0.5 rounded">DataGridSelectColumn</code> 在内 &mdash;
+                    都接受 <code class="bg-muted px-1 py-0.5 rounded">CellClass</code> 与
+                    <code class="bg-muted px-1 py-0.5 rounded">HeaderClass</code>。把更小的内边距，例如
+                    <code class="bg-muted px-1 py-0.5 rounded">CellClass="p-1"</code>，应用到每一列（复选框列也不例外），
+                    就能得到一张密集的网格 &mdash; 选择列不再强行把行撑高。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Every column &mdash; including <code class="bg-muted px-1 py-0.5 rounded">DataGridSelectColumn</code> &mdash;
+                    accepts <code class="bg-muted px-1 py-0.5 rounded">CellClass</code> and
+                    <code class="bg-muted px-1 py-0.5 rounded">HeaderClass</code>. Apply a smaller padding such as
+                    <code class="bg-muted px-1 py-0.5 rounded">CellClass="p-1"</code> to every column, the checkbox column
+                    included, for a dense grid &mdash; the select column no longer forces a taller row.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@people" InitialPageSize="5"
+                   SelectionMode="DataTableSelectionMode.Multiple">
+            <Columns>
+                <DataGridSelectColumn TData="Person" CellClass="p-1" HeaderClass="p-1" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" CellClass="p-1" HeaderClass="p-1" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" CellClass="p-1" HeaderClass="p-1" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" CellClass="p-1" HeaderClass="p-1" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" CellClass="p-1" HeaderClass="p-1" Sortable />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/compact-rows.txt" />
+    </div>
+
+    <!-- ── Expandable Rows ────────────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("可展开行", "Expandable Rows")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    添加 <code class="bg-muted px-1 py-0.5 rounded">DataGridExpandColumn</code> 并提供一个
+                    <code class="bg-muted px-1 py-0.5 rounded">DetailTemplate</code>，就能在每行下方展开额外内容。
+                    点击箭头图标即可切换展开状态。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Add <code class="bg-muted px-1 py-0.5 rounded">DataGridExpandColumn</code> and provide a
+                    <code class="bg-muted px-1 py-0.5 rounded">DetailTemplate</code> to reveal additional content
+                    beneath each row. Click the chevron to toggle expansion.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@people" InitialPageSize="5">
+            <Columns>
+                <DataGridExpandColumn />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" />
+            </Columns>
+            <DetailTemplate>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="font-medium text-muted-foreground">@L.T("职位：", "Role:")</span>
+                        <span class="ml-2">@context.Role</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-muted-foreground">@L.T("年龄：", "Age:")</span>
+                        <span class="ml-2">@context.Age</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-muted-foreground">@L.T("状态：", "Status:")</span>
+                        <span class="ml-2">@context.Status</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-muted-foreground">@L.T("入职日期：", "Join Date:")</span>
+                        <span class="ml-2">@context.JoinDate.ToShortDateString()</span>
+                    </div>
+                </div>
+            </DetailTemplate>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/expandable-rows.txt" />
+    </div>
+
+    <!-- ── Expandable Rows: Nested Table ─────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("可展开行：嵌套表格", "Expandable Rows: Nested Table")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="bg-muted px-1 py-0.5 rounded">DetailTemplate</code> 可以承载任意内容，
+                    也包括嵌套表格。这个示例展示父任务展开后列出它的子任务，子任务有自己的一组列。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    The <code class="bg-muted px-1 py-0.5 rounded">DetailTemplate</code> can contain any content,
+                    including a nested table. This example shows parent tasks that expand to reveal their subtasks
+                    with their own set of columns.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="ProjectTask" Items="@projectTasks" InitialPageSize="5" ShowPagination="false">
+            <Columns>
+                <DataGridExpandColumn />
+                <DataGridPropertyColumn TData="ProjectTask" TProp="string" Property="@(t => t.Title)" Title="@(L.T("任务", "Task"))" />
+                <DataGridPropertyColumn TData="ProjectTask" TProp="string" Property="@(t => t.Assignee)" />
+                <DataGridPropertyColumn TData="ProjectTask" TProp="string" Property="@(t => t.Status)" />
+                <DataGridPropertyColumn TData="ProjectTask" TProp="string" Property="@(t => t.Priority)" />
+            </Columns>
+            <DetailTemplate>
+                <div class="pl-4">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <p class="text-sm font-medium mb-2 text-muted-foreground">子任务（共 @context.Subtasks.Count 项）</p>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <p class="text-sm font-medium mb-2 text-muted-foreground">Subtasks (@context.Subtasks.Count)</p>
+                                        </text>
+}
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b">
+                                <th class="py-2 px-3 text-left font-medium text-muted-foreground">@L.T("子任务", "Subtask")</th>
+                                <th class="py-2 px-3 text-left font-medium text-muted-foreground">@L.T("负责人", "Assignee")</th>
+                                <th class="py-2 px-3 text-left font-medium text-muted-foreground">@L.T("状态", "Status")</th>
+                                <th class="py-2 px-3 text-right font-medium text-muted-foreground">@L.T("工时", "Hours")</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var sub in context.Subtasks)
+                            {
+                                <tr class="border-b last:border-0">
+                                    <td class="py-2 px-3">@sub.Title</td>
+                                    <td class="py-2 px-3">@sub.Assignee</td>
+                                    <td class="py-2 px-3">
+                                        <Badge Variant="@GetSubtaskBadge(sub.Status)">@sub.Status</Badge>
+                                    </td>
+                                    <td class="py-2 px-3 text-right tabular-nums">@sub.EstimatedHours @L.T("小时", "h")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </DetailTemplate>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/expandable-nested-table.txt" />
+    </div>
+
+    <!-- ── Expandable Rows: Detail Rows ──────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("可展开行：详情行", "Expandable Rows: Detail Rows")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    在 <code class="bg-muted px-1 py-0.5 rounded">DataGridExpandColumn</code> 上使用
+                    <code class="bg-muted px-1 py-0.5 rounded">DetailRows</code>，可以把子项渲染成真正的表格行，
+                    并与父网格的列对齐。每个子项用一个
+                    <code class="bg-muted px-1 py-0.5 rounded">DataGridDetailRow</code>，可选的分节标签则用
+                    <code class="bg-muted px-1 py-0.5 rounded">DataGridDetailHeader</code>。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="bg-muted px-1 py-0.5 rounded">DetailRows</code> on the
+                    <code class="bg-muted px-1 py-0.5 rounded">DataGridExpandColumn</code> to render child items
+                    as proper table rows that align with the parent grid's columns. Use
+                    <code class="bg-muted px-1 py-0.5 rounded">DataGridDetailRow</code> for each child item and
+                    <code class="bg-muted px-1 py-0.5 rounded">DataGridDetailHeader</code> for an optional section label.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="TeamMember" Items="@teamMembers" InitialPageSize="5" ShowPagination="false">
+            <Columns>
+                <DataGridExpandColumn>
+                    <DetailRows Context="member">
+                        <DataGridDetailHeader Class="bg-muted/30">
+                            @if (L.IsChinese)
+                            {
+                                                        <text>
+                                                            <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                    直接下属（共 @member.DirectReports.Count 人）
+                                </span>
+                                                        </text>
+}
+                            else
+                            {
+                                                        <text>
+                                                            <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                    Direct Reports (@member.DirectReports.Count)
+                                </span>
+                                                        </text>
+}
+                        </DataGridDetailHeader>
+                        @foreach (var report in member.DirectReports)
+                        {
+                            <DataGridDetailRow Item="@report" Class="text-muted-foreground" />
+                        }
+                    </DetailRows>
+                </DataGridExpandColumn>
+                <DataGridPropertyColumn TData="TeamMember" TProp="string" Property="@(m => m.Name)" Sortable />
+                <DataGridPropertyColumn TData="TeamMember" TProp="string" Property="@(m => m.Title)" Title="@(L.T("职位名称", "Job Title"))" />
+                <DataGridPropertyColumn TData="TeamMember" TProp="string" Property="@(m => m.Department)" Sortable />
+                <DataGridPropertyColumn TData="TeamMember" TProp="int" Property="@(m => m.DirectReports.Count)" Title="@(L.T("直接下属数", "Reports"))" />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/expandable-detail-rows.txt" />
+    </div>
+
+    <!-- ── Row Click & Context Menu ─────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("行点击与右键菜单", "Row Click & Context Menu")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="bg-muted px-1 py-0.5 rounded">OnRowClick</code> 响应行点击，用
+                    <code class="bg-muted px-1 py-0.5 rounded">RowContextMenu</code> 在右键时显示自定义上下文菜单。
+                    上下文对象提供了 <code class="bg-muted px-1 py-0.5 rounded">CopyToClipboardAsync</code> 用于访问剪贴板，
+                    <code class="bg-muted px-1 py-0.5 rounded">VisibleColumns</code> 用于按列拷贝，以及内置的
+                    <code class="bg-muted px-1 py-0.5 rounded">FormatRow</code> / <code class="bg-muted px-1 py-0.5 rounded">FormatRows</code>
+                    辅助方法——它们会自动遵循列的可见性与顺序。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="bg-muted px-1 py-0.5 rounded">OnRowClick</code> to respond to row clicks and
+                    <code class="bg-muted px-1 py-0.5 rounded">RowContextMenu</code> to show a custom context menu on right-click.
+                    The context provides <code class="bg-muted px-1 py-0.5 rounded">CopyToClipboardAsync</code> for clipboard access,
+                    <code class="bg-muted px-1 py-0.5 rounded">VisibleColumns</code> for column-aware copying, and built-in
+                    <code class="bg-muted px-1 py-0.5 rounded">FormatRow</code> / <code class="bg-muted px-1 py-0.5 rounded">FormatRows</code>
+                    helpers that automatically respect column visibility and ordering.
+                </p>
+                        </text>
+}
+        </div>
+        @if (!string.IsNullOrEmpty(clickedRowMessage))
+        {
+            <Alert Variant="AlertVariant.Default" Class="transition-all">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <AlertDescription>@clickedRowMessageZh</AlertDescription>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <AlertDescription>@clickedRowMessage</AlertDescription>
+                                </text>
+}
+            </Alert>
+        }
+        <DataGrid TData="Person" Items="@people" InitialPageSize="5"
+                    OnRowClick="HandleDemoRowClick">
+            <RowContextMenu Context="menu">
+                <AtomBlazor.ContextMenuItem OnClick="@(async () => await CopyWithFeedback(menu, menu.Item.Name))">
+                    @L.T("复制姓名", "Copy Name")
+                </AtomBlazor.ContextMenuItem>
+                <AtomBlazor.ContextMenuItem OnClick="@(async () => await CopyWithFeedback(menu, menu.Item.Email))">
+                    @L.T("复制邮箱", "Copy Email")
+                </AtomBlazor.ContextMenuItem>
+                <AtomBlazor.ContextMenuSeparator />
+                <AtomBlazor.ContextMenuItem OnClick="@(async () => await CopyWithFeedback(menu, menu.FormatRow(menu.Item)))">
+                    @L.T("复制整行", "Copy Row")
+                </AtomBlazor.ContextMenuItem>
+            </RowContextMenu>
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Role)" />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/row-click-context-menu.txt" />
+    </div>
+
+    <!-- ── Resizable Columns ────────────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("可缩放列", "Resizable Columns")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    设置 <code class="bg-muted px-1 py-0.5 rounded">Resizable="true"</code> 即可启用列缩放。
+                    拖动任意列表头的右边缘即可调整宽度。内部使用
+                    <code class="bg-muted px-1 py-0.5 rounded">table-layout: fixed</code> 实现精确的宽度控制。
+                    单列可以用 <code class="bg-muted px-1 py-0.5 rounded">Resizable="false"</code> 退出。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Set <code class="bg-muted px-1 py-0.5 rounded">Resizable="true"</code> to enable column resizing.
+                    Drag the right edge of any column header to resize. Uses <code class="bg-muted px-1 py-0.5 rounded">table-layout: fixed</code>
+                    for precise width control. Individual columns can opt out with <code class="bg-muted px-1 py-0.5 rounded">Resizable="false"</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@people" InitialPageSize="5" Resizable="true">
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable NoWrap Width="200px" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" Sortable Width="250px" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable Width="150px" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Role)" Width="150px" />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable Width="120px" />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/resizable-columns.txt" />
+    </div>
+
+    <!-- ── Reorderable Columns ──────────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("可重排列", "Reorderable Columns")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    设置 <code class="bg-muted px-1 py-0.5 rounded">Reorderable="true"</code> 即可启用拖放式列重排。
+                    拖动某个表头就能把它移到新位置，放置目标会有可视指示。单列可以用
+                    <code class="bg-muted px-1 py-0.5 rounded">Reorderable="false"</code> 退出。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Set <code class="bg-muted px-1 py-0.5 rounded">Reorderable="true"</code> to enable drag-and-drop
+                    column reordering. Drag a column header to move it to a new position. A visual indicator shows
+                    the drop target. Individual columns can opt out with <code class="bg-muted px-1 py-0.5 rounded">Reorderable="false"</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@people" InitialPageSize="5" Reorderable="true">
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Role)" />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/reorderable-columns.txt" />
+    </div>
+
+    <!-- ── Reordering With Pinned And Selection Columns ─────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("与固定列、选择列并存的重排", "Reordering With Pinned And Selection Columns")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    重排可以与固定列、选择列共存。固定的列既不可拖动，也不接受放置，因此它们始终钉在网格的两端——
+                    只有中间那些未固定的列可以被重新排列。选择框列同样钉在原地。
+                    拖拽 <strong>Email</strong>、<strong>Department</strong>、<strong>Role</strong> 或
+                    <strong>Age</strong>，即可在两端固定的 Name 列与「操作」列之间重排它们。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Reordering coexists with pinning and the selection column. Pinned columns are never draggable and
+                    never accept a drop, so they stay anchored to the edges of the grid — only the unpinned columns
+                    in the middle can be rearranged. The selection checkbox column is likewise fixed in place.
+                    Drag <strong>Email</strong>, <strong>Department</strong>, <strong>Role</strong> or
+                    <strong>Age</strong> to reorder them between the pinned Name and Actions columns.
+                </p>
+                        </text>
+}
+        </div>
+        <div style="max-width: 800px; overflow-x: auto;">
+            <DataGrid TData="Person" Items="@people" InitialPageSize="5" Reorderable="true"
+                        SelectionMode="DataTableSelectionMode.Multiple">
+                <Columns>
+                    <DataGridSelectColumn TData="Person" Pinned="AtomBlazor.Primitives.ColumnPinning.Left" />
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)"
+                        Sortable Width="160px" Pinned="AtomBlazor.Primitives.ColumnPinning.Left" />
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" Width="220px" />
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Width="180px" />
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Role)" Width="160px" />
+                    <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Age)" Width="100px" />
+                    <DataGridTemplateColumn TData="Person" Title="@(L.T("操作", "Actions"))" Width="140px"
+                        Pinned="AtomBlazor.Primitives.ColumnPinning.Right"
+                        CellClass="text-right">
+                        <HeaderTemplate>
+                            <span class="w-full text-right">@L.T("操作", "Actions")</span>
+                        </HeaderTemplate>
+                        <ChildContent Context="person">
+                            <div @onclick:stopPropagation="true" class="inline-flex justify-end w-full">
+                                <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small">@L.T("编辑", "Edit")</Button>
+                            </div>
+                        </ChildContent>
+                    </DataGridTemplateColumn>
+                </Columns>
+            </DataGrid>
+        </div>
+        <CodeBlock Source="Components/DataGrid/reorderable-pinned-columns.txt" />
+    </div>
+
+    <!-- ── Explicit Column Order ────────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("显式列顺序", "Explicit Column Order")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    列的位置取决于它们的组件完成初始化的顺序；就直接写在网格标记里的列而言，那就是声明顺序。
+                    间接生成的列会比它周围的列更晚初始化，否则就会漂到末尾——下面的
+                    <code class="bg-muted px-1 py-0.5 rounded">&lt;SalaryColumn /&gt;</code> 就是一个可复用组件，
+                    它内部渲染自己的 <code class="bg-muted px-1 py-0.5 rounded">DataGridPropertyColumn</code>。
+                    给这样的列设置 <code class="bg-muted px-1 py-0.5 rounded">Order</code>，就能把它钉在数据列中的某个
+                    从零开始的序号上。没有设置 <code class="bg-muted px-1 py-0.5 rounded">Order</code> 的列保持声明顺序
+                    围绕它排列，因此其他地方都不必改动。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Columns take their position from the order their components initialize in, which for a column
+                    written directly in the grid's markup is the order it was declared. A column produced indirectly
+                    initializes later than the columns around it and would otherwise drift to the end — the
+                    <code class="bg-muted px-1 py-0.5 rounded">&lt;SalaryColumn /&gt;</code> below is a reusable
+                    component that renders a <code class="bg-muted px-1 py-0.5 rounded">DataGridPropertyColumn</code>
+                    of its own. Set <code class="bg-muted px-1 py-0.5 rounded">Order</code> on such a column to pin it
+                    to a zero-based index among the data columns. Columns that leave
+                    <code class="bg-muted px-1 py-0.5 rounded">Order</code> unset keep their declared order around it,
+                    so nothing else needs to change.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@people" InitialPageSize="5">
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" Sortable />
+                <SalaryColumn Order="2" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/column-order.txt" />
+    </div>
+
+    <!-- ── Column Visibility ──────────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("列可见性", "Column Visibility")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    把 <code class="bg-muted px-1 py-0.5 rounded">Toolbar</code> 参数与
+                    <code class="bg-muted px-1 py-0.5 rounded">DataGridColumnVisibility</code> 一起使用，
+                    即可加入一个让用户显示或隐藏列的下拉菜单。设置了
+                    <code class="bg-muted px-1 py-0.5 rounded">Hideable="false"</code> 的列不会出现在这个开关里。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use the <code class="bg-muted px-1 py-0.5 rounded">Toolbar</code> parameter with
+                    <code class="bg-muted px-1 py-0.5 rounded">DataGridColumnVisibility</code> to add a
+                    dropdown that lets users show or hide columns. Columns with <code class="bg-muted px-1 py-0.5 rounded">Hideable="false"</code>
+                    are excluded from the toggle.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@people" InitialPageSize="5">
+            <Toolbar>
+                <div class="flex items-center gap-2">
+                    <DataGridColumnVisibility TData="Person" />
+                </div>
+            </Toolbar>
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable Hideable="false" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Role)" />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/column-visibility.txt" />
+    </div>
+
+    <!-- ── Pinned Columns ──────────────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("固定列", "Pinned Columns")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    在任意列上设置 <code class="bg-muted px-1 py-0.5 rounded">Pinned="AtomBlazor.Primitives.ColumnPinning.Left"</code> 或
+                    <code class="bg-muted px-1 py-0.5 rounded">Pinned="AtomBlazor.Primitives.ColumnPinning.Right"</code>，
+                    即可借助 CSS 的 <code class="bg-muted px-1 py-0.5 rounded">position: sticky</code>
+                    把它钉在可滚动视口的边缘。偏移量会自动计算。水平滚动即可看到固定列留在原地。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Set <code class="bg-muted px-1 py-0.5 rounded">Pinned="AtomBlazor.Primitives.ColumnPinning.Left"</code> or
+                    <code class="bg-muted px-1 py-0.5 rounded">Pinned="AtomBlazor.Primitives.ColumnPinning.Right"</code> on any column
+                    to pin it to the edge of the scrollable viewport using CSS
+                    <code class="bg-muted px-1 py-0.5 rounded">position: sticky</code>.
+                    Offsets are computed automatically. Scroll horizontally to see pinned columns stay in place.
+                </p>
+                        </text>
+}
+        </div>
+        <div style="max-width: 700px; overflow: auto;">
+            <DataGrid TData="Person" Items="@people" InitialPageSize="5"
+                       SelectionMode="DataTableSelectionMode.Multiple">
+                <Columns>
+                    <DataGridSelectColumn TData="Person" Pinned="AtomBlazor.Primitives.ColumnPinning.Left" />
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)"
+                        Sortable Width="180px" Pinned="AtomBlazor.Primitives.ColumnPinning.Left" />
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)"
+                        Width="220px" />
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)"
+                        Width="180px" />
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Role)"
+                        Width="160px" />
+                    <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Age)"
+                        Width="100px" />
+                    <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)"
+                        Format="C0" Width="140px" />
+                    <DataGridTemplateColumn TData="Person" Title="@(L.T("操作", "Actions"))" Width="200px"
+                        Pinned="AtomBlazor.Primitives.ColumnPinning.Right"
+                        CellClass="text-right">
+                        <HeaderTemplate>
+                            <span class="w-full text-right">@L.T("操作", "Actions")</span>
+                        </HeaderTemplate>
+                        <ChildContent Context="person">
+                            <div @onclick:stopPropagation="true" class="inline-flex justify-end w-full">
+                                <SplitButton Variant="ButtonVariant.Outline" Size="ButtonSize.Small">
+                                    <ChildContent>@L.T("编辑", "Edit")</ChildContent>
+                                    <DropdownContent>
+                                        <SplitButtonItem>@L.T("复制", "Duplicate")</SplitButtonItem>
+                                        <SplitButtonItem>@L.T("归档", "Archive")</SplitButtonItem>
+                                        <SplitButtonSeparator />
+                                        <SplitButtonItem>@L.T("删除", "Delete")</SplitButtonItem>
+                                    </DropdownContent>
+                                </SplitButton>
+                            </div>
+                        </ChildContent>
+                    </DataGridTemplateColumn>
+                </Columns>
+            </DataGrid>
+        </div>
+        <CodeBlock Source="Components/DataGrid/pinned-columns.txt" />
+    </div>
+
+    <!-- ── Global Search ─────────────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("全局搜索", "Global Search")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    添加 <code class="bg-muted px-1 py-0.5 rounded">ShowSearch="true"</code> 会渲染一个带防抖的搜索输入框，
+                    它在所有开启了 <code class="bg-muted px-1 py-0.5 rounded">Filterable=true</code> 的列上进行筛选。
+                    对于服务端网格，搜索文本通过
+                    <code class="bg-muted px-1 py-0.5 rounded">DataGridRequest.SearchText</code> 传入。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Add <code class="bg-muted px-1 py-0.5 rounded">ShowSearch="true"</code> to render a
+                    debounced search input that filters across all columns with
+                    <code class="bg-muted px-1 py-0.5 rounded">Filterable=true</code>.
+                    For server-side grids, the search text is passed via
+                    <code class="bg-muted px-1 py-0.5 rounded">DataGridRequest.SearchText</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@people" InitialPageSize="5" ShowSearch>
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable Filterable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" Filterable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable Filterable />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable Filterable />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/global-search.txt" />
+    </div>
+
+    <!-- ── Async Data Loading ──────────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("异步数据加载（ItemsProvider）", "Async Data Loading (ItemsProvider)")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="bg-muted px-1 py-0.5 rounded">ItemsProvider</code> 做服务端取数。
+                    网格把排序与分页参数传给它，由它返回数据。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="bg-muted px-1 py-0.5 rounded">ItemsProvider</code> for server-side data fetching.
+                    The grid passes sort and pagination parameters and the provider returns the data.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" ItemsProvider="@LoadPeopleAsync" InitialPageSize="5">
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Age)" Sortable />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/async-loading.txt" />
+    </div>
+
+    <!-- ── Virtualization ──────────────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("虚拟化（1000 行）", "Virtualization (1000 rows)")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    启用 <code class="bg-muted px-1 py-0.5 rounded">Virtualize="true"</code> 以流畅渲染大型数据集，
+                    只有可见的行会进入 DOM。使用 <code class="bg-muted px-1 py-0.5 rounded">StickyHeader="true"</code>
+                    让表头在滚动时保持可见。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Enable <code class="bg-muted px-1 py-0.5 rounded">Virtualize="true"</code> for smooth
+                    rendering of large datasets. Only visible rows are rendered in the DOM.
+                    Use <code class="bg-muted px-1 py-0.5 rounded">StickyHeader="true"</code> to keep the header
+                    visible while scrolling.
+                </p>
+                        </text>
+}
+        </div>
+        <div style="height: 400px; overflow: auto;">
+            <DataGrid TData="Person" Items="@manyPeople" ShowPagination="false"
+                       Virtualize="true" ItemSize="48" StickyHeader="true">
+                <Columns>
+                    <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Id)" Title="#" Width="60px" />
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" />
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+                    <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable />
+                </Columns>
+            </DataGrid>
+        </div>
+        <CodeBlock Source="Components/DataGrid/virtualization.txt" />
+    </div>
+
+    <!-- ── Server-Side Virtual Scroll ─────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("服务端虚拟滚动", "Server-Side Virtual Scroll")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    把 <code class="bg-muted px-1 py-0.5 rounded">Virtualize="true"</code> 与
+                    <code class="bg-muted px-1 py-0.5 rounded">ItemsProvider</code> 组合起来，就是真正的服务端无限滚动。
+                    随着用户滚动，Virtualize 组件只向服务器请求可见行加上一段预取余量。分页会自动隐藏。
+                    用 <code class="bg-muted px-1 py-0.5 rounded">VirtualScrollHeight</code> 设置滚动容器的高度。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Combine <code class="bg-muted px-1 py-0.5 rounded">Virtualize="true"</code> with
+                    <code class="bg-muted px-1 py-0.5 rounded">ItemsProvider</code> for true server-side
+                    infinite scroll. The Virtualize component requests only the visible rows plus overscan
+                    from the server as the user scrolls. Pagination is automatically hidden.
+                    Use <code class="bg-muted px-1 py-0.5 rounded">VirtualScrollHeight</code> to set the
+                    scroll container height.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" ItemsProvider="@VirtualServerProviderAsync"
+                   Virtualize="true" ItemSize="48" VirtualScrollHeight="400px"
+                   StickyHeader="true">
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Id)" Title="#" Width="60px" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable />
+            </Columns>
+        </DataGrid>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-xs text-muted-foreground">
+                正在 10,000 条记录中滚动 —— 只有可见的行会从模拟服务器取回。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-xs text-muted-foreground">
+                Scrolling through 10,000 records — only visible rows are fetched from the simulated server.
+            </p>
+                </text>
+}
+        <CodeBlock Source="Components/DataGrid/virtual-server-scroll.txt" />
+    </div>
+
+    <!-- ── Stress Test: 100,000 Rows ─────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("压力测试（100,000 行）", "Stress Test (100,000 rows)")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 100,000 行把网格推到极限。数据按需生成，以免拖慢页面加载。虚拟化只渲染可见行，
+                    因此即便在这个量级上，DOM 依然轻量、滚动依然顺滑。多列排序、选择与各列功能全都完整可用。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Push the grid to its limits with 100,000 rows. Data is generated on-demand to avoid slowing
+                    down page load. Virtualization renders only the visible rows, keeping the DOM lightweight
+                    and scrolling smooth even at this scale. Multi-column sorting, selection, and column
+                    features all remain fully functional.
+                </p>
+                        </text>
+}
+        </div>
+        @if (!stressTestLoaded)
+        {
+            <Button Variant="ButtonVariant.Outline" OnClick="@LoadStressTestData" Disabled="@stressTestLoading">
+                @if (stressTestLoading)
+                {
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <span>正在生成 100,000 条记录……</span>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <span>Generating 100,000 records...</span>
+                                        </text>
+}
+                }
+                else
+                {
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <span>载入 100,000 条记录</span>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <span>Load 100,000 Records</span>
+                                        </text>
+}
+                }
+            </Button>
+        }
+        else
+        {
+            <div class="text-sm text-muted-foreground">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <Badge>已载入 @stressTestPeople.Count.ToString("N0") 行</Badge>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <Badge>@stressTestPeople.Count.ToString("N0") rows loaded</Badge>
+                                </text>
+}
+            </div>
+            <div style="height: 500px; overflow: auto;">
+                <DataGrid TData="Person" Items="@stressTestPeople" ShowPagination="false"
+                           Virtualize="true" ItemSize="48" StickyHeader="true"
+                           SelectionMode="DataTableSelectionMode.Multiple"
+                           Resizable="true" Reorderable="true">
+                    <Columns>
+                        <DataGridSelectColumn TData="Person" Pinned="AtomBlazor.Primitives.ColumnPinning.Left" />
+                        <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Id)" Title="#" Width="80px" Sortable Reorderable="false" />
+                        <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable Width="200px" />
+                        <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" Width="250px" />
+                        <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Age)" Sortable Width="80px" />
+                        <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Role)" Sortable Width="150px" />
+                        <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable Width="150px" />
+                        <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable Width="120px" />
+                        <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Status)" Sortable Width="100px" />
+                        <DataGridTemplateColumn TData="Person" Title="@(L.T("激活", "Active"))" Sortable SortBy="@(p => (object)p.IsActive)" Width="80px">
+                            @if (context.IsActive)
+                            {
+                                <Badge Variant="BadgeVariant.Default">@L.T("是", "Yes")</Badge>
+                            }
+                            else
+                            {
+                                <Badge Variant="BadgeVariant.Secondary">@L.T("否", "No")</Badge>
+                            }
+                        </DataGridTemplateColumn>
+                    </Columns>
+                </DataGrid>
+            </div>
+            <CodeBlock Source="Components/DataGrid/stress-test.txt" />
+        }
+    </div>
+
+    <!-- ── State Persistence ──────────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("状态持久化", "State Persistence")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="bg-muted px-1 py-0.5 rounded">Save()</code> 抓取一份可序列化快照，
+                    里面包含排序顺序、列宽、列可见性、每页条数以及当前分组。用
+                    <code class="bg-muted px-1 py-0.5 rounded">Restore(snapshot)</code> 再把它应用回去。
+                    快照就是普通的可 JSON 序列化对象——可以存进 localStorage、数据库或用户偏好设置。
+                    试试从 Department 的表头菜单按它分组，保存，取消分组，然后再恢复。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="bg-muted px-1 py-0.5 rounded">Save()</code> to capture a serializable
+                    snapshot of sort order, column widths, column visibility, page size, and the active grouping.
+                    Use <code class="bg-muted px-1 py-0.5 rounded">Restore(snapshot)</code> to reapply it.
+                    Snapshots are plain JSON-serializable objects — store them in localStorage, a database, or user preferences.
+                    Try grouping by Department from its header menu, saving, ungrouping, then restoring.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@people" InitialPageSize="5"
+                   @bind-State="persistenceState"
+                   Resizable="true" Reorderable="true">
+            <Toolbar>
+                <div class="flex items-center gap-2">
+                    <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="SaveGridState">
+                        @L.T("保存状态", "Save State")
+                    </Button>
+                    <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="RestoreGridState"
+                              Disabled="@(!hasSavedState)">
+                        @L.T("恢复状态", "Restore State")
+                    </Button>
+                    <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Small" OnClick="ResetGridState">
+                        @L.T("重置", "Reset")
+                    </Button>
+                </div>
+            </Toolbar>
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable Width="180px" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable Groupable Width="150px" />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable Width="120px" />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Age)" Sortable Width="80px" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Status)" Width="120px" />
+            </Columns>
+        </DataGrid>
+        @if (hasSavedState)
+        {
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-xs text-muted-foreground">状态已保存到 localStorage。</p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-xs text-muted-foreground">State saved to localStorage.</p>
+                        </text>
+}
+        }
+        <CodeBlock Source="Components/DataGrid/state-persistence.txt" />
+    </div>
+
+    <!-- ── Row Grouping ─────────────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("行分组", "Row Grouping")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="bg-muted px-1 py-0.5 rounded">GroupBy</code> 按某个列值给行分组。
+                    分组可以折叠并显示条目数。点击箭头即可展开或收起某个分组。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Group rows by a column value using <code class="bg-muted px-1 py-0.5 rounded">GroupBy</code>.
+                    Groups are collapsible and show item counts. Click the chevron to expand or collapse a group.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid @ref="groupingGrid" TData="Person" Items="@people" GroupBy="@(p => (object)p.Department)" InitialPageSize="50">
+            <Toolbar>
+                <div class="flex items-center gap-2">
+                    <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small"
+                              OnClick="@(() => groupingGrid!.ExpandAllGroups())">
+                        <LucideIcon Name="chevrons-down" Class="w-4 h-4 mr-1" /> @L.T("全部展开", "Expand All")
+                    </Button>
+                    <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small"
+                              OnClick="@(() => groupingGrid!.CollapseAllGroups())">
+                        <LucideIcon Name="chevrons-up" Class="w-4 h-4 mr-1" /> @L.T("全部收起", "Collapse All")
+                    </Button>
+                </div>
+            </Toolbar>
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Role)" />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/row-grouping.txt" />
+    </div>
+
+    <!-- ── Row Grouping with Aggregates ─────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带聚合的行分组", "Row Grouping with Aggregates")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    给属性列加上 <code class="bg-muted px-1 py-0.5 rounded">Aggregate</code>，
+                    就能在分组表头里显示计算值（求和、平均值、最小值、最大值、计数）。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Add <code class="bg-muted px-1 py-0.5 rounded">Aggregate</code> to property columns to show
+                    computed values (Sum, Average, Min, Max, Count) in the group header.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@people" GroupBy="@(p => (object)p.Department)" ShowPagination InitialPageSize="10">
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable
+                    Aggregate="AtomBlazor.Primitives.AggregateFunction.Average" />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Age)" Sortable
+                    Aggregate="AtomBlazor.Primitives.AggregateFunction.Min" />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/row-grouping-aggregates.txt" />
+    </div>
+
+    <!-- ── Row Grouping with Custom Header ──────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义表头的行分组", "Row Grouping with Custom Header")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="bg-muted px-1 py-0.5 rounded">DataGridGroupColumn</code> 声明式地分组，
+                    并配上自定义表头模板。模板会收到一个 <code class="bg-muted px-1 py-0.5 rounded">DataGridGroupContext</code>，
+                    里面带着分组数据和一个切换折叠的回调。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="bg-muted px-1 py-0.5 rounded">DataGridGroupColumn</code> for declarative
+                    grouping with a custom header template. The template receives a <code class="bg-muted px-1 py-0.5 rounded">DataGridGroupContext</code>
+                    with group data and a toggle callback.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@people" InitialPageSize="50">
+            <Columns>
+                <DataGridGroupColumn TData="Person" TProperty="string" Property="@(p => p.Status)">
+                    <HeaderTemplate>
+                        <div class="flex items-center gap-3">
+                            <button type="button"
+                                    class="inline-flex items-center justify-center rounded-md w-6 h-6 hover:bg-muted transition-colors"
+                                    @onclick="context.ToggleCollapse"
+                                    @onclick:stopPropagation="true">
+                                <AtomBlazor.Icons.Lucide.LucideIcon
+                                    Name="@(context.IsCollapsed ? "chevron-right" : "chevron-down")" Class="w-4 h-4" />
+                            </button>
+                            <Badge Variant="@(context.Group.Key?.ToString() == "Active" ? BadgeVariant.Default : BadgeVariant.Secondary)">
+                                @context.Group.Key
+                            </Badge>
+                            @if (L.IsChinese)
+                            {
+                                                        <text>
+                                                            <span class="text-muted-foreground text-sm">@context.Group.ItemCount 名员工</span>
+                                                        </text>
+}
+                            else
+                            {
+                                                        <text>
+                                                            <span class="text-muted-foreground text-sm">@context.Group.ItemCount employees</span>
+                                                        </text>
+}
+                        </div>
+                    </HeaderTemplate>
+                </DataGridGroupColumn>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable
+                    Aggregate="AtomBlazor.Primitives.AggregateFunction.Sum" />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/row-grouping-custom-header.txt" />
+    </div>
+
+    <!-- ── Grouping + Filtering + Sorting ───────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("分组 + 筛选 + 排序", "Grouping + Filtering + Sorting")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("分组可与筛选、排序同时使用。筛选先于分组应用（被筛掉的条目不会进入任何分组），排序则在每个分组内部生效。", "Grouping works with filtering and sorting. Filters are applied before grouping (filtered-out items excluded from groups). Sort applies within each group.")
+            </p>
+        </div>
+        <DataGrid TData="Person" Items="@people" GroupBy="@(p => (object)p.Department)" InitialPageSize="50">
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable Filterable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable Filterable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Status)" Sortable Filterable />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable
+                    Aggregate="AtomBlazor.Primitives.AggregateFunction.Sum" />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/row-grouping-filtering.txt" />
+    </div>
+
+    <!-- ── Interactive Grouping ─────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("交互式分组", "Interactive Grouping")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    给列加上 <code class="bg-muted px-1 py-0.5 rounded">Groupable</code> 标记，用户就能在运行时按该列分组。
+                    列头里会出现一个省略号菜单，其中带有“分组依据”操作，网格无需刷新页面就能重新分组。
+                    一旦已经有分组，菜单还会提供“再按此列分组”，在第一个层级里嵌套出第二个层级——参见下面的嵌套分组。
+                    没有加上该标记的列（例如 Name）不提供菜单。
+                    分组也可以由代码驱动，调用
+                    <code class="bg-muted px-1 py-0.5 rounded">GroupByColumnAsync</code>，它接受一个
+                    <code class="bg-muted px-1 py-0.5 rounded">SortDirection</code> 来控制分组标题自身的顺序——
+                    下面的按钮按同一列在两个方向上分组。每个分组<em>内部</em>的排序仍由该列自己的排序掌控。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Mark a column <code class="bg-muted px-1 py-0.5 rounded">Groupable</code> to let users group by it
+                    at runtime. An ellipsis menu appears in the column header with a "Group by" action, and the grid
+                    regroups without a page refresh. Once something is grouped the menu also offers "Then group by",
+                    which nests a second level inside the first — see Nested Grouping below.
+                    Columns left without the flag (like Name) offer no menu.
+                    Grouping can also be driven from code with
+                    <code class="bg-muted px-1 py-0.5 rounded">GroupByColumnAsync</code>, which takes a
+                    <code class="bg-muted px-1 py-0.5 rounded">SortDirection</code> controlling the order of the group
+                    headers themselves — the buttons below group by the same column in each direction. Sorting
+                    <em>within</em> each group stays under the column's own sort.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid @ref="interactiveGroupingGrid" TData="Person" Items="@people" InitialPageSize="50">
+            <Toolbar>
+                <div class="flex items-center gap-2">
+                    <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small"
+                              OnClick="@(() => interactiveGroupingGrid!.GroupByColumnAsync("department"))">
+                        @L.T("按 Department 分组（A–Z）", "Group by Department (A–Z)")
+                    </Button>
+                    <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small"
+                              OnClick="@(() => interactiveGroupingGrid!.GroupByColumnAsync("department", SortDirection.Descending))">
+                        @L.T("按 Department 分组（Z–A）", "Group by Department (Z–A)")
+                    </Button>
+                    <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small"
+                              OnClick="@(() => interactiveGroupingGrid!.ClearGroupingAsync())">
+                        @L.T("清除分组", "Clear grouping")
+                    </Button>
+                </div>
+            </Toolbar>
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable Groupable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Status)" Sortable Groupable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Role)" Groupable />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable
+                    Aggregate="AtomBlazor.Primitives.AggregateFunction.Sum" />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/interactive-grouping.txt" />
+    </div>
+
+    <!-- ── Nested Grouping ──────────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("嵌套分组", "Nested Grouping")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    分组可以嵌套任意层数。在某个列的省略号菜单里使用“再按此列分组”，或者由代码调用
+                    <code class="bg-muted px-1 py-0.5 rounded">AddGroupByColumnAsync</code> 与
+                    <code class="bg-muted px-1 py-0.5 rounded">SetGroupingAsync</code>。网格上方的面包屑会按顺序显示各个层级，
+                    用它就能去掉某一层，或把某一层向外移动一级。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Grouping nests to any depth. Use "Then group by" in a column's ellipsis menu, or call
+                    <code class="bg-muted px-1 py-0.5 rounded">AddGroupByColumnAsync</code> and
+                    <code class="bg-muted px-1 py-0.5 rounded">SetGroupingAsync</code> from code. The breadcrumb above
+                    the grid shows the levels in order; use it to drop a level or move one outward.
+                </p>
+                        </text>
+}
+            <p class="text-sm text-muted-foreground">
+                @L.T("每个表头都能单独折叠，同一个键在不同父级之下仍然各算各的——收起 Engineering 下的 Active，Sales 下的 Active 依旧是展开的。聚合会向上汇总，因此某个部门的表头累计的是它之下的每一行，而不仅仅是自己这一层。这里的每页条数故意设得很小：翻页时，第一行之上的所有表头都会在页首重复出现，这样任何一行都不会脱离说明它归属的表头单独显示。", "Each header collapses on its own, and the same key under different parents stays separate — collapsing Active under Engineering leaves Active under Sales open. Aggregates roll up, so a department header sums every row beneath it, not just its own level. The page size here is deliberately small: page through and every header above the first row is repeated at the top of the page, so a row is never shown without the headers that say what it belongs to.")
+            </p>
+        </div>
+        <DataGrid @ref="nestedGroupingGrid" TData="Person" Items="@people" InitialPageSize="8">
+            <Toolbar>
+                <div class="flex items-center gap-2">
+                    <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small"
+                              OnClick="@(() => nestedGroupingGrid!.SetGroupingAsync(new[] { "department", "status" }))">
+                        @L.T("按 Department › Status 分组", "Department › Status")
+                    </Button>
+                    <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small"
+                              OnClick="@(() => nestedGroupingGrid!.SetGroupingAsync(new[] { "status", "department", "role" }))">
+                        @L.T("按 Status › Department › Role 分组", "Status › Department › Role")
+                    </Button>
+                    <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small"
+                              OnClick="@(() => nestedGroupingGrid!.ClearGroupingAsync())">
+                        @L.T("清除分组", "Clear grouping")
+                    </Button>
+                </div>
+            </Toolbar>
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable Groupable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Status)" Sortable Groupable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Role)" Groupable />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable
+                    Aggregate="AtomBlazor.Primitives.AggregateFunction.Sum" />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/nested-grouping.txt" />
+    </div>
+
+    <!-- ── Live Collection Updates ──────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("集合实时更新", "Live Collection Updates")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    网格按引用来识别新的数据集，因此就地修改一个集合并不会自行触发重渲染。
+                    绑定一个 <code class="bg-muted px-1 py-0.5 rounded">ObservableCollection</code>，网格就会订阅它，
+                    在行的增删时随之重渲染。若只是一个普通的 <code class="bg-muted px-1 py-0.5 rounded">List</code>，
+                    改为在修改之后调用网格上的
+                    <code class="bg-muted px-1 py-0.5 rounded">RefreshDataAsync()</code>。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    The grid detects a new data set by reference, so mutating a collection in place does not re-render
+                    on its own. Bind an <code class="bg-muted px-1 py-0.5 rounded">ObservableCollection</code> and the grid
+                    subscribes to it, re-rendering as rows are added or removed. For a plain
+                    <code class="bg-muted px-1 py-0.5 rounded">List</code>, call
+                    <code class="bg-muted px-1 py-0.5 rounded">RefreshDataAsync()</code> on the grid after mutating it instead.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@livePeople" InitialPageSize="10" ShowPagination>
+            <Toolbar>
+                <div class="flex items-center gap-2">
+                    <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="@AddLivePerson">
+                        <LucideIcon Name="plus" Class="w-4 h-4 mr-1" /> @L.T("新增一行", "Add row")
+                    </Button>
+                    <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="@RemoveLivePerson"
+                              Disabled="@(livePeople.Count == 0)">
+                        <LucideIcon Name="minus" Class="w-4 h-4 mr-1" /> @L.T("移除最后一行", "Remove last")
+                    </Button>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <span class="text-sm text-muted-foreground">共 @livePeople.Count 行</span>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <span class="text-sm text-muted-foreground">@livePeople.Count rows</span>
+                                        </text>
+}
+                </div>
+            </Toolbar>
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/live-collection-updates.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>为屏幕阅读器使用 role="grid" 与 aria-rowcount</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Uses role="grid" with aria-rowcount for screen readers</AccessibilityItem>
+                        </text>
+}
+            <AccessibilityItem>@L.T("列头上的 aria-sort 指示当前的排序方向", "aria-sort on column headers indicates current sort direction")</AccessibilityItem>
+            <AccessibilityItem>@L.T("行上的 aria-selected 指示选中状态", "aria-selected on rows indicates selection state")</AccessibilityItem>
+            <AccessibilityItem>@L.T("单行选择与批量选择的复选框都带有 aria-label", "aria-label on checkboxes for row and bulk selection")</AccessibilityItem>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>可排序的列头可以通过 tabindex="0" 获得焦点</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Sortable column headers are focusable with tabindex="0"</AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("对聚焦的列头排序", "Sort column (on focused header)"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("多列排序（加入已有排序）", "Multi-column sort (add to existing sort)"))">
+                <Kbd>Ctrl</Kbd> + <Kbd>Click</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("移动到下一行", "Navigate to next row"))">
+                <Kbd>ArrowDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("移动到上一行", "Navigate to previous row"))">
+                <Kbd>ArrowUp</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("切换该行的选中状态", "Toggle row selection"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在可交互元素之间移动焦点", "Move focus through interactive elements"))">
+                <Kbd>Tab</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="DataGrid">
+                <ApiParameter Name="Items" Type="IEnumerable&lt;TData&gt;"> @L.T("网格的数据源。支持 IQueryable（由 LINQ 组合排序与分页）或 IEnumerable（在内存中处理）。与 ItemsProvider 互斥。新的数据集按引用识别，因此换一个集合会自动重渲染；就地修改同一个集合，则要么调用 RefreshDataAsync()，要么改用 INotifyCollectionChanged 数据源（例如 ObservableCollection），网格会自动订阅它。", "The data source for the grid. Supports IQueryable for LINQ-composed sorting and pagination, or IEnumerable for in-memory processing. Mutually exclusive with ItemsProvider. A new data set is detected by reference, so assigning a different collection re-renders automatically; mutating the same collection in place needs either a RefreshDataAsync() call or an INotifyCollectionChanged source such as ObservableCollection, which the grid subscribes to.") </ApiParameter>
+                <ApiParameter Name="ItemsProvider" Type="DataGridItemsProvider&lt;TData&gt;"> @L.T("用于服务端取数的异步委托。它会收到排序定义、分页参数与取消令牌。与 Items 互斥。", "Async delegate for server-side data fetching. Receives sort definitions, pagination parameters, and a cancellation token. Mutually exclusive with Items.") </ApiParameter>
+                <ApiParameter Name="EditMode" Type="DataGridEditMode" Default="None"> @L.T("网格让用户就地编辑行的方式。Row 一次把整行置于编辑态：每个带 EditTemplate 的列都变成输入框，改动一起提交或一起丢弃。行进入编辑的入口有 DataGridEditColumn、EditOnRowClick，以及 StartEditAsync。Enter 提交，Escape 取消。取消会把该行在开始编辑时的值放回同一个实例。Cell 与 Batch 模式使用各自独立的编辑模型，参见单元格与批量编辑指南。", "How the grid lets a user edit rows in place. Row puts a whole row into edit at once: every column with an EditTemplate becomes an input, and the changes commit or discard together. A row goes into edit through DataGridEditColumn, through EditOnRowClick, or through StartEditAsync. Enter commits, Escape cancels. Cancel restores the values the row held when editing started, onto the same instance. Cell and Batch modes use independent edit models; see the cell and batch editing guide.") </ApiParameter>
+                <ApiParameter Name="EditOnRowClick" Type="bool" Default="false"> @L.T("点击某行让该行进入编辑态。若网格同时会在行点击时做选择，就关掉它，否则一次点击会同时做两件事。", "Clicking a row puts it into edit. Leave this off when the grid also selects on row click, or a click would do both.") </ApiParameter>
+                <ApiParameter Name="OnRowCommit" Type="EventCallback&lt;DataGridRowCommitContext&lt;TData&gt;&gt;"> @L.T("在一行的编辑提交之后、该行关闭之前调用。数据项此时已经带上改动。把 context.Cancel 置为 true 可以让行保持编辑态——例如服务端拒绝保存时——用户输入的内容因此原样保留。经由该行 EditContext 的校验先执行，所以模型上的 DataAnnotations 原样生效。", "Called when a row's edits are committed, before the row closes. The item already carries the changes. Set context.Cancel to keep the row in edit — for instance when a save is rejected by the server — so the user keeps their typing. Validation through the row's EditContext runs first, so DataAnnotations on the model apply unchanged.") </ApiParameter>
+                <ApiParameter Name="OnRowCancel" Type="EventCallback&lt;TData&gt;"> @L.T("在一行的编辑被丢弃、并且原值已经放回去之后调用。", "Called when a row's edits are discarded, after the original values are put back.") </ApiParameter>
+                <ApiParameter Name="ShowGroupingBreadcrumb" Type="bool" Default="true"> @L.T("在网格上方显示当前分组各层级的面包屑，每一级都带有去掉它或向外移动一级的控件。只在已有分组时出现。它是查看并修改嵌套分组的实用办法——超过两级之后，从各列菜单里读出顺序就不再可行了。当页面固定了分组、不希望用户改动时设为 false。", "Shows a breadcrumb of the active grouping levels above the grid, with a control on each to remove it or move it outward. Only appears while something is grouped. It is the practical way to see and change a nested grouping — past two levels, reading the order out of the per-column menus stops working. Set it false when the page fixes the grouping and the user should not change it.") </ApiParameter>
+                <ApiParameter Name="ShowExport" Type="bool" Default="false"> @L.T("在工具栏中渲染一个导出按钮，把行下载为 CSV。导出的是用户所见的内容：在当前搜索、筛选与排序之后仍然保留的行，覆盖所有分页，只取可见列并保持当前顺序，写入每列的显示值。选择列与展开列会被跳过。", "Renders an Export button in the toolbar that downloads the rows as CSV. It exports what the user sees: the rows that survive the current search, filters and sort, across every page, in the visible columns, in their current order, using each column's display value. Select and expand columns are skipped.") </ApiParameter>
+                <ApiParameter Name="ExportFileName" Type="string" Default="export.csv"> @L.T("CSV 下载时提供的文件名。名称没有扩展名时会自动补上 .csv。", "The file name offered for the CSV download. A .csv extension is appended when the name has none.") </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="ExportDelimiter" Type="string" Default=",">
+                        写入 CSV 值之间的字段分隔符。若当地的电子表格期望分号，就把它设为“;”——CSV 打开后每行都挤在一列里，通常就是这个原因。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="ExportDelimiter" Type="string" Default=",">
+                        The field delimiter written between CSV values. Set it to ";" for locales whose spreadsheet expects a semicolon, which is the usual reason a CSV opens with every row crammed into one column.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="ExportScope" Type="DataGridExportScope" Default="FilteredRows"> @L.T("导出写入哪些行。FilteredRows 覆盖在当前筛选、搜索与排序之后仍然保留的每一行，包括所有分页。CurrentPage 只保留屏幕上的这一页。由 ItemsProvider 支撑的网格只持有它取回的那一页，因此它导出那一页并记录一条警告。", "Which rows the export writes. FilteredRows covers every row that survives the current filters, search and sort, across all pages. CurrentPage narrows it to the page on screen. A grid backed by an ItemsProvider only holds the page it fetched, so it exports that page and logs a warning.") </ApiParameter>
+                <ApiParameter Name="OnExport" Type="EventCallback&lt;string&gt;"> @L.T("导出完成后调用，带上已下载的 CSV 文本。无论如何下载都会发生。", "Called after an export completes, with the CSV text that was downloaded. The download happens either way.") </ApiParameter>
+                <ApiParameter Name="SelectionMode" Type="DataTableSelectionMode" Default="None"> @L.T("选择模式：None、Single 或 Multiple。", "The selection mode: None, Single, or Multiple.") </ApiParameter>
+                <ApiParameter Name="SelectionBehavior" Type="DataGridSelectionBehavior" Default="Toggle"> @L.T("点击某行如何改变选择。Toggle 是默认值，也是长期以来的行为，每次点击只翻转一行并忽略修饰键。Replace 提供用户从文件管理器带来的那套习惯：普通单击只选中被点击的行，Shift+Click 选中从锚点行起的区间，Ctrl+Click（macOS 上是 Cmd+Click）逐行增删；点击唯一选中的那行会清空选择。区间从锚点——最后一次普通单击或 Ctrl+Click 所在的行——起算，而不是从最后被选中的行起算，连续的 Shift+Click 都从同一个锚点重新延伸。区间选择与累加选择都需要 SelectionMode.Multiple，并且区间覆盖当前页的行。在两种行为之下，选择列的复选框以及空格键与回车键仍保持切换语义。", "How clicking a row changes the selection. Toggle, the default and the long-standing behaviour, flips one row per click and ignores modifier keys. Replace gives the conventions a user brings from a file explorer: a plain click selects only the clicked row, Shift+Click selects the range from the anchor row, and Ctrl+Click (Cmd+Click on macOS) adds or removes one row; clicking the only selected row clears the selection. The range extends from the anchor — the row of the last plain click or Ctrl+Click — not from the last selected row, and repeated Shift+Clicks re-extend from that same anchor. Range and additive selection need SelectionMode.Multiple, and a range covers the current page's rows. Select-column checkboxes and the Space and Enter keys keep toggle semantics under either behaviour.") </ApiParameter>
+                <ApiParameter Name="SelectedItemsChanged" Type="EventCallback&lt;IReadOnlyCollection&lt;TData&gt;&gt;"> @L.T("已选项发生变化时调用的事件回调。", "Event callback invoked when the selected items change.") </ApiParameter>
+                <ApiParameter Name="ShowPagination" Type="bool" Default="true"> @L.T("是否显示带有页面导航与每页条数选择器的分页底栏。", "Whether to show the pagination footer with page navigation and page size selector.") </ApiParameter>
+                <ApiParameter Name="InitialPageSize" Type="int" Default="10"> @L.T("每页初始显示的行数。", "The initial number of rows per page.") </ApiParameter>
+                <ApiParameter Name="PageSizes" Type="int[]" Default="[5, 10, 20, 50, 100]"> @L.T("分页选择器中可选的每页条数。", "The available page size options in the pagination selector.") </ApiParameter>
+                <ApiParameter Name="IsLoading" Type="bool" Default="false"> @L.T("网格是否处于加载状态。显示加载模板或默认的加载指示器。", "Whether the grid is in a loading state. Shows loading template or default loading indicator.") </ApiParameter>
+                <ApiParameter Name="Virtualize" Type="bool" Default="false"> @L.T("为大型数据集启用行虚拟化。只有可见的行会进入 DOM。需要一个固定高度的滚动容器。", "Enable row virtualization for large datasets. Only visible rows are rendered in the DOM. Requires a fixed-height scroll container.") </ApiParameter>
+                <ApiParameter Name="StickyHeader" Type="bool" Default="false"> @L.T("滚动时让表头行保持可见。适用于放在固定高度滚动容器里的虚拟化网格。", "Keep the header row visible while scrolling. Useful with virtualized grids inside a fixed-height scroll container.") </ApiParameter>
+                <ApiParameter Name="ItemSize" Type="float" Default="48"> @L.T("虚拟化使用的行高（像素）。Virtualize 组件用它来计算滚动位置。", "Row height in pixels for virtualization. Used by the Virtualize component to calculate scroll position.") </ApiParameter>
+                <ApiParameter Name="EnableKeyboardNavigation" Type="bool" Default="true"> @L.T("为网格行启用键盘导航（方向键移动，Enter/Space 选择）。", "Enable keyboard navigation for grid rows (arrow keys to navigate, Enter/Space to select).") </ApiParameter>
+                <ApiParameter Name="OnSort" Type="EventCallback&lt;IReadOnlyList&lt;SortDefinition&gt;&gt;"> @L.T("排序发生变化时调用的事件回调。收到当前生效的排序定义列表。", "Event callback invoked when sorting changes. Receives the list of active sort definitions.") </ApiParameter>
+                <ApiParameter Name="OnFilter" Type="EventCallback&lt;IReadOnlyDictionary&lt;string, FilterCondition&gt;&gt;"> @L.T("列筛选发生变化时调用的事件回调。收到按列 ID 索引的生效筛选。", "Event callback invoked when column filters change. Receives the active filters keyed by column ID.") </ApiParameter>
+                <ApiParameter Name="LoadingTemplate" Type="RenderFragment"> @L.T("IsLoading 为 true 时显示的自定义模板。它会取代默认的加载指示器。", "Custom template displayed when IsLoading is true. Replaces the default loading indicator.") </ApiParameter>
+                <ApiParameter Name="EmptyTemplate" Type="RenderFragment"> @L.T("没有任何数据项时显示的自定义模板。它会取代默认的空状态。", "Custom template displayed when there are no data items. Replaces the default empty state.") </ApiParameter>
+                <ApiParameter Name="Toolbar" Type="RenderFragment"> @L.T("渲染在网格上方的工具栏内容。适合放列可见性开关、搜索框或其他需要网格上下文的控件。", "Toolbar content rendered above the grid. Use for column visibility toggles, search inputs, or other controls that need grid context.") </ApiParameter>
+                <ApiParameter Name="Resizable" Type="bool" Default="false"> @L.T("通过拖动表头单元格边框启用列缩放。", "Enable column resizing by dragging header cell borders.") </ApiParameter>
+                <ApiParameter Name="MinColumnWidth" Type="int" Default="50"> @L.T("缩放时的最小列宽（像素）。", "Minimum column width in pixels when resizing.") </ApiParameter>
+                <ApiParameter Name="OnColumnResize" Type="EventCallback&lt;(string ColumnId, string Width)&gt;"> @L.T("某列被缩放时调用的事件回调。", "Event callback invoked when a column is resized.") </ApiParameter>
+                <ApiParameter Name="Reorderable" Type="bool" Default="false"> @L.T("通过拖动表头单元格启用列重排。", "Enable column reordering by dragging header cells.") </ApiParameter>
+                <ApiParameter Name="OnColumnReorder" Type="EventCallback&lt;(string ColumnId, int NewIndex)&gt;"> @L.T("某列被重排时调用的事件回调。", "Event callback invoked when a column is reordered.") </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="State" Type="DataGridState&lt;TData&gt;">
+                        用于受控模式的外部网格状态。配合 @@bind-State 使用，可双向绑定排序、分页与选择。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="State" Type="DataGridState&lt;TData&gt;">
+                        External grid state for controlled mode. Use with @@bind-State for two-way binding of sorting, pagination, and selection.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="AriaLabel" Type="string?"> @L.T("应用于网格元素、供屏幕阅读器使用的 ARIA 标签。", "ARIA label applied to the grid element for screen readers.") </ApiParameter>
+                <ApiParameter Name="RowClass" Type="Func&lt;TData, string?&gt;?"> @L.T("用于给数据行应用自定义 CSS 类的可选回调。它收到该行的数据项，返回额外的 CSS 类。", "Optional callback for applying custom CSS classes to data rows. Receives the row's data item and returns additional CSS classes.") </ApiParameter>
+                <ApiParameter Name="Class" Type="string?"> @L.T("应用于网格根容器元素的额外 CSS 类。", "Additional CSS classes applied to the grid's root container element.") </ApiParameter>
+                <ApiParameter Name="Columns" Type="RenderFragment"> @L.T("网格的列定义。在这里放置 DataGridPropertyColumn、DataGridTemplateColumn 与 DataGridSelectColumn 组件。", "The column definitions for the grid. Place DataGridPropertyColumn, DataGridTemplateColumn, and DataGridSelectColumn components here.") </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="StateChanged" Type="EventCallback&lt;DataGridState&lt;TData&gt;&gt;">
+                        网格状态发生变化时调用的事件回调。配合 @@bind-State 使用即可双向绑定。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="StateChanged" Type="EventCallback&lt;DataGridState&lt;TData&gt;&gt;">
+                        Event callback invoked when the grid state changes. Use with @@bind-State for two-way binding.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="DetailTemplate" Type="RenderFragment&lt;TData&gt;?"> @L.T("可展开行详情的模板。提供它之后，用 DataGridExpandColumn 为每行加上一个箭头开关。模板的上下文就是该行的数据项。", "Template for expandable row detail content. When provided, use DataGridExpandColumn to add a chevron toggle per row. The context provides the row's data item.") </ApiParameter>
+                <ApiParameter Name="OnRowExpand" Type="EventCallback&lt;TData&gt;"> @L.T("某一行的详情区被展开时调用的事件回调。", "Event callback invoked when a row's detail section is expanded.") </ApiParameter>
+                <ApiParameter Name="OnRowCollapse" Type="EventCallback&lt;TData&gt;"> @L.T("某一行的详情区被收起时调用的事件回调。", "Event callback invoked when a row's detail section is collapsed.") </ApiParameter>
+                <ApiParameter Name="OnRowClick" Type="EventCallback&lt;TData&gt;"> @L.T("点击某个数据行时调用的事件回调。收到被点击行的数据项。", "Event callback invoked when a data row is clicked. Receives the clicked row's data item.") </ApiParameter>
+                <ApiParameter Name="RowContextMenu" Type="RenderFragment&lt;DataGridRowMenuContext&lt;TData&gt;&gt;?"> @L.T("右键时渲染的自定义上下文菜单。上下文提供被点击的项、已选项、可见列，以及 CopyToClipboardAsync、FormatRow 与 FormatRows 辅助方法。", "Custom context menu rendered on right-click. The context provides the clicked item, selected items, visible columns, CopyToClipboardAsync, FormatRow, and FormatRows helpers.") </ApiParameter>
+                <ApiParameter Name="ItemKey" Type="Func&lt;TData, object&gt;?"> @L.T("行标识的键选择器。供 Blazor 的差量比较算法高效渲染使用。未设置时回退到引用本身。", "Key selector for row identity. Used by Blazor's diffing algorithm for efficient rendering. When not set, falls back to the item reference.") </ApiParameter>
+                <ApiParameter Name="GroupBy" Type="Expression&lt;Func&lt;TData, object&gt;&gt;?"> @L.T("用于给行分组的表达式。设置后，行按该表达式的值分组，并渲染可折叠的分组表头。", "Expression to group rows by. When set, rows are grouped by the value of this expression and collapsible group headers are rendered.") </ApiParameter>
+                <ApiParameter Name="GroupHeaderTemplate" Type="RenderFragment&lt;DataGridGroupContext&lt;TData&gt;&gt;?"> @L.T("分组表头行的自定义模板。收到一个 DataGridGroupContext，其中带有分组数据、折叠状态与切换回调。", "Custom template for group header rows. Receives a DataGridGroupContext with group data, collapse state, and a toggle callback.") </ApiParameter>
+                <ApiParameter Name="GroupsCollapsedByDefault" Type="bool" Default="false"> @L.T("首次应用分组时，分组是否应当默认折叠。", "Whether groups should be collapsed by default when grouping is first applied.") </ApiParameter>
+                <ApiParameter Name="OnGroupExpand" Type="EventCallback&lt;DataGridGroupRow&lt;TData&gt;&gt;"> @L.T("某个分组被展开时调用的事件回调。收到该分组行的数据。", "Event callback invoked when a group is expanded. Receives the group row data.") </ApiParameter>
+                <ApiParameter Name="OnGroupCollapse" Type="EventCallback&lt;DataGridGroupRow&lt;TData&gt;&gt;"> @L.T("某个分组被收起时调用的事件回调。收到该分组行的数据。", "Event callback invoked when a group is collapsed. Receives the group row data.") </ApiParameter>
+                <ApiParameter Name="GroupedItemsProvider" Type="DataGridGroupedItemsProvider&lt;TData&gt;?"> @L.T("用于服务端分组取数的异步委托。设置它且分组生效时，网格会调用它而不是 ItemsProvider。", "Async delegate for server-side grouped data fetching. When set and grouping is active, called instead of ItemsProvider.") </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="ExpandAllGroups()" Type="Task">
+                        公共方法。展开所有分组并显示它们的数据行。需通过组件引用（@@ref）调用。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="ExpandAllGroups()" Type="Task">
+                        Public method. Expands all groups, showing their data rows. Call via a component reference (<code>@@ref</code>).
+                    </ApiParameter>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="CollapseAllGroups()" Type="Task">
+                        公共方法。收起所有分组并隐藏它们的数据行。需通过组件引用（@@ref）调用。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="CollapseAllGroups()" Type="Task">
+                        Public method. Collapses all groups, hiding their data rows. Call via a component reference (<code>@@ref</code>).
+                    </ApiParameter>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="GroupByColumnAsync(string, SortDirection)" Type="Task">
+                        公共方法。按给定的列 ID 给行分组，并替换掉当前生效的分组。方向参数决定分组键的顺序，默认升序。需通过组件引用（@@ref）调用。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="GroupByColumnAsync(string, SortDirection)" Type="Task">
+                        Public method. Groups rows by the given column id, replacing any active grouping. The direction orders the group keys and defaults to ascending. Call via a component reference (<code>@@ref</code>).
+                    </ApiParameter>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="ClearGroupingAsync()" Type="Task">
+                        公共方法。清除当前生效的分组，让网格回到平铺的行。需通过组件引用（@@ref）调用。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="ClearGroupingAsync()" Type="Task">
+                        Public method. Clears any active grouping, returning the grid to flat rows. Call via a component reference (<code>@@ref</code>).
+                    </ApiParameter>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="RefreshDataAsync()" Type="Task">
+                        公共方法。重新读取数据源并重渲染。在就地修改 Items 集合（网格无法按引用察觉这种改动）之后调用它，或者用它强制 ItemsProvider 重新取数。实现了 INotifyCollectionChanged 的集合（例如 ObservableCollection）会被订阅并自动刷新，因此不需要它。需通过组件引用（@@ref）调用。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="RefreshDataAsync()" Type="Task">
+                        Public method. Re-reads the data source and re-renders. Call after mutating the Items collection in place, which the grid cannot detect by reference, or to force an ItemsProvider re-fetch. Collections implementing INotifyCollectionChanged (such as ObservableCollection) are subscribed to and refreshed automatically, so they do not need this. Call via a component reference (<code>@@ref</code>).
+                    </ApiParameter>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="DataGridPropertyColumn">
+                <ApiParameter Name="Id" Type="string?"> @L.T("该列显式的唯一标识。未设置时回退到属性成员名（小写）。当属性名可能重名，或者持久化的状态必须保持稳定时提供它。", "Explicit unique identifier for this column. When not set, falls back to the property member name (lowercase). Provide this when property names may collide or when persisted state must remain stable.") </ApiParameter>
+                <ApiParameter Name="Property" Type="Expression&lt;Func&lt;TData, TProp&gt;&gt;"> @L.T("访问列值的类型安全表达式。用于数据显示、标题自动推断，以及 IQueryable 排序表达式生成。", "Type-safe expression to access the column value. Used for data display, auto title inference, and IQueryable sort expression generation.") </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Title" Type="string?">
+                        覆盖自动推断出的标题。为 null 时，标题由属性名推导（例如 FirstName 变成 “First Name”）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Title" Type="string?">
+                        Override the auto-inferred title. If null, the title is derived from the property name (e.g., FirstName becomes "First Name").
+                    </ApiParameter>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Format" Type="string?">
+                        显示属性值所用的格式串（例如 “C0” 表示货币、“N2” 表示数字、“d” 表示日期）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Format" Type="string?">
+                        Format string for displaying the property value (e.g., "C0" for currency, "N2" for numbers, "d" for dates).
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="SortAndFilterBy" Type="Expression&lt;Func&lt;TData, object?&gt;&gt;?" Default="null"> @L.T("当该列排序与筛选所依据的值与 Property 不同时，用它投影出那个值。当单元格显示的内容并非原始属性——最常见的情形就是用 CellTemplate 把键解析成标签——设置它，点击表头就会按用户读到的内容排序，而不是背后的键。一个参数管住排序、按列筛选、全局搜索、分组与 CSV 导出，因此它们不可能各说各话；分成两个选择器就可能互相矛盾。它是一个表达式而不是委托，这样基于 IQueryable 的服务端 ItemsProvider 仍能翻译它，也就是说表达式体必须保持可被你的提供方翻译。Format 不会应用于投影后的值。", "Projects the value this column sorts and filters on, when that differs from Property. Set it when the cell displays something other than the raw property — the common case being a CellTemplate that resolves a key to a label — so the header click orders by what the user reads rather than by the key behind it. One parameter covers sorting, per-column filtering, global search, grouping and CSV export, so all of them agree; two separate selectors could disagree. It is an expression rather than a delegate so a server-side ItemsProvider over IQueryable can still translate it, which means the body must stay translatable by your provider. Format is not applied to the projected value.") </ApiParameter>
+                <ApiParameter Name="Sortable" Type="bool" Default="false"> @L.T("该列是否可以通过点击表头排序。", "Whether this column can be sorted by clicking its header.") </ApiParameter>
+                <ApiParameter Name="Visible" Type="bool" Default="true"> @L.T("该列是否在网格中可见。", "Whether this column is visible in the grid.") </ApiParameter>
+                <ApiParameter Name="Order" Type="int?" Default="null"> @L.T("该列显式的位置，是在网格数据列之中从零开始的序号。未设置时该列保持注册顺序——也就是它的组件完成初始化的顺序，就直接写在网格标记里的列而言即声明顺序。若某个列是间接生成的（由包装组件、或只在 await 之后才渲染的片段产生），初始化顺序与声明顺序不一致，就在它上面设置这个。没有设置 Order 的列先按注册顺序排布，随后每个设置了 Order 的列被插入到该序号处，序号小的先插入；超出末尾的序号追加到末尾，共用同一个 Order 的列保持注册顺序。选择列与展开列固定在最前，不计入这个序号。该列向网格注册时读取。", "Explicit position for this column, as a zero-based index among the grid's data columns. When not set, the column keeps its registration order — the order its component initializes in, which for a column written directly in the grid's markup is the order it was declared. Set this on a column produced indirectly, by a wrapper component or by a fragment that only renders after an await, where initialization order does not match declaration order. Columns without Order are laid out first in registration order, then each column that sets it is inserted at that index, lowest value first; an index past the end appends, and columns sharing an Order keep their registration order. Select and expand columns hold their fixed leading positions and are not counted by this index. Read when the column registers with the grid.") </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Width" Type="string?">
+                        列宽（例如 “200px”、“20%”、“auto”）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Width" Type="string?">
+                        Column width (e.g., "200px", "20%", "auto").
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="CellTemplate" Type="RenderFragment&lt;TData&gt;?"> @L.T("渲染单元格内容的自定义模板。它会取代默认的值显示。", "Custom template for rendering the cell content. Overrides the default value display.") </ApiParameter>
+                <ApiParameter Name="HeaderTemplate" Type="RenderFragment?"> @L.T("自定义表头内容，例如在标题旁边（或取代标题）放一个图标。它只替换标题文本——网格仍会在它周围渲染排序指示、筛选图标、固定图标、列菜单与缩放手柄，因此 Sortable 与 Groupable 的列保留全部操作入口。提供模板期间，网格会用 Title 在表头单元格上设置 aria-label，所以只有图标的表头依旧会被朗读，你不必再加自己的 sr-only 标记。这个标签取代模板自身的文本成为可访问名称，让表头与列选择器、列菜单保持一致，因此请让 Title 保持有含义。若 Title 为空则不设置标签，单元格改由模板内容朗读。", "Custom header content, e.g. an icon next to (or instead of) the title. It replaces the title text only — the grid still renders the sort indicator, filter icon, pin icon, column menu and resize handle around it, so Sortable and Groupable columns keep every affordance. While a template is supplied the grid sets aria-label on the header cell from Title, so an icon-only header is still announced and no sr-only markup of your own is needed. That label replaces the template's own text as the accessible name, keeping the header consistent with the column chooser and column menu; keep Title meaningful for this reason. If Title is blank no label is applied and the cell is announced from the template's content.") </ApiParameter>
+                <ApiParameter Name="CellClass" Type="string?"> @L.T("应用于该列单元格的额外 CSS 类。", "Additional CSS classes applied to cells in this column.") </ApiParameter>
+                <ApiParameter Name="CellClassFunc" Type="Func&lt;TData, string?&gt;?"> @L.T("依据该行的数据项为一个单元格计算额外的 CSS 类，与 CellClass 叠加应用。用于按单元格的条件格式。", "Computes additional CSS classes for a cell from the row's data item, applied in addition to CellClass. Use for conditional per-cell formatting.") </ApiParameter>
+                <ApiParameter Name="HeaderClass" Type="string?"> @L.T("应用于该列表头单元格的额外 CSS 类。", "Additional CSS classes applied to the header cell of this column.") </ApiParameter>
+                <ApiParameter Name="Hideable" Type="bool" Default="true"> @L.T("该列是否可以通过列可见性下拉菜单切换。", "Whether this column can be toggled via the column visibility dropdown.") </ApiParameter>
+                <ApiParameter Name="Resizable" Type="bool" Default="true"> @L.T("该列是否可以通过拖动缩放。", "Whether this column can be resized by dragging.") </ApiParameter>
+                <ApiParameter Name="Reorderable" Type="bool" Default="true"> @L.T("该列是否可以通过拖动重排。", "Whether this column can be reordered by dragging.") </ApiParameter>
+                <ApiParameter Name="Pinned" Type="ColumnPinning" Default="None"> @L.T("该列是否固定在可滚动视口的某一边。使用 AtomBlazor.Primitives.ColumnPinning.Left 或 AtomBlazor.Primitives.ColumnPinning.Right。", "Whether this column is pinned to an edge of the scrollable viewport. Use AtomBlazor.Primitives.ColumnPinning.Left or AtomBlazor.Primitives.ColumnPinning.Right.") </ApiParameter>
+                <ApiParameter Name="Filterable" Type="bool" Default="false"> @L.T("该列是否支持按列筛选。为 true 时表头里会出现一个筛选图标，点击可打开筛选浮层。筛选类型会依据属性类型自动推断。", "Whether this column supports per-column filtering. When true, a filter icon appears in the column header that opens a filter popover. The filter field type is auto-inferred from the property type.") </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Groupable" Type="bool" Default="false">
+                        用户是否可以在运行时按该列分组。为 true 时表头里出现一个省略号菜单，其中有 “Group by” 操作。一次只按一个列分组，因此按另一列分组会替换掉当前分组。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Groupable" Type="bool" Default="false">
+                        Whether users can group rows by this column at runtime. When true, an ellipsis menu appears in the column header offering a "Group by" action. One column is grouped at a time, so grouping by another column replaces the current grouping.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="FilterType" Type="FilterFieldType?" Default="null"> @L.T("覆盖自动推断出的筛选类型。当默认推断不正确时使用（例如对已知取值的字符串属性使用 FilterFieldType.Enum）。", "Override the auto-inferred filter field type. Use when the default inference is not correct (e.g., use FilterFieldType.Enum for string properties with known values).") </ApiParameter>
+                <ApiParameter Name="FilterOptions" Type="IEnumerable&lt;SelectOption&lt;string&gt;&gt;?" Default="null"> @L.T("Enum 筛选类型的预定义选项。当属性类型是 C# 枚举时，选项会由枚举值自动生成。用它来覆盖，或者为基于字符串的枚举列提供选项。", "Predefined options for Enum filter fields. When the property type is a C# enum, options are auto-generated from the enum values. Use this to override or provide options for string-based enum columns.") </ApiParameter>
+                <ApiParameter Name="NoWrap" Type="bool" Default="false"> @L.T("该列文本是否不换行。为 true 时单元格内容使用 white-space: nowrap，溢出时以省略号截断。", "Whether text in this column should not wrap. When true, cell content uses white-space: nowrap and truncates with an ellipsis on overflow.") </ApiParameter>
+                <ApiParameter Name="Aggregate" Type="AggregateFunction" Default="None"> @L.T("分组生效时在分组表头里计算的聚合函数。可选：None、Count、Sum、Average、Min、Max。", "Aggregate function to compute in group headers when grouping is active. Options: None, Count, Sum, Average, Min, Max.") </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AggregateFormat" Type="string?" Default="null">
+                        显示聚合值所用的格式串（例如 “N0”、“C2”）。为 null 时，若设置了 Format 就用它，否则使用默认格式。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AggregateFormat" Type="string?" Default="null">
+                        Format string for displaying aggregate values (e.g., "N0", "C2"). When null, falls back to Format if set, otherwise uses default formatting.
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="DataGridTemplateColumn">
+                <ApiParameter Name="Id" Type="string?"> @L.T("该列显式的唯一标识。未设置时回退到由 Title 的短标识。当标题可能重名、会随本地化变化，或者持久化的状态必须保持稳定时提供它。", "Explicit unique identifier for this column. When not set, falls back to a slug derived from Title. Provide this when titles may collide, change under localization, or when persisted state must remain stable.") </ApiParameter>
+                <ApiParameter Name="Title" Type="string"> @L.T("表头中显示的列标题。必填。", "The column title displayed in the header. Required.") </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment&lt;TData&gt;"> @L.T("自定义单元格模板。上下文提供当前行的数据项。", "Custom cell template. The context provides the data item for the current row.") </ApiParameter>
+                <ApiParameter Name="HeaderTemplate" Type="RenderFragment?"> @L.T("自定义表头模板。它取代默认的标题文本，同时保留排序图标与缩放手柄。提供模板期间，网格会用 Title 在表头单元格上设置 aria-label，所以只有图标的表头依旧会被朗读，你不必再加自己的 sr-only 标记。这个标签取代模板自身的文本成为可访问名称，让表头与列选择器、列菜单保持一致，因此请让 Title 保持有含义。若 Title 为空则不设置标签，单元格改由模板内容朗读。", "Custom header template. Replaces the default title text while preserving sort icons and resize handles. While a template is supplied the grid sets aria-label on the header cell from Title, so an icon-only header is still announced and no sr-only markup of your own is needed. That label replaces the template's own text as the accessible name, keeping the header consistent with the column chooser and column menu; keep Title meaningful for this reason. If Title is blank no label is applied and the cell is announced from the template's content.") </ApiParameter>
+                <ApiParameter Name="Sortable" Type="bool" Default="false"> @L.T("该列是否可排序。需要同时设置 SortBy。", "Whether this column can be sorted. Requires SortBy to be set.") </ApiParameter>
+                <ApiParameter Name="SortBy" Type="Expression&lt;Func&lt;TData, object&gt;&gt;?"> @L.T("自定义排序表达式。当 Sortable 为 true 时必填。", "Custom sort expression. Required when Sortable is true.") </ApiParameter>
+                <ApiParameter Name="Visible" Type="bool" Default="true"> @L.T("该列是否在网格中可见。", "Whether this column is visible in the grid.") </ApiParameter>
+                <ApiParameter Name="Order" Type="int?" Default="null"> @L.T("该列显式的位置，是在网格数据列之中从零开始的序号。未设置时该列保持注册顺序——也就是它的组件完成初始化的顺序，就直接写在网格标记里的列而言即声明顺序。若某个列是间接生成的（由包装组件、或只在 await 之后才渲染的片段产生），初始化顺序与声明顺序不一致，就在它上面设置这个。没有设置 Order 的列先按注册顺序排布，随后每个设置了 Order 的列被插入到该序号处，序号小的先插入；超出末尾的序号追加到末尾，共用同一个 Order 的列保持注册顺序。选择列与展开列固定在最前，不计入这个序号。该列向网格注册时读取。", "Explicit position for this column, as a zero-based index among the grid's data columns. When not set, the column keeps its registration order — the order its component initializes in, which for a column written directly in the grid's markup is the order it was declared. Set this on a column produced indirectly, by a wrapper component or by a fragment that only renders after an await, where initialization order does not match declaration order. Columns without Order are laid out first in registration order, then each column that sets it is inserted at that index, lowest value first; an index past the end appends, and columns sharing an Order keep their registration order. Select and expand columns hold their fixed leading positions and are not counted by this index. Read when the column registers with the grid.") </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Width" Type="string?">
+                        列宽（例如 “200px”、“20%”、“auto”）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Width" Type="string?">
+                        Column width (e.g., "200px", "20%", "auto").
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="CellClass" Type="string?"> @L.T("应用于该列单元格的额外 CSS 类。", "Additional CSS classes applied to cells in this column.") </ApiParameter>
+                <ApiParameter Name="CellClassFunc" Type="Func&lt;TData, string?&gt;?"> @L.T("依据该行的数据项为一个单元格计算额外的 CSS 类，与 CellClass 叠加应用。用于按单元格的条件格式。", "Computes additional CSS classes for a cell from the row's data item, applied in addition to CellClass. Use for conditional per-cell formatting.") </ApiParameter>
+                <ApiParameter Name="HeaderClass" Type="string?"> @L.T("应用于该列表头单元格的额外 CSS 类。", "Additional CSS classes applied to the header cell of this column.") </ApiParameter>
+                <ApiParameter Name="Hideable" Type="bool" Default="true"> @L.T("该列是否可以通过列可见性下拉菜单切换。", "Whether this column can be toggled via the column visibility dropdown.") </ApiParameter>
+                <ApiParameter Name="Resizable" Type="bool" Default="true"> @L.T("该列是否可以通过拖动缩放。", "Whether this column can be resized by dragging.") </ApiParameter>
+                <ApiParameter Name="Reorderable" Type="bool" Default="true"> @L.T("该列是否可以通过拖动重排。", "Whether this column can be reordered by dragging.") </ApiParameter>
+                <ApiParameter Name="Pinned" Type="ColumnPinning" Default="None"> @L.T("该列是否固定在可滚动视口的某一边。", "Whether this column is pinned to an edge of the scrollable viewport.") </ApiParameter>
+                <ApiParameter Name="Filterable" Type="bool" Default="false"> @L.T("该列是否支持按列筛选。需要同时设置 FilterBy。", "Whether this column supports per-column filtering. Requires FilterBy to be set.") </ApiParameter>
+                <ApiParameter Name="Groupable" Type="bool" Default="false"> @L.T("用户是否可以在运行时按该列分组（通过表头里的省略号菜单）。需要同时设置 SortBy，因为分组键要从它读取。", "Whether users can group rows by this column at runtime, via an ellipsis menu in the column header. Requires SortBy to be set, since the group key is read from it.") </ApiParameter>
+                <ApiParameter Name="FilterBy" Type="Expression&lt;Func&lt;TData, object&gt;&gt;?" Default="null"> @L.T("用于构造筛选 Where 子句的表达式。当 Filterable 为 true 时必填。", "Expression used to build filter Where clauses. Required when Filterable is true.") </ApiParameter>
+                <ApiParameter Name="FilterType" Type="FilterFieldType?" Default="null"> @L.T("覆盖筛选类型。未设置时默认为 FilterFieldType.Text。", "Override the filter field type. Defaults to FilterFieldType.Text when not set.") </ApiParameter>
+                <ApiParameter Name="FilterOptions" Type="IEnumerable&lt;SelectOption&lt;string&gt;&gt;?" Default="null"> @L.T("Enum 筛选类型的预定义选项。", "Predefined options for Enum filter fields.") </ApiParameter>
+                <ApiParameter Name="NoWrap" Type="bool" Default="false"> @L.T("该列文本是否不换行。为 true 时单元格内容使用 white-space: nowrap，溢出时以省略号截断。", "Whether text in this column should not wrap. When true, cell content uses white-space: nowrap and truncates with an ellipsis on overflow.") </ApiParameter>
+                <ApiParameter Name="Aggregate" Type="AggregateFunction" Default="None"> @L.T("分组生效时在分组表头里计算的聚合函数。需要 SortBy 提供取值访问器，供数值聚合使用。", "Aggregate function to compute in group headers when grouping is active. Requires SortBy to provide a value accessor for numeric aggregates.") </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AggregateFormat" Type="string?" Default="null">
+                        显示聚合值所用的格式串（例如 “N0”、“C2”）。为 null 时使用默认格式。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AggregateFormat" Type="string?" Default="null">
+                        Format string for displaying aggregate values (e.g., "N0", "C2"). When null, uses default formatting.
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="DataGridSelectColumn">
+                <ApiParameter Name="Width" Type="string?" Default="48px"> @L.T("复选框列的列宽。默认为紧凑的复选框宽度。", "Column width for the checkbox column. Defaults to a compact checkbox width.") </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="CellClass" Type="string?">
+                        应用于选择单元格的额外 CSS 类。例如用 “p-1” 覆盖默认内边距，得到紧凑的行高。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="CellClass" Type="string?">
+                        Additional CSS classes applied to the selection cells. Use e.g. "p-1" to override the default padding for a compact row height.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="HeaderClass" Type="string?"> @L.T("应用于表头单元格（全选复选框）的额外 CSS 类。", "Additional CSS classes applied to the header cell (the select-all checkbox).") </ApiParameter>
+                <ApiParameter Name="Pinned" Type="ColumnPinning" Default="None"> @L.T("该列是否被固定。通常设为 AtomBlazor.Primitives.ColumnPinning.Left，以便水平滚动时复选框列依然可见。", "Whether this column is pinned. Commonly set to AtomBlazor.Primitives.ColumnPinning.Left to keep the checkbox column visible when scrolling horizontally.") </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="SelectAllScope" Type="DataGridSelectAllScope" Default="Prompt">
+                        分页时全选表头的行为。<code>Prompt</code>（默认）会弹出跨页的“本页 / 全部”菜单；<code>CurrentPage</code> 去掉这个菜单，此后表头复选框只切换当前页的行，其他页上的选择原样保留。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="SelectAllScope" Type="DataGridSelectAllScope" Default="Prompt">
+                        Select-all header behaviour when paginated. <code>Prompt</code> (default) shows a "this page / all items" menu across pages; <code>CurrentPage</code> removes the menu so the header checkbox toggles only the current page's rows, leaving other pages' selections intact.
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="DataGridEditColumn">
+                <ApiParameter Name="Width" Type="string?" Default="120px"> @L.T("列宽。默认是刚好容纳保存与取消按钮的宽度。", "Column width. Defaults to a width that fits the Save and Cancel buttons.") </ApiParameter>
+                <ApiParameter Name="Pinned" Type="ColumnPinning" Default="None"> @L.T("把该列固定在可滚动视口的某一边。在较宽的网格上把它固定到右侧，保存按钮就不必滚回去也能点到。", "Pins the column to an edge of the scrollable viewport. Pin it right on a wide grid so the Save button stays reachable without scrolling back.") </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="DataGridExpandColumn">
+                <ApiParameter Name="Width" Type="string?" Default="48px"> @L.T("展开箭头列的列宽。默认为紧凑的按钮宽度。", "Column width for the expand chevron column. Defaults to a compact button width.") </ApiParameter>
+                <ApiParameter Name="Pinned" Type="ColumnPinning" Default="None"> @L.T("该列是否固定在可滚动视口的某一边。", "Whether this column is pinned to an edge of the scrollable viewport.") </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="DataGridGroupColumn">
+                <ApiParameter Name="Property" Type="Expression&lt;Func&lt;TData, TProperty&gt;&gt;"> @L.T("用于给行分组的属性表达式。", "The property expression to group rows by.") </ApiParameter>
+                <ApiParameter Name="Title" Type="string?" Default="null"> @L.T("覆盖分组列的显示名称。为 null 时由属性名推断。", "Override the display name for the group column. When null, inferred from the property name.") </ApiParameter>
+                <ApiParameter Name="GroupSortDirection" Type="SortDirection" Default="Ascending"> @L.T("分组排列的排序方向。", "The sort direction for group ordering.") </ApiParameter>
+                <ApiParameter Name="CollapsedByDefault" Type="bool" Default="false"> @L.T("分组是否应当默认折叠。", "Whether groups should be collapsed by default.") </ApiParameter>
+                <ApiParameter Name="HeaderTemplate" Type="RenderFragment&lt;DataGridGroupContext&lt;TData&gt;&gt;?" Default="null"> @L.T("分组表头行内容的自定义模板。", "Custom template for group header row content.") </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="DataGridColumnVisibility">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="TriggerContent" Type="RenderFragment?">
+                        自定义触发器内容。未提供时渲染默认的 “Columns” 按钮。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="TriggerContent" Type="RenderFragment?">
+                        Custom trigger content. If not provided, renders a default "Columns" button.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="AsChild" Type="bool" Default="false"> @L.T("触发器是否使用 AsChild 模式来自定义渲染。", "Whether the trigger uses the AsChild pattern for custom trigger rendering.") </ApiParameter>
+                <ApiParameter Name="TriggerClass" Type="string?"> @L.T("应用于触发器元素的额外 CSS 类。", "Additional CSS classes applied to the trigger element.") </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 data-testid、aria-label）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+
+    <LocalizationSection
+        Description="@(L.T("DataGrid 对加载状态、选择、筛选、分组与分页标签都有完整的本地化支持。", "DataGrid has extensive localization support for loading states, selection, filtering, grouping, and pagination labels."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("Loading", "Loading...", L.T("数据加载时显示的文案。", "Shown while data is loading")),
+            new("NoResultsFound", "No results found", L.T("没有行时显示的文案。", "Shown when there are no rows")),
+            new("NoResultsFilterDescription", "Try adjusting or clearing your filters.", L.T("筛选后为空这一状态的说明文案。", "Description for the empty filtered state")),
+            new("PreviousPage / NextPage", "Previous page / Next page", L.T("分页的 aria 标签。", "Pagination aria labels")),
+            new("ExpandAll / CollapseAll", "Expand all / Collapse all", L.T("层级展开与收起的标签。", "Hierarchy toggle labels")),
+            new("SelectAllOnPage", "Select all on this page ({count} items)", L.T("批量选择的标签（Func<int, string>）。", "Bulk selection label (Func<int, string>)")),
+            new("SelectAllItems", "Select all {count} items", L.T("全量选择的标签（Func<int, string>）。", "Full selection label (Func<int, string>)")),
+            new("ClearSelection", "Clear selection", L.T("清除选择的标签。", "Label for clearing selection")),
+            new("FilterPlaceholder", "Filter {columnTitle}", L.T("列筛选输入框的占位文案（Func<string, string>）。", "Column filter placeholder (Func<string, string>)")),
+            new("ActiveFilters", "{count} active filter(s)", L.T("生效筛选数量的徽标文案（Func<int, string>）。", "Active filter count badge (Func<int, string>)")),
+            new("ShowingRange", "Showing {start}–{end} of {total}", L.T("区间显示文案（Func<int, int, int, string>）。", "Range display (Func<int, int, int, string>)")),
+            new("RowsSelected", "{selected} of {total} row(s) selected", L.T("已选数量的显示文案。", "Selection count display")),
+            new("CountLabel / SumLabel / ...", "Count, Sum, Avg, Min, Max", L.T("聚合函数的标签。", "Aggregate function labels")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""DataGrid.Loading"", ""Laden..."");
+    localizer.Set(""DataGrid.NoResultsFound"", ""Keine Ergebnisse gefunden"");
+    localizer.Set(""DataGrid.ClearSelection"", ""Auswahl aufheben"");
+    localizer.Set(""DataGrid.SelectAllOnPage"", ""Alle auf dieser Seite auswählen ({0})"");
+});")" />
+</div>
+
+@code {
+#pragma warning disable BL0012 // （.NET 11 Razor 分析器）照语句本体保留显式 StateHasChanged（本块 2 处：命令面板/网格回调亦可经 JS interop 等非事件路径触发，分析器仅见事件处理器静态形态而判冗余）；禁止为消诊断删本体，采文件级定点抑制
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private DataGrid<Person>? groupingGrid;
+    private DataGrid<Person>? interactiveGroupingGrid;
+    private readonly System.Collections.ObjectModel.ObservableCollection<Person> livePeople = new();
+    private int nextLivePersonId = 1;
+    private List<Person> people = new();
+    private List<Person> manyPeople = new();
+    private List<Person> stressTestPeople = new();
+    private List<Person> asyncPeople = new();
+    private IReadOnlyCollection<Person> _selectedPeople = Array.Empty<Person>();
+    private string? clickedRowMessage;
+    private string? clickedRowMessageZh;
+    private bool stressTestLoaded;
+    private bool stressTestLoading;
+
+    // Column Filtering demo state
+    private AtomBlazor.Primitives.DataGridState<Person> _gridState = new();
+
+    // Inline row editing demo state
+    private List<Person> editablePeople = new();
+    private string? _editMessage;
+    private string? _editMessageZh;
+
+    private void HandleRowCommit(DataGridRowCommitContext<Person> context)
+    {
+        if (string.IsNullOrWhiteSpace(context.Item.Name))
+        {
+            // Refuse the save and keep the row open, so the user keeps their typing.
+            context.Cancel = true;
+            _editMessage = "A name is required — the row stays open until you give it one.";
+            _editMessageZh = "必须填写名称——在你给出名称之前，该行会一直保持打开。";
+            return;
+        }
+
+        _editMessage = $"Saved {context.Item.Name}.";
+        _editMessageZh = $"已保存 {context.Item.Name}。";
+    }
+
+    private void HandleRowCancel(Person person) =>
+        // 链式赋值：英文分支本体逐字保留，仅在其外层多挂一次中文快照赋值。
+        _editMessageZh = (_editMessage = $"Discarded the changes to {person.Name}.");
+
+    // Nested grouping demo state
+    private DataGrid<Person>? nestedGroupingGrid;
+
+    // CSV export demo state
+    private DataGrid<Person>? exportGrid;
+    private string? _csvPreview;
+
+    private void ShowCsvPreview() => _csvPreview = exportGrid?.BuildCsv();
+
+    // Selection behaviour demo state
+    private IReadOnlyCollection<Person> _replaceSelectedPeople = Array.Empty<Person>();
+
+    private void HandleReplaceSelectionChanged(IReadOnlyCollection<Person> selected) =>
+        _replaceSelectedPeople = selected;
+
+    // SortAndFilterBy demo: an office name resolved from a key the column does not display.
+    private static readonly string[] officeNames = { "Singapore", "Berlin", "Austin", "London" };
+
+    private static string OfficeFor(Person person) => officeNames[person.Id % officeNames.Length];
+
+    // Expandable detail rows demo data
+    private record TeamMember(string Name, string Title, string Department, List<TeamMember> DirectReports);
+
+    private List<TeamMember> teamMembers = new()
+    {
+        new("Sarah Chen", "VP of Engineering", "Engineering", new()
+        {
+            new("James Rodriguez", "Senior Engineer", "Engineering", new()),
+            new("Priya Patel", "Senior Engineer", "Engineering", new()),
+            new("Marcus Johnson", "Engineer", "Engineering", new()),
+        }),
+        new("David Kim", "VP of Product", "Product", new()
+        {
+            new("Emma Wilson", "Product Manager", "Product", new()),
+            new("Alex Thompson", "Product Analyst", "Product", new()),
+        }),
+        new("Rachel Foster", "VP of Design", "Design", new()
+        {
+            new("Liam O'Brien", "Senior Designer", "Design", new()),
+            new("Sofia Martinez", "UX Researcher", "Design", new()),
+            new("Noah Garcia", "Designer", "Design", new()),
+            new("Olivia Lee", "Designer", "Design", new()),
+        }),
+        new("Michael Brooks", "VP of Marketing", "Marketing", new()
+        {
+            new("Ashley Davis", "Content Lead", "Marketing", new()),
+        }),
+    };
+
+    // Expandable nested table demo data
+    private record Subtask(string Title, string Assignee, string Status, int EstimatedHours);
+    private record ProjectTask(string Title, string Assignee, string Status, string Priority, List<Subtask> Subtasks);
+
+    private List<ProjectTask> projectTasks = new()
+    {
+        new("Design landing page", "Alice", "In Progress", "High", new()
+        {
+            new("Create wireframes", "Alice", "Done", 4),
+            new("Design hero section", "Alice", "In Progress", 6),
+            new("Design footer", "Bob", "To Do", 3),
+        }),
+        new("Build API endpoints", "Charlie", "In Progress", "High", new()
+        {
+            new("Set up auth middleware", "Charlie", "Done", 8),
+            new("Create user endpoints", "Charlie", "Done", 6),
+            new("Create project endpoints", "Dave", "In Progress", 10),
+            new("Write integration tests", "Eve", "To Do", 5),
+        }),
+        new("Write documentation", "Eve", "To Do", "Medium", new()
+        {
+            new("API reference docs", "Eve", "To Do", 8),
+            new("Getting started guide", "Eve", "To Do", 4),
+        }),
+        new("Set up CI/CD pipeline", "Dave", "Done", "Medium", new()
+        {
+            new("Configure GitHub Actions", "Dave", "Done", 3),
+            new("Set up staging deploy", "Dave", "Done", 4),
+            new("Set up production deploy", "Dave", "Done", 5),
+        }),
+        new("Performance optimization", "Bob", "To Do", "Low", new()
+        {
+            new("Profile database queries", "Bob", "To Do", 6),
+            new("Add caching layer", "Charlie", "To Do", 8),
+        }),
+    };
+
+    private static BadgeVariant GetSubtaskBadge(string status) => status switch
+    {
+        "Done" => BadgeVariant.Default,
+        "In Progress" => BadgeVariant.Secondary,
+        _ => BadgeVariant.Outline
+    };
+
+    // Server-side virtual scroll demo data (generated lazily)
+    private List<Person>? virtualServerPeople;
+
+    protected override void OnInitialized()
+    {
+        people = MockDataService.GeneratePersons(50);
+
+        // A set of its own, so editing here does not change the rows every other example shows.
+        editablePeople = MockDataService.GeneratePersons(12);
+        manyPeople = MockDataService.GeneratePersons(1000);
+        asyncPeople = MockDataService.GeneratePersons(100);
+
+        foreach (var person in MockDataService.GeneratePersons(12))
+        {
+            livePeople.Add(person);
+        }
+
+        nextLivePersonId = livePeople.Count + 1;
+    }
+
+    // The grid subscribes to ObservableCollection, so adding and removing here re-renders
+    // it without reassigning Items or calling RefreshDataAsync.
+    private void AddLivePerson()
+    {
+        var person = MockDataService.GeneratePersons(1)[0];
+        person.Name = $"New Person {nextLivePersonId++}";
+        livePeople.Add(person);
+    }
+
+    private void RemoveLivePerson()
+    {
+        if (livePeople.Count > 0)
+        {
+            livePeople.RemoveAt(livePeople.Count - 1);
+        }
+    }
+
+    private async ValueTask<AtomBlazor.Primitives.DataGridResult<Person>> VirtualServerProviderAsync(
+        AtomBlazor.Primitives.DataGridRequest request)
+    {
+        // Generate data on first request (simulates a large remote dataset)
+        virtualServerPeople ??= MockDataService.GeneratePersons(10_000);
+
+        // Simulate network latency
+        await Task.Delay(30, request.CancellationToken);
+
+        IEnumerable<Person> query = virtualServerPeople;
+
+        // Apply sorting
+        var isFirst = true;
+        foreach (var sort in request.SortDefinitions)
+        {
+            Func<Person, object> selector = sort.ColumnId switch
+            {
+                "name" => p => p.Name,
+                "department" => p => p.Department,
+                "salary" => p => p.Salary,
+                _ => p => p.Id
+            };
+
+            if (isFirst)
+            {
+                query = sort.Direction == SortDirection.Ascending
+                    ? query.OrderBy(selector)
+                    : query.OrderByDescending(selector);
+                isFirst = false;
+            }
+            else if (query is IOrderedEnumerable<Person> ordered)
+            {
+                query = sort.Direction == SortDirection.Ascending
+                    ? ordered.ThenBy(selector)
+                    : ordered.ThenByDescending(selector);
+            }
+        }
+
+        var total = virtualServerPeople.Count;
+        var items = query.Skip(request.StartIndex).Take(request.Count ?? 50).ToList();
+
+        return new AtomBlazor.Primitives.DataGridResult<Person>
+        {
+            Items = items,
+            TotalItemCount = total
+        };
+    }
+
+    private async Task LoadStressTestData()
+    {
+        stressTestLoading = true;
+        StateHasChanged();
+
+        // Yield to allow the UI to update before the heavy generation runs
+        await Task.Delay(1);
+        stressTestPeople = MockDataService.GeneratePersons(100_000);
+        stressTestLoaded = true;
+        stressTestLoading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var json = await Js.InvokeAsync<string?>("localStorage.getItem", persistenceKey);
+                if (json != null)
+                {
+                    hasSavedState = true;
+                    StateHasChanged();
+                }
+            }
+            catch
+            {
+                // localStorage not available during SSR
+            }
+        }
+    }
+
+    private void HandleSelectionChanged(IReadOnlyCollection<Person> selected)
+    {
+        _selectedPeople = selected;
+    }
+
+    private int _perPageSelectedCount;
+
+    private void HandlePerPageSelectionChanged(IReadOnlyCollection<Person> selected)
+    {
+        _perPageSelectedCount = selected.Count;
+    }
+
+    private async ValueTask<AtomBlazor.Primitives.DataGridResult<Person>> LoadPeopleAsync(
+        AtomBlazor.Primitives.DataGridRequest request)
+    {
+        // Simulate async loading delay
+        await Task.Delay(300, request.CancellationToken);
+
+        IEnumerable<Person> query = asyncPeople;
+
+        // Apply multi-column sorting: use OrderBy for the first definition, ThenBy for subsequent
+        var isFirst = true;
+        foreach (var sort in request.SortDefinitions)
+        {
+            if (isFirst)
+            {
+                query = sort.ColumnId switch
+                {
+                    "name" => sort.Direction == SortDirection.Ascending
+                        ? query.OrderBy(p => p.Name)
+                        : query.OrderByDescending(p => p.Name),
+                    "department" => sort.Direction == SortDirection.Ascending
+                        ? query.OrderBy(p => p.Department)
+                        : query.OrderByDescending(p => p.Department),
+                    "age" => sort.Direction == SortDirection.Ascending
+                        ? query.OrderBy(p => p.Age)
+                        : query.OrderByDescending(p => p.Age),
+                    _ => query
+                };
+                isFirst = false;
+            }
+            else if (query is IOrderedEnumerable<Person> ordered)
+            {
+                query = sort.ColumnId switch
+                {
+                    "name" => sort.Direction == SortDirection.Ascending
+                        ? ordered.ThenBy(p => p.Name)
+                        : ordered.ThenByDescending(p => p.Name),
+                    "department" => sort.Direction == SortDirection.Ascending
+                        ? ordered.ThenBy(p => p.Department)
+                        : ordered.ThenByDescending(p => p.Department),
+                    "age" => sort.Direction == SortDirection.Ascending
+                        ? ordered.ThenBy(p => p.Age)
+                        : ordered.ThenByDescending(p => p.Age),
+                    _ => ordered
+                };
+            }
+        }
+
+        var total = asyncPeople.Count;
+        var items = query.Skip(request.StartIndex).Take(request.Count ?? total).ToList();
+
+        return new AtomBlazor.Primitives.DataGridResult<Person>
+        {
+            Items = items,
+            TotalItemCount = total
+        };
+    }
+
+    // --- State Persistence ---
+
+    private AtomBlazor.Primitives.DataGridState<Person> persistenceState = new();
+    private bool hasSavedState;
+    private const string persistenceKey = "datagrid-state-demo";
+
+    private async Task SaveGridState()
+    {
+        var snapshot = persistenceState.Save();
+        var json = JsonSerializer.Serialize(snapshot);
+        hasSavedState = true;
+
+        try
+        {
+            await Js.InvokeVoidAsync("localStorage.setItem", persistenceKey, json);
+        }
+        catch
+        {
+            // localStorage not available during SSR
+        }
+    }
+
+    private async Task RestoreGridState()
+    {
+        try
+        {
+            var json = await Js.InvokeAsync<string?>("localStorage.getItem", persistenceKey);
+            if (json != null)
+            {
+                var snapshot = JsonSerializer.Deserialize<AtomBlazor.Primitives.DataGridStateSnapshot>(json);
+                if (snapshot != null)
+                {
+                    persistenceState.Restore(snapshot);
+                }
+            }
+        }
+        catch
+        {
+            // localStorage not available during SSR
+        }
+    }
+
+    private void ResetGridState()
+    {
+        persistenceState.Reset();
+        hasSavedState = false;
+    }
+
+    // --- Row Click & Context Menu ---
+
+    private void HandleDemoRowClick(Person person)
+    {
+        clickedRowMessage = $"Clicked: {person.Name} ({person.Email})";
+        clickedRowMessageZh = $"已点击：{person.Name}（{person.Email}）";
+    }
+
+    private async Task CopyWithFeedback(DataGridRowMenuContext<Person> menu, string text)
+    {
+        await menu.CopyToClipboardAsync(text);
+        clickedRowMessage = $"Copied to clipboard: {text}";
+        clickedRowMessageZh = $"已复制到剪贴板：{text}";
+    }
+
+#pragma warning restore BL0012
+}

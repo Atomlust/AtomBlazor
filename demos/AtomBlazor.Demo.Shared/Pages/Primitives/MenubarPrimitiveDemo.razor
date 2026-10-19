@@ -1,0 +1,254 @@
+@page "/primitives/menubar"
+<PageTitle>@L.T("Menubar 菜单栏原语 - Atom BlazorUI", "Menubar Primitive - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Menubar 菜单栏原语", "Menubar Primitive")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("无头菜单栏，内置键盘导航、ARIA 语义与悬停切换行为。", "Headless menubar with keyboard navigation, ARIA semantics, and hover-to-switch behavior.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基础菜单栏", "Basic Menubar")</h2>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            一个带两个菜单的无头菜单栏。全部行为（打开/关闭、悬停切换、键盘导航）都已内置。
+                            通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">class</code> 或内联样式用你自己的 CSS 来上样式。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            A headless menubar with two menus. All behavior (open/close, hover-switch, keyboard nav) is built in.
+                            Style with your own CSS via <code class="text-xs bg-muted px-1 py-0.5 rounded">class</code> or inline styles.
+                        </p>
+                    </text>
+                }
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <AtomBlazor.Primitives.MenubarPrimitive
+                    class="relative flex items-center gap-1 rounded-md border bg-background p-1">
+                    <AtomBlazor.Primitives.MenubarMenu>
+                        <AtomBlazor.Primitives.MenubarTrigger
+                            class="flex cursor-default select-none items-center rounded-sm px-3 py-1.5 text-sm font-medium outline-none hover:bg-accent data-[state=open]:bg-accent">
+                            @L.T("文件", "File")
+                        </AtomBlazor.Primitives.MenubarTrigger>
+                        <AtomBlazor.Primitives.MenubarContent
+                            class="absolute top-full mt-1 z-50 min-w-[10rem] rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
+                            <AtomBlazor.Primitives.MenubarItem OnClick="@(() => lastAction = "New File")"
+                                class="flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent focus:bg-accent">
+                                @L.T("新建文件", "New File")
+                            </AtomBlazor.Primitives.MenubarItem>
+                            <AtomBlazor.Primitives.MenubarItem OnClick="@(() => lastAction = "Open")"
+                                class="flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent focus:bg-accent">
+                                @L.T("打开", "Open")
+                            </AtomBlazor.Primitives.MenubarItem>
+                            <AtomBlazor.Primitives.MenubarSeparator class="-mx-1 my-1 h-px bg-muted" />
+                            <AtomBlazor.Primitives.MenubarItem OnClick="@(() => lastAction = "Save")"
+                                class="flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent focus:bg-accent">
+                                @L.T("保存", "Save")
+                            </AtomBlazor.Primitives.MenubarItem>
+                        </AtomBlazor.Primitives.MenubarContent>
+                    </AtomBlazor.Primitives.MenubarMenu>
+
+                    <AtomBlazor.Primitives.MenubarMenu>
+                        <AtomBlazor.Primitives.MenubarTrigger
+                            class="flex cursor-default select-none items-center rounded-sm px-3 py-1.5 text-sm font-medium outline-none hover:bg-accent data-[state=open]:bg-accent">
+                            @L.T("编辑", "Edit")
+                        </AtomBlazor.Primitives.MenubarTrigger>
+                        <AtomBlazor.Primitives.MenubarContent
+                            class="absolute top-full mt-1 z-50 min-w-[10rem] rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
+                            <AtomBlazor.Primitives.MenubarItem OnClick="@(() => lastAction = "Undo")"
+                                class="flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent focus:bg-accent">
+                                @L.T("撤销", "Undo")
+                            </AtomBlazor.Primitives.MenubarItem>
+                            <AtomBlazor.Primitives.MenubarItem OnClick="@(() => lastAction = "Redo")"
+                                class="flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent focus:bg-accent">
+                                @L.T("重做", "Redo")
+                            </AtomBlazor.Primitives.MenubarItem>
+                        </AtomBlazor.Primitives.MenubarContent>
+                    </AtomBlazor.Primitives.MenubarMenu>
+                </AtomBlazor.Primitives.MenubarPrimitive>
+
+                @if (lastAction != null)
+                {
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <p class="mt-4 text-sm text-muted-foreground">最近操作：<strong>@lastAction</strong></p>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <p class="mt-4 text-sm text-muted-foreground">Last action: <strong>@lastAction</strong></p>
+                        </text>
+                    }
+                }
+            </div>
+
+            <CodeBlock Source="Primitives/Menubar/basic.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("复选项", "Checkbox Items")</h2>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            复选项会切换状态而不关闭菜单。使用
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menuitemcheckbox"</code> 与
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-checked</code>。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            Checkbox items toggle state without closing the menu. Uses
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menuitemcheckbox"</code> and
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-checked</code>.
+                        </p>
+                    </text>
+                }
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <AtomBlazor.Primitives.MenubarPrimitive
+                    class="relative flex items-center gap-1 rounded-md border bg-background p-1">
+                    <AtomBlazor.Primitives.MenubarMenu>
+                        <AtomBlazor.Primitives.MenubarTrigger
+                            class="flex cursor-default select-none items-center rounded-sm px-3 py-1.5 text-sm font-medium outline-none hover:bg-accent data-[state=open]:bg-accent">
+                            @L.T("视图", "View")
+                        </AtomBlazor.Primitives.MenubarTrigger>
+                        <AtomBlazor.Primitives.MenubarContent
+                            class="absolute top-full mt-1 z-50 min-w-[10rem] rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
+                            <AtomBlazor.Primitives.MenubarLabel class="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                                @L.T("面板", "Panels")
+                            </AtomBlazor.Primitives.MenubarLabel>
+                            <AtomBlazor.Primitives.MenubarCheckboxItem
+                                Checked="@showSidebar" CheckedChanged="@(v => showSidebar = v)"
+                                class="flex cursor-default select-none items-center rounded-sm pl-6 pr-2 py-1.5 text-sm outline-none hover:bg-accent focus:bg-accent">
+                                @(showSidebar ? "✓ " : "  ")@L.T("侧边栏", "Sidebar")
+                            </AtomBlazor.Primitives.MenubarCheckboxItem>
+                            <AtomBlazor.Primitives.MenubarCheckboxItem
+                                Checked="@showMinimap" CheckedChanged="@(v => showMinimap = v)"
+                                class="flex cursor-default select-none items-center rounded-sm pl-6 pr-2 py-1.5 text-sm outline-none hover:bg-accent focus:bg-accent">
+                                @(showMinimap ? "✓ " : "  ")@L.T("缩略图", "Minimap")
+                            </AtomBlazor.Primitives.MenubarCheckboxItem>
+                        </AtomBlazor.Primitives.MenubarContent>
+                    </AtomBlazor.Primitives.MenubarMenu>
+                </AtomBlazor.Primitives.MenubarPrimitive>
+
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="mt-4 text-sm text-muted-foreground">
+                            侧边栏：@(showSidebar ? "可见" : "隐藏") | 缩略图：@(showMinimap ? "可见" : "隐藏")
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="mt-4 text-sm text-muted-foreground">
+                            Sidebar: @(showSidebar ? "visible" : "hidden") | Minimap: @(showMinimap ? "visible" : "hidden")
+                        </p>
+                    </text>
+                }
+            </div>
+
+            <CodeBlock Source="Primitives/Menubar/checkbox-items.txt" />
+        </section>
+
+        <!-- Accessibility Notes -->
+        <AccessibilityList>
+            <AriaAttributes>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            根容器上的 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menubar"</code>
+                        </AccessibilityItem>
+                        <AccessibilityItem>
+                            内容面板上的 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menu"</code>
+                        </AccessibilityItem>
+                        <AccessibilityItem>
+                            条目与触发器上的 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menuitem"</code>
+                        </AccessibilityItem>
+                        <AccessibilityItem>
+                            复选项上的 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menuitemcheckbox"</code>，并带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-checked</code>
+                        </AccessibilityItem>
+                        <AccessibilityItem>
+                            触发器上的 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-haspopup="menu"</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code>
+                        </AccessibilityItem>
+                        <AccessibilityItem>
+                            分隔元素上的 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="separator"</code>
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menubar"</code> on the root container
+                        </AccessibilityItem>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menu"</code> on content panels
+                        </AccessibilityItem>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menuitem"</code> on items and triggers
+                        </AccessibilityItem>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menuitemcheckbox"</code> with <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-checked</code> on checkbox items
+                        </AccessibilityItem>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-haspopup="menu"</code> and <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> on triggers
+                        </AccessibilityItem>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="separator"</code> on separator elements
+                        </AccessibilityItem>
+                    </text>
+                }
+            </AriaAttributes>
+            <KeyboardNavigation>
+                <KeyboardShortcutItem Description="@(L.T("在菜单项之间导航", "Navigate between menu items"))">
+                    <Kbd>Arrow Down</Kbd> / <Kbd>Arrow Up</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("在各菜单之间切换", "Switch between menus"))">
+                    <Kbd>Arrow Right</Kbd> / <Kbd>Arrow Left</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("激活获得焦点的条目", "Activate the focused item"))">
+                    <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("关闭当前菜单", "Close the current menu"))">
+                    <Kbd>Escape</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("跳到首项/末项", "Jump to first/last item"))">
+                    <Kbd>Home</Kbd> / <Kbd>End</Kbd>
+                </KeyboardShortcutItem>
+            </KeyboardNavigation>
+        </AccessibilityList>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string? lastAction;
+    private bool showSidebar = true;
+    private bool showMinimap;
+}

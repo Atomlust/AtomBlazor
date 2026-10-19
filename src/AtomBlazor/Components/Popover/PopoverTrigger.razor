@@ -1,0 +1,61 @@
+@namespace AtomBlazor
+
+@* 带样式的 PopoverTrigger 包装层——原样透传给基元 *@
+
+@* AsChild 模式下基元不渲染任何元素，触发器自身的样式无处可落。
+   于是只把页面设置了值的那部分传下去，让开发期警告点名的恰好是它，不多不少。 *@
+<AtomBlazor.Primitives.PopoverTrigger AsChild="@AsChild"
+                                                   OnClick="@OnClick"
+                                                   CustomClickHandling="@CustomClickHandling"
+                                                   class="@(AsChild ? null : "atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2")"
+                                                   @attributes="FilteredAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.PopoverTrigger>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 为 true 时，触发器不渲染自己的 button 元素，
+    /// 而是通过 TriggerContext 把触发行为传给子组件。
+    /// 需要让自定义组件（如 Button）充当触发器时使用。
+    /// </summary>
+    [Parameter]
+    public bool AsChild { get; set; } = true;
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    [Parameter]
+    public bool CustomClickHandling { get; set; } = false;
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 返回移除了已显式处理参数（class, aschild, onclick, customclickhandling）的 AdditionalAttributes。
+    /// </summary>
+    private Dictionary<string, object>? FilteredAttributes
+    {
+        get
+        {
+            if (AdditionalAttributes == null) return null;
+            
+            var filtered = new Dictionary<string, object>();
+            foreach (var kvp in AdditionalAttributes)
+            {
+                var key = kvp.Key.ToLowerInvariant();
+                if (key != "class" && 
+                    key != "aschild" && 
+                    key != "onclick" && 
+                    key != "customclickhandling")
+                {
+                    filtered[kvp.Key] = kvp.Value;
+                }
+            }
+            
+            return filtered.Count > 0 ? filtered : null;
+        }
+    }
+}

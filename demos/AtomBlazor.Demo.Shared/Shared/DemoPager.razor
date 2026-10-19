@@ -1,0 +1,31 @@
+@implements IDisposable
+
+@if (_previous is not null || _next is not null)
+{
+    <div class="flex items-center gap-1">
+        <Tooltip>
+            <AtomBlazor.TooltipTrigger AsChild="true">
+                <Button Variant="ButtonVariant.Ghost"
+                          Size="ButtonSize.Icon"
+                          Disabled="@(_previous is null)"
+                          AriaLabel="@(_previous is null ? L.T("没有上一个组件", "No previous component") : L.F("上一个组件：{0}", "Previous component: {0}", _previous.Name))"
+                          OnClick="@(() => Go(_previous))">
+                    <LucideIcon Name="chevron-left" Size="16" />
+                </Button>
+            </AtomBlazor.TooltipTrigger>
+            <AtomBlazor.TooltipContent>@(_previous?.Name ?? L.T("没有上一个组件", "No previous component"))</AtomBlazor.TooltipContent>
+        </Tooltip>
+        <Tooltip>
+            <AtomBlazor.TooltipTrigger AsChild="true">
+                <Button Variant="ButtonVariant.Ghost"
+                          Size="ButtonSize.Icon"
+                          Disabled="@(_next is null)"
+                          AriaLabel="@(_next is null ? L.T("没有下一个组件", "No next component") : L.F("下一个组件：{0}", "Next component: {0}", _next.Name))"
+                          OnClick="@(() => Go(_next))">
+                    <LucideIcon Name="chevron-right" Size="16" />
+                </Button>
+            </AtomBlazor.TooltipTrigger>
+            <AtomBlazor.TooltipContent>@(_next?.Name ?? L.T("没有下一个组件", "No next component"))</AtomBlazor.TooltipContent>
+        </Tooltip>
+    </div>
+}

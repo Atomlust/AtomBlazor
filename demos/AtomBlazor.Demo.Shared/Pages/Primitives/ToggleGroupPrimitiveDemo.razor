@@ -1,0 +1,327 @@
+@page "/primitives/toggle-group"
+<PageTitle>@L.T("Toggle Group 切换组基础构件 - Atom BlazorUI", "Toggle Group Primitive - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Toggle Group 切换组基础构件", "Toggle Group Primitive")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("无头、无样式的切换组，支持单选或多选并带有键盘导航。", "Headless, unstyled toggle group with single or multiple selection and keyboard navigation.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("单选", "Single Selection")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("一次只能有一个条目处于激活状态。使用漫游 tabindex 进行键盘导航。", "Only one item can be active at a time. Uses roving tabindex for keyboard navigation.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <AtomBlazor.Primitives.ToggleGroup TValue="string"
+                    @bind-Value="singleValue"
+                    AriaLabel="@(L.T("文本对齐", "Text alignment"))"
+                    class="flex gap-1">
+                    <AtomBlazor.Primitives.ToggleGroupItem Value="@("left")"
+                        class="px-3 py-2 border rounded text-sm data-[state=on]:bg-primary data-[state=on]:text-primary-foreground outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                        @L.T("左", "Left")
+                    </AtomBlazor.Primitives.ToggleGroupItem>
+                    <AtomBlazor.Primitives.ToggleGroupItem Value="@("center")"
+                        class="px-3 py-2 border rounded text-sm data-[state=on]:bg-primary data-[state=on]:text-primary-foreground outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                        @L.T("居中", "Center")
+                    </AtomBlazor.Primitives.ToggleGroupItem>
+                    <AtomBlazor.Primitives.ToggleGroupItem Value="@("right")"
+                        class="px-3 py-2 border rounded text-sm data-[state=on]:bg-primary data-[state=on]:text-primary-foreground outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                        @L.T("右", "Right")
+                    </AtomBlazor.Primitives.ToggleGroupItem>
+                </AtomBlazor.Primitives.ToggleGroup>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">已选择：@(singleValue ?? "无")</p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">Selected: @(singleValue ?? "none")</p>
+                    </text>
+                }
+            </div>
+
+            <CodeBlock Source="Primitives/ToggleGroup/single.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("多选", "Multiple Selection")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("可以同时激活多个条目。", "Multiple items can be active simultaneously.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <AtomBlazor.Primitives.ToggleGroup TValue="string"
+                    Type="AtomBlazor.Primitives.ToggleGroupType.Multiple"
+                    @bind-Values="multiValues"
+                    AriaLabel="@(L.T("文本格式", "Text formatting"))"
+                    class="flex gap-1">
+                    <AtomBlazor.Primitives.ToggleGroupItem Value="@("bold")"
+                        class="px-3 py-2 border rounded text-sm font-bold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                        B
+                    </AtomBlazor.Primitives.ToggleGroupItem>
+                    <AtomBlazor.Primitives.ToggleGroupItem Value="@("italic")"
+                        class="px-3 py-2 border rounded text-sm italic data-[state=on]:bg-primary data-[state=on]:text-primary-foreground outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                        I
+                    </AtomBlazor.Primitives.ToggleGroupItem>
+                    <AtomBlazor.Primitives.ToggleGroupItem Value="@("underline")"
+                        class="px-3 py-2 border rounded text-sm underline data-[state=on]:bg-primary data-[state=on]:text-primary-foreground outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                        U
+                    </AtomBlazor.Primitives.ToggleGroupItem>
+                </AtomBlazor.Primitives.ToggleGroup>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">已选择：@(multiValues.Count > 0 ? string.Join("、", multiValues) : "无")</p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">Selected: @(multiValues.Count > 0 ? string.Join(", ", multiValues) : "none")</p>
+                    </text>
+                }
+            </div>
+
+            <CodeBlock Source="Primitives/ToggleGroup/multiple.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("可以禁用整个组。", "The entire group can be disabled.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <AtomBlazor.Primitives.ToggleGroup TValue="string"
+                    Disabled="true"
+                    AriaLabel="@(L.T("禁用的组", "Disabled group"))"
+                    class="flex gap-1">
+                    <AtomBlazor.Primitives.ToggleGroupItem Value="@("a")"
+                        class="px-3 py-2 border rounded text-sm opacity-50 cursor-not-allowed">
+                        A
+                    </AtomBlazor.Primitives.ToggleGroupItem>
+                    <AtomBlazor.Primitives.ToggleGroupItem Value="@("b")"
+                        class="px-3 py-2 border rounded text-sm opacity-50 cursor-not-allowed">
+                        B
+                    </AtomBlazor.Primitives.ToggleGroupItem>
+                </AtomBlazor.Primitives.ToggleGroup>
+            </div>
+
+            <CodeBlock Source="Primitives/ToggleGroup/disabled.txt" />
+        </section>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">role="group"</code> 在语义上对切换条目进行分组
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">role="group"</code> groups the toggle items semantically
+                    </AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-pressed</code> 在每个条目上设为 "true" 或 "false"
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-pressed</code> set to "true" or "false" on each item
+                    </AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">data-state</code> 在每个条目上设为 "on" 或 "off"，用于 CSS 钩子
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">data-state</code> set to "on" or "off" on each item for CSS hooks
+                    </AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">data-orientation</code> 设为 "horizontal" 或 "vertical"，用于布局样式
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">data-orientation</code> set to "horizontal" or "vertical" for layout styling
+                    </AccessibilityItem>
+                </text>
+            }
+            <AccessibilityItem>
+                @L.T("漫游 tabindex——在单选模式下，只有激活的条目可被 Tab 聚焦", "Roving tabindex — in single mode, only the active item is tabbable")
+            </AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在条目之间导航", "Navigate between items"))">
+                <Kbd>ArrowLeft</Kbd> / <Kbd>ArrowRight</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在条目之间导航（纵向布局）", "Navigate between items (vertical orientation)"))">
+                <Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("跳转到第一个条目", "Jump to the first item"))">
+                <Kbd>Home</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("跳转到最后一个条目", "Jump to the last item"))">
+                <Kbd>End</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="ToggleGroup&lt;TValue&gt;">
+                <ApiParameter Name="Type" Type="ToggleGroupType" Default="AtomBlazor.ToggleGroupType.Single">
+                    @L.T("只允许一个条目激活（Single），还是允许多个条目激活（Multiple）。", "Whether only one item can be active (Single) or multiple items (Multiple).")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="Value" Type="TValue?" Default="null">
+                            单选模式下的激活值。支持通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code> 双向绑定。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="Value" Type="TValue?" Default="null">
+                            The active value in single selection mode. Supports two-way binding with <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code>.
+                        </ApiParameter>
+                    </text>
+                }
+                <ApiParameter Name="DefaultValue" Type="TValue?" Default="null">
+                    @L.T("非受控单选模式下的默认激活值。", "Default active value in uncontrolled single selection mode.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="Values" Type="List&lt;TValue&gt;?" Default="null">
+                            多选模式下的激活值集合。支持通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Values</code> 双向绑定。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="Values" Type="List&lt;TValue&gt;?" Default="null">
+                            The active values in multiple selection mode. Supports two-way binding with <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Values</code>.
+                        </ApiParameter>
+                    </text>
+                }
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("整个组是否被禁用。", "Whether the entire group is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="Orientation" Type="string" Default="&quot;horizontal&quot;">
+                    @L.T("组的朝向。影响使用哪个方向键进行导航。", "Orientation of the group. Affects which arrow keys navigate.")
+                </ApiParameter>
+                <ApiParameter Name="Loop" Type="bool" Default="true">
+                    @L.T("键盘导航是否从最后一个条目回环到第一个条目。", "Whether keyboard navigation wraps from last to first item.")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                    @L.T("供该组使用的可访问标签。", "Accessible label for the group.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到根 <code>&lt;div&gt;</code> 元素上的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </ApiParameter>
+                    </text>
+                }
+            </ApiReference>
+
+            <ApiReference ComponentName="ToggleGroupItem&lt;TValue&gt;">
+                <ApiParameter Name="Value" Type="TValue?" Default="null">
+                    @L.T("该条目所代表的值。", "The value this item represents.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("该单个条目是否被禁用。", "Whether this individual item is disabled.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到根 <code>&lt;button&gt;</code> 元素上的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            Additional HTML attributes applied to the root <code>&lt;button&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </ApiParameter>
+                    </text>
+                }
+            </ApiReference>
+        </div>
+    </section>
+    </div>
+</div>
+
+@code {
+    private string? singleValue = "center";
+    private List<string> multiValues = new() { "bold" };
+
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

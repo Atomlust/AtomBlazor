@@ -1,0 +1,334 @@
+@namespace AtomBlazor
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<div @ref="_groupRef" class="@CssClass" style="@MergedStyle" @attributes="@InlineStyleMerge.WithoutStyle(AdditionalAttributes)">
+    <CascadingValue Value="this" IsFixed="false">
+        @ChildContent
+    </CascadingValue>
+</div>
+
+@code {
+    /// <summary>
+    /// 要显示的面板。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 面板的方向。
+    /// </summary>
+    [Parameter]
+    public ResizableDirection Direction { get; set; } = ResizableDirection.Horizontal;
+
+    /// <summary>
+    /// 要附加应用的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 一次调整尺寸拖拽完成时调用，携带得到的面板尺寸。
+    /// </summary>
+    /// <remarks>
+    /// 每次拖拽只在松开时触发一次，且仅当尺寸确实发生变化时——按住
+    /// 手柄不移动就松开不算调整尺寸。它刻意不按帧触发：拖拽之所以直接
+    /// 在浏览器里应用，正是为了不产生任何往返开销，而按帧回调会把
+    /// 那部分开销重新引入。
+    /// </remarks>
+    [Parameter]
+    public EventCallback<PanelResizeEventArgs> OnResizeEnd { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用于根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private ElementReference _groupRef;
+    private IJSObjectReference? _jsModule;
+    private DotNetObjectReference<ResizablePanelGroup>? _dotNetRef;
+    private string _groupId = Guid.NewGuid().ToString("N");
+    private bool _jsInitialized;
+    private bool _disposed;
+
+    private List<double> _panelSizes = new();
+    private List<double> _panelDefaultSizes = new();
+    private List<double> _panelMinSizes = new();
+    private List<double> _panelMaxSizes = new();
+    private List<bool> _panelCollapsible = new();
+    private int _panelCount = 0;
+    private int _handleCount = 0;
+
+    internal ResizableDirection GetDirection() => Direction;
+
+    /// <summary>
+    /// 向 JS 拖拽处理程序标识本组。面板会渲染它，处理程序借此解析自身的
+    /// 面板元素，而不会把嵌套组的面板元素也一并拾取。
+    /// </summary>
+    internal string GroupId => _groupId;
+
+    internal int RegisterPanel(double defaultSize, double minSize, double maxSize, bool collapsible = false)
+    {
+        var index = _panelCount++;
+        _panelDefaultSizes.Add(defaultSize);
+        _panelMinSizes.Add(minSize);
+        _panelMaxSizes.Add(maxSize);
+        _panelCollapsible.Add(collapsible);
+
+        if (_panelSizes.Count <= index)
+        {
+            _panelSizes.Add(defaultSize);
+        }
+
+        return index;
+    }
+
+    internal double GetPanelSize(int index)
+    {
+        if (index >= 0 && index < _panelSizes.Count)
+        {
+            return _panelSizes[index];
+        }
+        return index < _panelDefaultSizes.Count ? _panelDefaultSizes[index] : 50;
+    }
+
+    internal int RegisterHandle()
+    {
+        return _handleCount++;
+    }
+
+    /// <summary><paramref name="index"/> 处的面板所使用的元素 id。</summary>
+    /// <remarks>
+    /// 手柄通过 <c>aria-controls</c> 指向它前面的面板，使辅助技术能
+    /// 说清这个分隔条调整的是谁。
+    /// </remarks>
+    internal string PanelElementId(int index) => $"{_groupId}-panel-{index}";
+
+    /// <summary><paramref name="index"/> 处的面板允许的最小尺寸（百分比）。</summary>
+    /// <remarks>可折叠的面板为零：允许它一路合拢到关。</remarks>
+    internal double GetPanelMinSize(int index) =>
+        index >= 0 && index < _panelMinSizes.Count
+            ? (IsPanelCollapsible(index) ? 0 : _panelMinSizes[index])
+            : 0;
+
+    /// <summary><paramref name="index"/> 处的面板允许的最大尺寸（百分比）。</summary>
+    internal double GetPanelMaxSize(int index) =>
+        index >= 0 && index < _panelMaxSizes.Count ? _panelMaxSizes[index] : 100;
+
+    /// <summary>位于 <paramref name="index"/> 的面板是否可被拖到合拢。</summary>
+    internal bool IsPanelCollapsible(int index) =>
+        index >= 0 && index < _panelCollapsible.Count && _panelCollapsible[index];
+
+    /// <summary>
+    /// 将手柄移动 <paramref name="deltaPercent"/>，从它另一侧的面板取走空间。
+    /// 这就是键盘调整尺寸的工作方式：它从不触碰浏览器，因此组件状态才是
+    /// 权威，变更会立即提交。
+    /// </summary>
+    /// <remarks>
+    /// 钳制到两侧邻板都能满足的范围——与拖拽循环用的是同一套边界——因此
+    /// 一次越界的按键会钉在限位上而不是被丢弃。可折叠的面板一旦被压到
+    /// 声明最小值的一半以下就会合拢，与指针行为保持一致。
+    /// </remarks>
+    internal async Task NudgeAsync(int handleIndex, double deltaPercent)
+    {
+        if (handleIndex < 0 || handleIndex + 1 >= _panelSizes.Count)
+        {
+            return;
+        }
+
+        var first = handleIndex;
+        var second = handleIndex + 1;
+        var startFirst = _panelSizes[first];
+        var startSecond = _panelSizes[second];
+
+        var lower = Math.Max(GetPanelMinSize(first) - startFirst, startSecond - GetPanelMaxSize(second));
+        var upper = Math.Min(GetPanelMaxSize(first) - startFirst, startSecond - GetPanelMinSize(second));
+
+        if (lower > upper)
+        {
+            return;
+        }
+
+        var delta = Math.Clamp(deltaPercent, lower, upper);
+        var sizeFirst = SnapCollapse(first, Math.Round(startFirst + delta, 2));
+        var sizeSecond = Math.Round(startFirst + startSecond - sizeFirst, 2);
+
+        if (Math.Abs(sizeFirst - startFirst) < 0.001)
+        {
+            return;
+        }
+
+        _panelSizes[first] = sizeFirst;
+        _panelSizes[second] = sizeSecond;
+        StateHasChanged();
+
+        if (OnResizeEnd.HasDelegate)
+        {
+            await OnResizeEnd.InvokeAsync(new PanelResizeEventArgs { Sizes = _panelSizes.ToArray() });
+        }
+    }
+
+    /// <summary>
+    /// 拖拽循环的合拢吸附：可折叠面板低于声明最小值的一半就归零
+    /// 介于零与该最小值之间的则重新张开到该最小值。
+    /// </summary>
+    private double SnapCollapse(int index, double size)
+    {
+        if (!IsPanelCollapsible(index))
+        {
+            return size;
+        }
+
+        var min = index < _panelMinSizes.Count ? _panelMinSizes[index] : 0;
+
+        if (!(min > 0) || size >= min)
+        {
+            return size;
+        }
+
+        return size < min / 2 ? 0 : min;
+    }
+
+    internal async Task StartResize(int handleIndex, double clientX, double clientY, long pointerId)
+    {
+        if (_jsModule != null && _jsInitialized)
+        {
+            var isHorizontal = Direction == ResizableDirection.Horizontal;
+            // BL0016（.NET 11）：与一致不加 try/catch 守卫——模块已装载且拖拽由
+            // 指针按下驱动，断线时由电路生命周期兜底。
+#pragma warning disable BL0016
+            await _jsModule.InvokeVoidAsync("resizable.startResize", _groupId, handleIndex, clientX, clientY, _panelSizes.ToArray(), pointerId, _panelMinSizes.ToArray(), _panelMaxSizes.ToArray(), isHorizontal, _panelCollapsible.ToArray());
+#pragma warning restore BL0016
+        }
+    }
+
+    /// <summary>
+    /// 应用拖拽中途上报的尺寸。只有回退路径会走这里：拖拽通常由 JS 直接写入
+    /// flex-basis，因为按 pointermove 一次一往返在 Blazor Server 上不可用
+    /// 而组件状态在 <see cref="CommitPanelSizes"/> 之前都是刻意陈旧的。
+    /// </summary>
+    [JSInvokable]
+    public void UpdatePanelSizes(double[] newSizes)
+    {
+        if (_disposed) return;
+
+        // 输入校验
+        if (newSizes == null || newSizes.Length == 0)
+            return;
+
+        // 拒收过大的数组（潜在 DoS）
+        if (newSizes.Length > 100)
+            return;
+
+        for (int i = 0; i < newSizes.Length && i < _panelSizes.Count; i++)
+        {
+            // 跳过非法值
+            if (double.IsNaN(newSizes[i]) || double.IsInfinity(newSizes[i]))
+                continue;
+
+            // 应用最小/最大约束。合拢的面板是合法的零，所以可折叠面板
+            // 的下限是零而不是它的 MinSize。
+            var floor = i < _panelCollapsible.Count && _panelCollapsible[i] && newSizes[i] <= 0
+                ? 0
+                : _panelMinSizes[i];
+            var size = Math.Max(floor, Math.Min(_panelMaxSizes[i], newSizes[i]));
+            _panelSizes[i] = size;
+        }
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// 提交一次完成的拖拽所产生的尺寸并触发 <see cref="OnResizeEnd"/>。这是一次
+    /// 普通拖拽唯一的一次 interop 调用；只有当尺寸发生变化时 JS 才会调用它。
+    /// </summary>
+    [JSInvokable]
+    public async Task CommitPanelSizes(double[] newSizes)
+    {
+        if (_disposed) return;
+
+        UpdatePanelSizes(newSizes);
+
+        if (OnResizeEnd.HasDelegate)
+        {
+            // 上报组件实际渲染出的钳制后尺寸，而不是 JS 提议的值。
+            await OnResizeEnd.InvokeAsync(new PanelResizeEventArgs { Sizes = _panelSizes.ToArray() });
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeJsAsync();
+        }
+    }
+
+    private async Task InitializeJsAsync()
+    {
+        if (_jsInitialized) return;
+
+        try
+        {
+            _jsModule = await ComponentModules.GetCoreAsync(JS); // 有意偏差（记录在案）：此处经 JsModules.GetAsync 直连 resizable.js 独立路径，本仓库统一改走共享 components-core.js barrel（照 Cascader／ScrollToTop 先例）
+            _dotNetRef = DotNetObjectReference.Create(this);
+
+            var isHorizontal = Direction == ResizableDirection.Horizontal;
+            await _jsModule.InvokeVoidAsync("resizable.initializeResizable", _groupRef, _dotNetRef, _groupId, isHorizontal);
+            _jsInitialized = true;
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+        {
+            // Blazor Server 电路断开期间的预期异常
+        }
+        catch (InvalidOperationException)
+        {
+            // 预渲染期间没有 JS interop 可用
+        }
+    }
+
+    /// <summary>
+    /// 组自身的 flex 布局在前、使用者的样式在后，因此传入的 <c>style</c>
+    /// 是叠加而不是替换。
+    /// </summary>
+    /// <remarks>
+    /// 属性展开（splat）过去会覆盖掉 <c>display: flex</c> 与方向，导致面板
+    /// 根本不再排布。
+    /// </remarks>
+    private string? MergedStyle => InlineStyleMerge.Merge(Style, AdditionalAttributes);
+
+    private string Style => Direction == ResizableDirection.Horizontal
+        ? "display: flex; flex-direction: row; height: 100%; width: 100%;"
+        : "display: flex; flex-direction: column; height: 100%; width: 100%;";
+
+    private string CssClass => ClassNames.cn(
+        "atom:overflow-hidden",
+        Class
+    );
+
+    public async ValueTask DisposeAsync()
+    {
+        _disposed = true;
+        if (_jsModule != null && _jsInitialized)
+        {
+            try
+            {
+                await _jsModule.InvokeVoidAsync("resizable.disposeResizable", _groupId);
+            }
+            catch
+            {
+                // 清理时模块可能已被处置
+            }
+
+            try
+            {
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            {
+                // 电路断开期间的预期异常
+            }
+        }
+        _dotNetRef?.Dispose();
+    }
+}

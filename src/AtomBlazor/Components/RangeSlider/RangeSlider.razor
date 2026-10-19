@@ -1,0 +1,497 @@
+@namespace AtomBlazor
+@using Microsoft.JSInterop
+@using System.Globalization
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<div @ref="_trackRef"
+     data-min="@Min.ToString(CultureInfo.InvariantCulture)"
+     data-max="@Max.ToString(CultureInfo.InvariantCulture)"
+     data-step="@Step.ToString(CultureInfo.InvariantCulture)"
+     data-min-range="@MinRange.ToString(CultureInfo.InvariantCulture)"
+     data-start="@StartValue.ToString(CultureInfo.InvariantCulture)"
+     data-end="@EndValue.ToString(CultureInfo.InvariantCulture)"
+     data-disabled="@(Disabled ? "true" : null)"
+     data-orientation="@(IsVertical ? "vertical" : "horizontal")"
+     class="@CssClass"
+     tabindex="-1"
+     @attributes="AdditionalAttributes">
+    @* 轨道背景 *@
+    <div class="@TrackClass">
+        @* 活动范围轨道 *@
+        <div class="@RangeClass"
+             style="@(IsVertical
+                 ? $"bottom: var(--atom-range-start, {StartPercentageValue}); height: var(--atom-range-width, {RangePercentageValue});"
+                 : $"inset-inline-start: var(--atom-range-start, {StartPercentageValue}); width: var(--atom-range-width, {RangePercentageValue});")">
+        </div>
+    </div>
+
+    @* 起点手柄 *@
+    <div data-thumb="start"
+         role="slider"
+         aria-label="@(StartLabel ?? "Range start")"
+         aria-valuemin="@Min"
+         aria-valuemax="@Max"
+         aria-valuenow="@StartValue"
+         aria-disabled="@(Disabled ? "true" : "false")"
+         aria-orientation="@(IsVertical ? "vertical" : "horizontal")"
+         tabindex="@(Disabled ? -1 : 0)"
+         class="@StartThumbClass"
+         style="@(IsVertical ? $"bottom: var(--atom-range-start, {StartPercentageValue});" : $"inset-inline-start: var(--atom-range-start, {StartPercentageValue});")"
+         @onkeydown="@(e => HandleStartKeyDown(e))">
+        @if (ShowTooltips)
+        {
+            <div class="@TooltipClass">@FormatValue(StartValue)</div>
+        }
+    </div>
+
+    @* 终点手柄 *@
+    <div data-thumb="end"
+         role="slider"
+         aria-label="@(EndLabel ?? "Range end")"
+         aria-valuemin="@Min"
+         aria-valuemax="@Max"
+         aria-valuenow="@EndValue"
+         aria-disabled="@(Disabled ? "true" : "false")"
+         aria-orientation="@(IsVertical ? "vertical" : "horizontal")"
+         tabindex="@(Disabled ? -1 : 0)"
+         class="@EndThumbClass"
+         style="@(IsVertical ? $"bottom: var(--atom-range-end, {EndPercentageValue});" : $"inset-inline-start: var(--atom-range-end, {EndPercentageValue});")"
+         @onkeydown="@(e => HandleEndKeyDown(e))">
+        @if (ShowTooltips)
+        {
+            <div class="@TooltipClass">@FormatValue(EndValue)</div>
+        }
+    </div>
+
+    @* 刻度线。垂直滑块把它们放在左侧，因为值提示占了右侧。 *@
+    @if (ShowTickMarks && TickValues != null)
+    {
+        @foreach (var tick in TickValues)
+        {
+            var tickPercent = ((tick - Min) / (Max - Min)) * 100;
+            var tickOffset = tickPercent.ToString("0.##", CultureInfo.InvariantCulture);
+            <div class="@(IsVertical
+                     ? "atom:absolute atom:end-full atom:me-1 atom:h-0.5 atom:w-2 atom:bg-muted-foreground/30"
+                     : "atom:absolute atom:top-4 atom:w-0.5 atom:h-2 atom:bg-muted-foreground/30")"
+                 style="@(IsVertical
+                     ? $"bottom: {tickOffset}%; transform: translateY(50%);"
+                     : $"inset-inline-start: {tickOffset}%; transform: translateX(-50%);")">
+            </div>
+        }
+    }
+</div>
+
+@code {
+    /// <summary>书写方向，当 DirectionProvider 提供时生效。</summary>
+    [CascadingParameter] private DirectionContext? Direction { get; set; }
+
+    private bool IsRtl => DirectionContext.Resolve(Direction);
+
+    private ElementReference _trackRef;
+    private IJSObjectReference? _jsModule;
+    private DotNetObjectReference<RangeSlider>? _dotNetRef;
+    private readonly string _sliderId = Guid.NewGuid().ToString("N");
+    private bool _jsInitialized;
+
+    private double _internalStart;
+    private double _internalEnd;
+
+    /// <summary>
+    /// 获取或设置以元组 (Start, End) 表示的范围值。
+    /// </summary>
+    [Parameter]
+    public (double Start, double End) Value { get; set; }
+
+    /// <summary>
+    /// 值变化时的回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<(double Start, double End)> ValueChanged { get; set; }
+
+    /// <summary>
+    /// 获取或设置默认起点值。
+    /// </summary>
+    [Parameter]
+    public double DefaultStart { get; set; } = 25;
+
+    /// <summary>
+    /// 获取或设置默认终点值。
+    /// </summary>
+    [Parameter]
+    public double DefaultEnd { get; set; } = 75;
+
+    /// <summary>
+    /// 获取或设置最小值。
+    /// </summary>
+    [Parameter]
+    public double Min { get; set; } = 0;
+
+    /// <summary>
+    /// 获取或设置最大值。
+    /// </summary>
+    [Parameter]
+    public double Max { get; set; } = 100;
+
+    /// <summary>
+    /// 获取或设置步长增量。
+    /// </summary>
+    [Parameter]
+    public double Step { get; set; } = 1;
+
+    /// <summary>
+    /// 获取或设置两个手柄之间的最小间距。
+    /// </summary>
+    [Parameter]
+    public double MinRange { get; set; } = 0;
+
+    /// <summary>
+    /// 获取或设置滑块是否禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 获取或设置方向。
+    /// </summary>
+    [Parameter]
+    public RangeSliderOrientation Orientation { get; set; } = RangeSliderOrientation.Horizontal;
+
+    /// <summary>
+    /// 获取或设置是否显示值提示。
+    /// </summary>
+    [Parameter]
+    public bool ShowTooltips { get; set; }
+
+    /// <summary>
+    /// 获取或设置是否显示刻度线。
+    /// </summary>
+    [Parameter]
+    public bool ShowTickMarks { get; set; }
+
+    /// <summary>
+    /// 获取或设置自定义刻度值。
+    /// </summary>
+    [Parameter]
+    public double[]? TickValues { get; set; }
+
+    /// <summary>
+    /// 获取或设置附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取或设置起点手柄的 ARIA 标签。
+    /// </summary>
+    [Parameter]
+    public string? StartLabel { get; set; }
+
+    /// <summary>
+    /// 获取或设置终点手柄的 ARIA 标签。
+    /// </summary>
+    [Parameter]
+    public string? EndLabel { get; set; }
+
+    /// <summary>
+    /// 获取或设置自定义值格式化器。
+    /// </summary>
+    [Parameter]
+    public Func<double, string>? FormatValueFunc { get; set; }
+
+    private bool IsControlled => ValueChanged.HasDelegate;
+    private double StartValue => IsControlled ? Value.Start : _internalStart;
+    private double EndValue => IsControlled ? Value.End : _internalEnd;
+    private double StartPercentage => ((StartValue - Min) / (Max - Min)) * 100;
+    private double EndPercentage => ((EndValue - Min) / (Max - Min)) * 100;
+
+    private string StartPercentageValue => $"{StartPercentage.ToString("0.##", CultureInfo.InvariantCulture)}%";
+    private string EndPercentageValue => $"{EndPercentage.ToString("0.##", CultureInfo.InvariantCulture)}%";
+    private string RangePercentageValue => $"{(EndPercentage - StartPercentage).ToString("0.##", CultureInfo.InvariantCulture)}%";
+
+    protected override void OnInitialized()
+    {
+        _internalStart = DefaultStart;
+        _internalEnd = DefaultEnd;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !Disabled)
+        {
+            await InitializeJsAsync();
+        }
+    }
+
+    private async Task InitializeJsAsync()
+    {
+        if (_jsInitialized) return;
+
+        try
+        {
+            _jsModule = await ComponentModules.GetCoreAsync(JS);
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await _jsModule.InvokeVoidAsync("rangeSlider.initializeRangeSlider", _trackRef, _dotNetRef, _sliderId);
+            _jsInitialized = true;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"初始化范围滑块 JS 失败：{ex.Message}");
+        }
+    }
+
+    [JSInvokable]
+    public async Task UpdateValueFromPercentage(double percentage, string thumb)
+    {
+        if (Disabled) return;
+
+        if (double.IsNaN(percentage) || double.IsInfinity(percentage))
+            return;
+
+        percentage = Math.Max(0, Math.Min(1, percentage));
+        var newValue = Min + (percentage * (Max - Min));
+        newValue = Math.Round(newValue / Step) * Step;
+        newValue = Math.Max(Min, Math.Min(Max, newValue));
+
+        if (thumb == "start")
+        {
+            await SetStartValue(newValue);
+        }
+        else
+        {
+            await SetEndValue(newValue);
+        }
+    }
+
+    [JSInvokable]
+    public async Task HandleTrackClick(double percentage)
+    {
+        if (Disabled) return;
+
+        if (double.IsNaN(percentage) || double.IsInfinity(percentage))
+            return;
+
+        percentage = Math.Max(0, Math.Min(1, percentage));
+        var clickValue = Min + (percentage * (Max - Min));
+
+        // 判断哪个手柄更近
+        var distToStart = Math.Abs(clickValue - StartValue);
+        var distToEnd = Math.Abs(clickValue - EndValue);
+
+        if (distToStart <= distToEnd)
+        {
+            await UpdateValueFromPercentage(percentage, "start");
+        }
+        else
+        {
+            await UpdateValueFromPercentage(percentage, "end");
+        }
+    }
+
+    private async Task SetStartValue(double value)
+    {
+        // 强制 MinRange 且不越过终点
+        var maxStart = EndValue - MinRange;
+        value = Math.Min(value, maxStart);
+        value = Math.Max(Min, value);
+
+        if (value == StartValue) return;
+
+        if (IsControlled)
+        {
+            await ValueChanged.InvokeAsync((value, EndValue));
+        }
+        else
+        {
+            _internalStart = value;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SetEndValue(double value)
+    {
+        // 强制 MinRange 且不越过起点
+        var minEnd = StartValue + MinRange;
+        value = Math.Max(value, minEnd);
+        value = Math.Min(Max, value);
+
+        if (value == EndValue) return;
+
+        if (IsControlled)
+        {
+            await ValueChanged.InvokeAsync((StartValue, value));
+        }
+        else
+        {
+            _internalEnd = value;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleStartKeyDown(KeyboardEventArgs e)
+    {
+        if (Disabled) return;
+
+        var largeStep = (Max - Min) / 10;
+
+        switch (e.Key)
+        {
+            case "ArrowUp":
+                await SetStartValue(StartValue + Step);
+                break;
+            case "ArrowDown":
+                await SetStartValue(StartValue - Step);
+                break;
+            // 水平方向键沿轨道绘制方向移动，所以在从右到左的滑块里会互换。
+            // Up 与 Down 无论方向如何都保持原义。
+            case "ArrowRight":
+                await SetStartValue(StartValue + (IsRtl ? -Step : Step));
+                break;
+            case "ArrowLeft":
+                await SetStartValue(StartValue + (IsRtl ? Step : -Step));
+                break;
+            case "PageUp":
+                await SetStartValue(StartValue + largeStep);
+                break;
+            case "PageDown":
+                await SetStartValue(StartValue - largeStep);
+                break;
+            case "Home":
+                await SetStartValue(Min);
+                break;
+            case "End":
+                await SetStartValue(EndValue - MinRange);
+                break;
+        }
+    }
+
+    private async Task HandleEndKeyDown(KeyboardEventArgs e)
+    {
+        if (Disabled) return;
+
+        var largeStep = (Max - Min) / 10;
+
+        switch (e.Key)
+        {
+            case "ArrowUp":
+                await SetEndValue(EndValue + Step);
+                break;
+            case "ArrowDown":
+                await SetEndValue(EndValue - Step);
+                break;
+            // 水平方向键沿轨道绘制方向移动，所以在从右到左的滑块里会互换。
+            // Up 与 Down 无论方向如何都保持原义。
+            case "ArrowRight":
+                await SetEndValue(EndValue + (IsRtl ? -Step : Step));
+                break;
+            case "ArrowLeft":
+                await SetEndValue(EndValue + (IsRtl ? Step : -Step));
+                break;
+            case "PageUp":
+                await SetEndValue(EndValue + largeStep);
+                break;
+            case "PageDown":
+                await SetEndValue(EndValue - largeStep);
+                break;
+            case "Home":
+                await SetEndValue(StartValue + MinRange);
+                break;
+            case "End":
+                await SetEndValue(Max);
+                break;
+        }
+    }
+
+    private string FormatValue(double value)
+    {
+        if (FormatValueFunc != null)
+            return FormatValueFunc(value);
+
+        return value.ToString("F0");
+    }
+
+    /// <summary>
+    /// 滑块是否自下而上而非自左向右运行。
+    /// </summary>
+    /// <remarks>
+    /// <see cref="Orientation"/> 曾被声明却无处读取：标记、内联偏移与拖拽数学全是水平的
+    /// 于是被要求垂直渲染的滑块按普通水平滑块呈现。
+    /// </remarks>
+    private bool IsVertical => Orientation == RangeSliderOrientation.Vertical;
+
+    // 垂直滑块必须堆叠在交叉轴上：轨道带有 `grow`，它跟随 flex 主轴
+    // 因此行容器会把 8px 的轨道横向拉伸到整个容器宽度。
+    private string CssClass => ClassNames.cn(
+        IsVertical
+            ? "atom:relative atom:flex atom:flex-col atom:h-full atom:min-h-40 atom:w-5 atom:shrink-0 atom:touch-none atom:select-none atom:items-center"
+            : "atom:relative atom:flex atom:w-full atom:touch-none atom:select-none atom:items-center",
+        Disabled ? "atom:opacity-50 atom:cursor-not-allowed" : "atom:cursor-pointer",
+        Class
+    );
+
+    private string TrackClass => IsVertical
+        ? "atom:relative atom:w-2 atom:h-full atom:grow atom:overflow-hidden atom:rounded-full atom:bg-secondary"
+        : "atom:relative atom:h-2 atom:w-full atom:grow atom:overflow-hidden atom:rounded-full atom:bg-secondary";
+
+    private string RangeClass => IsVertical
+        ? "atom:absolute atom:w-full atom:bg-primary"
+        : "atom:absolute atom:h-full atom:bg-primary";
+
+    private string ThumbBaseClass => ClassNames.cn(
+        "atom:absolute atom:block atom:h-5 atom:w-5 atom:rounded-full atom:border-2 atom:border-primary atom:bg-background atom:ring-offset-background atom:transition-colors",
+        "atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2",
+        "atom:disabled:pointer-events-none atom:disabled:opacity-50",
+        IsVertical
+            ? "atom:-translate-x-1/2 atom:left-1/2 atom:translate-y-1/2"
+            : "atom:-translate-x-1/2 atom:top-1/2 atom:-translate-y-1/2",
+        Disabled ? "" : "atom:cursor-grab atom:active:cursor-grabbing"
+    );
+
+    private string StartThumbClass => ClassNames.cn(
+        ThumbBaseClass,
+        "atom:z-[1]"
+    );
+
+    private string EndThumbClass => ClassNames.cn(
+        ThumbBaseClass,
+        "atom:z-[2]"
+    );
+
+    private string TooltipClass => ClassNames.cn(
+        IsVertical
+            ? "atom:absolute atom:start-full atom:ms-2 atom:top-1/2 atom:-translate-y-1/2"
+            : "atom:absolute atom:-top-8 atom:left-1/2 atom:-translate-x-1/2",
+        "atom:px-2 atom:py-1 atom:text-xs atom:bg-primary atom:text-primary-foreground atom:rounded",
+        "atom:whitespace-nowrap"
+    );
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_jsModule != null && _jsInitialized)
+        {
+            try
+            {
+                await _jsModule.InvokeVoidAsync("rangeSlider.disposeRangeSlider", _sliderId);
+            }
+            catch
+            {
+                // 清理时可能已被释放
+            }
+
+            try
+            {
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            {
+                // 电路断开期间属预期情况
+            }
+        }
+        _dotNetRef?.Dispose();
+    }
+}

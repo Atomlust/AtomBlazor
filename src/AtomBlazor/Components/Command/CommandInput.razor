@@ -1,0 +1,298 @@
+@namespace AtomBlazor
+@implements IDisposable
+@inject IJSRuntime JSRuntime
+
+<div class="@CssClass" @attributes="AdditionalAttributes">
+    <svg xmlns="http://www.w3.org/2000/svg"
+         width="24"
+         height="24"
+         viewBox="0 0 24 24"
+         fill="none"
+         stroke="currentColor"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         class="atom:me-2 atom:h-4 atom:w-4 atom:shrink-0 atom:opacity-50">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+    </svg>
+    <input @ref="_inputRef"
+           id="@_inputId"
+           type="text"
+           placeholder="@Placeholder"
+           disabled="@IsDisabled"
+           value="@_displayValue"
+           @oninput="HandleInput"
+           @onkeydown="HandleKeyDown"
+           class="atom:flex atom:h-11 atom:w-full atom:rounded-md atom:bg-transparent atom:py-3 atom:text-sm atom:outline-none atom:placeholder:text-muted-foreground atom:disabled:cursor-not-allowed atom:disabled:opacity-50 atom:ms-2"
+           role="combobox"
+           aria-autocomplete="list"
+           aria-expanded="true"
+           aria-controls="@Context?.ListId" />
+</div>
+
+@code {
+    private static readonly string[] guardSuppressedEvents = ["input", "keydown"];
+
+    private CancellationTokenSource? _debounceCts;
+    private string _displayValue = string.Empty;
+    private bool _isDebouncing;
+
+    [CascadingParameter]
+    public CommandContext? Context { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到输入容器的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取或设置输入元素的 <c>id</c>。未设置时自动生成。
+    /// </summary>
+    /// <remarks>
+    /// 希望在弹层打开时聚焦输入框的宿主，会把同一个 id 作为弹层的 <c>AutoFocusId</c> 传入，
+    /// 让聚焦发生在揭示弹层的那次调用内部，而不是其后的一次往返里。
+    /// </remarks>
+    [Parameter]
+    public string? Id { get; set; }
+
+    private string _inputId = string.Empty;
+
+    /// <summary>
+    /// 获取或设置输入框的占位文本。
+    /// </summary>
+    [Parameter]
+    public string Placeholder { get; set; } = "Type a command or search...";
+
+    /// <summary>
+    /// 获取或设置输入框是否禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 输入框是否禁用——自身禁用，或整个命令禁用。
+    /// </summary>
+    private bool IsDisabled => Disabled || Context?.Disabled == true;
+
+    /// <summary>
+    /// 获取或设置输入框渲染时是否自动聚焦。
+    /// </summary>
+    [Parameter]
+    public bool AutoFocus { get; set; }
+
+    /// <summary>
+    /// 获取或设置是否禁用防抖。为 false（默认）时输入会被防抖。
+    /// </summary>
+    [Parameter]
+    public bool DisableDebounce { get; set; }
+
+    /// <summary>
+    /// 获取或设置防抖延迟（毫秒）。默认 500 毫秒。
+    /// </summary>
+    [Parameter]
+    public int DebounceInterval { get; set; } = 500;
+
+    private ElementReference _inputRef;
+    private bool _previousAutoFocus;
+    private bool _shouldFocus;
+    private IJSObjectReference? _guardModule;
+    private readonly string _guardId = Guid.NewGuid().ToString("N");
+
+    /// <summary>
+    /// 聚焦输入元素。
+    /// </summary>
+    public async Task FocusAsync()
+    {
+        try
+        {
+            await _inputRef.FocusAsync();
+        }
+        catch
+        {
+            // 忽略聚焦错误（元素可能尚未就绪）
+        }
+    }
+
+    /// <summary>
+    /// 获取输入容器计算后的 CSS 类。
+    /// </summary>
+    // 聚焦环属于整行，而不属于行内的那个输入框。
+    //
+    // 挂在输入框上时它画出了第三个方框：一个套在有边框的整行里面、而这个整行又套在有边框
+    // 的弹层里面的环，孤零零地浮在两者之外。而且这不是一时的观感——combobox 每次打开都会
+    // 聚焦其搜索框，于是下拉列表显示的整个期间这个环都在亮着，标记着唯一可能持有焦点的元素。
+    //
+    // focus-within 把它挪到整行的全宽上，读起来是"搜索区域处于活动状态"，而不是方框套方框。
+    // ring-inset 让它收进行自身的边界，而不是漫过弹层的边框。
+    //
+    // rounded-t-md 是阻止这个环把弹层顶部圆角削方的原因。内嵌的 ring 是一条内阴影，
+    // 内阴影跟随自己元素的圆角——而非祖先元素的圆角——所以一个方角整行会在弹层的圆角上
+    // 直接画出方角。圆角能对上，是因为 rounded-md 正是弹层自己的圆角。
+    //
+    // 环显示时下边框转为透明，让搜索框与列表之间的分隔是这个环，而不是一条 2px 的环叠在
+    // 1px 的线上。
+    private string CssClass => ClassNames.cn(
+        "atom:flex atom:items-center atom:rounded-t-md atom:border-b atom:border-border atom:px-3",
+        "atom:focus-within:ring-2 atom:focus-within:ring-ring atom:focus-within:ring-inset atom:focus-within:border-b-transparent",
+        Class
+    );
+
+    protected override void OnParametersSet()
+    {
+        _inputId = Id ?? (_inputId.Length > 0 && _inputId.StartsWith("command-input-", StringComparison.Ordinal)
+            ? _inputId
+            : $"command-input-{Guid.NewGuid():N}");
+
+        // 检查 AutoFocus 是否从 false 变为 true
+        if (AutoFocus && !_previousAutoFocus)
+        {
+            _shouldFocus = true;
+        }
+        _previousAutoFocus = AutoFocus;
+
+        // 未处于防抖进行时，从上下文同步显示值
+        if (!_isDebouncing)
+        {
+            _displayValue = Context?.SearchQuery ?? string.Empty;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // HandleInput/HandleKeyDown 走 Blazor 事件委托，所以守卫在元素层面而不是
+            // 由组件检查标志位来抑制事件：否则组合进行中的输入会把 _displayValue 写回去，
+            // 而输入法还掌握着按键时回车/方向键就会选中一个列表项。
+            try
+            {
+                _guardModule = await ComponentModules.GetCoreAsync(JSRuntime);
+                await _guardModule.InvokeVoidAsync(
+"compositionGuard.attach", _inputRef, _guardId, new { suppress = guardSuppressedEvents });
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            {
+                // 电路断开时属于预期情况
+            }
+            catch (InvalidOperationException)
+            {
+                // 预渲染阶段 JS interop 不可用
+            }
+        }
+
+        // AutoFocus 变为 true 时聚焦（首渲染或弹层打开时均可能）
+        if (_shouldFocus)
+        {
+            _shouldFocus = false;
+            try
+            {
+                // 不做延迟。这段代码在把输入框送上屏幕的那次渲染被确认之后运行，
+                // 元素已经在那里了。它过去带的 50ms 延时是对门户时序的猜测，
+                // 而门户场景现在改为在打开调用内部经 AutoFocusId 聚焦。
+                await _inputRef.FocusAsync();
+            }
+            catch
+            {
+                // 忽略聚焦错误
+            }
+        }
+    }
+
+    private void HandleInput(ChangeEventArgs args)
+    {
+        var value = args.Value?.ToString() ?? string.Empty;
+        _displayValue = value;
+
+        if (DisableDebounce)
+        {
+            Context?.SetSearchQuery(value);
+        }
+        else
+        {
+            _isDebouncing = true;
+            DebounceSetSearchQuery(value);
+        }
+    }
+
+    private async void DebounceSetSearchQuery(string value)
+    {
+        _debounceCts?.Cancel();
+        _debounceCts?.Dispose();
+        _debounceCts = new CancellationTokenSource();
+
+        try
+        {
+            await Task.Delay(DebounceInterval, _debounceCts.Token);
+
+            _isDebouncing = false;
+            Context?.SetSearchQuery(value);
+        }
+        catch (TaskCanceledException)
+        {
+            // 计时器被取消——由新按键或释放触发。
+        }
+        catch (Exception)
+        {
+            // async void：无人 await 这个方法，逃逸的异常没有调用方可达，
+            // Blazor Server 会将其视为致命错误——电路关闭，用户看到重连遮罩。
+            // 这个方法做的一切都是尽力而为，没有哪一件值得付出那种代价。
+        }
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs args)
+    {
+        if (Context == null) return;
+
+        switch (args.Key)
+        {
+            case "ArrowDown":
+                await Context.MoveFocusAsync(1);
+                break;
+            case "ArrowUp":
+                await Context.MoveFocusAsync(-1);
+                break;
+            case "Home":
+                await Context.FocusFirstAsync();
+                break;
+            case "End":
+                await Context.FocusLastAsync();
+                break;
+            case "Enter":
+                await Context.SelectFocusedItemAsync();
+                break;
+        }
+    }
+
+    public void Dispose()
+    {
+        _debounceCts?.Cancel();
+        _debounceCts?.Dispose();
+        _ = DisposeGuardAsync();
+        GC.SuppressFinalize(this);
+    }
+
+    private async Task DisposeGuardAsync()
+    {
+        if (_guardModule == null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _guardModule.InvokeVoidAsync("compositionGuard.detach", _guardId);
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or JSException or TaskCanceledException or ObjectDisposedException)
+        {
+            // 电路断开时属于预期情况
+        }
+    }
+}

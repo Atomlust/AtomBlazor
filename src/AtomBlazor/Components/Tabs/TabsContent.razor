@@ -1,0 +1,52 @@
+@namespace AtomBlazor
+
+@*
+    带样式的 TabsContent 组件。
+    以 shadcn/ui 样式包裹 TabsContent 基元。
+*@
+
+<AtomBlazor.Primitives.TabsContent Value="@Value"
+                                            ForceMount="@ForceMount"
+                                            class="@CssClass"
+                                            @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.TabsContent>
+
+@code {
+    /// <summary>
+    /// 标识本内容面板的值。
+    /// 必须与对应 TabsTrigger 的 Value 一致。
+    /// </summary>
+    [Parameter, EditorRequired]
+    public string Value { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 是否即使在非激活状态下也强制挂载内容。
+    /// </summary>
+    [Parameter]
+    public bool ForceMount { get; set; } = false;
+
+    /// <summary>
+    /// 本标签页激活时要渲染的子内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 要应用到标签页内容的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string CssClass => ClassNames.cn(
+        "atom:mt-2 atom:ring-offset-background atom:focus-visible:outline-none atom:focus-visible:ring-2",
+        "atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2",
+        Class
+    );
+}

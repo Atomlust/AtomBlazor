@@ -1,0 +1,302 @@
+@page "/primitives/slider"
+<PageTitle>@L.T("Slider 滑块原语 - Atom BlazorUI", "Slider Primitive - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Slider 滑块原语", "Slider Primitive")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("无头、无样式的滑块原语，支持键盘导航与指针拖拽。", "Headless, unstyled slider primitive with keyboard navigation and pointer drag support.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基础滑块", "Basic Slider")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("由 Track、Range 与 Thumb 子组件组合而成的可组合滑块。", "A composable slider with Track, Range, and Thumb sub-components.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <AtomBlazor.Primitives.SliderPrimitive
+                    @bind-Value="sliderValue"
+                    Min="0" Max="100" Step="1"
+                    style="position: relative; display: flex; width: 100%; touch-action: none; user-select: none; align-items: center; height: 20px; cursor: pointer;">
+                    <AtomBlazor.Primitives.SliderTrack
+                        style="position: relative; height: 8px; width: 100%; overflow: hidden; border-radius: 9999px; background-color: var(--secondary);">
+                        <AtomBlazor.Primitives.SliderRange
+                            style="position: absolute; height: 100%; background-color: var(--primary);" />
+                    </AtomBlazor.Primitives.SliderTrack>
+                    <AtomBlazor.Primitives.SliderThumb
+                        style="position: absolute; display: block; height: 20px; width: 20px; border-radius: 9999px; border: 2px solid var(--primary); background: var(--background); transform: translateX(-50%);" />
+                </AtomBlazor.Primitives.SliderPrimitive>
+                <p class="text-sm text-muted-foreground">@L.F("值：{0}", "Value: {0}", sliderValue)</p>
+            </div>
+
+            <CodeBlock Source="Primitives/Slider/basic.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("自定义范围", "Custom Range")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("带有自定义最小/最大值与步长值的滑块。", "Slider with custom min/max and step values.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <AtomBlazor.Primitives.SliderPrimitive
+                    @bind-Value="temperatureValue"
+                    Min="0" Max="40" Step="0.5"
+                    style="position: relative; display: flex; width: 100%; touch-action: none; user-select: none; align-items: center; height: 20px; cursor: pointer;">
+                    <AtomBlazor.Primitives.SliderTrack
+                        style="position: relative; height: 8px; width: 100%; overflow: hidden; border-radius: 9999px; background-color: var(--secondary);">
+                        <AtomBlazor.Primitives.SliderRange
+                            style="position: absolute; height: 100%; background-color: var(--primary);" />
+                    </AtomBlazor.Primitives.SliderTrack>
+                    <AtomBlazor.Primitives.SliderThumb
+                        style="position: absolute; display: block; height: 20px; width: 20px; border-radius: 9999px; border: 2px solid var(--primary); background: var(--background); transform: translateX(-50%);" />
+                </AtomBlazor.Primitives.SliderPrimitive>
+                <p class="text-sm text-muted-foreground">
+                    @if (L.IsChinese)
+                    {
+                        <text>温度：@temperatureValue&deg;C（步长：0.5，范围：0-40）</text>
+                    }
+                    else
+                    {
+                        <text>Temperature: @temperatureValue&deg;C (step: 0.5, range: 0-40)</text>
+                    }
+                </p>
+            </div>
+
+            <CodeBlock Source="Primitives/Slider/custom-range.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("禁用滑块", "Disabled Slider")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("一个已禁用的滑块，无法与之交互。", "A disabled slider that cannot be interacted with.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <AtomBlazor.Primitives.SliderPrimitive
+                    Value="30" Disabled="true"
+                    style="position: relative; display: flex; width: 100%; touch-action: none; user-select: none; align-items: center; height: 20px; opacity: 0.5; cursor: not-allowed;">
+                    <AtomBlazor.Primitives.SliderTrack
+                        style="position: relative; height: 8px; width: 100%; overflow: hidden; border-radius: 9999px; background-color: var(--secondary);">
+                        <AtomBlazor.Primitives.SliderRange
+                            style="position: absolute; height: 100%; background-color: var(--primary);" />
+                    </AtomBlazor.Primitives.SliderTrack>
+                    <AtomBlazor.Primitives.SliderThumb
+                        style="position: absolute; display: block; height: 20px; width: 20px; border-radius: 9999px; border: 2px solid var(--primary); background: var(--background); transform: translateX(-50%);" />
+                </AtomBlazor.Primitives.SliderPrimitive>
+            </div>
+
+            <CodeBlock Source="Primitives/Slider/disabled.txt" />
+        </section>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        手柄元素上带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="slider"</code>，供屏幕阅读器识别
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">role="slider"</code> on the thumb element for screen readers
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuenow</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuemin</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuemax</code> 用于传达当前值与范围
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuenow</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuemin</code>, and <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuemax</code> convey the current value and range
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-orientation</code> 设为 "horizontal" 或 "vertical"
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-orientation</code> set to "horizontal" or "vertical"
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled</code> 向辅助技术传达禁用状态
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled</code> conveys the disabled state to assistive technology
+                    </text>
+                }
+            </AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("按一个步长增大/减小数值", "Increase/decrease value by one step"))">
+                <Kbd>ArrowRight</Kbd> / <Kbd>ArrowLeft</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("按一个步长增大/减小数值", "Increase/decrease value by one step"))">
+                <Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("按范围的 10% 增大/减小数值", "Increase/decrease value by 10% of range"))">
+                <Kbd>PageUp</Kbd> / <Kbd>PageDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("跳到最小值/最大值", "Jump to minimum/maximum value"))">
+                <Kbd>Home</Kbd> / <Kbd>End</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件的属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="Slider">
+                <ApiParameter Name="Value" Type="double?" Default="null">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            滑块当前的值（受控模式）。支持用 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code> 双向绑定。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Current slider value (controlled mode). Supports two-way binding with <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code>.
+                        </text>
+                    }
+                </ApiParameter>
+                <ApiParameter Name="DefaultValue" Type="double" Default="0">
+                    @L.T("非受控模式下的默认值。", "Default value for uncontrolled mode.")
+                </ApiParameter>
+                <ApiParameter Name="Min" Type="double" Default="0">
+                    @L.T("最小值。", "Minimum value.")
+                </ApiParameter>
+                <ApiParameter Name="Max" Type="double" Default="100">
+                    @L.T("最大值。", "Maximum value.")
+                </ApiParameter>
+                <ApiParameter Name="Step" Type="double" Default="1">
+                    @L.T("键盘与指针交互的步长增量。", "Step increment for keyboard and pointer interactions.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("滑块是否被禁用。", "Whether the slider is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="Orientation" Type="SliderOrientation" Default="AtomBlazor.SliderOrientation.Horizontal">
+                    @L.T("滑块的方向。会影响键盘导航与布局。", "Orientation of the slider. Affects keyboard navigation and layout.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            应用到根 <code>&lt;div&gt;</code> 元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="SliderTrack">
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            在轨道内部渲染的内容（通常是一个 <code class="text-xs bg-muted px-1 py-0.5 rounded">SliderRange</code>）。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Content rendered inside the track (typically a <code class="text-xs bg-muted px-1 py-0.5 rounded">SliderRange</code>).
+                        </text>
+                    }
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            应用到根 <code>&lt;div&gt;</code> 元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="SliderRange">
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @L.T("额外的 HTML 属性。范围的宽度与位置会自动计算。", "Additional HTML attributes. The range width/position is computed automatically.")
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="SliderThumb">
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("可选内容，渲染在手柄内部。", "Optional content rendered inside the thumb.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            应用到组件根元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private double sliderValue = 50;
+    private double temperatureValue = 22;
+}

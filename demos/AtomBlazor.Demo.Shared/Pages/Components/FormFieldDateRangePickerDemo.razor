@@ -1,0 +1,265 @@
+@page "/components/form-field-date-range-picker"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("FormFieldDateRangePicker 日期范围字段 - Atom BlazorUI", "FormFieldDateRangePicker Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">FormFieldDateRangePicker</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("带内置标签、辅助文本与错误提示的 DateRangePicker 表单字段封装。", "A form field wrapper for DateRangePicker with built-in label, helper text, and error messages.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带标签与辅助文本的日期范围选择器。", "A date range picker with a label and helper text.")
+            </p>
+        </div>
+        <div class="max-w-lg">
+            <FormFieldDateRangePicker AriaLabel="@(L.T("日期范围", "Date range"))" @bind-Value="_dateRange"
+                                       Label="@(L.T("日期范围", "Date range"))"
+                                       HelperText="@(L.T("选择开始日期与结束日期。", "Select a start and end date."))" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("已选择：", "Selected:")</p>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm font-mono">@(_dateRange is not null ? $"{_dateRange.Start:d} – {_dateRange.End:d}（{_dateRange.Days} 天）" : "（无）")</p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm font-mono">@(_dateRange is not null ? $"{_dateRange.Start:d} – {_dateRange.End:d} ({_dateRange.Days} days)" : "(none)")</p>
+                        </text>
+}
+        </div>
+        <CodeBlock Source="Components/FormFieldDateRangePicker/basic.txt" />
+    </div>
+
+    <!-- With Constraints -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("设置限制条件", "With Constraints")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">MinDays</code>、
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">MaxDays</code>、
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">MinDate</code> 和
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">MaxDate</code> 限定可选范围。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">MinDays</code>,
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">MaxDays</code>,
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">MinDate</code>, and
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">MaxDate</code> to restrict the range.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-lg">
+            <FormFieldDateRangePicker @bind-Value="_vacationRange"
+                                       Label="@(L.T("度假日期", "Vacation dates"))"
+                                       HelperText="@(L.T("从今天开始，选择 3 到 14 天。", "Select between 3 and 14 days, starting from today."))"
+                                       MinDate="DateTime.Today"
+                                       MinDays="3"
+                                       MaxDays="14" />
+        </div>
+        <CodeBlock Source="Components/FormFieldDateRangePicker/constraints.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个处于禁用状态的日期范围选择器表单字段。", "A disabled date range picker form field.")
+            </p>
+        </div>
+        <div class="max-w-lg">
+            <FormFieldDateRangePicker Label="@(L.T("报表周期", "Report period"))"
+                                       HelperText="@(L.T("已锁定到当前季度。", "Locked to the current quarter."))"
+                                       Disabled="true" />
+        </div>
+        <CodeBlock Source="Components/FormFieldDateRangePicker/disabled.txt" />
+    </div>
+
+    <!-- Validation with ErrorText -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("使用 ErrorText 校验", "Validation with ErrorText")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    在 EditForm 之外做校验时，用 <code class="text-xs bg-muted px-1 py-0.5 rounded">ErrorText</code> 手动指定错误信息。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    For validation outside an EditForm, use <code class="text-xs bg-muted px-1 py-0.5 rounded">ErrorText</code> for manual validation.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-lg">
+            <FormFieldDateRangePicker Value="_validatedRange"
+                                       ValueChanged="OnValidatedRangeChanged"
+                                       Label="@(L.T("预订日期", "Booking dates"))"
+                                       HelperText="@(L.T("必填。选择入住与退房日期。", "Required. Select your check-in and check-out dates."))"
+                                       ErrorText="@_rangeError" />
+            <div class="mt-3">
+                <Button OnClick="ValidateRange">@L.T("提交", "Submit")</Button>
+            </div>
+            @if (_rangeSubmitted)
+            {
+                <div class="mt-4 rounded-lg border border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800 p-4">
+                    <p class="text-sm font-medium text-green-800 dark:text-green-200">
+                        @L.F("已预订：{0} – {1}", "Booked: {0} – {1}", _validatedRange!.Start.ToString("d"), _validatedRange!.End.ToString("d"))
+                    </p>
+                </div>
+            }
+        </div>
+        <CodeBlock Source="Components/FormFieldDateRangePicker/validation.txt" />
+    </div>
+
+    <section class="space-y-4" data-testid="editform-validation">
+        <h2 class="text-2xl font-semibold">@L.T("EditForm 校验", "EditForm validation")</h2>
+        <p>@L.T("双向绑定会自动提供 ValueExpression。使用显式回调时，请提供该表达式以标识模型字段。手工错误仍可使用 ErrorText。", "Two-way binding supplies ValueExpression automatically. With explicit callbacks, supply the expression to identify the model field. ErrorText remains available for manual errors.")</p>
+        <EditForm Model="validationModel" FormName="FormFieldDateRangePickerValidation">
+    <DataAnnotationsValidator />
+    <FormFieldDateRangePicker @bind-Value="validationModel.Value" Label="@(L.T("出行日期", "Travel dates"))" AriaLabel="@(L.T("出行日期", "Travel dates"))" />
+    <Button Type="ButtonType.Submit" Class="mt-3">@L.T("校验所选内容", "Validate selection")</Button>
+</EditForm>
+        <CodeBlock Source="Components/FormFieldDateRangePicker/editform.txt" />
+    </section>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("标签与日期范围选择器在视觉上关联", "Label visually associated with the date range picker")</AccessibilityItem>
+            <AccessibilityItem>@L.T("描述通过 aria-describedby 关联", "Description linked via aria-describedby")</AccessibilityItem>
+        </AriaAttributes>
+            <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可用的表单控件之间移动", "Move between enabled form controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("打开选择器，或激活当前聚焦的选择器按钮", "Open the picker or activate a focused picker button"))"><Kbd>Enter</Kbd> / <Kbd>Space</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭当前浮层", "Close the active popup"))"><Kbd>Escape</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="FormFieldDateRangePicker">
+                <ApiParameter Name="ValueExpression" Type="Expression&lt;Func&lt;DateRange?&gt;&gt;?" Default="null">@L.T("标识 EditForm 中的字段。由 @bind-Value 自动提供；用于字段通知与校验信息。", "Identifies the EditForm field. Supplied by @bind-Value; enables field notifications and validation messages.")</ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">@L.T("转发给交互控件或分组的可读名称。", "Accessible name forwarded to the interactive control or group.")</ApiParameter>
+                <ApiParameter Name="Label" Type="string?" Default="null">@L.T("标签文本。", "The label text.")</ApiParameter>
+                <ApiParameter Name="HelperText" Type="string?" Default="null">@L.T("控件下方的辅助文本。", "Helper text below the control.")</ApiParameter>
+                <ApiParameter Name="ErrorText" Type="string?" Default="null">@L.T("手动错误文本覆盖。", "Manual error text override.")</ApiParameter>
+                <ApiParameter Name="Value" Type="DateRange?" Default="null">@L.T("所选的日期范围。使用 @bind-Value 进行双向绑定。", "The selected date range. Use @bind-Value for two-way binding.")</ApiParameter>
+                <ApiParameter Name="ValueChanged" Type="EventCallback&lt;DateRange?&gt;">@L.T("范围发生变化时的回调。", "Callback when the range changes.")</ApiParameter>
+                <ApiParameter Name="MinDate" Type="DateTime?" Default="null">@L.T("可选择的最小日期。", "Minimum selectable date.")</ApiParameter>
+                <ApiParameter Name="MaxDate" Type="DateTime?" Default="null">@L.T("可选择的最大日期。", "Maximum selectable date.")</ApiParameter>
+                <ApiParameter Name="MinDays" Type="int?" Default="null">@L.T("范围的最少天数。", "Minimum days in the range.")</ApiParameter>
+                <ApiParameter Name="MaxDays" Type="int?" Default="null">@L.T("范围的最多天数。", "Maximum days in the range.")</ApiParameter>
+                <ApiParameter Name="ShowTwoMonths" Type="bool" Default="true">@L.T("并排显示两个月份。", "Show two months side by side.")</ApiParameter>
+                <ApiParameter Name="ShowPresets" Type="bool" Default="true">@L.T("显示快捷预设。", "Show quick-pick presets.")</ApiParameter>
+                <ApiParameter Name="ShowButtons" Type="bool" Default="true">@L.T("显示 Clear 与 Apply 按钮。为 false 时，选完的范围会自动应用。", "Show the Clear and Apply buttons. When false, completed selections are applied automatically.")</ApiParameter>
+                <ApiParameter Name="AutoApply" Type="bool" Default="false">@L.T("一旦选出完整范围，立即应用所选并关闭浮层。", "Apply the selection and close the popover as soon as a complete range is selected.")</ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("选择器是否被禁用。", "Whether the picker is disabled.")</ApiParameter>
+                <ApiParameter Name="InputClass" Type="string?" Default="null">@L.T("内部触发按钮的 CSS 类。", "CSS classes for the inner trigger.")</ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private readonly ValidationModel validationModel = new();
+
+    protected override void OnParametersSet()
+    {
+        validationModel.L = L;
+    }
+
+    private sealed class ValidationModel : IValidatableObject
+    {
+        /// <summary>显示语言快照（由所属组件同步下发）。</summary>
+        public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+        public DateRange? Value { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (Value is null)
+            {
+                yield return new ValidationResult(L.T("请做出选择。", "Please make a selection."), [nameof(Value)]);
+            }
+        }
+    }
+
+    private DateRange? _dateRange;
+    private DateRange? _vacationRange;
+    private DateRange? _validatedRange;
+    private string? _rangeError;
+    private bool _rangeSubmitted;
+
+    private void OnValidatedRangeChanged(DateRange? value)
+    {
+        _validatedRange = value;
+        _rangeError = null;
+        _rangeSubmitted = false;
+    }
+
+    private void ValidateRange()
+    {
+        _rangeSubmitted = false;
+
+        if (_validatedRange is null)
+        {
+            _rangeError = L.T("请选择一个日期范围。", "Please select a date range.");
+            return;
+        }
+
+        _rangeError = null;
+        _rangeSubmitted = true;
+    }
+}

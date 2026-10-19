@@ -1,0 +1,23 @@
+@using AtomBlazor.Primitives.Pivot
+
+@* PivotBuilder returns the cross-tabulation on its own: two trees of headings and the
+   values where they cross. No markup, no colours, no widths. *@
+@code {
+    private static void Dump(IEnumerable<Sale> sales)
+    {
+        var table = PivotBuilder.Build(
+            sales,
+            [new PivotField<Sale>("country", "Country", s => s.Country)],
+            [new PivotField<Sale>("quarter", "Quarter", s => s.Quarter)],
+            [new PivotMeasure<Sale>("sales", "Sales", AggregateFunction.Sum, s => s.Amount)],
+            PivotTotals.Grand);
+
+        foreach (var row in table.RowLeaves)
+        {
+            foreach (var column in table.ColumnLeaves)
+            {
+                Console.WriteLine($"{row.Label} x {column.Label} = {table.GetValue(row, column, 0)}");
+            }
+        }
+    }
+}

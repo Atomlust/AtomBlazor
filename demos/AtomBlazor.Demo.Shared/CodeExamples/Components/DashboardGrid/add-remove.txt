@@ -1,0 +1,33 @@
+<Button OnClick="AddWidget">Add Widget</Button>
+<Button OnClick="RemoveLastWidget">Remove Last</Button>
+
+<DashboardGrid Border="true" Background="DashboardBackground.Grid"
+                 OnAddWidget="AddWidget">
+    @foreach (var widget in widgets)
+    {
+        <DashboardWidget @key="widget.Id" Id="@widget.Id"
+                           Column="@widget.Column" Row="@widget.Row"
+                           ColumnSpan="@widget.ColSpan" RowSpan="@widget.RowSpan"
+                           Title="@widget.Title" OnRemove="RemoveWidget">
+            @widget.Title
+        </DashboardWidget>
+    }
+</DashboardGrid>
+
+@code {
+    private List<Widget> widgets = new();
+    private int nextId = 1;
+
+    private void AddWidget()
+    {
+        widgets.Add(new Widget
+        {
+            Id = $"widget-{nextId++}",
+            Title = $"Widget {nextId}",
+            Column = 1, Row = 1, ColSpan = 8, RowSpan = 6
+        });
+    }
+
+    private void RemoveWidget(string id) =>
+        widgets.RemoveAll(w => w.Id == id);
+}

@@ -1,0 +1,28 @@
+@namespace AtomBlazor
+
+<AtomBlazor.Primitives.MenubarLabel class="@CssClass" @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.MenubarLabel>
+
+@code {
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用于根元素的额外 HTML 特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public bool Inset { get; set; }
+
+    private string CssClass => ClassNames.cn(
+        "atom:px-2 atom:py-1.5 atom:text-sm atom:font-semibold",
+        Inset ? "atom:ps-8" : null,
+        Class
+    );
+}

@@ -1,0 +1,549 @@
+@page "/components/navigation-menu"
+
+<PageTitle>@L.T("Navigation Menu 导航菜单 - Atom BlazorUI", "Navigation Menu Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Navigation Menu 导航菜单", "Navigation Menu Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("一组用于站点导航的链接，支持下拉菜单。", "A collection of links for navigating websites with dropdown support.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Responsive Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("响应式导航", "Responsive Navigation")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("缩放浏览器窗口即可看到导航在桌面与移动模式之间切换。移动端（小于 768px）会出现汉堡图标，导航移入滑出式抽屉面板。", "Resize the browser window to see the navigation switch between desktop and mobile modes. On mobile (below 768px), a hamburger icon appears and the navigation moves to a slide-out sheet.")
+            </p>
+        </div>
+        <div class="border rounded-lg overflow-visible">
+            <ResponsiveNavProvider>
+                <header class="flex items-center justify-between p-4 bg-background rounded-lg">
+                    <!-- Logo (always visible) -->
+                    <a href="/" class="font-bold text-lg shrink-0">AtomBlazor</a>
+
+                    <!-- Desktop navigation (hidden on mobile) -->
+                    <NavigationMenu Class="hidden md:flex">
+                        <AtomBlazor.NavigationMenuList>
+                            <AtomBlazor.NavigationMenuItem Value="resp-getting-started">
+                                <AtomBlazor.NavigationMenuTrigger>@L.T("快速开始", "Getting started")</AtomBlazor.NavigationMenuTrigger>
+                                <AtomBlazor.NavigationMenuContent>
+                                    <div class="grid gap-3 p-4 w-[400px]">
+                                        <div class="p-3 rounded-lg hover:bg-accent">
+                                            <a href="#" class="block font-medium mb-1">@L.T("简介", "Introduction")</a>
+                                            <p class="text-sm text-muted-foreground">@L.T("基于 Blazor 构建的可复用组件。", "Re-usable components built using Blazor.")</p>
+                                        </div>
+                                        <div class="p-3 rounded-lg hover:bg-accent">
+                                            <a href="#" class="block font-medium mb-1">@L.T("安装", "Installation")</a>
+                                            <p class="text-sm text-muted-foreground">@L.T("如何安装并开始使用。", "How to install and get started.")</p>
+                                        </div>
+                                    </div>
+                                </AtomBlazor.NavigationMenuContent>
+                            </AtomBlazor.NavigationMenuItem>
+                            <AtomBlazor.NavigationMenuItem>
+                                <AtomBlazor.NavigationMenuLink Href="/components">@L.T("组件", "Components")</AtomBlazor.NavigationMenuLink>
+                            </AtomBlazor.NavigationMenuItem>
+                            <AtomBlazor.NavigationMenuItem>
+                                <AtomBlazor.NavigationMenuLink Href="/primitives">@L.T("基础元素", "Primitives")</AtomBlazor.NavigationMenuLink>
+                            </AtomBlazor.NavigationMenuItem>
+                        </AtomBlazor.NavigationMenuList>
+                    </NavigationMenu>
+
+                    <!-- Right side icons (always visible) -->
+                    <div class="flex items-center gap-2">
+                        <!-- Search button -->
+                        <button type="button" class="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground">
+                            <LucideIcon Name="search" Size="20" />
+                            <span class="sr-only">@L.T("搜索", "Search")</span>
+                        </button>
+
+                        <!-- Notifications bell -->
+                        <button type="button" class="relative inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground">
+                            <LucideIcon Name="bell" Size="20" />
+                            <span class="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
+                            <span class="sr-only">@L.T("通知", "Notifications")</span>
+                        </button>
+
+                        <!-- Sign In (desktop only) -->
+                        <a href="#" class="hidden md:inline-flex text-sm text-muted-foreground hover:text-foreground px-2">@L.T("登录", "Sign In")</a>
+
+                        <!-- Mobile hamburger (right-aligned) -->
+                        <ResponsiveNavTrigger />
+                    </div>
+                </header>
+
+                <ResponsiveNavContent>
+                    <nav class="flex flex-col space-y-4">
+                        <span class="text-sm font-medium text-muted-foreground">@L.T("快速开始", "Getting started")</span>
+                        <div class="pl-4 space-y-2 border-l">
+                            <a href="#" class="block text-sm hover:text-primary">@L.T("简介", "Introduction")</a>
+                            <a href="#" class="block text-sm hover:text-primary">@L.T("安装", "Installation")</a>
+                        </div>
+                        <a href="/components" class="text-lg font-medium hover:text-primary">@L.T("组件", "Components")</a>
+                        <a href="/primitives" class="text-lg font-medium hover:text-primary">@L.T("基础元素", "Primitives")</a>
+                        <Separator />
+                        <a href="#" class="text-sm text-muted-foreground hover:text-primary">@L.T("登录", "Sign In")</a>
+                    </nav>
+                </ResponsiveNavContent>
+            </ResponsiveNavProvider>
+        </div>
+        <div class="border rounded-lg p-4 bg-muted/50">
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <strong>提示：</strong> 用 <code class="text-xs bg-background px-1 py-0.5 rounded">ResponsiveNavProvider</code> 包裹你的页头，
+                    加上 <code class="text-xs bg-background px-1 py-0.5 rounded">ResponsiveNavTrigger</code> 作为汉堡菜单，
+                    再用 <code class="text-xs bg-background px-1 py-0.5 rounded">ResponsiveNavContent</code> 承载移动端抽屉内容。
+                    给 NavigationMenu 加上 <code class="text-xs bg-background px-1 py-0.5 rounded">Class="hidden md:flex"</code>，即可在移动端隐藏它。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <strong>Tip:</strong> Wrap your header with <code class="text-xs bg-background px-1 py-0.5 rounded">ResponsiveNavProvider</code>,
+                    add <code class="text-xs bg-background px-1 py-0.5 rounded">ResponsiveNavTrigger</code> for the hamburger menu,
+                    and use <code class="text-xs bg-background px-1 py-0.5 rounded">ResponsiveNavContent</code> for the mobile sheet content.
+                    Add <code class="text-xs bg-background px-1 py-0.5 rounded">Class="hidden md:flex"</code> to your NavigationMenu to hide it on mobile.
+                </p>
+                        </text>
+}
+        </div>
+
+        <CodeBlock Source="Components/NavigationMenu/responsive.txt" />
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基础示例", "Basic Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带下拉条目的导航菜单（仅桌面端，无响应式行为）。", "A navigation menu with dropdown items (desktop-only, no responsive behavior).")
+            </p>
+        </div>
+        <div class="border rounded-lg p-4">
+            <NavigationMenu>
+                <AtomBlazor.NavigationMenuList>
+                    <AtomBlazor.NavigationMenuItem Value="getting-started">
+                        <AtomBlazor.NavigationMenuTrigger>@L.T("快速开始", "Getting started")</AtomBlazor.NavigationMenuTrigger>
+                        <AtomBlazor.NavigationMenuContent>
+                            <div class="grid gap-3 p-4 w-[400px]">
+                                <div class="p-3 rounded-lg hover:bg-accent">
+                                    <a href="#" class="block font-medium mb-1">@L.T("简介", "Introduction")</a>
+                                    <p class="text-sm text-muted-foreground">
+                                        @L.T("基于 Blazor 与 Tailwind CSS 构建的可复用组件。", "Re-usable components built using Blazor and Tailwind CSS.")
+                                    </p>
+                                </div>
+                                <div class="p-3 rounded-lg hover:bg-accent">
+                                    <a href="#" class="block font-medium mb-1">@L.T("安装", "Installation")</a>
+                                    <p class="text-sm text-muted-foreground">
+                                        @L.T("如何安装依赖并组织你的应用结构。", "How to install dependencies and structure your app.")
+                                    </p>
+                                </div>
+                                <div class="p-3 rounded-lg hover:bg-accent">
+                                    <a href="#" class="block font-medium mb-1">@L.T("排版", "Typography")</a>
+                                    <p class="text-sm text-muted-foreground">
+                                        @L.T("标题、段落、列表等元素的样式。", "Styles for headings, paragraphs, lists, and more.")
+                                    </p>
+                                </div>
+                            </div>
+                        </AtomBlazor.NavigationMenuContent>
+                    </AtomBlazor.NavigationMenuItem>
+
+                    <AtomBlazor.NavigationMenuItem Value="components">
+                        <AtomBlazor.NavigationMenuTrigger>@L.T("组件", "Components")</AtomBlazor.NavigationMenuTrigger>
+                        <AtomBlazor.NavigationMenuContent>
+                            <div class="grid gap-3 p-4 w-[500px] md:grid-cols-2">
+                                <div class="p-3 rounded-lg hover:bg-accent">
+                                    <a href="/components/alert" class="block font-medium mb-1">Alert</a>
+                                    <p class="text-sm text-muted-foreground">
+                                        @L.T("向用户展示重要消息。", "Displays important messages to users.")
+                                    </p>
+                                </div>
+                                <div class="p-3 rounded-lg hover:bg-accent">
+                                    <a href="/components/button" class="block font-medium mb-1">Button</a>
+                                    <p class="text-sm text-muted-foreground">
+                                        @L.T("多种变体的可交互按钮。", "Interactive buttons with multiple variants.")
+                                    </p>
+                                </div>
+                                <div class="p-3 rounded-lg hover:bg-accent">
+                                    <a href="/components/dialog" class="block font-medium mb-1">Dialog</a>
+                                    <p class="text-sm text-muted-foreground">
+                                        @L.T("用于用户交互的模态对话框。", "Modal dialogs for user interactions.")
+                                    </p>
+                                </div>
+                                <div class="p-3 rounded-lg hover:bg-accent">
+                                    <a href="/components/toast" class="block font-medium mb-1">Toast</a>
+                                    <p class="text-sm text-muted-foreground">
+                                        @L.T("给用户的临时通知。", "Temporary notifications for users.")
+                                    </p>
+                                </div>
+                            </div>
+                        </AtomBlazor.NavigationMenuContent>
+                    </AtomBlazor.NavigationMenuItem>
+
+                    <AtomBlazor.NavigationMenuItem>
+                        <AtomBlazor.NavigationMenuLink Href="/components">@L.T("文档", "Documentation")</AtomBlazor.NavigationMenuLink>
+                    </AtomBlazor.NavigationMenuItem>
+                </AtomBlazor.NavigationMenuList>
+            </NavigationMenu>
+        </div>
+
+        <CodeBlock Source="Components/NavigationMenu/basic.txt" />
+    </div>
+
+    <!-- Simple Links -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("简单链接", "Simple Links")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("只含链接条目的导航菜单（无下拉）。", "Navigation menu with only link items (no dropdowns).")
+            </p>
+        </div>
+        <div class="border rounded-lg p-4">
+            <NavigationMenu>
+                <AtomBlazor.NavigationMenuList>
+                    <AtomBlazor.NavigationMenuItem>
+                        <AtomBlazor.NavigationMenuLink Href="/">@L.T("首页", "Home")</AtomBlazor.NavigationMenuLink>
+                    </AtomBlazor.NavigationMenuItem>
+                    <AtomBlazor.NavigationMenuItem>
+                        <AtomBlazor.NavigationMenuLink Href="/components">@L.T("组件", "Components")</AtomBlazor.NavigationMenuLink>
+                    </AtomBlazor.NavigationMenuItem>
+                    <AtomBlazor.NavigationMenuItem>
+                        <AtomBlazor.NavigationMenuLink Href="/primitives">@L.T("基础元素", "Primitives")</AtomBlazor.NavigationMenuLink>
+                    </AtomBlazor.NavigationMenuItem>
+                    <AtomBlazor.NavigationMenuItem>
+                        <AtomBlazor.NavigationMenuLink Href="/icons">@L.T("图标", "Icons")</AtomBlazor.NavigationMenuLink>
+                    </AtomBlazor.NavigationMenuItem>
+                </AtomBlazor.NavigationMenuList>
+            </NavigationMenu>
+        </div>
+
+        <CodeBlock Source="Components/NavigationMenu/simple-links.txt" />
+    </div>
+
+    <!-- Keyboard Navigation -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("键盘导航", "Keyboard Navigation")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">EnableKeyboardNavigation="true"</code> 启用键盘导航。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Enable keyboard navigation with <code class="text-xs bg-muted px-1 py-0.5 rounded">EnableKeyboardNavigation="true"</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="border rounded-lg p-4">
+            <NavigationMenu EnableKeyboardNavigation="true">
+                <AtomBlazor.NavigationMenuList>
+                    <AtomBlazor.NavigationMenuItem Value="products">
+                        <AtomBlazor.NavigationMenuTrigger>@L.T("产品", "Products")</AtomBlazor.NavigationMenuTrigger>
+                        <AtomBlazor.NavigationMenuContent>
+                            <div class="grid gap-3 p-4 w-[400px]">
+                                <div class="p-3 rounded-lg hover:bg-accent">
+                                    <a href="#" class="block font-medium mb-1">@L.T("数据分析", "Analytics")</a>
+                                    <p class="text-sm text-muted-foreground">
+                                        @L.T("实时跟踪并分析你的数据。", "Track and analyze your data in real-time.")
+                                    </p>
+                                </div>
+                                <div class="p-3 rounded-lg hover:bg-accent">
+                                    <a href="#" class="block font-medium mb-1">@L.T("自动化", "Automation")</a>
+                                    <p class="text-sm text-muted-foreground">
+                                        @L.T("通过工作流自动化重复性任务。", "Automate repetitive tasks with workflows.")
+                                    </p>
+                                </div>
+                                <div class="p-3 rounded-lg hover:bg-accent">
+                                    <a href="#" class="block font-medium mb-1">@L.T("集成", "Integration")</a>
+                                    <p class="text-sm text-muted-foreground">
+                                        @L.T("连接你常用的工具。", "Connect with your favorite tools.")
+                                    </p>
+                                </div>
+                            </div>
+                        </AtomBlazor.NavigationMenuContent>
+                    </AtomBlazor.NavigationMenuItem>
+
+                    <AtomBlazor.NavigationMenuItem Value="resources">
+                        <AtomBlazor.NavigationMenuTrigger>@L.T("资源", "Resources")</AtomBlazor.NavigationMenuTrigger>
+                        <AtomBlazor.NavigationMenuContent>
+                            <div class="grid gap-3 p-4 w-[300px]">
+                                <div class="p-3 rounded-lg hover:bg-accent">
+                                    <a href="#" class="block font-medium mb-1">@L.T("文档", "Documentation")</a>
+                                    <p class="text-sm text-muted-foreground">
+                                        @L.T("指南与 API 参考。", "Guides and API references.")
+                                    </p>
+                                </div>
+                                <div class="p-3 rounded-lg hover:bg-accent">
+                                    <a href="#" class="block font-medium mb-1">@L.T("博客", "Blog")</a>
+                                    <p class="text-sm text-muted-foreground">
+                                        @L.T("最新新闻与动态。", "Latest news and updates.")
+                                    </p>
+                                </div>
+                            </div>
+                        </AtomBlazor.NavigationMenuContent>
+                    </AtomBlazor.NavigationMenuItem>
+
+                    <AtomBlazor.NavigationMenuItem>
+                        <AtomBlazor.NavigationMenuLink Href="#">@L.T("定价", "Pricing")</AtomBlazor.NavigationMenuLink>
+                    </AtomBlazor.NavigationMenuItem>
+                </AtomBlazor.NavigationMenuList>
+            </NavigationMenu>
+        </div>
+
+        <CodeBlock Source="Components/NavigationMenu/keyboard-navigation.txt" />
+    </div>
+
+    <!-- Accessibility -->
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("使用语义化的 nav 元素作为根容器", "Uses semantic nav element as the root container")</AccessibilityItem>
+            <AccessibilityItem>@L.T("触发器带有 aria-haspopup=\"menu\" 与 aria-expanded，供屏幕阅读器识别", "Triggers include aria-haspopup=\"menu\" and aria-expanded for screen readers")</AccessibilityItem>
+            <AccessibilityItem>@L.T("下拉内容使用 role=\"menu\"，符合菜单语义", "Dropdown content uses role=\"menu\" for proper menu semantics")</AccessibilityItem>
+            <AccessibilityItem>@L.T("链接使用 role=\"menuitem\" 并配合 tabindex 管理焦点", "Links use role=\"menuitem\" with tabindex for focus management")</AccessibilityItem>
+            <AccessibilityItem>@L.T("活动链接状态通过 NavLink 的活动样式类匹配来标识", "Active link state indicated via NavLink active class matching")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在各触发器之间移动焦点", "Navigate between triggers"))">
+                <Kbd>ArrowLeft</Kbd> / <Kbd>ArrowRight</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("展开下拉并聚焦第一项", "Open dropdown and focus first item"))">
+                <Kbd>ArrowDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("切换下拉的展开与收起", "Toggle dropdown open/closed"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在下拉内的条目之间移动焦点", "Navigate items within dropdown"))">
+                <Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("跳到下拉中的首项/末项", "Jump to first/last item in dropdown"))">
+                <Kbd>Home</Kbd> / <Kbd>End</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭下拉，焦点回到触发器", "Close dropdown, return focus to trigger"))">
+                <Kbd>Escape</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="NavigationMenu">
+                <ApiParameter Name="EnableKeyboardNavigation" Type="bool" Default="false">
+                    @L.T("启用下拉菜单内的键盘导航。为 true 时，用户可用方向键、Home/End 与 Escape 浏览条目。", "Enables keyboard navigation within dropdown menus. When true, users can navigate items with arrow keys, Home/End, and Escape.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("应用到导航菜单上的额外 CSS 类。", "Additional CSS classes to apply to the navigation menu.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("导航菜单内部渲染的内容。通常包含 NavigationMenuList。", "The content to render inside the navigation menu. Typically contains NavigationMenuList.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到根 <code>&lt;nav&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the root <code>&lt;nav&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="NavigationMenuList">
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("应用到列表上的额外 CSS 类。", "Additional CSS classes to apply to the list.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("导航菜单条目。", "The navigation menu items.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到根 <code>&lt;ul&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the root <code>&lt;ul&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="NavigationMenuItem">
+                <ApiParameter Name="Value" Type="string?">
+                    @L.T("菜单条目的唯一标识，下拉功能必需。", "Unique identifier for the menu item. Required for dropdown functionality.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("应用到条目上的额外 CSS 类。", "Additional CSS classes to apply to the item.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("菜单条目的内容（触发器、内容面板或链接）。", "The content of the menu item (trigger, content, or link).")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到根 <code>&lt;li&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the root <code>&lt;li&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="NavigationMenuTrigger">
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("应用到触发按钮上的额外 CSS 类。", "Additional CSS classes to apply to the trigger button.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("触发按钮的内容。", "The content of the trigger button.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到根 <code>&lt;button&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the root <code>&lt;button&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="NavigationMenuContent">
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("应用到下拉内容面板上的额外 CSS 类。", "Additional CSS classes to apply to the dropdown content panel.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("下拉内渲染的内容。", "The content to render in the dropdown.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="NavigationMenuLink">
+                <ApiParameter Name="Href" Type="string?">
+                    @L.T("链接跳转的目标 URL。", "The URL the link navigates to.")
+                </ApiParameter>
+                <ApiParameter Name="Match" Type="NavLinkMatch" Default="Prefix">
+                    @L.T("用于活动状态的 URL 匹配方式。", "How to match the URL for active state.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("应用到链接上的额外 CSS 类。", "Additional CSS classes to apply to the link.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("链接的内容。", "The content of the link.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="NavigationMenuIndicator">
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("应用到指示器上的额外 CSS 类。", "Additional CSS classes to apply to the indicator.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="NavigationMenuViewport">
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("应用到外层容器上的额外 CSS 类。", "Additional CSS classes to apply to the outer container.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("视口内部渲染的内容。", "The content to render inside the viewport.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

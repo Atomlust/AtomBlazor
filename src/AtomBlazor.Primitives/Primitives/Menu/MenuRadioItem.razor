@@ -1,0 +1,44 @@
+@namespace AtomBlazor.Primitives
+@typeparam TValue
+
+<div @attributes="AdditionalAttributes" role="menuitemradio" tabindex="-1"
+     aria-checked="@IsSelected.ToString().ToLowerInvariant()"
+     aria-disabled="@IsDisabled.ToString().ToLowerInvariant()"
+     data-disabled="@(IsDisabled ? "true" : null)"
+     data-state="@(IsSelected ? "checked" : "unchecked")"
+     @onclick="SelectAsync" @onclick:stopPropagation="true">
+    @ChildContent
+</div>
+
+@code {
+    [CascadingParameter] private MenuRadioGroup<TValue>? Group { get; set; }
+    [CascadingParameter] private MenuScope? Scope { get; set; }
+    /// <summary>此项所代表的值。</summary>
+    [Parameter, EditorRequired] public TValue Value { get; set; } = default!;
+    /// <summary>禁用此项。</summary>
+    [Parameter] public bool Disabled { get; set; }
+    /// <summary>选中此项后关闭整个菜单。默认值为 true。</summary>
+    [Parameter] public bool CloseOnSelect { get; set; } = true;
+    /// <summary>项的标签内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>附加的 HTML 属性。</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private bool IsDisabled => Disabled || Group?.Disabled == true;
+    private bool IsSelected => Group?.IsSelected(Value) == true;
+
+    protected override void OnParametersSet()
+    {
+        if (Group is null || Scope is null)
+        {
+            throw new InvalidOperationException("Menu radio items require a radio group inside a menu content component.");
+        }
+    }
+
+    private async Task SelectAsync()
+    {
+        if (IsDisabled || Scope?.IsOpen != true) { return; }
+        await Group!.SelectAsync(Value);
+        if (CloseOnSelect) { await Scope.CloseRootAsync(); }
+    }
+}

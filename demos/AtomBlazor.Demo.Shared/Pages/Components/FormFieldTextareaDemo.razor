@@ -1,0 +1,274 @@
+@page "/components/form-field-textarea"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("FormFieldTextarea 多行文本字段 - Atom BlazorUI", "FormFieldTextarea Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">FormFieldTextarea</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("带内置标签、辅助文本与错误提示的 Textarea 表单字段封装。", "A form field wrapper for Textarea with built-in label, helper text, and error messages.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Which form component? -->
+    <div class="rounded-lg border border-dashed bg-muted/30 p-6 space-y-3">
+        <h2 class="text-lg font-semibold">@L.T("该用哪个表单组件？", "Which form component?")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <div class="space-y-2 text-sm text-muted-foreground">
+                <p><strong>文本输入</strong>（string、int、日期等）？ &rarr; <a href="/components/form-field-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldInput&lt;T&gt;</a></p>
+                <p><strong>多行文本</strong>？ &rarr; <strong>FormFieldTextarea</strong>（当前页面）</p>
+                <p><strong>数字输入</strong>？ &rarr; <a href="/components/form-field-numeric-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldNumericInput</a></p>
+                <p><strong>日期选择器</strong>？ &rarr; <a href="/components/form-field-date-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldDatePicker</a></p>
+                <p><strong>时间选择器</strong>？ &rarr; <a href="/components/form-field-time-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTimePicker</a></p>
+                <p><strong>复选框</strong>？ &rarr; <a href="/components/form-field-checkbox" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCheckbox</a></p>
+                <p><strong>开关</strong>？ &rarr; <a href="/components/form-field-switch" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldSwitch</a></p>
+                <p><strong>下拉选择</strong>？ &rarr; <a href="/components/form-field-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldSelect</a></p>
+                <p><strong>原生 select</strong>？ &rarr; <a href="/components/form-field-native-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldNativeSelect</a></p>
+                <p><strong>单选组</strong>？ &rarr; <a href="/components/form-field-radio-group" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldRadioGroup</a></p>
+                <p><strong>可搜索选择</strong>？ &rarr; <a href="/components/form-field-combobox" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCombobox</a></p>
+                <p><strong>多选</strong>？ &rarr; <a href="/components/form-field-multi-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldMultiSelect</a></p>
+            </div>
+                </text>
+}
+        else
+        {
+                <text>
+                    <div class="space-y-2 text-sm text-muted-foreground">
+                <p><strong>Text input</strong> (string, int, date, etc.)? &rarr; <a href="/components/form-field-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldInput&lt;T&gt;</a></p>
+                <p><strong>Textarea</strong>? &rarr; <strong>FormFieldTextarea</strong> (this page)</p>
+                <p><strong>Numeric input</strong>? &rarr; <a href="/components/form-field-numeric-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldNumericInput</a></p>
+                <p><strong>Date picker</strong>? &rarr; <a href="/components/form-field-date-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldDatePicker</a></p>
+                <p><strong>Time picker</strong>? &rarr; <a href="/components/form-field-time-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTimePicker</a></p>
+                <p><strong>Checkbox</strong>? &rarr; <a href="/components/form-field-checkbox" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCheckbox</a></p>
+                <p><strong>Switch</strong>? &rarr; <a href="/components/form-field-switch" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldSwitch</a></p>
+                <p><strong>Select dropdown</strong>? &rarr; <a href="/components/form-field-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldSelect</a></p>
+                <p><strong>Native select</strong>? &rarr; <a href="/components/form-field-native-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldNativeSelect</a></p>
+                <p><strong>Radio group</strong>? &rarr; <a href="/components/form-field-radio-group" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldRadioGroup</a></p>
+                <p><strong>Searchable select</strong>? &rarr; <a href="/components/form-field-combobox" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCombobox</a></p>
+                <p><strong>Multi-select</strong>? &rarr; <a href="/components/form-field-multi-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldMultiSelect</a></p>
+            </div>
+                </text>
+}
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带自动关联标签与辅助文本的多行文本框。", "A textarea with an auto-associated label and helper text.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldTextarea @bind-Value="_description"
+                                Label="@(L.T("描述", "Description"))"
+                                Placeholder="@(L.T("输入描述…", "Enter a description..."))"
+                                HelperText="@(L.T("请简要描述该条目。", "Provide a brief description of the item."))" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("值：", "Value:")</p>
+            <p class="text-sm font-mono">@(string.IsNullOrEmpty(_description) ? L.T("（空）", "(empty)") : _description)</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldTextarea/basic.txt" />
+    </div>
+
+    <!-- Character Count -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("字数统计", "Character Count")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    开启 <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowCharacterCount</code> 并配合
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">MaxLength</code>，即可显示实时的字符计数。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Enable <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowCharacterCount</code> with
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">MaxLength</code> to display a live character counter.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldTextarea @bind-Value="_bio"
+                                Label="@(L.T("个人简介", "Bio"))"
+                                Placeholder="@(L.T("介绍一下你自己…", "Tell us about yourself..."))"
+                                HelperText="@(L.T("用于个人主页的简短介绍。", "A short biography for your profile."))"
+                                MaxLength="200"
+                                ShowCharacterCount="true" />
+        </div>
+        <CodeBlock Source="Components/FormFieldTextarea/character-count.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个处于禁用状态的多行文本表单字段。", "A disabled textarea form field.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldTextarea Value="@(L.T("此内容不可编辑。", "This content cannot be edited."))"
+                                Label="@(L.T("系统备注", "System notes"))"
+                                HelperText="@(L.T("由系统维护。", "Managed by the system."))"
+                                Disabled="true" />
+        </div>
+        <CodeBlock Source="Components/FormFieldTextarea/disabled.txt" />
+    </div>
+
+    <!-- EditForm Integration -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("EditForm 集成", "EditForm Integration")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("在 EditForm 中校验错误会自动显示。", "Validation errors display automatically inside an EditForm.")
+                @L.T("试试不输入内容直接提交。", "Try submitting without entering a message.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <EditForm Model="_formModel" OnValidSubmit="HandleFormSubmit">
+                <DataAnnotationsValidator />
+                <div class="space-y-4">
+                    <FormFieldTextarea @bind-Value="_formModel.Message"
+                                        Label="@(L.T("消息", "Message"))"
+                                        Placeholder="@(L.T("写下你的消息…", "Write your message..."))"
+                                        HelperText="@(L.T("至少 10 个字符。", "Minimum 10 characters."))" />
+                    <Button Type="ButtonType.Submit">@L.T("提交", "Submit")</Button>
+                </div>
+            </EditForm>
+            @if (_formSubmitted)
+            {
+                <div class="mt-4 rounded-lg border border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800 p-4">
+                    <p class="text-sm font-medium text-green-800 dark:text-green-200">@L.T("表单提交成功！", "Form submitted successfully!")</p>
+                </div>
+            }
+        </div>
+        <CodeBlock Source="Components/FormFieldTextarea/editform.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("通过生成的 ID 自动将标签与多行文本框关联", "Automatically associates label with textarea via generated ID")</AccessibilityItem>
+            <AccessibilityItem>@L.T("描述通过 aria-describedby 关联", "Description linked via aria-describedby")</AccessibilityItem>
+            <AccessibilityItem>@L.T("校验错误通过 aria-invalid 展示", "Validation errors displayed with aria-invalid")</AccessibilityItem>
+        </AriaAttributes>
+            <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可用的表单控件之间移动", "Move between enabled form controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("移动文本光标", "Move the text cursor"))"><Kbd>ArrowLeft</Kbd> / <Kbd>ArrowRight</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("删除文本", "Delete text"))"><Kbd>Backspace</Kbd> / <Kbd>Delete</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="FormFieldTextarea">
+                <ApiParameter Name="Label" Type="string?" Default="null">
+                    @L.T("显示在多行文本框上方的标签文本。", "The label text displayed above the textarea.")
+                </ApiParameter>
+                <ApiParameter Name="HelperText" Type="string?" Default="null">
+                    @L.T("显示在多行文本框下方的辅助文本。错误状态下隐藏。", "Helper text displayed below the textarea. Hidden during error state.")
+                </ApiParameter>
+                <ApiParameter Name="ErrorText" Type="string?" Default="null">
+                    @L.T("手动错误文本覆盖。当字段无效且设置了该项时，替换自动生成的提示。", "Manual error text override. When the field is invalid and this is set, replaces auto-generated messages.")
+                </ApiParameter>
+                <ApiParameter Name="Orientation" Type="FieldOrientation" Default="Vertical">
+                    @L.T("字段的布局方向。", "Layout orientation of the field.")
+                </ApiParameter>
+                <ApiParameter Name="Value" Type="string?" Default="null">
+                    @L.T("当前值。使用 @bind-Value 进行双向绑定。", "The current value. Use @bind-Value for two-way binding.")
+                </ApiParameter>
+                <ApiParameter Name="ValueChanged" Type="EventCallback&lt;string?&gt;">
+                    @L.T("值发生变化时调用的回调。", "Callback invoked when the value changes.")
+                </ApiParameter>
+                <ApiParameter Name="Placeholder" Type="string?" Default="null">
+                    @L.T("多行文本框为空时显示的占位文本。", "Placeholder text displayed when the textarea is empty.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("多行文本框是否被禁用。", "Whether the textarea is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">
+                    @L.T("多行文本框是否为必填。", "Whether the textarea is required.")
+                </ApiParameter>
+                <ApiParameter Name="MaxLength" Type="int?" Default="null">
+                    @L.T("允许的最大字符数。", "Maximum number of characters allowed.")
+                </ApiParameter>
+                <ApiParameter Name="ShowCharacterCount" Type="bool" Default="false">
+                    @L.T("是否在多行文本框下方显示字符计数。", "Whether to display a character count below the textarea.")
+                </ApiParameter>
+                <ApiParameter Name="UpdateTiming" Type="UpdateTiming" Default="OnChange">
+                    @L.T("ValueChanged 触发的时机（OnChange、Immediate 或 Debounced）。", "When ValueChanged fires (OnChange, Immediate, or Debounced).")
+                </ApiParameter>
+                <ApiParameter Name="DebounceInterval" Type="int" Default="500">
+                    @L.T("UpdateTiming 为 Debounced 时的防抖延迟（毫秒）。", "Debounce delay in milliseconds when UpdateTiming is Debounced.")
+                </ApiParameter>
+                <ApiParameter Name="Name" Type="string?" Default="null">
+                    @L.T("多行文本框元素的 HTML name 属性。", "HTML name attribute for the textarea element.")
+                </ApiParameter>
+                <ApiParameter Name="InputClass" Type="string?" Default="null">
+                    @L.T("应用到内部 Textarea 元素上的额外 CSS 类。", "Additional CSS classes applied to the inner Textarea element.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到外部 Field 容器上的额外 CSS 类。", "Additional CSS classes applied to the outer Field container.")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                    @L.T("控件的 ARIA 标签。", "ARIA label for the control.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string? _description;
+    private string? _bio;
+    private bool _formSubmitted;
+    private TextareaFormModel _formModel = new();
+
+    private void HandleFormSubmit()
+    {
+        _formSubmitted = true;
+    }
+
+    private class TextareaFormModel
+    {
+        [Required(ErrorMessage = "Please enter a message.")]
+        [MinLength(10, ErrorMessage = "Message must be at least 10 characters.")]
+        public string? Message { get; set; }
+    }
+}

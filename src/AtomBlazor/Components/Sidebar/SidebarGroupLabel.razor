@@ -1,0 +1,57 @@
+@namespace AtomBlazor
+
+@*
+    SidebarGroupLabel 组件：分组标题/题注。
+*@
+
+@if (AsChild == SidebarGroupLabelElement.Button)
+{
+    <button type="button" class="@GetClasses()" data-sidebar="group-label" @attributes="AdditionalAttributes">
+        @ChildContent
+    </button>
+}
+else
+{
+    <div class="@GetClasses()" data-sidebar="group-label" @attributes="AdditionalAttributes">
+        @ChildContent
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// 标签内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 要渲染的元素标签（div，或用于可折叠分组的 button）。
+    /// </summary>
+    [Parameter]
+    public SidebarGroupLabelElement AsChild { get; set; } = SidebarGroupLabelElement.Div;
+
+    /// <summary>
+    /// 附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string GetClasses()
+    {
+        var baseClasses = "atom:flex atom:shrink-0 atom:items-center atom:text-sidebar-foreground/70 atom:outline-none atom:ring-sidebar-ring atom:transition-[margin,opa] atom:duration-200 atom:ease-linear atom:focus-visible:ring-2 atom:[&>svg]:shrink-0";
+
+        var buttonClasses = AsChild == SidebarGroupLabelElement.Button
+            ? "atom:hover:bg-sidebar-accent atom:hover:text-sidebar-accent-foreground"
+            : "";
+
+        var collapsibleClasses = "atom:group-data-[collapsible=icon]:opacity-0 atom:group-data-[collapsible=icon]:w-0";
+
+        return ClassNames.cn(baseClasses, buttonClasses, collapsibleClasses, Class);
+    }
+}

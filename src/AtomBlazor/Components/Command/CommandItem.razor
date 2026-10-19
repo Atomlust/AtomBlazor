@@ -1,0 +1,264 @@
+@namespace AtomBlazor
+@implements IDisposable
+@inject IJSRuntime JS
+
+@* CommandItem - 命令列表中的可选项 *@
+@if (_isVisible)
+{
+    <div id="@_itemId"
+         role="option"
+         aria-selected="@(_isFocused ? "true" : "false")"
+         aria-disabled="@(Disabled ? "true" : "false")"
+         data-focused="@(_isFocused ? "true" : "false")"
+         data-disabled="@(Disabled ? "true" : "false")"
+         @onclick="HandleClick"
+         class="@CssClass"
+         @attributes="AdditionalAttributes">
+        @if (Icon != null)
+        {
+            <span class="atom:me-2 atom:h-4 atom:w-4 atom:shrink-0 atom:[&>svg]:h-4 atom:[&>svg]:w-4">@Icon</span>
+        }
+        @ChildContent
+    </div>
+}
+
+@code {
+    [CascadingParameter]
+    public CommandContext? Context { get; set; }
+
+    [CascadingParameter(Name = "CommandGroupId")]
+    public string? GroupId { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到该项的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取或设置在项内部渲染的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置显示在项内容之前的可选图标。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? Icon { get; set; }
+
+    /// <summary>
+    /// 获取或设置与该项关联的值。
+    /// </summary>
+    [Parameter]
+    public string? Value { get; set; }
+
+    /// <summary>
+    /// 获取或设置该项是否禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 获取或设置该项被选中时调用的回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback OnSelect { get; set; }
+
+    /// <summary>
+    /// 获取或设置用于搜索过滤的文本。未提供时使用 Value。
+    /// </summary>
+    [Parameter]
+    public string? SearchText { get; set; }
+
+    private int _index = -1;
+    private int _filteredIndex = -1;
+    private string _itemId = string.Empty;
+    private bool _isFocused;
+    private bool _isVisible = true;
+    private bool _shouldScrollIntoView;
+
+    // ShouldRender 跟踪
+    private bool _parametersChanged;
+    private bool _lastFocused;
+    private bool _lastVisible = true;
+    private bool _lastDisabled;
+    private bool _lastKeyboardNavigating;
+
+    // 每个项都订阅上下文，而上下文会在焦点移动、搜索或键盘/鼠标切换时对所有项触发
+    // StateHasChanged。没有闸门的话，200 项的列表每次按键就是 200 次渲染。这里只比较
+    // 该项实际渲染所依赖的内容：它的焦点、它的可见性、它的禁用状态，以及决定其悬停
+    // 类的键盘模式标志。父组件的重渲染一律放行。
+    protected override bool ShouldRender()
+    {
+        var keyboardNavigating = Context?.IsKeyboardNavigating == true;
+
+        if (_parametersChanged
+            || _isFocused != _lastFocused
+            || _isVisible != _lastVisible
+            || Disabled != _lastDisabled
+            || keyboardNavigating != _lastKeyboardNavigating)
+        {
+            _parametersChanged = false;
+            _lastFocused = _isFocused;
+            _lastVisible = _isVisible;
+            _lastDisabled = Disabled;
+            _lastKeyboardNavigating = keyboardNavigating;
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 获取该项计算后的 CSS 类。
+    /// </summary>
+    private string CssClass => ClassNames.cn(
+        "atom:relative atom:flex atom:cursor-pointer atom:select-none atom:items-center atom:rounded-sm atom:px-2 atom:py-1.5 atom:text-sm atom:outline-none",
+        !Disabled && Context?.IsKeyboardNavigating != true ? "atom:hover:bg-accent atom:hover:text-accent-foreground" : null,
+        Disabled ? "atom:opacity-50 atom:cursor-not-allowed" : null,
+        _isFocused ? "atom:bg-accent atom:text-accent-foreground" : null,
+        Class
+    );
+
+    protected override void OnInitialized()
+    {
+        if (Context == null)
+        {
+            throw new InvalidOperationException($"{nameof(CommandItem)} 必须用在 {nameof(Command)} 组件之内。");
+        }
+
+        // 向上下文注册
+        _index = Context.RegisterItem(
+            value: Value,
+            searchText: SearchText ?? Value ?? string.Empty,
+            disabled: Disabled,
+            onSelect: OnSelect,
+            groupId: GroupId
+        );
+
+        _itemId = Context.GetItemId(_index);
+
+        // 订阅定向事件以提升性能
+        Context.OnFocusChanged += HandleFocusChanged;
+        Context.OnSearchChanged += HandleSearchChanged;
+        Context.OnKeyboardNavigationChanged += HandleKeyboardNavigationChanged;
+
+        // 初始可见性检查
+        UpdateVisibilityAndFilteredIndex();
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        _parametersChanged = true;
+
+        // 参数变化时更新注册
+        if (_index >= 0 && Context != null)
+        {
+            Context.UpdateItem(
+                index: _index,
+                value: Value,
+                searchText: SearchText ?? Value ?? string.Empty,
+                disabled: Disabled,
+                onSelect: OnSelect,
+                groupId: GroupId
+            );
+            UpdateVisibilityAndFilteredIndex();
+        }
+    }
+
+    private async Task HandleClick()
+    {
+        if (Disabled || Context == null) return;
+
+        await Context.SelectItemByValueAsync(Value ?? string.Empty);
+    }
+
+    // 这里没有 @onmouseenter 或 @onmousemove。CommandList 用单个委托监听器为所有项监听
+    // 悬停，并在指针每真正移动到一个新项时调用 CommandContext.HoverItemById 一次。
+    // 逐项绑定时它们是每像素一次电路消息。
+
+    private void HandleFocusChanged(int previousIndex, int newIndex)
+    {
+        // 仅当此项受焦点变化影响时才重渲染
+        if (_filteredIndex == previousIndex || _filteredIndex == newIndex)
+        {
+            var wasFocused = _isFocused;
+            _isFocused = _filteredIndex == newIndex;
+
+            // 只在键盘导航期间滚动进入视野，鼠标悬停时不滚
+            if (_isFocused && !wasFocused && Context?.IsKeyboardNavigating == true)
+            {
+                _shouldScrollIntoView = true;
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_shouldScrollIntoView && _isFocused)
+        {
+            _shouldScrollIntoView = false;
+            try
+            {
+                // 用 'nearest' 只在项超出视野时滚动，避免整页跳动
+                var elementUtilsModule = await PrimitiveModules.GetAsync(JS);
+                await elementUtilsModule.InvokeVoidAsync("elementUtils.scrollIntoView", _itemId, "nearest", "instant");
+            }
+            catch
+            {
+                // 忽略滚动期间的 JS 错误
+            }
+        }
+    }
+
+    private void HandleSearchChanged()
+    {
+        // 搜索变化时更新可见性与过滤索引
+        UpdateVisibilityAndFilteredIndex();
+
+        // 搜索已变化，重置聚焦状态
+        _isFocused = false;
+
+        StateHasChanged();
+    }
+
+    private void HandleKeyboardNavigationChanged(bool isKeyboardNavigating)
+    {
+        // 重渲染以更新悬停类
+        StateHasChanged();
+    }
+
+    private void UpdateVisibilityAndFilteredIndex()
+    {
+        if (Context == null)
+        {
+            _isVisible = false;
+            _filteredIndex = -1;
+            return;
+        }
+
+        _filteredIndex = Context.GetFilteredIndex(_index);
+        _isVisible = _filteredIndex >= 0;
+    }
+
+    public void Dispose()
+    {
+        if (Context != null && _index >= 0)
+        {
+            Context.UnregisterItem(_index);
+            Context.OnFocusChanged -= HandleFocusChanged;
+            Context.OnSearchChanged -= HandleSearchChanged;
+            Context.OnKeyboardNavigationChanged -= HandleKeyboardNavigationChanged;
+        }
+    }
+}

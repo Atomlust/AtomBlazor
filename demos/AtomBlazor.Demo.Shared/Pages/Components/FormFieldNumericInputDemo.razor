@@ -1,0 +1,344 @@
+@page "/components/form-field-numeric-input"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("FormFieldNumericInput 表单数字输入 - Atom BlazorUI", "FormFieldNumericInput Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">FormFieldNumericInput</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("NumericInput 的表单字段封装，内置标签、提示文本与错误信息。",
+                     "A form field wrapper for NumericInput with built-in label, helper text, and error messages.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Which form component? -->
+    <div class="rounded-lg border border-dashed bg-muted/30 p-6 space-y-3">
+        <h2 class="text-lg font-semibold">@L.T("该用哪个表单组件？", "Which form component?")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <div class="space-y-2 text-sm text-muted-foreground">
+                <p><strong>文本输入</strong>（string、int、日期等）？ &rarr; <a href="/components/form-field-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldInput&lt;T&gt;</a></p>
+                <p><strong>多行文本</strong>？ &rarr; <a href="/components/form-field-textarea" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTextarea</a></p>
+                <p><strong>数字输入</strong>？ &rarr; <strong>FormFieldNumericInput</strong>（当前页面）</p>
+                <p><strong>日期选择器</strong>？ &rarr; <a href="/components/form-field-date-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldDatePicker</a></p>
+                <p><strong>时间选择器</strong>？ &rarr; <a href="/components/form-field-time-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTimePicker</a></p>
+                <p><strong>复选框</strong>？ &rarr; <a href="/components/form-field-checkbox" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCheckbox</a></p>
+                <p><strong>开关</strong>？ &rarr; <a href="/components/form-field-switch" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldSwitch</a></p>
+                <p><strong>下拉选择</strong>？ &rarr; <a href="/components/form-field-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldSelect</a></p>
+                <p><strong>原生 select</strong>？ &rarr; <a href="/components/form-field-native-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldNativeSelect</a></p>
+                <p><strong>单选组</strong>？ &rarr; <a href="/components/form-field-radio-group" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldRadioGroup</a></p>
+                <p><strong>可搜索选择</strong>？ &rarr; <a href="/components/form-field-combobox" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCombobox</a></p>
+                <p><strong>多选</strong>？ &rarr; <a href="/components/form-field-multi-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldMultiSelect</a></p>
+            </div>
+                </text>
+}
+        else
+        {
+                <text>
+                    <div class="space-y-2 text-sm text-muted-foreground">
+                <p><strong>Text input</strong> (string, int, date, etc.)? &rarr; <a href="/components/form-field-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldInput&lt;T&gt;</a></p>
+                <p><strong>Textarea</strong>? &rarr; <a href="/components/form-field-textarea" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTextarea</a></p>
+                <p><strong>Numeric input</strong>? &rarr; <strong>FormFieldNumericInput</strong> (this page)</p>
+                <p><strong>Date picker</strong>? &rarr; <a href="/components/form-field-date-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldDatePicker</a></p>
+                <p><strong>Time picker</strong>? &rarr; <a href="/components/form-field-time-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTimePicker</a></p>
+                <p><strong>Checkbox</strong>? &rarr; <a href="/components/form-field-checkbox" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCheckbox</a></p>
+                <p><strong>Switch</strong>? &rarr; <a href="/components/form-field-switch" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldSwitch</a></p>
+                <p><strong>Select dropdown</strong>? &rarr; <a href="/components/form-field-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldSelect</a></p>
+                <p><strong>Native select</strong>? &rarr; <a href="/components/form-field-native-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldNativeSelect</a></p>
+                <p><strong>Radio group</strong>? &rarr; <a href="/components/form-field-radio-group" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldRadioGroup</a></p>
+                <p><strong>Searchable select</strong>? &rarr; <a href="/components/form-field-combobox" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCombobox</a></p>
+                <p><strong>Multi-select</strong>? &rarr; <a href="/components/form-field-multi-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldMultiSelect</a></p>
+            </div>
+                </text>
+}
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带自动关联标签与提示文本的数字输入框。",
+                     "A numeric input with an auto-associated label and helper text.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldNumericInput TValue="int"
+                                    @bind-Value="_quantity"
+                                    Label="@(L.T("数量", "Quantity"))"
+                                    Placeholder="0"
+                                    HelperText="@(L.T("请输入项目数量。", "Enter the number of items."))" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Value:")</p>
+            <p class="text-sm font-mono">@_quantity</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldNumericInput/basic.txt" />
+    </div>
+
+    <!-- With Buttons and Range -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("按钮与取值范围", "With Buttons and Range")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    显示增减按钮，并用 <code class="text-xs bg-muted px-1 py-0.5 rounded">Min</code> 与
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Max</code> 约束取值范围。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Show increment/decrement buttons and constrain the value with
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Min</code> and
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Max</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldNumericInput TValue="int"
+                                    @bind-Value="_rating"
+                                    Label="@(L.T("评分", "Rating"))"
+                                    HelperText="@(L.T("请按 1 到 10 评分。", "Rate from 1 to 10."))"
+                                    Min="1"
+                                    Max="10"
+                                    ShowButtons="true" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Value:")</p>
+            <p class="text-sm font-mono">@_rating</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldNumericInput/buttons-range.txt" />
+    </div>
+
+    <!-- Decimal Type -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("十进制数值", "Decimal Values")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    适用于任意数值类型。用 <code class="text-xs bg-muted px-1 py-0.5 rounded">DecimalPlaces</code>
+                    控制显示精度。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Works with any numeric type. Use <code class="text-xs bg-muted px-1 py-0.5 rounded">DecimalPlaces</code>
+                    to control display precision.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldNumericInput TValue="decimal"
+                                    @bind-Value="_price"
+                                    Label="@(L.T("价格", "Price"))"
+                                    HelperText="@(L.T("请输入单价。", "Enter the unit price."))"
+                                    DecimalPlaces="2"
+                                    Min="0m"
+                                    Step="0.01m"
+                                    ShowButtons="true" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Value:")</p>
+            <p class="text-sm font-mono">@_price.ToString("F2")</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldNumericInput/decimal.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个禁用的数字输入表单字段。", "A disabled numeric input form field.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldNumericInput TValue="int"
+                                    Value="42"
+                                    Label="@(L.T("固定值", "Fixed value"))"
+                                    HelperText="@(L.T("无法修改。", "Cannot be changed."))"
+                                    Disabled="true" />
+        </div>
+        <CodeBlock Source="Components/FormFieldNumericInput/disabled.txt" />
+    </div>
+
+    <!-- EditForm Integration -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("EditForm 集成", "EditForm Integration")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("在 EditForm 中，校验错误会自动显示。", "Validation errors display automatically inside an EditForm.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <EditForm Model="_formModel" OnValidSubmit="HandleFormSubmit">
+                <DataAnnotationsValidator />
+                <div class="space-y-4">
+                    <FormFieldNumericInput TValue="int"
+                                            @bind-Value="_formModel.Age"
+                                            Label="@(L.T("年龄", "Age"))"
+                                            Placeholder="0"
+                                            HelperText="@(L.T("必须介于 18 到 120 之间。", "Must be between 18 and 120."))" />
+                    <Button Type="ButtonType.Submit">@L.T("提交", "Submit")</Button>
+                </div>
+            </EditForm>
+            @if (_formSubmitted)
+            {
+                <div class="mt-4 rounded-lg border border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800 p-4">
+                    <p class="text-sm font-medium text-green-800 dark:text-green-200">
+                        @L.F("已提交：年龄 = {0}", "Submitted: Age = {0}", _formModel.Age)
+                    </p>
+                </div>
+            }
+        </div>
+        <CodeBlock Source="Components/FormFieldNumericInput/editform.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("通过生成的 ID 自动把标签与输入框关联", "Automatically associates label with input via generated ID")</AccessibilityItem>
+            <AccessibilityItem>@L.T("通过 aria-describedby 关联描述文本", "Description linked via aria-describedby")</AccessibilityItem>
+            <AccessibilityItem>@L.T("校验错误以 aria-invalid 标示", "Validation errors displayed with aria-invalid")</AccessibilityItem>
+            <AccessibilityItem>@L.T("显示增减按钮时采用 spinbutton 角色", "Spinbutton role when increment/decrement buttons are shown")</AccessibilityItem>
+        </AriaAttributes>
+            <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可用的表单控件之间移动", "Move between enabled form controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("按 Step 增减数值", "Increase or decrease the value by Step"))"><Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="FormFieldNumericInput&lt;TValue&gt;">
+                <ApiParameter Name="Label" Type="string?" Default="null">
+                    @L.T("显示在数字输入框上方的标签文本。", "The label text displayed above the numeric input.")
+                </ApiParameter>
+                <ApiParameter Name="HelperText" Type="string?" Default="null">
+                    @L.T("显示在输入框下方的提示文本。出现错误时会被隐藏。", "Helper text displayed below the input. Hidden during error state.")
+                </ApiParameter>
+                <ApiParameter Name="ErrorText" Type="string?" Default="null">
+                    @L.T("手动指定的错误文本。", "Manual error text override.")
+                </ApiParameter>
+                <ApiParameter Name="Orientation" Type="FieldOrientation" Default="Vertical">
+                    @L.T("字段的布局方向。", "Layout orientation of the field.")
+                </ApiParameter>
+                <ApiParameter Name="Value" Type="TValue" Default="default">
+                    @L.T("当前数值。使用 @bind-Value 进行双向绑定。", "The current numeric value. Use @bind-Value for two-way binding.")
+                </ApiParameter>
+                <ApiParameter Name="ValueChanged" Type="EventCallback&lt;TValue&gt;">
+                    @L.T("数值发生变化时调用的回调。", "Callback invoked when the value changes.")
+                </ApiParameter>
+                <ApiParameter Name="Min" Type="TValue?" Default="null">
+                    @L.T("允许的最小值。", "Minimum allowed value.")
+                </ApiParameter>
+                <ApiParameter Name="Max" Type="TValue?" Default="null">
+                    @L.T("允许的最大值。", "Maximum allowed value.")
+                </ApiParameter>
+                <ApiParameter Name="Step" Type="TValue?" Default="null">
+                    @L.T("方向键或按钮每次增减的步长（默认为 1）。", "Step increment for arrow key/button changes (defaults to 1).")
+                </ApiParameter>
+                <ApiParameter Name="DecimalPlaces" Type="int?" Default="null">
+                    @L.T("显示时使用的小数位数。", "Number of decimal places to display.")
+                </ApiParameter>
+                <ApiParameter Name="AllowNegative" Type="bool" Default="true">
+                    @L.T("是否允许负值。", "Whether negative values are allowed.")
+                </ApiParameter>
+                <ApiParameter Name="ShowButtons" Type="bool" Default="false">
+                    @L.T("是否显示增减按钮。", "Whether to show increment/decrement buttons.")
+                </ApiParameter>
+                <ApiParameter Name="Placeholder" Type="string?" Default="null">
+                    @L.T("占位文本。", "Placeholder text.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("输入框是否被禁用。", "Whether the input is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">
+                    @L.T("输入框是否为必填。", "Whether the input is required.")
+                </ApiParameter>
+                <ApiParameter Name="Format" Type="string?" Default="null">
+                    @L.T("用于显示数值的格式化字符串。", "Format string for displaying the value.")
+                </ApiParameter>
+                <ApiParameter Name="DisableDebounce" Type="bool" Default="false">
+                    @L.T("是否在输入过程中禁用防抖。", "Whether to disable debounce during typing.")
+                </ApiParameter>
+                <ApiParameter Name="DebounceInterval" Type="int" Default="500">
+                    @L.T("防抖延迟毫秒数。", "Debounce delay in milliseconds.")
+                </ApiParameter>
+                <ApiParameter Name="EnableWheelStep" Type="bool" Default="false">
+                    @L.T("滚轮滑过获得焦点的输入框时是否增减数值。默认为关闭，因为增减会调用 wheel 事件的 preventDefault，从而把滚动从页面上抢走。", "Whether scrolling the mouse wheel over the focused input steps the value. Opt-in, because stepping calls preventDefault on the wheel event and so takes the scroll away from the page.")
+                </ApiParameter>
+                <ApiParameter Name="Name" Type="string?" Default="null">
+                    @L.T("HTML name 属性。", "HTML name attribute.")
+                </ApiParameter>
+                <ApiParameter Name="InputClass" Type="string?" Default="null">
+                    @L.T("应用到内部 NumericInput 元素上的额外 CSS 类。", "Additional CSS classes applied to the inner NumericInput element.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到外层 Field 容器上的额外 CSS 类。", "Additional CSS classes applied to the outer Field container.")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                    @L.T("该控件的 ARIA 标签。", "ARIA label for the control.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private int _quantity;
+    private int _rating = 5;
+    private decimal _price = 9.99m;
+    private bool _formSubmitted;
+    private NumericFormModel _formModel = new();
+
+    private void HandleFormSubmit()
+    {
+        _formSubmitted = true;
+    }
+
+    private class NumericFormModel
+    {
+        [Range(18, 120, ErrorMessage = "Age must be between 18 and 120.")]
+        public int Age { get; set; }
+    }
+}

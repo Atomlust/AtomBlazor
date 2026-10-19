@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="default">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Atom BlazorUI Demo (WebAssembly)</title>
+    <base href="/" />
+    <link href="_content/AtomBlazor.Demo.Shared/css/app.css" rel="stylesheet" />
+    <link href="_content/AtomBlazor/atomblazor.css" rel="stylesheet" />
+    <link href="_content/AtomBlazor.Primitives/css/primitives.css" rel="stylesheet" />
+    <link href="_content/AtomBlazor/css/themes.css" rel="stylesheet" />
+    <!-- #477：在首次绘制前应用已保存的主题，避免暗色模式用户先看到一闪的亮色。
+         必须保持为 <head> 中的经典阻塞式脚本；模块脚本会被推迟到其要抢先的那次绘制之后。 -->
+    <script src="_content/AtomBlazor/js/theme-init.js"></script>
+    <!-- 显示语言 cookie 的同步读取器：Wasm 侧在首次渲染前经 IJSInProcessRuntime 取回语言，
+         必须早于 blazor.webassembly.js，故留在 head 作阻塞脚本。 -->
+    <script>
+        window.atomReadLanguageCookie = () => {
+            const match = document.cookie.match(/(?:^|;\s*)atom-lang=([^;]*)/);
+            return match ? decodeURIComponent(match[1]) : null;
+        };
+    </script>
+</head>
+<body>
+    <div id="app">
+        <div class="loading-container" style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;">
+            <svg class="loading-progress" viewBox="0 0 100 100" style="width: 80px; height: 80px;">
+                <circle r="40" cx="50" cy="50" fill="none" stroke="#e5e7eb" stroke-width="8" />
+                <circle r="40" cx="50" cy="50" fill="none" stroke="#3b82f6" stroke-width="8"
+                        stroke-dasharray="251.2" stroke-dashoffset="62.8"
+                        style="animation: spin 1s linear infinite; transform-origin: center;" />
+            </svg>
+            <p class="loading-progress-text" style="margin-top: 16px; color: #6b7280;">Loading Atom BlazorUI...</p>
+        </div>
+        <style>
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        </style>
+    </div>
+
+    <div id="blazor-error-ui" style="display: none; background: lightyellow; bottom: 0; box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2); padding: 0.6rem 1.25rem 0.7rem 1.25rem; position: fixed; width: 100%; z-index: 1000;">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss" style="cursor: pointer;">X</a>
+    </div>
+
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script>
+        window.toggleDarkMode = () => document.documentElement.classList.toggle('dark');
+        window.isDarkModeEnabled = () => document.documentElement.classList.contains('dark');
+    </script>
+</body>
+</html>

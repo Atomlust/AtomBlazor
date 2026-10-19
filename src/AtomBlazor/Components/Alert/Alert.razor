@@ -1,0 +1,37 @@
+@namespace AtomBlazor
+@inject ILocalizer Localizer
+
+<div role="alert" class="@CssClass"
+     @onmouseenter="HandleMouseEnter"
+     @onmouseleave="HandleMouseLeave"
+     @attributes="AdditionalAttributes">
+    @Icon
+    <div>
+        @ChildContent
+        @if (Actions != null)
+        {
+            <div class="atom:mt-3 atom:flex atom:items-center atom:gap-2">
+                @Actions
+            </div>
+        }
+    </div>
+    @if (Dismissible)
+    {
+        <button type="button"
+                class="atom:absolute atom:end-3 atom:top-3 atom:rounded-md atom:p-0.5 atom:opacity-70 atom:transition-opacity atom:hover:opacity-100 atom:focus:outline-none atom:focus:ring-2 atom:focus:ring-ring"
+                aria-label="@Localizer["Alert.Dismiss"]"
+                @onclick="HandleDismiss">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+            </svg>
+        </button>
+    }
+    @if (ShowCountdown && AutoDismissAfter.HasValue)
+    {
+        <div class="atom:absolute atom:bottom-0 atom:inset-x-0 atom:h-0.5 atom:bg-current/20 atom:overflow-hidden">
+            <div class="atom:h-full atom:bg-current/40"
+                 style="animation: atom-alert-countdown @(AutoDismissAfter.Value)ms linear forwards; animation-play-state: @(isPaused ? "paused" : "running");"></div>
+        </div>
+    }
+</div>

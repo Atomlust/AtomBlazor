@@ -1,0 +1,207 @@
+@namespace AtomBlazor
+@typeparam TItem
+@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Components.Forms
+@using AtomBlazor.Icons.Lucide
+@inject ILocalizer Localizer
+
+<div class="@ClassNames.cn("atom:flex atom:items-center atom:gap-1", Class)">
+    <Popover Open="@open" OpenChanged="SetOpen" RestoreFocusOnClose="true">
+        <AtomBlazor.PopoverTrigger AsChild="false" id="@Id" role="combobox" aria-haspopup="tree"
+                          aria-expanded="@open.ToString().ToLowerInvariant()" aria-controls="@treeId"
+                          aria-label="@(AriaLabel ?? Localizer["TreeSelect.Label"])" aria-required="@(Required ? "true" : null)"
+                          aria-describedby="@AriaDescribedBy"
+                          aria-invalid="@(validation.IsInvalid ? "true" : null)" disabled="@Disabled"
+                          class="@TriggerClass"
+                          @attributes="AdditionalAttributes">
+            <span class="@ClassNames.cn("atom:truncate", (Multiple ? Values.Count == 0 : Value == null) ? "atom:text-muted-foreground" : null)">@Caption</span>
+            <LucideIcon Name="chevron-down" Size="16" Class="atom:ms-2 atom:h-4 atom:w-4 atom:shrink-0 atom:opacity-50" aria-hidden="true" />
+        </AtomBlazor.PopoverTrigger>
+        <AtomBlazor.PopoverContent MatchTriggerWidth="true" Align="PopoverAlign.Start" AutoFocusId="@(ShowSearch ? searchId : null)" Class="atom:p-0">
+            @if (ShowSearch)
+            {
+                <div class="atom:flex atom:items-center atom:rounded-t-md atom:border-b atom:border-border atom:px-3 atom:focus-within:ring-2 atom:focus-within:ring-ring atom:focus-within:ring-inset atom:focus-within:border-b-transparent">
+                    <LucideIcon Name="search" Size="16" Class="atom:me-2 atom:h-4 atom:w-4 atom:shrink-0 atom:opacity-50" aria-hidden="true" />
+                    <Input Id="@searchId" @bind-Value="search" UpdateTiming="UpdateTiming.Immediate"
+                             Placeholder="@Localizer["TreeSelect.Search"]" AriaLabel="@Localizer["TreeSelect.Search"]" aria-controls="@treeId"
+                             Class="atom:ms-2 atom:h-11 atom:rounded-none atom:border-0 atom:bg-transparent atom:px-0 atom:py-3 atom:text-sm atom:focus-visible:ring-0" />
+                </div>
+            }
+            <div class="atom:max-h-64 atom:overflow-auto atom:p-1">
+            <TreeView TItem="TItem" Items="@Items" ChildrenProperty="@ChildrenProperty" ValueField="@ValueField" TextField="@TextField"
+                        SelectedValue="@Value" SelectedValueChanged="SelectAsync"
+                        OnNodeClick="NodeClicked"
+                        Checkable="@Multiple" CheckStrictly="false" CheckedValues="@treeCheckedValues" CheckedValuesChanged="SelectManyAsync"
+                        SelectionMode="@(Multiple ? TreeSelectionMode.None : TreeSelectionMode.Single)"
+                        SearchText="@search" ShowIcons="false" AriaLabel="@(AriaLabel ?? Localizer["TreeSelect.Label"])" id="@treeId"
+                        data-tree-select="true" />
+            </div>
+        </AtomBlazor.PopoverContent>
+    </Popover>
+    @if (Clearable && (Multiple ? Values.Count > 0 : Value != null))
+    {
+        <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Icon" Disabled="@Disabled" AriaLabel="@Localizer["TreeSelect.Clear"]" OnClick="ClearAsync"><LucideIcon Name="x" Size="16" aria-hidden="true" /></Button>
+    }
+    @if (Multiple)
+    {
+        @foreach (var value in Values)
+        {
+            <input type="hidden" name="@validation.GetEffectiveName(Name)" value="@value" disabled="@Disabled" />
+        }
+    }
+    else
+    {
+        <input type="hidden" name="@validation.GetEffectiveName(Name)" value="@Value" disabled="@Disabled" />
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IEnumerable<TItem> Items { get; set; } = [];
+    [Parameter, EditorRequired] public Func<TItem, string> ValueField { get; set; } = default!;
+    [Parameter, EditorRequired] public Func<TItem, string> TextField { get; set; } = default!;
+    [Parameter, EditorRequired] public Func<TItem, IEnumerable<TItem>?> ChildrenProperty { get; set; } = default!;
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    [Parameter] public Expression<Func<string?>>? ValueExpression { get; set; }
+    [Parameter] public HashSet<string> Values { get; set; } = new(StringComparer.Ordinal);
+    [Parameter] public EventCallback<HashSet<string>> ValuesChanged { get; set; }
+    [Parameter] public Expression<Func<HashSet<string>>>? ValuesExpression { get; set; }
+    [Parameter] public bool Multiple { get; set; }
+    [Parameter] public bool LeafOnly { get; set; }
+    [Parameter] public bool ShowSearch { get; set; } = true;
+    [Parameter] public bool Clearable { get; set; } = true;
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public bool Required { get; set; }
+    [Parameter] public string? Placeholder { get; set; }
+    [Parameter] public string? AriaLabel { get; set; }
+    /// <summary>描述本控件的元素 id，用于 <c>aria-describedby</c>。</summary>
+    [Parameter] public string? AriaDescribedBy { get; set; }
+    [Parameter] public string? Id { get; set; }
+    [Parameter] public string? Name { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    [CascadingParameter] private EditContext? EditContext { get; set; }
+    private readonly InputValidationBehavior validation = new();
+    private readonly string treeId = $"atom-tree-select-{Guid.NewGuid():N}";
+    private readonly string searchId = $"atom-tree-select-search-{Guid.NewGuid():N}";
+    private string? search = string.Empty;
+    private HashSet<string> treeCheckedValues = new(StringComparer.Ordinal);
+    private bool open;
+    private HierarchyIndex<TItem>? index;
+    private string Caption => Multiple
+        ? Values.Count == 0 ? Placeholder ?? Localizer["TreeSelect.Placeholder"] : string.Join(", ", Values.Select(Label))
+        : Value == null ? Placeholder ?? Localizer["TreeSelect.Placeholder"] : Label(Value);
+    private string Label(string value) => index!.Nodes.TryGetValue(value, out var node) ? node.Text : value;
+    private string TriggerClass => ClassNames.cn(
+        "atom:flex atom:h-10 atom:w-full atom:items-center atom:justify-between atom:rounded-md atom:border atom:border-input atom:bg-background atom:px-3 atom:py-2 atom:text-sm",
+        "atom:hover:bg-accent atom:hover:text-accent-foreground atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:disabled:cursor-not-allowed atom:disabled:opacity-50",
+        open ? "atom:bg-accent atom:text-accent-foreground" : null);
+
+    protected override void OnParametersSet()
+    {
+        index = new(Items, ValueField, TextField, ChildrenProperty);
+        UpdateTreeCheckedValues();
+        if (Multiple)
+        {
+            validation.Update(EditContext, ValuesExpression);
+        }
+        else
+        {
+            validation.Update(EditContext, ValueExpression);
+        }
+        if (Disabled)
+        {
+            open = false;
+        }
+    }
+
+    private void SetOpen(bool value)
+    {
+        var nextOpen = !Disabled && value;
+        // 让即将退场的 PopoverContent 在其退场动画播完前保持稳定。
+        if (nextOpen && !open)
+        {
+            search = string.Empty;
+        }
+        open = nextOpen;
+    }
+
+    // 即使绑定值只含叶子，也让分支汇总节点留在树里。
+    private void UpdateTreeCheckedValues()
+    {
+        treeCheckedValues = new(StringComparer.Ordinal);
+        foreach (var root in index!.Roots)
+        {
+            Visit(root, false);
+        }
+
+        bool Visit(string key, bool inherited)
+        {
+            var node = index.Nodes[key];
+            var selected = inherited || (Values.Contains(key) && (!LeafOnly || node.Children.Count == 0));
+            var allChildrenSelected = node.Children.Count > 0;
+            foreach (var child in node.Children)
+            {
+                allChildrenSelected &= Visit(child, selected);
+            }
+            if (selected || allChildrenSelected)
+            {
+                treeCheckedValues.Add(key);
+                return true;
+            }
+            return false;
+        }
+    }
+    private bool CanSelect(string value) => index!.Nodes.TryGetValue(value, out var node) && (!LeafOnly || node.Children.Count == 0);
+
+    private async Task SelectAsync(string? value)
+    {
+        // 树的展开/搜索可能重复播报当前选中值。
+        // 只有真正变化的选中才应关闭弹层或通知表单。
+        if (Disabled || value == Value || (value != null && !CanSelect(value)))
+        {
+            return;
+        }
+        Value = value;
+        await ValueChanged.InvokeAsync(value);
+        validation.NotifyFieldChanged();
+        open = false;
+    }
+
+    private void NodeClicked(TItem item)
+    {
+        if (!Disabled && !Multiple && CanSelect(ValueField(item)))
+        {
+            open = false;
+        }
+    }
+
+    private async Task SelectManyAsync(HashSet<string> values)
+    {
+        if (Disabled)
+        {
+            return;
+        }
+        var selected = values.Where(CanSelect).ToHashSet(StringComparer.Ordinal);
+        if (Values.SetEquals(selected))
+        {
+            return;
+        }
+        Values = selected;
+        UpdateTreeCheckedValues();
+        await ValuesChanged.InvokeAsync(new HashSet<string>(Values, StringComparer.Ordinal));
+        validation.NotifyFieldChanged();
+    }
+
+    private async Task ClearAsync()
+    {
+        if (Multiple)
+        {
+            await SelectManyAsync([]);
+        }
+        else
+        {
+            await SelectAsync(null);
+        }
+    }
+}

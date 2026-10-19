@@ -1,0 +1,596 @@
+@page "/components/tooltip"
+<PageTitle>@L.T("Tooltip 工具提示 - Atom BlazorUI", "Tooltip Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">Tooltip</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("在悬停或聚焦时出现的简短信息提示。", "Brief informational popups that appear on hover or focus.")
+        </p>
+    </div>
+
+    <div class="space-y-6">
+        <!-- Basic Usage -->
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            在 <code>Tooltip</code> 内包裹触发器与内容。使用
+                            <code>AsChild</code> 让任意元素——这里是 <code>Button</code>——成为触发器。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            Wrap a trigger and content inside a <code>Tooltip</code>. Use
+                            <code>AsChild</code> so any element — here a <code>Button</code> — becomes the trigger.
+                        </p>
+                    </text>
+                }
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <Tooltip>
+                    <AtomBlazor.TooltipTrigger AsChild>
+                        <Button>@L.T("悬停我", "Hover me")</Button>
+                    </AtomBlazor.TooltipTrigger>
+                    <AtomBlazor.TooltipContent>@L.T("添加到收藏", "Add to library")</AtomBlazor.TooltipContent>
+                </Tooltip>
+            </div>
+
+            <CodeBlock Source="Components/Tooltip/basic.txt" />
+        </section>
+
+        <!-- Placement -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("位置", "Placement")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground">
+                        用 <code>Side</code> 选择提示出现的边，并用
+                        <code>Align</code>（Start、Center、End）微调对齐。默认位置为 Top。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground">
+                        Choose which side the tooltip appears on with <code>Side</code>, and fine-tune alignment
+                        with <code>Align</code> (Start, Center, End). The default placement is Top.
+                    </p>
+                </text>
+            }
+
+            <div class="flex flex-wrap gap-4 rounded-lg border bg-card p-6">
+                <Tooltip>
+                    <AtomBlazor.TooltipTrigger AsChild><Button Variant="ButtonVariant.Outline">@L.T("顶部", "Top")</Button></AtomBlazor.TooltipTrigger>
+                    <AtomBlazor.TooltipContent>@L.T("出现在触发器上方", "Appears above the trigger")</AtomBlazor.TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                    <AtomBlazor.TooltipTrigger AsChild><Button Variant="ButtonVariant.Outline">@L.T("右侧", "Right")</Button></AtomBlazor.TooltipTrigger>
+                    <AtomBlazor.TooltipContent Side="@PopoverSide.Right">@L.T("出现在右侧", "Appears to the right")</AtomBlazor.TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                    <AtomBlazor.TooltipTrigger AsChild><Button Variant="ButtonVariant.Outline">@L.T("底部起始", "Bottom start")</Button></AtomBlazor.TooltipTrigger>
+                    <AtomBlazor.TooltipContent Side="@PopoverSide.Bottom" Align="@PopoverAlign.Start">@L.T("下方，对齐起始边", "Below, aligned to the start edge")</AtomBlazor.TooltipContent>
+                </Tooltip>
+            </div>
+
+            <CodeBlock Source="Components/Tooltip/placement.txt" />
+        </section>
+
+        <!-- Controlled -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("受控状态", "Controlled State")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground">
+                        绑定 <code>@@bind-Open</code> 以在你自己的代码中驱动工具提示。组件会通过
+                        同一个绑定回报用户发起的打开与关闭。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground">
+                        Bind <code>@@bind-Open</code> to drive the tooltip from your own code. The component
+                        reports user-initiated opens and closes back through the same binding.
+                    </p>
+                </text>
+            }
+
+            <div class="space-y-3 rounded-lg border bg-card p-6">
+                <button @onclick="() => isOpen = !isOpen" class="px-3 py-2 border rounded text-sm">
+                    @L.T("切换工具提示", "Toggle tooltip")
+                </button>
+                <Tooltip @bind-Open="isOpen">
+                    <AtomBlazor.TooltipTrigger AsChild>
+                        <Button>@(isOpen ? L.T("隐藏", "Hide") : L.T("显示", "Show")) @L.T("工具提示", "tooltip")</Button>
+                    </AtomBlazor.TooltipTrigger>
+                    <AtomBlazor.TooltipContent>@L.T("由父组件的状态控制", "Controlled by the parent component's state")</AtomBlazor.TooltipContent>
+                </Tooltip>
+            </div>
+
+            <CodeBlock Source="Components/Tooltip/controlled.txt" />
+        </section>
+
+        <!-- TooltipProvider -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">TooltipProvider</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground">
+                        用 <code>TooltipProvider</code> 包裹一个区域以共享延迟设置。第一个提示遵循
+                        <code>DelayDuration</code>；随后在 <code>SkipDelayDuration</code> 内，后来的提示会立即打开——
+                        即“提示发现”模式。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground">
+                        Wrap a region in <code>TooltipProvider</code> to share delay settings. The first tooltip
+                        honors <code>DelayDuration</code>; afterwards, within <code>SkipDelayDuration</code>, later
+                        tooltips open instantly — the "tooltip discovery" pattern.
+                    </p>
+                </text>
+            }
+
+            <div class="flex flex-wrap gap-4 rounded-lg border bg-card p-6">
+                <TooltipProvider DelayDuration="200" SkipDelayDuration="500">
+                    <Tooltip>
+                        <AtomBlazor.TooltipTrigger AsChild><Button Variant="ButtonVariant.Outline">@L.T("快速", "Fast")</Button></AtomBlazor.TooltipTrigger>
+                        <AtomBlazor.TooltipContent>@L.T("200ms 后出现", "Appears after 200ms")</AtomBlazor.TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <AtomBlazor.TooltipTrigger AsChild><Button Variant="ButtonVariant.Outline">@L.T("同样快速", "Also fast")</Button></AtomBlazor.TooltipTrigger>
+                        <AtomBlazor.TooltipContent>@L.T("第一个之后无延迟", "After the first, no delay")</AtomBlazor.TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            </div>
+
+            <CodeBlock Source="Components/Tooltip/provider.txt" />
+        </section>
+
+        <!-- AsChild -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("AsChild 触发器", "AsChild Trigger")</h2>
+            <p class="text-muted-foreground">
+                @L.T("任意元素都能作为触发器。这里由一个链接承载悬停行为。", "Any element can be the trigger. Here a link carries the hover behavior.")
+            </p>
+
+            <div class="rounded-lg border bg-card p-6">
+                <Tooltip>
+                    <AtomBlazor.TooltipTrigger AsChild>
+                        <a href="#section" class="text-primary underline underline-offset-4">
+                            @L.T("阅读文档", "Read the docs")
+                        </a>
+                    </AtomBlazor.TooltipTrigger>
+                    <AtomBlazor.TooltipContent>@L.T("打开链接指向的章节", "Opens the linked section")</AtomBlazor.TooltipContent>
+                </Tooltip>
+            </div>
+
+            <CodeBlock Source="Components/Tooltip/as-child.txt" />
+        </section>
+
+        <!-- Plain Content Needs AsChild="false" -->
+        <div class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("纯内容与图标", "Plain Content and Icons")</h2>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">AsChild</code> 默认为
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">false</code>，它会把子内容包裹在一个
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">span</code> 中，由该 span 承载悬停与聚焦处理。
+                            文本、普通标记以及裸的
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">LucideIcon</code> 都需要这样。仅当子内容会消费
+                            级联的 <code class="text-xs bg-muted px-1 py-0.5 rounded">TriggerContext</code> 并自行附加
+                            该行为时，才设置 <code class="text-xs bg-muted px-1 py-0.5 rounded">AsChild="true"</code>。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">AsChild</code> defaults to
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">false</code>, which wraps the child in a
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">span</code> carrying the hover and focus handlers.
+                            That is what text, plain markup and a bare
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">LucideIcon</code> need. Set
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">AsChild="true"</code> only when the child consumes
+                            the cascaded <code class="text-xs bg-muted px-1 py-0.5 rounded">TriggerContext</code> and attaches
+                            that behaviour itself.
+                        </p>
+                    </text>
+                }
+            </div>
+
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm">@L.T("支持居家办公", "Works from home")</span>
+                    <Tooltip>
+                        <AtomBlazor.TooltipTrigger AsChild="false">
+                            <LucideIcon Name="house" Size="18" Class="cursor-help text-green-600 dark:text-green-500" />
+                        </AtomBlazor.TooltipTrigger>
+                        <AtomBlazor.TooltipContent>
+                            @L.T("远程——未分配工位", "Remote — no desk assigned")
+                        </AtomBlazor.TooltipContent>
+                    </Tooltip>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <span class="text-sm">@L.T("存储", "Storage")</span>
+                    <Tooltip>
+                        <AtomBlazor.TooltipTrigger AsChild="false">
+                            <span class="text-sm underline decoration-dotted cursor-help">@L.T("已用 82%", "82% used")</span>
+                        </AtomBlazor.TooltipTrigger>
+                        <AtomBlazor.TooltipContent>
+                            @L.T("500 GB 中已用 410 GB", "410 GB of 500 GB")
+                        </AtomBlazor.TooltipContent>
+                    </Tooltip>
+                </div>
+            </div>
+
+            <CodeBlock Source="Components/Tooltip/plain-content.txt" />
+
+            <div class="rounded-md border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <strong>我需要哪种模式？</strong>当子内容是专门用作触发器的组件时选择 <code>AsChild="true"</code>——最常见的是 <code>Button</code>——因为它保持 DOM 扁平，
+                        并让子内容自行管理焦点环、aria 属性与样式。其余情况保持默认即可。
+                        过去选错完全没有任何作用；如今当触发器的子内容从不消费该上下文时，
+                        应用运行在 Development 环境时会记录一条警告。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <strong>Which mode do I want?</strong> Reach for <code>AsChild="true"</code> when the child is a
+                        component built to act as a trigger — <code>Button</code> is the common one — because it keeps the DOM
+                        flat and lets the child own its own focus ring, aria attributes and styling. Leave it at the default for
+                        everything else. Getting it wrong used to do nothing at all; a trigger whose child never consumes the
+                        context now logs a warning while the app runs in the Development environment.
+                    </text>
+                }
+            </div>
+        </div>
+
+        <!-- With Arrow -->
+        <div class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("带箭头", "With Arrow")</h2>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">
+                            使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowArrow</code> 添加指向触发器的方向箭头。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">
+                            Add a directional arrow pointing toward the trigger using <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowArrow</code>.
+                        </p>
+                    </text>
+                }
+            </div>
+            <div class="flex flex-wrap gap-4">
+                <Tooltip Placement="@PopoverPlacement.Top">
+                    <AtomBlazor.TooltipTrigger AsChild="false" Class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 cursor-pointer">
+                        @L.T("上方", "Top")
+                    </AtomBlazor.TooltipTrigger>
+                    <AtomBlazor.TooltipContent ShowArrow="true">
+                        @L.T("箭头在上方", "Arrow on top")
+                    </AtomBlazor.TooltipContent>
+                </Tooltip>
+
+                <Tooltip Placement="@PopoverPlacement.Bottom">
+                    <AtomBlazor.TooltipTrigger AsChild="false" Class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 cursor-pointer">
+                        @L.T("下方", "Bottom")
+                    </AtomBlazor.TooltipTrigger>
+                    <AtomBlazor.TooltipContent ShowArrow="true">
+                        @L.T("箭头在下方", "Arrow on bottom")
+                    </AtomBlazor.TooltipContent>
+                </Tooltip>
+
+                <Tooltip Placement="@PopoverPlacement.Left">
+                    <AtomBlazor.TooltipTrigger AsChild="false" Class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 cursor-pointer">
+                        @L.T("左侧", "Left")
+                    </AtomBlazor.TooltipTrigger>
+                    <AtomBlazor.TooltipContent ShowArrow="true">
+                        @L.T("箭头在左侧", "Arrow on left")
+                    </AtomBlazor.TooltipContent>
+                </Tooltip>
+
+                <Tooltip Placement="@PopoverPlacement.Right">
+                    <AtomBlazor.TooltipTrigger AsChild="false" Class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 cursor-pointer">
+                        @L.T("右侧", "Right")
+                    </AtomBlazor.TooltipTrigger>
+                    <AtomBlazor.TooltipContent ShowArrow="true">
+                        @L.T("箭头在右侧", "Arrow on right")
+                    </AtomBlazor.TooltipContent>
+                </Tooltip>
+            </div>
+
+            <CodeBlock Source="Components/Tooltip/with-arrow.txt" />
+        </div>
+
+        <!-- Toolbar Example -->
+        <div class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("带工具提示的工具栏", "Toolbar with Tooltips")</h2>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("为工具栏操作提供带说明文字的图标工具提示。", "Icons with descriptive tooltips for toolbar actions.")
+                </p>
+            </div>
+            <div class="border rounded-lg p-2 inline-flex gap-1">
+                <Tooltip>
+                    <AtomBlazor.TooltipTrigger AsChild="false" Class="inline-flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                        <LucideIcon Name="bold" Size="16" />
+                    </AtomBlazor.TooltipTrigger>
+                    <AtomBlazor.TooltipContent>
+                        @L.T("加粗 (Ctrl+B)", "Bold (Ctrl+B)")
+                    </AtomBlazor.TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                    <AtomBlazor.TooltipTrigger AsChild="false" Class="inline-flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                        <LucideIcon Name="italic" Size="16" />
+                    </AtomBlazor.TooltipTrigger>
+                    <AtomBlazor.TooltipContent>
+                        @L.T("倾斜 (Ctrl+I)", "Italic (Ctrl+I)")
+                    </AtomBlazor.TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                    <AtomBlazor.TooltipTrigger AsChild="false" Class="inline-flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                        <LucideIcon Name="underline" Size="16" />
+                    </AtomBlazor.TooltipTrigger>
+                    <AtomBlazor.TooltipContent>
+                        @L.T("下划线 (Ctrl+U)", "Underline (Ctrl+U)")
+                    </AtomBlazor.TooltipContent>
+                </Tooltip>
+
+                <Separator Orientation="AtomBlazor.SeparatorOrientation.Vertical" Class="mx-1 h-8" />
+
+                <Tooltip>
+                    <AtomBlazor.TooltipTrigger AsChild="false" Class="inline-flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                        <LucideIcon Name="align-left" Size="16" />
+                    </AtomBlazor.TooltipTrigger>
+                    <AtomBlazor.TooltipContent>
+                        @L.T("左对齐", "Align Left")
+                    </AtomBlazor.TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                    <AtomBlazor.TooltipTrigger AsChild="false" Class="inline-flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                        <LucideIcon Name="align-center" Size="16" />
+                    </AtomBlazor.TooltipTrigger>
+                    <AtomBlazor.TooltipContent>
+                        @L.T("居中对齐", "Align Center")
+                    </AtomBlazor.TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                    <AtomBlazor.TooltipTrigger AsChild="false" Class="inline-flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                        <LucideIcon Name="align-right" Size="16" />
+                    </AtomBlazor.TooltipTrigger>
+                    <AtomBlazor.TooltipContent>
+                        @L.T("右对齐", "Align Right")
+                    </AtomBlazor.TooltipContent>
+                </Tooltip>
+            </div>
+
+            <CodeBlock Source="Components/Tooltip/toolbar.txt" />
+        </div>
+
+        <!-- Rich Content -->
+        <div class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("富文本工具提示", "Rich Content Tooltips")</h2>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("工具提示可以包含格式化内容与多个元素。", "Tooltips can contain formatted content and multiple elements.")
+                </p>
+            </div>
+            <div class="flex gap-4">
+                <Tooltip>
+                    <AtomBlazor.TooltipTrigger AsChild="false" Class="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                        <LucideIcon Name="package" Size="16" Class="mr-2" />
+                        @L.T("高级套餐", "Premium Plan")
+                    </AtomBlazor.TooltipTrigger>
+                    <AtomBlazor.TooltipContent Class="max-w-xs">
+                        <div class="space-y-1">
+                            <p class="font-semibold">@L.T("高级功能", "Premium Features")</p>
+                            <ul class="text-xs space-y-0.5 text-muted-foreground">
+                                <li>@L.T("• 无限项目", "• Unlimited projects")</li>
+                                <li>@L.T("• 优先支持", "• Priority support")</li>
+                                <li>@L.T("• 高级分析", "• Advanced analytics")</li>
+                            </ul>
+                        </div>
+                    </AtomBlazor.TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                    <AtomBlazor.TooltipTrigger AsChild="false" Class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors cursor-help">
+                        <LucideIcon Name="zap" Size="12" Class="mr-1" />
+                        @L.T("性能", "Performance")
+                    </AtomBlazor.TooltipTrigger>
+                    <AtomBlazor.TooltipContent>
+                        <div class="text-xs">
+                            <p class="font-medium mb-1">@L.T("为速度优化", "Optimized for Speed")</p>
+                            <p class="text-muted-foreground">@L.T("加载比竞品快 40%", "Loads 40% faster than competitors")</p>
+                        </div>
+                    </AtomBlazor.TooltipContent>
+                </Tooltip>
+            </div>
+
+            <CodeBlock Source="Components/Tooltip/rich-content.txt" />
+        </div>
+
+        <AccessibilityList>
+            <AriaAttributes>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="tooltip"</code> 帮助屏幕阅读器识别该弹出层
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="tooltip"</code> helps screen readers identify the popup
+                        </AccessibilityItem>
+                    </text>
+                }
+                <AccessibilityItem>
+                    @L.T("提示在悬停和键盘聚焦时都会出现", "Tooltips appear on both hover and keyboard focus")
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @L.T("700ms 延迟可防止移动鼠标时误触发提示", "700ms delay prevents accidental tooltips during mouse movement")
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @L.T("提示应增强而非取代关键信息", "Tooltips should enhance, not replace, essential information")
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @L.T("看到第一个提示后，后续提示出现得更快（发现模式）", "After seeing one tooltip, subsequent tooltips appear faster (discovery mode)")
+                </AccessibilityItem>
+            </AriaAttributes>
+            <KeyboardNavigation>
+                <KeyboardShortcutItem Description="@(L.T("显示工具提示", "Show tooltip"))">
+                    <Kbd>Focus</Kbd>
+                </KeyboardShortcutItem>
+            </KeyboardNavigation>
+        </AccessibilityList>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+                <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+            </div>
+            <div class="space-y-4">
+                <ApiReference ComponentName="Tooltip">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="Open" Type="bool?" Default="null">
+                                控制工具提示是否打开（受控模式）。为 null 时工具提示自行管理状态（非受控模式）。支持 <code>@@bind-Open</code> 双向绑定。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="Open" Type="bool?" Default="null">
+                                Controls whether the tooltip is open (controlled mode). When null, the tooltip manages its own state (uncontrolled mode). Supports two-way binding with <code>@@bind-Open</code>.
+                            </ApiParameter>
+                        </text>
+                    }
+                    <ApiParameter Name="OpenChanged" Type="EventCallback&lt;bool&gt;">
+                        @L.T("打开状态发生变化时调用的事件回调。", "Event callback invoked when the open state changes.")
+                    </ApiParameter>
+                    <ApiParameter Name="DefaultOpen" Type="bool" Default="false">
+                        @L.T("非受控模式下的默认打开状态。", "Default open state when in uncontrolled mode.")
+                    </ApiParameter>
+                    <ApiParameter Name="DelayDuration" Type="int" Default="300">
+                        @L.T("显示工具提示前的延迟（毫秒）。比原语默认值更快，以贴合 shadcn/ui 的手感。", "Delay before showing the tooltip (ms). Faster than the primitive default to match shadcn/ui feel.")
+                    </ApiParameter>
+                    <ApiParameter Name="HideDelay" Type="int" Default="0">
+                        @L.T("指针离开后隐藏前的延迟（毫秒）。0 表示立即隐藏。", "Delay before hiding after the pointer leaves (ms). 0 hides immediately.")
+                    </ApiParameter>
+                    <ApiParameter Name="Placement" Type="PopoverPlacement" Default="PopoverPlacement.Top">
+                        @L.T("相对触发器定位的偏好边。", "Preferred side for positioning relative to the trigger.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在工具提示上下文中渲染的子内容。通常包含 TooltipTrigger 与 TooltipContent。", "The child content to render within the tooltip context. Typically includes TooltipTrigger and TooltipContent.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到组件根元素上的额外 HTML 属性。", "Additional HTML attributes applied to the component's root element.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="TooltipTrigger">
+                    <ApiParameter Name="AsChild" Type="bool" Default="false">
+                        @L.T("为 true 时不渲染自己的元素，而是把 TriggerContext 级联给子组件（例如 Button）。纯标记或裸图标应使用默认的 false，它会把内容包裹在一个承载悬停/聚焦处理的 span 中。", "When true, does not render its own element; cascades TriggerContext to a child (e.g. Button). Pure markup or bare icons should use the default false, which wraps content in a span carrying the hover/focus handlers.")
+                    </ApiParameter>
+                    <ApiParameter Name="Class" Type="string?">
+                        @L.T("包裹元素的额外 CSS 类。", "Additional CSS classes for the wrapping element.")
+                    </ApiParameter>
+                    <ApiParameter Name="Focusable" Type="bool" Default="true">
+                        @L.T("触发器是否可以接收键盘焦点。", "Whether the trigger can receive keyboard focus.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在触发器内部显示的内容。", "The content to display inside the trigger.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到触发器元素上的额外 HTML 属性。", "Additional HTML attributes applied to the trigger element.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="TooltipContent">
+                    <ApiParameter Name="Side" Type="PopoverSide?" Default="null">
+                        @L.T("定位的偏好边。缺省回退到父级 Tooltip 的 Placement。", "Preferred side for positioning. Falls back to the parent Tooltip's Placement.")
+                    </ApiParameter>
+                    <ApiParameter Name="Align" Type="PopoverAlign?" Default="null">
+                        @L.T("相对触发器的对齐方式（Start、Center、End）。", "Alignment relative to the trigger (Start, Center, End).")
+                    </ApiParameter>
+                    <ApiParameter Name="Offset" Type="int" Default="8">
+                        @L.T("距触发器元素的偏移距离（像素）。", "Offset distance from the trigger element in pixels.")
+                    </ApiParameter>
+                    <ApiParameter Name="ShowArrow" Type="bool" Default="false">
+                        @L.T("是否渲染指向触发器的方向箭头。", "Whether to render a directional arrow pointing at the trigger.")
+                    </ApiParameter>
+                    <ApiParameter Name="Class" Type="string?">
+                        @L.T("内容容器的额外 CSS 类。", "Additional CSS classes for the content container.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在工具提示内部渲染的内容。", "The content to render inside the tooltip.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到内容容器上的额外 HTML 属性。", "Additional HTML attributes applied to the content container.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="TooltipProvider">
+                    <ApiParameter Name="DelayDuration" Type="int" Default="700">
+                        @L.T("显示任何子工具提示前的延迟（毫秒）。", "Delay before showing any child tooltip (ms).")
+                    </ApiParameter>
+                    <ApiParameter Name="SkipDelayDuration" Type="int" Default="300">
+                        @L.T("第一个提示之后，后来的提示跳过延迟的时间窗口（毫秒）。", "Window after the first tooltip during which later tooltips skip the delay (ms).")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("其提示共享这些延迟设置的区域。", "The region whose tooltips share these delay settings.")
+                    </ApiParameter>
+                </ApiReference>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private bool isOpen;
+}

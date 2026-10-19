@@ -1,0 +1,33 @@
+@namespace AtomBlazor
+
+<span class="@CssClass" @attributes="AdditionalAttributes">
+    @ChildContent
+</span>
+
+@code {
+    /// <summary>
+    /// 获取或设置应用到快捷键的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取或设置在快捷键内部渲染的内容（例如 "⌘K"、"Ctrl+S"）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取快捷键计算后的 CSS 类。
+    /// </summary>
+    private string CssClass => ClassNames.cn(
+        "atom:ms-auto atom:text-xs atom:tracking-widest atom:text-muted-foreground",
+        Class
+    );
+}

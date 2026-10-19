@@ -1,0 +1,155 @@
+@typeparam TValue
+@namespace AtomBlazor
+@inject ILocalizer Localizer
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+
+@* SelectContent 基元的带样式包装 *@
+
+@* 历史说明：源组件在 IsSheet 为真时走 BottomSheet 呈现分支（Sheet/SheetContent/SheetHeader/SheetTitle + Internal/SelectSheetOptions + js/select-sheet.js）；当时因 Sheet 家族未交付而暂以浮层路径兜底，待 Sheet 家族落地后本分支按源补齐，差异仅注释汉化与 Tailwind 前缀改名。
+*@
+@if (IsSheet && Context is not null)
+{
+    <Sheet Open="Context.IsOpen" OpenChanged="HandleSheetOpenChanged" Side="SheetSide.Bottom">
+        <SheetContent Class="@ClassNames.cn("atom:max-h-[85dvh] atom:rounded-t-xl atom:pb-[max(1.5rem,env(safe-area-inset-bottom))]", Class)" @attributes="AdditionalAttributes">
+            <SheetHeader>
+                <SheetTitle>@(SheetTitle ?? Parent?.SheetTitle ?? Localizer["Select.ChooseOption"])</SheetTitle>
+            </SheetHeader>
+            @RenderSheetOptions()
+        </SheetContent>
+    </Sheet>
+}
+else
+{
+    <AtomBlazor.Primitives.SelectContent TValue="TValue" class="@OuterCssClass" @attributes="AdditionalAttributes">
+        @RenderOptions()
+    </AtomBlazor.Primitives.SelectContent>
+}
+
+@code {
+    [CascadingParameter] private Select<TValue>? Parent { get; set; }
+    /// <summary>提供时覆盖上级 Select 的呈现形态。</summary>
+    [Parameter] public SelectPresentation? Presentation { get; set; }
+    /// <summary>覆盖上级 Select 的抽屉标题。</summary>
+    [Parameter] public string? SheetTitle { get; set; }
+    private bool IsSheet => (Presentation ?? Parent?.Presentation ?? SelectPresentation.Popover) == SelectPresentation.BottomSheet;
+    private RenderFragment RenderOptions() => builder =>
+    {
+        builder.OpenComponent<SelectOptionsViewport>(0);
+        builder.AddAttribute(1, nameof(SelectOptionsViewport.Class), InnerCssClass);
+        builder.AddAttribute(2, nameof(SelectOptionsViewport.OnLoadMore), OnLoadMore);
+        builder.AddAttribute(3, nameof(SelectOptionsViewport.IsLoading), IsLoading);
+        builder.AddAttribute(4, nameof(SelectOptionsViewport.ChildContent), RenderOptionItems());
+        builder.CloseComponent();
+    };
+    private RenderFragment RenderOptionItems() => __builder =>
+    {
+        @ChildContent
+        @if (IsLoading)
+        {
+            <div class="atom:flex atom:items-center atom:justify-center atom:py-2">
+                <Spinner Size="SpinnerSize.Small" />
+            </div>
+        }
+        else if (!string.IsNullOrEmpty(EndOfListMessage))
+        {
+            <div class="atom:py-2 atom:text-center atom:text-xs atom:text-muted-foreground">
+                @EndOfListMessage
+            </div>
+        }
+    };
+    private RenderFragment RenderSheetOptions() => builder =>
+    {
+        builder.OpenComponent<SelectSheetOptions<TValue>>(0);
+        builder.AddAttribute(1, nameof(SelectSheetOptions<TValue>.Context), Context);
+        builder.AddAttribute(2, nameof(SelectSheetOptions<TValue>.ChildContent), RenderOptions());
+        builder.CloseComponent();
+    };
+    private void HandleSheetOpenChanged(bool open)
+    {
+        if (!open) { Context?.Close(restoreFocus: true); }
+    }
+
+
+    /// <summary>
+    /// 级联参数，用于从上级 Select 上下文推断 TValue。
+    /// </summary>
+    [CascadingParameter]
+    private AtomBlazor.Primitives.SelectContext<TValue>? Context { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到内容容器的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的附加 HTML 特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取或设置要在下拉容器内渲染的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置用户在下拉列表接近底部滚动时调用的回调。
+    /// 用于无限滚动场景下加载后续条目。
+    /// </summary>
+    [Parameter]
+    public EventCallback OnLoadMore { get; set; }
+
+    /// <summary>
+    /// 获取或设置是否正在加载后续条目。
+    /// 为 true 时在列表底部显示加载指示，并在加载结束前抑制
+    /// <see cref="OnLoadMore"/>。
+    /// </summary>
+    [Parameter]
+    public bool IsLoading { get; set; }
+
+    /// <summary>
+    /// 获取或设置在全部条目加载完毕后显示于列表底部的消息。
+    /// 仅在 <see cref="IsLoading"/> 为 false 时显示。设为 <c>null</c> 或空串即隐藏。
+    /// </summary>
+    [Parameter]
+    public string? EndOfListMessage { get; set; }
+
+    /// <summary>
+    /// 外层容器：边框、阴影、动画——不负责滚动。
+    /// </summary>
+    private string OuterCssClass => ClassNames.cn(
+        "atom:z-50 atom:w-full atom:overflow-hidden atom:rounded-md atom:border",
+        "atom:bg-popover atom:text-popover-foreground atom:shadow-md",
+        "atom:data-[state=open]:animate-in atom:data-[state=closed]:animate-out",
+        "atom:data-[state=closed]:fade-out-0 atom:data-[state=open]:fade-in-0",
+        "atom:data-[state=closed]:zoom-out-95 atom:data-[state=open]:zoom-in-95",
+        "atom:data-[side=bottom]:slide-in-from-top-2 atom:data-[side=top]:slide-in-from-bottom-2",
+        Class
+    );
+
+    /// <summary>
+    /// 内层容器：带最大高度的可滚动区域。
+    /// </summary>
+    private string InnerCssClass => IsSheet
+        ? "atom:max-h-[65dvh] atom:overflow-y-auto atom:p-1 atom:[&_[role=option]]:min-h-[44px]"
+        : "atom:max-h-60 atom:overflow-auto atom:p-1 atom:[&::-webkit-scrollbar]:hidden";
+
+    /// <summary>
+    /// 由 JavaScript 在列表滚动接近底部时调用。
+    /// </summary>
+    [JSInvokable]
+    public async Task JsOnNearBottom()
+    {
+        if (!OnLoadMore.HasDelegate || IsLoading)
+        {
+            return;
+        }
+
+        await OnLoadMore.InvokeAsync();
+    }
+
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+}

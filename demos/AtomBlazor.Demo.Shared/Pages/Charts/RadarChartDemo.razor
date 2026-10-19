@@ -1,0 +1,467 @@
+@page "/charts/radar"
+@using AtomBlazor.Icons.Lucide
+<PageTitle>@L.T("雷达图 - Atom BlazorUI", "Radar Chart - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-6xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("雷达图", "Radar Chart")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("用蜘蛛网式的图形，横向比较多个对象之间的多组变量。", "Compare multiple variables across entities with spider/web visualizations.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Grid of chart variants -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- Radar Chart -->
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("雷达图", "Radar Chart")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <RadarChart Data="@_monthlyData" IndicatorKey="month" Height="250px">
+                        <ChartTooltip />
+                        <Radar DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" FillOpacity="0.6" ShowDots="false" />
+                    </RadarChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("本月增长 5.2%", "Trending up by 5.2% this month") <LucideIcon Name="trending-up" Size="16" />
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("2024 年 1 月 - 6 月", "January - June 2024")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/RadarChart/default.txt" />
+        </div>
+
+        <!-- Radar Chart - Dots -->
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("雷达图 - 带数据点", "Radar Chart - Dots")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <RadarChart Data="@_monthlyData" IndicatorKey="month" Height="250px">
+                        <ChartTooltip />
+                        <Radar DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" FillOpacity="0.6" ShowDots="true" />
+                    </RadarChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("本月增长 5.2%", "Trending up by 5.2% this month") <LucideIcon Name="trending-up" Size="16" />
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("2024 年 1 月 - 6 月", "January - June 2024")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/RadarChart/dots.txt" />
+        </div>
+
+        <!-- Radar Chart - Lines Only -->
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("雷达图 - 仅线条", "Radar Chart - Lines Only")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <RadarChart Data="@_monthlyData" IndicatorKey="month" Height="250px">
+                        <ChartTooltip />
+                        <Radar DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" FillOpacity="0" ShowDots="false" />
+                    </RadarChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("本月增长 5.2%", "Trending up by 5.2% this month") <LucideIcon Name="trending-up" Size="16" />
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("2024 年 1 月 - 6 月", "January - June 2024")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/RadarChart/lines-only.txt" />
+        </div>
+
+        <!-- Radar Chart - Custom Label -->
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("雷达图 - 自定义标签", "Radar Chart - Custom Label")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <RadarChart Data="@_monthlyData" Indicators="@_customLabelIndicators" Height="250px">
+                        <ChartTooltip />
+                        <Radar DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" FillOpacity="0.6" ShowDots="true" DotSize="6" />
+                    </RadarChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("本月增长 5.2%", "Trending up by 5.2% this month") <LucideIcon Name="trending-up" Size="16" />
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("2024 年 1 月 - 6 月", "January - June 2024")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/RadarChart/custom-label.txt" />
+        </div>
+
+        <!-- Radar Chart - Grid Custom -->
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("雷达图 - 自定义网格", "Radar Chart - Grid Custom")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <RadarChart Data="@_monthlyData" IndicatorKey="month" Height="250px" GridFill="true">
+                        <ChartTooltip />
+                        <Radar DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" FillOpacity="0.6" ShowDots="false" />
+                    </RadarChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("本月增长 5.2%", "Trending up by 5.2% this month") <LucideIcon Name="trending-up" Size="16" />
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("2024 年 1 月 - 6 月", "January - June 2024")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/RadarChart/grid-custom.txt" />
+        </div>
+
+        <!-- Radar Chart - Grid None -->
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("雷达图 - 无网格", "Radar Chart - Grid None")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <RadarChart Data="@_monthlyData" IndicatorKey="month" Height="250px"
+                                ShowAxisLines="false" ShowGridLines="false">
+                        <ChartTooltip />
+                        <Radar DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" FillOpacity="0.6" ShowDots="false" />
+                    </RadarChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("本月增长 5.2%", "Trending up by 5.2% this month") <LucideIcon Name="trending-up" Size="16" />
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("2024 年 1 月 - 6 月", "January - June 2024")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/RadarChart/grid-none.txt" />
+        </div>
+
+        <!-- Radar Chart - Grid Circle -->
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("雷达图 - 圆形网格", "Radar Chart - Grid Circle")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <RadarChart Data="@_monthlyData" IndicatorKey="month" Height="250px" Shape="RadarShape.Circle">
+                        <ChartTooltip />
+                        <Radar DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" FillOpacity="0.6" ShowDots="false" />
+                    </RadarChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("本月增长 5.2%", "Trending up by 5.2% this month") <LucideIcon Name="trending-up" Size="16" />
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("2024 年 1 月 - 6 月", "January - June 2024")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/RadarChart/grid-circle.txt" />
+        </div>
+
+        <!-- Radar Chart - Grid Circle - No Lines -->
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("雷达图 - 圆形网格无线条", "Radar Chart - Grid Circle - No Lines")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <RadarChart Data="@_monthlyData" IndicatorKey="month" Height="250px"
+                                Shape="RadarShape.Circle" ShowAxisLines="false">
+                        <ChartTooltip />
+                        <Radar DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" FillOpacity="0.6" ShowDots="false" />
+                    </RadarChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("本月增长 5.2%", "Trending up by 5.2% this month") <LucideIcon Name="trending-up" Size="16" />
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("2024 年 1 月 - 6 月", "January - June 2024")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/RadarChart/grid-circle-no-lines.txt" />
+        </div>
+
+        <!-- Radar Chart - Grid Circle Filled -->
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("雷达图 - 圆形网格填充", "Radar Chart - Grid Circle Filled")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <RadarChart Data="@_monthlyData" IndicatorKey="month" Height="250px"
+                                Shape="RadarShape.Circle" GridFill="true">
+                        <ChartTooltip />
+                        <Radar DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" FillOpacity="0.6" ShowDots="false" />
+                    </RadarChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("本月增长 5.2%", "Trending up by 5.2% this month") <LucideIcon Name="trending-up" Size="16" />
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("2024 年 1 月 - 6 月", "January - June 2024")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/RadarChart/grid-circle-filled.txt" />
+        </div>
+
+        <!-- Radar Chart - Grid Filled -->
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("雷达图 - 网格填充", "Radar Chart - Grid Filled")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <RadarChart Data="@_monthlyData" IndicatorKey="month" Height="250px"
+                                GridFill="true" ShowAxisLines="false">
+                        <ChartTooltip />
+                        <Radar DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" FillOpacity="0.6" ShowDots="false" />
+                    </RadarChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("本月增长 5.2%", "Trending up by 5.2% this month") <LucideIcon Name="trending-up" Size="16" />
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("2024 年 1 月 - 6 月", "January - June 2024")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/RadarChart/grid-filled.txt" />
+        </div>
+
+        <!-- Radar Chart - Multiple -->
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("雷达图 - 多组数据", "Radar Chart - Multiple")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <RadarChart Data="@_monthlyData" IndicatorKey="month" Height="250px">
+                        <ChartTooltip />
+                        <Radar DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" FillOpacity="0.5" ShowDots="false" />
+                        <Radar DataKey="mobile" Name="@(L.T("移动端", "Mobile"))" Color="var(--chart-2)" FillOpacity="0.5" ShowDots="false" />
+                    </RadarChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("本月增长 5.2%", "Trending up by 5.2% this month") <LucideIcon Name="trending-up" Size="16" />
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("2024 年 1 月 - 6 月", "January - June 2024")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/RadarChart/multiple.txt" />
+        </div>
+
+        <!-- Radar Chart - Legend -->
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("雷达图 - 图例", "Radar Chart - Legend")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <RadarChart Data="@_monthlyData" IndicatorKey="month" Height="250px">
+                        <ChartTooltip />
+                        <ChartLegend />
+                        <Radar DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" FillOpacity="0.5" ShowDots="false" />
+                        <Radar DataKey="mobile" Name="@(L.T("移动端", "Mobile"))" Color="var(--chart-2)" FillOpacity="0.5" ShowDots="false" />
+                    </RadarChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("本月增长 5.2%", "Trending up by 5.2% this month") <LucideIcon Name="trending-up" Size="16" />
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("2024 年 1 月 - 6 月", "January - June 2024")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/RadarChart/legend.txt" />
+        </div>
+
+    </div>
+
+    <!-- API Reference -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+        <div class="border rounded-lg p-6 space-y-4">
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">RadarChart.IndicatorKey</h3>
+                <p class="text-sm text-muted-foreground mb-2">
+                    @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">string</code>
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("雷达轴上类别标签对应的属性名。", "The property name for category labels on the radar axes.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">RadarChart.Shape</h3>
+                <p class="text-sm text-muted-foreground mb-2">
+                    @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">string</code> (@L.T("默认值：", "default:") "polygon")
+                </p>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        雷达网格的形状。用 "polygon" 得到棱角分明的多边形，用 "circle" 得到圆形。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        The radar grid shape. Use "polygon" for angular or "circle" for circular.
+                    </p>
+                                </text>
+}
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">RadarChart.ShowAxisLines</h3>
+                <p class="text-sm text-muted-foreground mb-2">
+                    @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code> (@L.T("默认值：", "default:") true)
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("是否显示从中心延伸到各顶点的轴线。", "Whether to show the lines from center to each vertex.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">RadarChart.ShowGridLines</h3>
+                <p class="text-sm text-muted-foreground mb-2">
+                    @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code> (@L.T("默认值：", "default:") true)
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("是否显示多边形/圆形的网格线。", "Whether to show the polygon/circle grid lines.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">RadarChart.GridFill</h3>
+                <p class="text-sm text-muted-foreground mb-2">
+                    @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code> (@L.T("默认值：", "default:") false)
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("是否在网格线之间的分隔区域交替填充颜色。", "Whether to fill the split areas between grid lines with alternating colors.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">RadarChart.MaxValue</h3>
+                <p class="text-sm text-muted-foreground mb-2">
+                    @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">double?</code>
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("所有雷达轴的最大值。作用于自动生成的指示器。", "Maximum value for all radar axes. Applied to auto-generated indicators.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Radar.DataKey</h3>
+                <p class="text-sm text-muted-foreground mb-2">
+                    @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">string</code>
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("在雷达多边形上绘制的数值对应的属性名。", "The property name for the values to plot on the radar polygon.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Radar.ShowDots</h3>
+                <p class="text-sm text-muted-foreground mb-2">
+                    @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code> (@L.T("默认值：", "default:") true)
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("是否在多边形顶点上显示圆点标记。", "Whether to show dot markers at polygon vertices.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Radar.FillOpacity</h3>
+                <p class="text-sm text-muted-foreground mb-2">
+                    @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">double</code> (@L.T("默认值：", "default:") 0.25)
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("填充区域的不透明度（0.0 到 1.0）。设为 0 即只留线条。", "Opacity of the filled area (0.0 to 1.0). Set to 0 for lines only.")
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    public class MonthlyData
+    {
+        public string Month { get; set; } = "";
+        public int Desktop { get; set; }
+        public int Mobile { get; set; }
+    }
+
+    private readonly List<MonthlyData> _monthlyData =
+    [
+        new() { Month = "January", Desktop = 186, Mobile = 80 },
+        new() { Month = "February", Desktop = 305, Mobile = 200 },
+        new() { Month = "March", Desktop = 237, Mobile = 120 },
+        new() { Month = "April", Desktop = 73, Mobile = 190 },
+        new() { Month = "May", Desktop = 209, Mobile = 130 },
+        new() { Month = "June", Desktop = 214, Mobile = 140 }
+    ];
+
+    private readonly EChartsRadarIndicator[] _customLabelIndicators =
+    [
+        new() { Name = "{a|186/80}\n{b|January}", Max = 350 },
+        new() { Name = "{a|305/200}\n{b|February}", Max = 350 },
+        new() { Name = "{a|237/120}\n{b|March}", Max = 350 },
+        new() { Name = "{a|73/190}\n{b|April}", Max = 350 },
+        new() { Name = "{a|209/130}\n{b|May}", Max = 350 },
+        new() { Name = "{a|214/140}\n{b|June}", Max = 350 }
+    ];
+}

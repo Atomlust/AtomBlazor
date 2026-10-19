@@ -1,0 +1,353 @@
+@page "/components/label"
+<PageTitle>@L.T("Label 标签 - Atom BlazorUI", "Label Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Label 标签组件", "Label Component")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("渲染与表单控件相关联的无障碍标签。", "Renders an accessible label associated with form controls.")
+        </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+    </div>
+
+    <!-- Basic Usage -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("使用 For 参数把标签与输入框关联起来。", "Label associated with an input field using the For parameter.")
+            </p>
+        </div>
+        <div class="max-w-md space-y-2">
+            @* 偏差：本仓 _Imports 同时引入 Microsoft.AspNetCore.Components.Forms（其 Label<TValue> 带 For 参数），
+               裸 <AtomBlazor.Label For=...> 触发 RZ10012 泛型/非泛型歧义，照 FileUploadDemo 先例改全限定标签，渲染行为零变化（下同）。 *@
+            <AtomBlazor.Label For="basic-input">@L.T("你的名字", "Your Name")</AtomBlazor.Label>
+            <Input Id="basic-input" Placeholder="@(L.T("请输入你的名字", "Enter your name"))" />
+        </div>
+        <CodeBlock Source="Components/Label/basic.txt" />
+    </div>
+
+    <!-- Form Fields -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表单字段", "Form Fields")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("与不同输入类型配合使用的标签。", "Labels with various input types.")
+            </p>
+        </div>
+        <div class="max-w-md space-y-6">
+            <div class="space-y-2">
+                <AtomBlazor.Label For="email-field">@L.T("电子邮箱地址", "Email Address")</AtomBlazor.Label>
+                <Input Id="email-field" Type="InputType.Email" Placeholder="you@example.com" />
+            </div>
+
+            <div class="space-y-2">
+                <AtomBlazor.Label For="password-field">@L.T("密码", "Password")</AtomBlazor.Label>
+                <Input Id="password-field" Type="InputType.Password" Placeholder="••••••••" />
+            </div>
+
+            <div class="space-y-2">
+                <AtomBlazor.Label For="url-field">@L.T("网站网址", "Website URL")</AtomBlazor.Label>
+                <Input Id="url-field" Type="InputType.Url" Placeholder="https://example.com" />
+            </div>
+
+            <div class="space-y-2">
+                <AtomBlazor.Label For="date-field">@L.T("出生日期", "Birth Date")</AtomBlazor.Label>
+                <Input Id="date-field" Type="InputType.Date" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/Label/form-fields.txt" />
+    </div>
+
+    <!-- Required Fields -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("必填字段标识", "Required Field Indicators")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("为必填字段添加视觉标识。", "Adding visual indicators for required fields.")
+            </p>
+        </div>
+        <div class="max-w-md space-y-6">
+            <div class="space-y-2">
+                <AtomBlazor.Label For="required-username">
+                    @L.T("用户名", "Username") <span class="text-destructive">*</span>
+                </AtomBlazor.Label>
+                <Input Id="required-username" Required Placeholder="@(L.T("请输入用户名", "Enter username"))" />
+            </div>
+
+            <div class="space-y-2">
+                <AtomBlazor.Label For="required-email">
+                    @L.T("电子邮箱", "Email") <Badge Variant="BadgeVariant.Destructive" Class="ml-2 text-[10px] px-1 py-0">@L.T("必填", "Required")</Badge>
+                </AtomBlazor.Label>
+                <Input Id="required-email" Type="InputType.Email" Required Placeholder="you@example.com" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/Label/required.txt" />
+    </div>
+
+    <!-- Checkbox Labels -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("复选框标签", "Checkbox Labels")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("与复选框配合使用、可点击选中的标签。", "Labels used with checkboxes for clickable selection.")
+            </p>
+        </div>
+        <div class="max-w-md space-y-4">
+            <div class="flex items-center space-x-2">
+                <Checkbox Id="terms-checkbox" />
+                <AtomBlazor.Label For="terms-checkbox" Class="cursor-pointer">
+                    @L.T("我接受条款与条件", "Accept terms and conditions")
+                </AtomBlazor.Label>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <Checkbox Id="marketing-checkbox" />
+                <AtomBlazor.Label For="marketing-checkbox" Class="cursor-pointer">
+                    @L.T("向我发送营销邮件", "Send me marketing emails")
+                </AtomBlazor.Label>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <Checkbox Id="newsletter-checkbox" />
+                <AtomBlazor.Label For="newsletter-checkbox" Class="cursor-pointer">
+                    @L.T("订阅邮件通讯", "Subscribe to newsletter")
+                </AtomBlazor.Label>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Label/checkbox.txt" />
+    </div>
+
+    <!-- Disabled State -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用状态", "Disabled State")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("关联控件被禁用时，标签会自动应用相应样式（借助 peer-disabled）。", "Label automatically styles when associated control is disabled (using peer-disabled).")
+            </p>
+        </div>
+        <div class="max-w-md space-y-6">
+            <div class="space-y-2">
+                <Input Id="disabled-input" Disabled Class="peer" />
+                <AtomBlazor.Label For="disabled-input">@L.T("禁用字段的标签", "Disabled Field Label")</AtomBlazor.Label>
+                <p class="text-xs text-muted-foreground">@L.T("注意：输入框被禁用时，标签会显示为淡化样式。", "Notice how the label appears muted when the input is disabled.")</p>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <Checkbox Id="disabled-checkbox" Disabled Class="peer" />
+                <AtomBlazor.Label For="disabled-checkbox">@L.T("禁用的复选框选项", "Disabled Checkbox Option")</AtomBlazor.Label>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Label/disabled.txt" />
+    </div>
+
+    <!-- Custom Styling -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义样式", "Custom Styling")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("通过 Class 参数覆盖标签样式。", "Override label styles with the Class parameter.")
+            </p>
+        </div>
+        <div class="max-w-md space-y-6">
+            <div class="space-y-2">
+                <AtomBlazor.Label For="large-label-input" Class="text-lg font-bold">@L.T("大号加粗标签", "Large Bold Label")</AtomBlazor.Label>
+                <Input Id="large-label-input" />
+            </div>
+
+            <div class="space-y-2">
+                <AtomBlazor.Label For="small-label-input" Class="text-xs text-muted-foreground font-normal">@L.T("小号淡化标签", "Small Muted Label")</AtomBlazor.Label>
+                <Input Id="small-label-input" />
+            </div>
+
+            <div class="space-y-2">
+                <AtomBlazor.Label For="colored-label-input" Class="text-blue-600 dark:text-blue-400">@L.T("彩色标签", "Colored Label")</AtomBlazor.Label>
+                <Input Id="colored-label-input" />
+            </div>
+
+            <div class="space-y-2">
+                <AtomBlazor.Label For="uppercase-label-input" Class="uppercase tracking-wide">@L.T("大写标签", "Uppercase Label")</AtomBlazor.Label>
+                <Input Id="uppercase-label-input" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/Label/custom-styling.txt" />
+    </div>
+
+    <!-- Descriptive Labels -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带说明的标签", "Labels with Descriptions")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("把标签与帮助文本组合使用，获得更好的体验。", "Combining labels with help text for better UX.")
+            </p>
+        </div>
+        <div class="max-w-md space-y-6">
+            <div class="space-y-2">
+                <AtomBlazor.Label For="display-name">@L.T("显示名称", "Display Name")</AtomBlazor.Label>
+                <Input Id="display-name" Placeholder="John Doe" />
+                <p class="text-xs text-muted-foreground">
+                    @L.T("这是你的公开显示名称。可以填真实姓名，也可以填昵称。", "This is your public display name. It can be your real name or a pseudonym.")
+                </p>
+            </div>
+
+            <div class="space-y-2">
+                <AtomBlazor.Label For="bio">@L.T("个人简介", "Bio")</AtomBlazor.Label>
+                <Input Id="bio" Placeholder="@(L.T("介绍一下你自己", "Tell us about yourself"))" />
+                <p class="text-xs text-muted-foreground">
+                    @L.T("用于个人资料的简短说明。最多 160 个字符。", "Brief description for your profile. Max 160 characters.")
+                </p>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Label/with-descriptions.txt" />
+    </div>
+
+    <!-- Form Layout Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("完整表单示例", "Complete Form Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("包含多个带标签字段的真实场景表单。", "Real-world form with multiple labeled fields.")
+            </p>
+        </div>
+        <div class="max-w-md border rounded-lg p-6 space-y-6">
+            <div class="space-y-2">
+                <AtomBlazor.Label For="form-name">
+                    @L.T("姓名", "Full Name") <span class="text-destructive">*</span>
+                </AtomBlazor.Label>
+                <Input Id="form-name" Required Placeholder="John Doe" />
+            </div>
+
+            <div class="space-y-2">
+                <AtomBlazor.Label For="form-email">
+                    @L.T("电子邮箱地址", "Email Address") <span class="text-destructive">*</span>
+                </AtomBlazor.Label>
+                <Input Id="form-email" Type="InputType.Email" Required Placeholder="john@example.com" />
+            </div>
+
+            <div class="space-y-2">
+                <AtomBlazor.Label For="form-phone">@L.T("电话号码", "Phone Number")</AtomBlazor.Label>
+                <Input Id="form-phone" Type="InputType.Tel" Placeholder="+1 (555) 123-4567" />
+            </div>
+
+            <Separator />
+
+            <div class="space-y-3">
+                <AtomBlazor.Label>@L.T("偏好设置", "Preferences")</AtomBlazor.Label>
+                <div class="space-y-2">
+                    <div class="flex items-center space-x-2">
+                        <Checkbox Id="form-newsletter" />
+                        <AtomBlazor.Label For="form-newsletter" Class="cursor-pointer font-normal">
+                            @L.T("订阅邮件通讯", "Subscribe to newsletter")
+                        </AtomBlazor.Label>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <Checkbox Id="form-updates" />
+                        <AtomBlazor.Label For="form-updates" Class="cursor-pointer font-normal">
+                            @L.T("接收产品更新", "Receive product updates")
+                        </AtomBlazor.Label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <Button Variant="ButtonVariant.Default">@L.T("提交", "Submit")</Button>
+                <Button Variant="ButtonVariant.Outline">@L.T("取消", "Cancel")</Button>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Label/complete-form.txt" />
+    </div>
+
+    <!-- Accessibility -->
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                @L.T("始终使用 For 属性，把标签与表单控件显式关联。", "Always use For attribute to associate labels with form controls explicitly.")
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @L.T("标签应当用描述性文字清楚说明表单字段的用途。", "Labels should clearly describe the form field's purpose with descriptive text.")
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @L.T("为必填字段添加视觉标识，同时也使用 HTML5 的 required 属性。", "Use visual indicators for required fields, but also use HTML5 required attribute.")
+            </AccessibilityItem>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code> 在输入框下方放置补充说明。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Place additional context below the input using <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code>.
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code> 把错误信息关联到输入框，供屏幕阅读器朗读。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Link errors to inputs with <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code> for screen readers.
+                </AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="Label">
+                <ApiParameter Name="For" Type="string?">
+                    @L.T("该标签所关联表单元素的 ID（对应 htmlFor 属性）。点击标签会聚焦或激活关联控件。", "The ID of the form element this label is associated with (maps to htmlFor attribute). Clicking the label will focus/activate the associated control.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("应用到标签元素上的额外 CSS 类。", "Additional CSS classes to apply to the label element.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("在标签内部显示的内容（文字、图标、标识等）。", "The content to display inside the label (text, icons, indicators, etc.).")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

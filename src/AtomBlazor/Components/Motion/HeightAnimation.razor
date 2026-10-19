@@ -1,0 +1,31 @@
+@namespace AtomBlazor
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<div @ref="element" @attributes="AdditionalAttributes" class="@ClassNames.cn("atom:overflow-hidden", Class)" hidden="@(!Expanded)" inert="@(!Expanded)" aria-hidden="@(!Expanded ? "true" : null)">
+    <div class="atom:flow-root">@ChildContent</div>
+</div>
+
+@code {
+    /// <summary>用于自动高度测量的内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>展开或折叠内容；折叠时组件仍保持挂载。</summary>
+    [Parameter] public bool Expanded { get; set; } = true;
+    /// <summary>是否动画展开与内容动态变化时的高度。</summary>
+    [Parameter] public bool Enabled { get; set; } = true;
+    /// <summary>时长，单位毫秒。</summary>
+    [Parameter] public int Duration { get; set; } = 250;
+    /// <summary>CSS 缓动函数。</summary>
+    [Parameter] public string Easing { get; set; } = "ease-out";
+    /// <summary>包裹层的额外 CSS 类。</summary>
+    [Parameter] public string? Class { get; set; }
+    /// <summary>展开到根元素的额外 HTML 属性。</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    private ElementReference element;
+    private MotionInterop? interop;
+    protected override void OnParametersSet() => ArgumentOutOfRangeException.ThrowIfNegative(Duration);
+    protected override Task OnAfterRenderAsync(bool firstRender) => (interop ??= new(JS)).InvokeAsync("height", element,
+        new { expanded = Expanded, enabled = Enabled, duration = Duration, easing = Easing });
+    public async ValueTask DisposeAsync() { if (interop is not null) { await interop.DisposeAsync(); } }
+}

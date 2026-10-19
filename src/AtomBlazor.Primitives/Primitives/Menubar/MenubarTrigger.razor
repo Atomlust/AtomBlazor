@@ -1,0 +1,49 @@
+@namespace AtomBlazor.Primitives
+
+<button @ref="triggerRef" type="button"
+        role="menuitem"
+        aria-haspopup="menu"
+        aria-expanded="@(Menu?.IsOpen == true ? "true" : "false")"
+        data-state="@(Menu?.IsOpen == true ? "open" : "closed")"
+        @onclick="HandleClick"
+        @onmouseenter="HandleMouseEnter"
+        @attributes="AdditionalAttributes">
+    @ChildContent
+</button>
+
+@code {
+    private ElementReference triggerRef;
+    protected override void OnInitialized()
+    {
+        if (Menu is not null) Menu.FocusTrigger = () => triggerRef.FocusAsync().AsTask();
+    }
+    [CascadingParameter]
+    private MenubarMenuContext? Menu { get; set; }
+
+    [CascadingParameter]
+    private MenubarContext? Context { get; set; }
+
+    /// <summary>
+    /// 子内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 附加的 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private void HandleClick() =>
+        Menu?.Toggle();
+
+    private void HandleMouseEnter()
+    {
+        // If another menu is open, switch to this one on hover
+        if (Context?.ActiveMenu != null && Context.ActiveMenu != Menu?.MenuId)
+        {
+            Menu?.Open();
+        }
+    }
+}

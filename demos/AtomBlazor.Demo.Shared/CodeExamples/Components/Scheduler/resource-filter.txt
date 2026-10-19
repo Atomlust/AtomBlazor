@@ -1,0 +1,38 @@
+@* Toolbar picker. Leave VisibleResourceIds null to start with everything shown. *@
+<Scheduler @bind-Events="events"
+             Resources="resources"
+             @bind-VisibleResourceIds="visibleResources"
+             ShowResourceFilter="true"
+             TimeZoneId="UTC" />
+
+@* Or drive it from your own UI and leave ShowResourceFilter off. *@
+<Button OnClick="@(() => visibleResources = ["room-a"])">Room A only</Button>
+<Button OnClick="@(() => visibleResources = null)">Show all</Button>
+
+<Scheduler @bind-Events="events"
+             Resources="resources"
+             @bind-VisibleResourceIds="visibleResources"
+             TimeZoneId="UTC" />
+
+@code {
+    // null shows every resource; an empty list shows none.
+    // The empty string selects the Unassigned lane.
+    private IReadOnlyList<string>? visibleResources;
+
+    private readonly IReadOnlyList<SchedulerResource> resources =
+    [
+        new("room-a", "Room A"),
+        new("room-b", "Room B")
+    ];
+
+    private IReadOnlyList<SchedulerEvent> events =
+    [
+        new() { Id = "standup", Title = "Stand-up",
+                Start = new(2026, 9, 14, 9, 0, 0, TimeSpan.Zero),
+                End = new(2026, 9, 14, 9, 30, 0, TimeSpan.Zero),
+                ResourceIds = ["room-a"] },
+        new() { Id = "offsite", Title = "Offsite planning",
+                Start = new(2026, 9, 14, 13, 0, 0, TimeSpan.Zero),
+                End = new(2026, 9, 14, 13, 30, 0, TimeSpan.Zero) }
+    ];
+}

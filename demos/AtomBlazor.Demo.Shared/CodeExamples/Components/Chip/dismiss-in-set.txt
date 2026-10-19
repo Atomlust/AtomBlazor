@@ -1,0 +1,16 @@
+@* The set drops a dismissed value from the selection and reports it. *@
+<ChipSet TValue="string"
+           SelectionMode="ChipSelectionMode.Multiple"
+           Dismissible="true"
+           @bind-Values="selected"
+           OnDismiss="@(value => filters.Remove(value))">
+    @foreach (var filter in filters)
+    {
+        <Chip @key="filter" Value="@filter">@filter</Chip>
+    }
+</ChipSet>
+
+@code {
+    private readonly List<string> filters = ["Overdue", "Mine", "High priority"];
+    private List<string> selected = ["Mine"];
+}

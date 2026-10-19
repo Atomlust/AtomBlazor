@@ -1,0 +1,75 @@
+@namespace AtomBlazor
+@typeparam TItem
+
+@*
+    带样式的 TreeView 组件。
+    支持声明式（ChildContent）与数据驱动（Items）两种模式。
+*@
+
+@if (ShowSearch)
+{
+    <div class="atom:mb-2">
+        <Input Value="@searchText"
+                 ValueChanged="HandleSearchTextChanged"
+                 UpdateTiming="UpdateTiming.Immediate"
+                 Placeholder="@SearchPlaceholder"
+                 Class="atom:h-8 atom:text-sm" />
+    </div>
+}
+
+<AtomBlazor.Primitives.TreeViewPrimitive @ref="primitiveTreeRef"
+                                                  ExpandedValues="@effectiveExpandedValues"
+                                                  ExpandedValuesChanged="HandleExpandedValuesChanged"
+                                                  SelectedValue="@SelectedValue"
+                                                  SelectedValueChanged="SelectedValueChanged"
+                                                  SelectedValues="@SelectedValues"
+                                                  SelectedValuesChanged="SelectedValuesChanged"
+                                                  SelectionMode="@SelectionMode"
+                                                  Checkable="@Checkable"
+                                                  CheckStrictly="@CheckStrictly"
+                                                  CheckedValues="@CheckedValues"
+                                                  CheckedValuesChanged="HandleCheckedValuesChanged"
+                                                  DefaultExpandAll="@DefaultExpandAll"
+                                                  DefaultExpandDepth="@DefaultExpandDepth"
+                                                  ShowLines="@ShowLines"
+                                                  ShowIcons="@ShowIcons"
+                                                  ExpandOnClick="@ExpandOnClick"
+                                                  OnNodeClick="HandleNodeClick"
+                                                  OnNodeExpand="HandleNodeExpand"
+                                                  OnNodeCollapse="HandleNodeCollapse"
+                                                  AriaLabel="@AriaLabel"
+                                                  class="@CssClass"
+                                                  @attributes="AdditionalAttributes">
+    @if (Items != null && ValueField != null && TextField != null)
+    {
+        @* 数据驱动模式 *@
+        @foreach (var item in GetRootItems())
+        {
+            if (!IsFilteredOut(item) || (Checkable && !CheckStrictly))
+            {
+                <TreeItemNode TItem="TItem"
+                              Item="item"
+                              TextField="@TextField"
+                              ValueField="@ValueField"
+                              IconField="@IconField"
+                              ChildrenAccessor="@GetChildren"
+                              HasChildrenAccessor="@GetHasChildren"
+                              IsFilteredOut="@IsFilteredOut"
+                              IsMatchHighlighted="@IsSearchActive"
+                              SearchText="@ActiveSearchText"
+                              ShowIcons="@ShowIcons"
+                              Checkable="@Checkable"
+                              Draggable="@Draggable"
+                              AllowDrag="@AllowDrag"
+                              LoadingNodes="@loadingNodes"
+                              ErrorNodes="@errorNodes"
+                              OnRetryLoad="HandleRetryLoad" />
+            }
+        }
+    }
+    else
+    {
+        @* 声明式模式 *@
+        @ChildContent
+    }
+</AtomBlazor.Primitives.TreeViewPrimitive>

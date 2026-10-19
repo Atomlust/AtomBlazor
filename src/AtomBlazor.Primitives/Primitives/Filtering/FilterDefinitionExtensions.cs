@@ -1,0 +1,1261 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Collections.Concurrent;
+using System.Globalization;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
+namespace AtomBlazor.Primitives.Filtering;
+
+/// <summary>
+/// 为 <see cref="FilterDefinition"/> 提供筛选求值、LINQ 表达式构建与
+/// JSON 序列化的扩展方法。
+/// </summary>
+public static class FilterDefinitionExtensions
+{
+    private static readonly ConcurrentDictionary<(Type, string), PropertyInfo?> propertyCache = new();
+
+    [UnconditionalSuppressMessage("AOT", "IL3050: 调用标注了 RequiresDynamicCode 的方法",
+        Justification = "FilterDefinition/FilterCondition 为固定形状的公开 DTO 图，随程序集保留；反射序列化路径无法静态分析，运行时不依赖被裁剪项。")]
+    private static readonly JsonSerializerOptions jsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true,
+        Converters =
+        {
+            new JsonStringEnumConverter(),
+            new FilterValueJsonConverter()
+        }
+    };
+
+    /// <summary>
+    /// 将筛选编译为 <see cref="Func{T, TResult}"/> 谓词，用于客户端内存过滤。
+    /// </summary>
+    /// <typeparam name="T">要筛选的对象的类型。</typeparam>
+    /// <param name="filter">筛选定义。</param>
+    /// <param name="fields">提供类型元数据的字段定义。</param>
+    /// <returns>若条目匹配筛选则返回 true 的谓词。</returns>
+    public static Func<T, bool> ToFunc<T>(this FilterDefinition filter, IEnumerable<FilterField> fields)
+    {
+        if (filter.IsEmpty)
+        {
+            return _ => true;
+        }
+
+        var itemType = typeof(T);
+        var fieldTypeMap = BuildFieldTypeMap(fields);
+        return item => EvaluateGroup(item!, filter, itemType, fieldTypeMap);
+    }
+
+    /// <summary>
+    /// 构建供 EF Core 或其他 IQueryable 提供程序使用的 LINQ <see cref="Expression{TDelegate}"/>。
+    /// </summary>
+    /// <typeparam name="T">要筛选的对象的类型。</typeparam>
+    /// <param name="filter">筛选定义。</param>
+    /// <param name="fields">提供类型元数据的字段定义。</param>
+    /// <returns>表示该筛选的表达式树。</returns>
+    public static Expression<Func<T, bool>> ToExpression<T>(this FilterDefinition filter, IEnumerable<FilterField> fields)
+    {
+        var parameter = Expression.Parameter(typeof(T), "x");
+
+        if (filter.IsEmpty)
+        {
+            return Expression.Lambda<Func<T, bool>>(Expression.Constant(true), parameter);
+        }
+
+        var fieldTypeMap = BuildFieldTypeMap(fields);
+        var body = BuildGroupExpression(parameter, filter, fieldTypeMap);
+
+        return Expression.Lambda<Func<T, bool>>(body, parameter);
+    }
+
+    /// <summary>
+    /// 针对一个已从条目读出的值求值单条条件，
+    /// 而不是按名称查找属性。
+    /// </summary>
+    /// <remarks>
+    /// 当被筛选的值不是条目的普通属性时使用——例如某个 DataGrid 列显示的是查表得到的标签，
+    /// 筛选时按该标签而非其来源键进行。不完整的条件（用户尚未输入其值）匹配一切，
+    /// 这与 <see cref="ToFunc{T}"/> 的行为一致。
+    /// </remarks>
+    /// <param name="condition">要求值的条件。</param>
+    /// <param name="value">已经投影出来、待检验的值。</param>
+    /// <param name="fieldType">
+    /// 字段类型，用于为日期比较选择"整天"语义。传 null 则按原样比较该值。
+    /// </param>
+    /// <returns>若该值满足条件则为 true。</returns>
+    public static bool MatchesValue(this FilterCondition condition, object? value, FilterFieldType? fieldType = null) =>
+        EvaluateConditionValue(value, condition, fieldType);
+
+    /// <summary>
+    /// 构建一个 LINQ 谓词：把条件应用于 <paramref name="selector"/> 产出的值，
+    /// 而不是应用于按名称查找的属性。
+    /// </summary>
+    /// <remarks>
+    /// 这是 <see cref="MatchesValue"/> 对应的 <see cref="IQueryable{T}"/> 版本。
+    /// selector 会被内联进返回的表达式，因此只要 selector 本身可翻译，EF Core 之类的
+    /// 提供程序就能将其翻译为 SQL。声明为 <c>Expression&lt;Func&lt;T, object&gt;&gt;</c> 的
+    /// selector 会通过 <c>Convert</c> 节点对值类型装箱；该节点会被移除，
+    /// 使比较按真实类型构建。
+    /// </remarks>
+    /// <typeparam name="T">要筛选的对象的类型。</typeparam>
+    /// <param name="condition">要应用的条件。</param>
+    /// <param name="selector">接受一个 <typeparamref name="T"/> 参数并返回待检验值的单参数 lambda。</param>
+    /// <param name="fieldType">
+    /// 字段类型，用于为日期比较选择"整天"语义。传 null 则按原样比较该值。
+    /// </param>
+    /// <returns>表示该条件的表达式树。</returns>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="selector"/> 的参数不是恰好一个 <typeparamref name="T"/> 类型参数。
+    /// </exception>
+    public static Expression<Func<T, bool>> ToExpressionForSelector<T>(
+        this FilterCondition condition, LambdaExpression selector, FilterFieldType? fieldType = null)
+    {
+        ArgumentNullException.ThrowIfNull(selector);
+
+        if (selector.Parameters.Count != 1 || !selector.Parameters[0].Type.IsAssignableFrom(typeof(T)))
+        {
+            throw new ArgumentException(
+                $"The selector must take exactly one parameter of type {typeof(T).Name}.", nameof(selector));
+        }
+
+        var parameter = Expression.Parameter(typeof(T), "x");
+        var body = new ParameterRebinder(selector.Parameters[0], parameter).Visit(selector.Body)!;
+        body = UnwrapConvert(body);
+
+        var conditionExpression = BuildConditionExpressionCore(body, body.Type, condition, fieldType)
+            ?? Expression.Constant(true);
+
+        return Expression.Lambda<Func<T, bool>>(conditionExpression, parameter);
+    }
+
+    /// <summary>
+    /// 移除声明为返回 <see cref="object"/> 的 lambda 对值类型装箱的 <c>Convert</c> 节点，
+    /// 使比较按底层类型构建。
+    /// </summary>
+    private static Expression UnwrapConvert(Expression body)
+    {
+        while (body is UnaryExpression { NodeType: ExpressionType.Convert or ExpressionType.ConvertChecked } unary
+               && unary.Type == typeof(object))
+        {
+            body = unary.Operand;
+        }
+
+        return body;
+    }
+
+    /// <summary>
+    /// 在整个表达式树中用一个参数替换另一个参数，
+    /// 以便把调用方提供的 lambda 主体内挂到另一个参数之下。
+    /// </summary>
+    private sealed class ParameterRebinder : ExpressionVisitor
+    {
+        private readonly ParameterExpression source;
+        private readonly ParameterExpression target;
+
+        public ParameterRebinder(ParameterExpression source, ParameterExpression target)
+        {
+            this.source = source;
+            this.target = target;
+        }
+
+        protected override Expression VisitParameter(ParameterExpression node) =>
+            node == source ? target : base.VisitParameter(node);
+    }
+
+    /// <summary>
+    /// 将筛选定义序列化为 JSON 字符串。
+    /// </summary>
+    [UnconditionalSuppressMessage("Trimming", "IL2026: 与反射相关的标注可能导致运行时缺失项",
+        Justification = "FilterDefinition/FilterCondition 为固定形状的公开 DTO 图，随程序集保留；反射序列化路径无法静态分析，运行时不依赖被裁剪项。")]
+    [UnconditionalSuppressMessage("AOT", "IL3050: 调用标注了 RequiresDynamicCode 的方法",
+        Justification = "FilterDefinition/FilterCondition 为固定形状的公开 DTO 图，随程序集保留；反射序列化路径无法静态分析，运行时不依赖被裁剪项。")]
+    public static string ToJson(this FilterDefinition filter) =>
+        JsonSerializer.Serialize(filter, jsonOptions);
+
+    /// <summary>
+    /// 从 JSON 字符串反序列化筛选定义。
+    /// </summary>
+    [UnconditionalSuppressMessage("Trimming", "IL2026: 与反射相关的标注可能导致运行时缺失项",
+        Justification = "FilterDefinition/FilterCondition 为固定形状的公开 DTO 图，随程序集保留；反射序列化路径无法静态分析，运行时不依赖被裁剪项。")]
+    [UnconditionalSuppressMessage("AOT", "IL3050: 调用标注了 RequiresDynamicCode 的方法",
+        Justification = "FilterDefinition/FilterCondition 为固定形状的公开 DTO 图，随程序集保留；反射序列化路径无法静态分析，运行时不依赖被裁剪项。")]
+    public static FilterDefinition FromJson(string json) =>
+        JsonSerializer.Deserialize<FilterDefinition>(json, jsonOptions) ?? new FilterDefinition();
+
+    #region ToFunc implementation
+
+    private static bool EvaluateGroup<T>(T item, FilterDefinition group, Type itemType, Dictionary<string, FilterFieldType>? fieldTypeMap)
+    {
+        var results = new List<bool>();
+
+        foreach (var condition in group.Conditions)
+        {
+            if (string.IsNullOrEmpty(condition.Field))
+            {
+                continue;
+            }
+            if (fieldTypeMap != null && !fieldTypeMap.ContainsKey(condition.Field))
+            {
+                continue;
+            }
+            FilterFieldType? fieldType = fieldTypeMap != null && fieldTypeMap.TryGetValue(condition.Field, out var ft) ? ft : null;
+            results.Add(EvaluateCondition(item, condition, itemType, fieldType));
+        }
+
+        foreach (var nestedGroup in group.Groups)
+        {
+            if (!nestedGroup.IsEmpty)
+            {
+                results.Add(EvaluateGroup(item, nestedGroup, itemType, fieldTypeMap));
+            }
+        }
+
+        if (results.Count == 0)
+        {
+            return true;
+        }
+
+        return group.Operator == LogicalOperator.And
+            ? results.All(r => r)
+            : results.Any(r => r);
+    }
+
+    private static bool EvaluateCondition<T>(T item, FilterCondition condition, Type itemType, FilterFieldType? fieldType)
+    {
+        var prop = GetProperty(itemType, condition.Field);
+        if (prop == null)
+        {
+            return false;
+        }
+
+        return EvaluateConditionValue(prop.GetValue(item), condition, fieldType);
+    }
+
+    private static bool EvaluateConditionValue(object? rawValue, FilterCondition condition, FilterFieldType? fieldType)
+    {
+        // Incomplete condition: user hasn't entered a value yet — ignore (match all)
+        // to align with ToExpression behavior and avoid filtering out all rows mid-edit.
+        if (IsIncompleteCondition(condition))
+        {
+            return true;
+        }
+
+        // For Date/DateTime field types, use "whole day" semantics for comparison operators
+        // because the date picker does not include a time component.
+        if (fieldType is FilterFieldType.Date or FilterFieldType.DateTime
+            && TryGetDateTime(rawValue, out var dateValue)
+            && ConvertToDateTime(condition.Value) is { } condDate
+            && condition.Operator is FilterOperator.Equals or FilterOperator.NotEquals
+                or FilterOperator.GreaterThan or FilterOperator.LessThan or FilterOperator.Between)
+        {
+            var startOfDay = condDate.Date;
+            var startOfNextDay = startOfDay.AddDays(1);
+            return condition.Operator switch
+            {
+                FilterOperator.Equals => dateValue >= startOfDay && dateValue < startOfNextDay,
+                FilterOperator.NotEquals => dateValue < startOfDay || dateValue >= startOfNextDay,
+                FilterOperator.GreaterThan => dateValue >= startOfNextDay,
+                FilterOperator.LessThan => dateValue < startOfDay,
+                FilterOperator.Between when ConvertToDateTime(condition.ValueEnd) is { } endDate =>
+                    dateValue >= startOfDay && dateValue < endDate.Date.AddDays(1),
+                _ => true
+            };
+        }
+
+        return condition.Operator switch
+        {
+            FilterOperator.IsEmpty => IsEmpty(rawValue),
+            FilterOperator.IsNotEmpty => !IsEmpty(rawValue),
+            FilterOperator.IsTrue => rawValue is true,
+            FilterOperator.IsFalse => rawValue is false or null,
+            FilterOperator.Equals => AreEqual(rawValue, condition.Value),
+            FilterOperator.NotEquals => !AreEqual(rawValue, condition.Value),
+            FilterOperator.Contains => StringOp(rawValue, condition.Value, (s, v) => s.Contains(v, StringComparison.OrdinalIgnoreCase)),
+            FilterOperator.NotContains => StringOp(rawValue, condition.Value, (s, v) => !s.Contains(v, StringComparison.OrdinalIgnoreCase)),
+            FilterOperator.StartsWith => StringOp(rawValue, condition.Value, (s, v) => s.StartsWith(v, StringComparison.OrdinalIgnoreCase)),
+            FilterOperator.EndsWith => StringOp(rawValue, condition.Value, (s, v) => s.EndsWith(v, StringComparison.OrdinalIgnoreCase)),
+            FilterOperator.GreaterThan => Compare(rawValue, condition.Value) is > 0,
+            FilterOperator.LessThan => Compare(rawValue, condition.Value) is < 0,
+            FilterOperator.GreaterOrEqual => Compare(rawValue, condition.Value) is >= 0,
+            FilterOperator.LessOrEqual => Compare(rawValue, condition.Value) is <= 0,
+            FilterOperator.Between => Compare(rawValue, condition.Value) is >= 0 && Compare(rawValue, condition.ValueEnd) is <= 0,
+            FilterOperator.InLast => EvaluateInLast(rawValue, condition),
+            FilterOperator.InNext => EvaluateInNext(rawValue, condition),
+            FilterOperator.DateIs => EvaluateDatePreset(rawValue, condition, negate: false),
+            FilterOperator.DateIsNot => EvaluateDatePreset(rawValue, condition, negate: true),
+            FilterOperator.In => EvaluateIn(rawValue, condition.Value, contains: true),
+            FilterOperator.NotIn => EvaluateIn(rawValue, condition.Value, contains: false),
+            _ => true
+        };
+    }
+
+    private static bool IsIncompleteCondition(FilterCondition condition)
+    {
+        // Valueless operators (IsEmpty, IsNotEmpty, IsTrue, IsFalse) never need a value.
+        // Date preset operators store preset enum, not a free-form value.
+        if (FilterOperatorHelper.IsValuelessOperator(condition.Operator)
+            || FilterOperatorHelper.IsDatePresetOperator(condition.Operator))
+        {
+            return false;
+        }
+
+        // Range operators (Between, InLast, InNext) need both Value and ValueEnd.
+        if (condition.Operator is FilterOperator.Between)
+        {
+            return condition.Value is null || condition.ValueEnd is null;
+        }
+
+        // All other operators require a primary value.
+        return condition.Value is null;
+    }
+
+    private static bool IsEmpty(object? value) =>
+        value is null or "" || (value is string s && string.IsNullOrWhiteSpace(s));
+
+    private static bool AreEqual(object? a, object? b)
+    {
+        if (a is null && b is null)
+        {
+            return true;
+        }
+        if (a is null || b is null)
+        {
+            return false;
+        }
+
+        if (IsNumeric(a) && IsNumeric(b))
+        {
+            return ToDouble(a).CompareTo(ToDouble(b)) == 0;
+        }
+
+        try
+        {
+            var comparable = ConvertToComparable(a);
+            var comparableB = ConvertToComparable(b);
+            if (comparable != null && comparableB != null)
+            {
+                return comparable.CompareTo(comparableB) == 0;
+            }
+        }
+        catch
+        {
+            // Fall through to Equals
+        }
+
+        return a.Equals(b) || a.ToString() == b.ToString();
+    }
+
+    private static bool StringOp(object? rawValue, object? filterValue, Func<string, string, bool> op)
+    {
+        var s = rawValue?.ToString();
+        var v = filterValue?.ToString();
+        if (s is null || v is null)
+        {
+            return false;
+        }
+        return op(s, v);
+    }
+
+    private static int? Compare(object? a, object? b)
+    {
+        if (a is null || b is null)
+        {
+            return null;
+        }
+
+        if (IsNumeric(a) && IsNumeric(b))
+        {
+            return ToDouble(a).CompareTo(ToDouble(b));
+        }
+
+        try
+        {
+            var comparableA = ConvertToComparable(a);
+            var comparableB = ConvertToComparable(b);
+            if (comparableA != null && comparableB != null)
+            {
+                return comparableA.CompareTo(comparableB);
+            }
+        }
+        catch
+        {
+            // Fall through
+        }
+
+        return null;
+    }
+
+    private static bool IsNumeric(object value) =>
+        value is int or long or float or double or decimal or short or byte or sbyte or ushort or uint or ulong;
+
+    private static double ToDouble(object value) =>
+        Convert.ToDouble(value, CultureInfo.InvariantCulture);
+
+    private static IComparable? ConvertToComparable(object? value)
+    {
+        return value switch
+        {
+            IComparable c => c,
+            _ => null
+        };
+    }
+
+    private static bool TryGetDateTime(object? value, out DateTime result)
+    {
+        if (value is DateTime dt)
+        {
+            result = dt;
+            return true;
+        }
+        if (value is DateTimeOffset dto)
+        {
+            result = dto.LocalDateTime;
+            return true;
+        }
+        result = default;
+        return false;
+    }
+
+    private static DateTime? ConvertToDateTime(object? value)
+    {
+        return value switch
+        {
+            DateTime dt => dt,
+            DateTimeOffset dto => dto.LocalDateTime,
+            _ => null
+        };
+    }
+
+    private static bool EvaluateInLast(object? rawValue, FilterCondition condition)
+    {
+        DateTime dateValue;
+        if (rawValue is DateTime dt)
+        {
+            dateValue = dt;
+        }
+        else if (rawValue is DateTimeOffset dto)
+        {
+            dateValue = dto.LocalDateTime;
+        }
+        else
+        {
+            return false;
+        }
+
+        var amount = condition.Value switch
+        {
+            int i => i,
+            double d => (int)d,
+            _ => 0
+        };
+
+        var period = condition.ValueEnd switch
+        {
+            InLastPeriod p => p,
+            int i when Enum.IsDefined(typeof(InLastPeriod), i) => (InLastPeriod)i,
+            string s when Enum.TryParse<InLastPeriod>(s, out var p) => p,
+            _ => InLastPeriod.Days
+        };
+
+        var now = DateTime.Now;
+        var cutoff = period switch
+        {
+            InLastPeriod.Days => now.AddDays(-amount),
+            InLastPeriod.Weeks => now.AddDays(-amount * 7),
+            InLastPeriod.Months => now.AddMonths(-amount),
+            InLastPeriod.Hours => now.AddHours(-amount),
+            InLastPeriod.Minutes => now.AddMinutes(-amount),
+            InLastPeriod.Seconds => now.AddSeconds(-amount),
+            _ => now
+        };
+
+        return dateValue >= cutoff;
+    }
+
+    private static bool EvaluateInNext(object? rawValue, FilterCondition condition)
+    {
+        DateTime dateValue;
+        if (rawValue is DateTime dt)
+        {
+            dateValue = dt;
+        }
+        else if (rawValue is DateTimeOffset dto)
+        {
+            dateValue = dto.LocalDateTime;
+        }
+        else
+        {
+            return false;
+        }
+
+        var amount = condition.Value switch
+        {
+            int i => i,
+            double d => (int)d,
+            _ => 0
+        };
+
+        var period = condition.ValueEnd switch
+        {
+            InLastPeriod p => p,
+            int i when Enum.IsDefined(typeof(InLastPeriod), i) => (InLastPeriod)i,
+            string s when Enum.TryParse<InLastPeriod>(s, out var p) => p,
+            _ => InLastPeriod.Days
+        };
+
+        var cutoff = period switch
+        {
+            InLastPeriod.Days => DateTime.Now.AddDays(amount),
+            InLastPeriod.Weeks => DateTime.Now.AddDays(amount * 7),
+            InLastPeriod.Months => DateTime.Now.AddMonths(amount),
+            InLastPeriod.Hours => DateTime.Now.AddHours(amount),
+            InLastPeriod.Minutes => DateTime.Now.AddMinutes(amount),
+            InLastPeriod.Seconds => DateTime.Now.AddSeconds(amount),
+            _ => DateTime.Now
+        };
+
+        return dateValue <= cutoff && dateValue >= DateTime.Now;
+    }
+
+    private static bool EvaluateDatePreset(object? rawValue, FilterCondition condition, bool negate)
+    {
+        DateTime dateValue;
+        if (rawValue is DateTime dt)
+        {
+            dateValue = dt;
+        }
+        else if (rawValue is DateTimeOffset dto)
+        {
+            dateValue = dto.LocalDateTime;
+        }
+        else
+        {
+            return false;
+        }
+
+        var preset = condition.Value switch
+        {
+            DatePreset p => p,
+            int i when Enum.IsDefined(typeof(DatePreset), i) => (DatePreset)i,
+            string s when Enum.TryParse<DatePreset>(s, out var p) => p,
+            _ => DatePreset.Today
+        };
+
+        var (start, end) = ResolveDatePresetRange(preset);
+        var inRange = dateValue >= start && dateValue < end;
+        return negate ? !inRange : inRange;
+    }
+
+    private static (DateTime Start, DateTime End) ResolveDatePresetRange(DatePreset preset)
+    {
+        var today = DateTime.Today;
+
+        return preset switch
+        {
+            DatePreset.Today => (today, today.AddDays(1)),
+            DatePreset.Yesterday => (today.AddDays(-1), today),
+            DatePreset.Tomorrow => (today.AddDays(1), today.AddDays(2)),
+            DatePreset.ThisWeek => (StartOfWeek(today), StartOfWeek(today).AddDays(7)),
+            DatePreset.LastWeek => (StartOfWeek(today).AddDays(-7), StartOfWeek(today)),
+            DatePreset.NextWeek => (StartOfWeek(today).AddDays(7), StartOfWeek(today).AddDays(14)),
+            DatePreset.ThisMonth => (new DateTime(today.Year, today.Month, 1),
+                                     new DateTime(today.Year, today.Month, 1).AddMonths(1)),
+            DatePreset.LastMonth => (new DateTime(today.Year, today.Month, 1).AddMonths(-1),
+                                     new DateTime(today.Year, today.Month, 1)),
+            DatePreset.NextMonth => (new DateTime(today.Year, today.Month, 1).AddMonths(1),
+                                     new DateTime(today.Year, today.Month, 1).AddMonths(2)),
+            DatePreset.ThisQuarter => (StartOfQuarter(today), StartOfQuarter(today).AddMonths(3)),
+            DatePreset.LastQuarter => (StartOfQuarter(today).AddMonths(-3), StartOfQuarter(today)),
+            DatePreset.ThisYear => (new DateTime(today.Year, 1, 1), new DateTime(today.Year + 1, 1, 1)),
+            DatePreset.LastYear => (new DateTime(today.Year - 1, 1, 1), new DateTime(today.Year, 1, 1)),
+            _ => (today, today.AddDays(1))
+        };
+    }
+
+    private static DateTime StartOfWeek(DateTime date)
+    {
+        var diff = ((int)date.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
+        return date.AddDays(-diff);
+    }
+
+    private static DateTime StartOfQuarter(DateTime date)
+    {
+        var quarter = (date.Month - 1) / 3;
+        return new DateTime(date.Year, (quarter * 3) + 1, 1);
+    }
+
+    private static bool EvaluateIn(object? rawValue, object? filterValue, bool contains)
+    {
+        if (filterValue is not IEnumerable<string> values)
+        {
+            return contains; // no filter values = match all (In) or nothing (NotIn)
+        }
+
+        var valueList = values as IList<string> ?? values.ToList();
+        if (valueList.Count == 0)
+        {
+            return contains; // empty list = match all (In) or nothing (NotIn), aligns with ToExpression
+        }
+
+        var itemValue = rawValue?.ToString() ?? "";
+        var isIn = valueList.Any(v => string.Equals(v, itemValue, StringComparison.OrdinalIgnoreCase));
+        return contains ? isIn : !isIn;
+    }
+
+    [UnconditionalSuppressMessage("Trimming", "IL2080: 与反射相关的标注可能导致运行时缺失项",
+        Justification = "属性名来自 FilterField 声明的列名，目标类型由调用方模型决定并随宿主程序集保留；仅读取实例属性，不做动态构造。")]
+    private static PropertyInfo? GetProperty(Type type, string propertyName)
+    {
+        var key = (type, propertyName);
+        return propertyCache.GetOrAdd(key, k =>
+            k.Item1.GetProperty(k.Item2, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase));
+    }
+
+    #endregion
+
+    #region ToExpression implementation
+
+    private static Expression BuildGroupExpression(
+        ParameterExpression parameter,
+        FilterDefinition group,
+        Dictionary<string, FilterFieldType>? fieldTypeMap)
+    {
+        var expressions = new List<Expression>();
+
+        foreach (var condition in group.Conditions)
+        {
+            if (string.IsNullOrEmpty(condition.Field))
+            {
+                continue;
+            }
+            if (fieldTypeMap != null && !fieldTypeMap.ContainsKey(condition.Field))
+            {
+                continue;
+            }
+
+            FilterFieldType? fieldType = fieldTypeMap != null && fieldTypeMap.TryGetValue(condition.Field, out var ft) ? ft : null;
+            var condExpr = BuildConditionExpression(parameter, condition, fieldType);
+            if (condExpr != null)
+            {
+                expressions.Add(condExpr);
+            }
+        }
+
+        foreach (var nestedGroup in group.Groups)
+        {
+            if (!nestedGroup.IsEmpty)
+            {
+                expressions.Add(BuildGroupExpression(parameter, nestedGroup, fieldTypeMap));
+            }
+        }
+
+        if (expressions.Count == 0)
+        {
+            return Expression.Constant(true);
+        }
+
+        return group.Operator == LogicalOperator.And
+            ? expressions.Aggregate(Expression.AndAlso)
+            : expressions.Aggregate(Expression.OrElse);
+    }
+
+    [UnconditionalSuppressMessage("Trimming", "IL2075: 'this' 参数不满足 DynamicallyAccessedMemberTypes.PublicProperties",
+        Justification = "属性名来自 FilterField 声明的列名，参数表达式的类型由调用方模型决定并随宿主程序集保留；仅读取实例属性，不做动态构造。")]
+    private static Expression? BuildConditionExpression(
+        ParameterExpression parameter,
+        FilterCondition condition,
+        FilterFieldType? fieldType)
+    {
+        var property = parameter.Type.GetProperty(condition.Field,
+            BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+
+        if (property == null)
+        {
+            return Expression.Constant(false);
+        }
+
+        return BuildConditionExpressionCore(
+            Expression.Property(parameter, property), property.PropertyType, condition, fieldType);
+    }
+
+    private static Expression? BuildConditionExpressionCore(
+        Expression propAccess,
+        Type propType,
+        FilterCondition condition,
+        FilterFieldType? fieldType)
+    {
+        var isNullable = Nullable.GetUnderlyingType(propType) != null || !propType.IsValueType;
+
+        // For Date/DateTime field types, use "whole day" semantics for comparison operators
+        // because the date picker does not include a time component.
+        if (fieldType is FilterFieldType.Date or FilterFieldType.DateTime
+            && ConvertToDateTime(condition.Value) is { } condDate
+            && condition.Operator is FilterOperator.Equals or FilterOperator.NotEquals
+                or FilterOperator.GreaterThan or FilterOperator.LessThan or FilterOperator.Between)
+        {
+            var startOfDay = condDate.Date;
+            var startOfNextDay = startOfDay.AddDays(1);
+            var dateExpr = condition.Operator switch
+            {
+                FilterOperator.Equals =>
+                    Expression.AndAlso(
+                        BuildComparisonExpression(propAccess, propType, startOfDay, ExpressionType.GreaterThanOrEqual),
+                        BuildComparisonExpression(propAccess, propType, startOfNextDay, ExpressionType.LessThan)),
+                FilterOperator.NotEquals =>
+                    Expression.Not(
+                        Expression.AndAlso(
+                            BuildComparisonExpression(propAccess, propType, startOfDay, ExpressionType.GreaterThanOrEqual),
+                            BuildComparisonExpression(propAccess, propType, startOfNextDay, ExpressionType.LessThan))),
+                FilterOperator.GreaterThan =>
+                    BuildComparisonExpression(propAccess, propType, startOfNextDay, ExpressionType.GreaterThanOrEqual),
+                FilterOperator.LessThan =>
+                    BuildComparisonExpression(propAccess, propType, startOfDay, ExpressionType.LessThan),
+                FilterOperator.Between when ConvertToDateTime(condition.ValueEnd) is { } endDate =>
+                    Expression.AndAlso(
+                        BuildComparisonExpression(propAccess, propType, startOfDay, ExpressionType.GreaterThanOrEqual),
+                        BuildComparisonExpression(propAccess, propType, endDate.Date.AddDays(1), ExpressionType.LessThan)),
+                _ => (Expression?)null
+            };
+            if (dateExpr != null)
+            {
+                return dateExpr;
+            }
+        }
+
+        return condition.Operator switch
+        {
+            FilterOperator.IsEmpty => BuildIsEmptyExpression(propAccess, propType, isNullable),
+            FilterOperator.IsNotEmpty => Expression.Not(BuildIsEmptyExpression(propAccess, propType, isNullable)),
+            FilterOperator.IsTrue => BuildBoolExpression(propAccess, propType, true),
+            FilterOperator.IsFalse => BuildBoolExpression(propAccess, propType, false),
+            FilterOperator.Equals => BuildComparisonExpression(propAccess, propType, condition.Value, ExpressionType.Equal),
+            FilterOperator.NotEquals => BuildComparisonExpression(propAccess, propType, condition.Value, ExpressionType.NotEqual),
+            FilterOperator.GreaterThan => BuildComparisonExpression(propAccess, propType, condition.Value, ExpressionType.GreaterThan),
+            FilterOperator.LessThan => BuildComparisonExpression(propAccess, propType, condition.Value, ExpressionType.LessThan),
+            FilterOperator.GreaterOrEqual => BuildComparisonExpression(propAccess, propType, condition.Value, ExpressionType.GreaterThanOrEqual),
+            FilterOperator.LessOrEqual => BuildComparisonExpression(propAccess, propType, condition.Value, ExpressionType.LessThanOrEqual),
+            FilterOperator.Contains => BuildStringMethodExpression(propAccess, propType, condition.Value, "Contains"),
+            FilterOperator.NotContains => Expression.Not(BuildStringMethodExpression(propAccess, propType, condition.Value, "Contains")),
+            FilterOperator.StartsWith => BuildStringMethodExpression(propAccess, propType, condition.Value, "StartsWith"),
+            FilterOperator.EndsWith => BuildStringMethodExpression(propAccess, propType, condition.Value, "EndsWith"),
+            FilterOperator.Between => BuildBetweenExpression(propAccess, propType, condition.Value, condition.ValueEnd),
+            FilterOperator.InLast => BuildInLastExpression(propAccess, propType, condition),
+            FilterOperator.InNext => BuildInNextExpression(propAccess, propType, condition),
+            FilterOperator.DateIs => BuildDatePresetExpression(propAccess, propType, condition, negate: false),
+            FilterOperator.DateIsNot => BuildDatePresetExpression(propAccess, propType, condition, negate: true),
+            FilterOperator.In => BuildInExpression(propAccess, propType, condition.Value, negate: false),
+            FilterOperator.NotIn => BuildInExpression(propAccess, propType, condition.Value, negate: true),
+            _ => Expression.Constant(true)
+        };
+    }
+
+    private static Expression BuildIsEmptyExpression(Expression propAccess, Type propType, bool isNullable)
+    {
+        if (propType == typeof(string))
+        {
+            var isNullOrWhiteSpace = typeof(string).GetMethod(nameof(string.IsNullOrWhiteSpace), new[] { typeof(string) })!;
+            return Expression.Call(isNullOrWhiteSpace, propAccess);
+        }
+
+        if (isNullable)
+        {
+            return Expression.Equal(propAccess, Expression.Constant(null, propType));
+        }
+
+        return Expression.Constant(false);
+    }
+
+    private static Expression BuildBoolExpression(Expression propAccess, Type propType, bool expected)
+    {
+        if (propType == typeof(bool))
+        {
+            return expected
+                ? (Expression)propAccess
+                : Expression.Not(propAccess);
+        }
+
+        if (propType == typeof(bool?))
+        {
+            if (expected)
+            {
+                // IsTrue: value must be exactly true
+                return Expression.Equal(propAccess, Expression.Constant((bool?)true, typeof(bool?)));
+            }
+
+            // IsFalse: value is false or null (matches ToFunc semantics: rawValue is false or null)
+            return Expression.NotEqual(propAccess, Expression.Constant((bool?)true, typeof(bool?)));
+        }
+
+        return Expression.Constant(expected);
+    }
+
+    [UnconditionalSuppressMessage("Trimming", "IL2026: 与反射相关的标注可能导致运行时缺失项",
+        Justification = "FilterDefinition/FilterCondition 为固定形状的公开 DTO 图，随程序集保留；反射序列化路径无法静态分析，运行时不依赖被裁剪项。")]
+    private static Expression BuildComparisonExpression(
+        Expression propAccess, Type propType, object? value, ExpressionType comparison)
+    {
+        var underlyingType = Nullable.GetUnderlyingType(propType) ?? propType;
+        var convertedValue = ConvertValue(value, underlyingType);
+
+        // Incomplete condition (user hasn't entered a value yet) — ignore it
+        if (convertedValue is null && underlyingType.IsValueType)
+        {
+            return Expression.Constant(true);
+        }
+
+        // For nullable types, use explicit HasValue/Value checks instead of lifted operators
+        // which can produce incorrect results (e.g. null != X evaluates to null, not true).
+        if (Nullable.GetUnderlyingType(propType) != null)
+        {
+            var hasValue = Expression.Property(propAccess, "HasValue");
+            var valueProperty = Expression.Property(propAccess, "Value");
+            var constant = Expression.Constant(convertedValue, underlyingType);
+            var comp = Expression.MakeBinary(comparison, valueProperty, constant);
+
+            if (comparison == ExpressionType.NotEqual)
+            {
+                // null != X should be true (null is not equal to any value)
+                return Expression.OrElse(Expression.Not(hasValue), Expression.AndAlso(hasValue, comp));
+            }
+
+            // For all other operators, null fails the comparison
+            return Expression.AndAlso(hasValue, comp);
+        }
+
+        var nonNullableConstant = Expression.Constant(convertedValue, propType);
+        return Expression.MakeBinary(comparison, propAccess, nonNullableConstant);
+    }
+
+    [UnconditionalSuppressMessage("Trimming", "IL2070: 与反射相关的标注可能导致运行时缺失项",
+        Justification = "仅按固定签名取 string.Contains/StartsWith/EndsWith 等公开实例方法，目标类型随宿主程序集保留。")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026: 与反射相关的标注可能导致运行时缺失项",
+        Justification = "FilterDefinition/FilterCondition 为固定形状的公开 DTO 图，随程序集保留；反射序列化路径无法静态分析，运行时不依赖被裁剪项。")]
+    private static Expression BuildStringMethodExpression(
+        Expression propAccess, Type propType, object? value, string methodName)
+    {
+        // Use ToLower(CultureInfo.InvariantCulture) + single-param overloads for EF Core/IQueryable
+        // translation compatibility. The StringComparison overloads are not translatable to SQL.
+        // Both sides use the same ToLower(CultureInfo.InvariantCulture) to avoid culture mismatch.
+        var normalizedValue = (value?.ToString() ?? "").ToLower(CultureInfo.InvariantCulture);
+        var toLowerMethod = typeof(string).GetMethod(nameof(string.ToLower), new[] { typeof(CultureInfo) })!;
+        var invariantCulture = Expression.Constant(CultureInfo.InvariantCulture);
+        var comparisonMethod = typeof(string).GetMethod(methodName, new[] { typeof(string) })!;
+
+        if (propType == typeof(string))
+        {
+            var nullCheck = Expression.NotEqual(propAccess, Expression.Constant(null, typeof(string)));
+            var loweredProp = Expression.Call(propAccess, toLowerMethod, invariantCulture);
+            var methodCall = Expression.Call(loweredProp, comparisonMethod, Expression.Constant(normalizedValue));
+            return Expression.AndAlso(nullCheck, methodCall);
+        }
+
+        // For non-string properties: call type-specific ToString() to avoid boxing,
+        // which improves EF Core/IQueryable translatability.
+        var underlyingNullableType = Nullable.GetUnderlyingType(propType);
+
+        if (underlyingNullableType != null)
+        {
+            // Nullable value types: check HasValue, then operate on Value.
+            var toStringMethod = underlyingNullableType.GetMethod(nameof(ToString), Type.EmptyTypes)
+                                 ?? typeof(object).GetMethod(nameof(ToString))!;
+            var hasValue = Expression.Property(propAccess, "HasValue");
+            var valueProperty = Expression.Property(propAccess, "Value");
+            var toStringCallExpr = Expression.Call(valueProperty, toStringMethod);
+            var lowered = Expression.Call(toStringCallExpr, toLowerMethod, invariantCulture);
+            var methodCall = Expression.Call(lowered, comparisonMethod, Expression.Constant(normalizedValue));
+            return Expression.AndAlso(hasValue, methodCall);
+        }
+
+        if (!propType.IsValueType)
+        {
+            // Reference types (non-string): null-check, then call ToString().
+            var toStringMethod = propType.GetMethod(nameof(ToString), Type.EmptyTypes)
+                                 ?? typeof(object).GetMethod(nameof(ToString))!;
+            var nullCheck = Expression.NotEqual(propAccess, Expression.Constant(null, propType));
+            var toStringCallExpr = Expression.Call(propAccess, toStringMethod);
+            var lowered = Expression.Call(toStringCallExpr, toLowerMethod, invariantCulture);
+            var methodCall = Expression.Call(lowered, comparisonMethod, Expression.Constant(normalizedValue));
+            return Expression.AndAlso(nullCheck, methodCall);
+        }
+
+        // Non-nullable value types: call ToString() directly.
+        {
+            var toStringMethod = propType.GetMethod(nameof(ToString), Type.EmptyTypes)
+                                 ?? typeof(object).GetMethod(nameof(ToString))!;
+            var toStringCallExpr = Expression.Call(propAccess, toStringMethod);
+            var lowered = Expression.Call(toStringCallExpr, toLowerMethod, invariantCulture);
+            return Expression.Call(lowered, comparisonMethod, Expression.Constant(normalizedValue));
+        }
+    }
+
+    private static BinaryExpression BuildBetweenExpression(
+        Expression propAccess, Type propType, object? valueStart, object? valueEnd)
+    {
+        var gte = BuildComparisonExpression(propAccess, propType, valueStart, ExpressionType.GreaterThanOrEqual);
+        var lte = BuildComparisonExpression(propAccess, propType, valueEnd, ExpressionType.LessThanOrEqual);
+        return Expression.AndAlso(gte, lte);
+    }
+
+    [UnconditionalSuppressMessage("Trimming", "IL2026: 与反射相关的标注可能导致运行时缺失项",
+        Justification = "FilterDefinition/FilterCondition 为固定形状的公开 DTO 图，随程序集保留；反射序列化路径无法静态分析，运行时不依赖被裁剪项。")]
+    private static Expression BuildInLastExpression(
+        Expression propAccess, Type propType, FilterCondition condition)
+    {
+        var dateTarget = ResolveDateTimeTarget(propAccess, propType, out var isNullable);
+        if (dateTarget == null)
+        {
+            return Expression.Constant(true);
+        }
+
+        var amount = condition.Value switch
+        {
+            int i => i,
+            double d => (int)d,
+            _ => 0
+        };
+
+        var period = condition.ValueEnd switch
+        {
+            InLastPeriod p => p,
+            int i when Enum.IsDefined(typeof(InLastPeriod), i) => (InLastPeriod)i,
+            string s when Enum.TryParse<InLastPeriod>(s, out var p) => p,
+            _ => InLastPeriod.Days
+        };
+
+        var cutoff = period switch
+        {
+            InLastPeriod.Days => DateTime.Now.AddDays(-amount),
+            InLastPeriod.Weeks => DateTime.Now.AddDays(-amount * 7),
+            InLastPeriod.Months => DateTime.Now.AddMonths(-amount),
+            InLastPeriod.Hours => DateTime.Now.AddHours(-amount),
+            InLastPeriod.Minutes => DateTime.Now.AddMinutes(-amount),
+            InLastPeriod.Seconds => DateTime.Now.AddSeconds(-amount),
+            _ => DateTime.Now
+        };
+
+        var gte = Expression.GreaterThanOrEqual(dateTarget, Expression.Constant(cutoff));
+
+        if (isNullable)
+        {
+            var hasValue = Expression.Property(propAccess, "HasValue");
+            return Expression.AndAlso(hasValue, gte);
+        }
+
+        return gte;
+    }
+
+    [UnconditionalSuppressMessage("Trimming", "IL2026: 与反射相关的标注可能导致运行时缺失项",
+        Justification = "FilterDefinition/FilterCondition 为固定形状的公开 DTO 图，随程序集保留；反射序列化路径无法静态分析，运行时不依赖被裁剪项。")]
+    private static Expression BuildInNextExpression(
+        Expression propAccess, Type propType, FilterCondition condition)
+    {
+        var dateTarget = ResolveDateTimeTarget(propAccess, propType, out var isNullable);
+        if (dateTarget == null)
+        {
+            return Expression.Constant(true);
+        }
+
+        var amount = condition.Value switch
+        {
+            int i => i,
+            double d => (int)d,
+            _ => 0
+        };
+
+        var period = condition.ValueEnd switch
+        {
+            InLastPeriod p => p,
+            int i when Enum.IsDefined(typeof(InLastPeriod), i) => (InLastPeriod)i,
+            string s when Enum.TryParse<InLastPeriod>(s, out var p) => p,
+            _ => InLastPeriod.Days
+        };
+
+        var now = DateTime.Now;
+        var cutoff = period switch
+        {
+            InLastPeriod.Days => now.AddDays(amount),
+            InLastPeriod.Weeks => now.AddDays(amount * 7),
+            InLastPeriod.Months => now.AddMonths(amount),
+            InLastPeriod.Hours => now.AddHours(amount),
+            InLastPeriod.Minutes => now.AddMinutes(amount),
+            InLastPeriod.Seconds => now.AddSeconds(amount),
+            _ => now
+        };
+
+        // target >= now AND target <= cutoff
+        var gte = Expression.GreaterThanOrEqual(dateTarget, Expression.Constant(now));
+        var lte = Expression.LessThanOrEqual(dateTarget, Expression.Constant(cutoff));
+        Expression inRange = Expression.AndAlso(gte, lte);
+
+        if (isNullable)
+        {
+            var hasValue = Expression.Property(propAccess, "HasValue");
+            return Expression.AndAlso(hasValue, inRange);
+        }
+
+        return inRange;
+    }
+
+    [UnconditionalSuppressMessage("Trimming", "IL2026: 与反射相关的标注可能导致运行时缺失项",
+        Justification = "FilterDefinition/FilterCondition 为固定形状的公开 DTO 图，随程序集保留；反射序列化路径无法静态分析，运行时不依赖被裁剪项。")]
+    private static Expression BuildDatePresetExpression(
+        Expression propAccess, Type propType, FilterCondition condition, bool negate)
+    {
+        var dateTarget = ResolveDateTimeTarget(propAccess, propType, out var isNullable);
+        if (dateTarget == null)
+        {
+            return Expression.Constant(true);
+        }
+
+        var preset = condition.Value switch
+        {
+            DatePreset p => p,
+            int i when Enum.IsDefined(typeof(DatePreset), i) => (DatePreset)i,
+            string s when Enum.TryParse<DatePreset>(s, out var p) => p,
+            _ => DatePreset.Today
+        };
+
+        var (start, end) = ResolveDatePresetRange(preset);
+
+        var gte = Expression.GreaterThanOrEqual(dateTarget, Expression.Constant(start));
+        var lt = Expression.LessThan(dateTarget, Expression.Constant(end));
+        Expression inRange = Expression.AndAlso(gte, lt);
+
+        if (negate)
+        {
+            inRange = Expression.Not(inRange);
+        }
+
+        if (isNullable)
+        {
+            var hasValue = Expression.Property(propAccess, "HasValue");
+            return negate
+                ? Expression.OrElse(Expression.Not(hasValue), Expression.AndAlso(hasValue, inRange))
+                : Expression.AndAlso(hasValue, inRange);
+        }
+
+        return inRange;
+    }
+
+    /// <summary>
+    /// 将属性访问表达式解析为用于日期筛选的 DateTime 表达式。
+    /// 处理 DateTime、DateTime?、DateTimeOffset 与 DateTimeOffset?，
+    /// 其中 DateTimeOffset 类型通过访问 .LocalDateTime 取值。
+    /// </summary>
+    [UnconditionalSuppressMessage("Trimming", "IL2026: 与反射相关的标注可能导致运行时缺失项",
+        Justification = "FilterDefinition/FilterCondition 为固定形状的公开 DTO 图，随程序集保留；反射序列化路径无法静态分析，运行时不依赖被裁剪项。")]
+    private static Expression? ResolveDateTimeTarget(
+        Expression propAccess, Type propType, out bool isNullable)
+    {
+        isNullable = false;
+
+        if (propType == typeof(DateTime))
+        {
+            return propAccess;
+        }
+
+        if (propType == typeof(DateTime?))
+        {
+            isNullable = true;
+            return Expression.Property(propAccess, "Value");
+        }
+
+        if (propType == typeof(DateTimeOffset))
+        {
+            return Expression.Property(propAccess, nameof(DateTimeOffset.LocalDateTime));
+        }
+
+        if (propType == typeof(DateTimeOffset?))
+        {
+            isNullable = true;
+            return Expression.Property(
+                Expression.Property(propAccess, "Value"),
+                nameof(DateTimeOffset.LocalDateTime));
+        }
+
+        return null;
+    }
+
+    [UnconditionalSuppressMessage("Trimming", "IL2070: 与反射相关的标注可能导致运行时缺失项",
+        Justification = "仅按固定签名取 string.Contains/StartsWith/EndsWith 等公开实例方法，目标类型随宿主程序集保留。")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026: 与反射相关的标注可能导致运行时缺失项",
+        Justification = "FilterDefinition/FilterCondition 为固定形状的公开 DTO 图，随程序集保留；反射序列化路径无法静态分析，运行时不依赖被裁剪项。")]
+    private static Expression BuildInExpression(
+        Expression propAccess, Type propType, object? filterValue, bool negate)
+    {
+        if (filterValue is not IEnumerable<string> values)
+        {
+            return Expression.Constant(!negate);
+        }
+
+        var valueList = values.ToList();
+        if (valueList.Count == 0)
+        {
+            return Expression.Constant(!negate);
+        }
+
+        // Use ToLower(CultureInfo.InvariantCulture) + equality for EF Core/IQueryable translation compatibility.
+        var toLowerMethod = typeof(string).GetMethod(nameof(string.ToLower), new[] { typeof(CultureInfo) })!;
+        var invariantCulture = Expression.Constant(CultureInfo.InvariantCulture);
+
+        // For string properties use directly; for others call type-specific ToString()
+        // to avoid boxing and improve EF Core/IQueryable translatability.
+        Expression stringExpr;
+        if (propType == typeof(string))
+        {
+            stringExpr = Expression.Coalesce(propAccess, Expression.Constant(""));
+        }
+        else
+        {
+            var underlyingNullableType = Nullable.GetUnderlyingType(propType);
+            if (underlyingNullableType != null)
+            {
+                // Nullable value types: return "" when !HasValue, else Value.ToString()
+                var toStringMethod = underlyingNullableType.GetMethod(nameof(ToString), Type.EmptyTypes)
+                                     ?? typeof(object).GetMethod(nameof(ToString))!;
+                var hasValue = Expression.Property(propAccess, "HasValue");
+                var valueProperty = Expression.Property(propAccess, "Value");
+                var toStringCall = Expression.Call(valueProperty, toStringMethod);
+                stringExpr = Expression.Condition(hasValue, toStringCall, Expression.Constant(""));
+            }
+            else if (!propType.IsValueType)
+            {
+                // Reference types: return "" when null, else ToString()
+                var toStringMethod = propType.GetMethod(nameof(ToString), Type.EmptyTypes)
+                                     ?? typeof(object).GetMethod(nameof(ToString))!;
+                var toStringCall = Expression.Call(propAccess, toStringMethod);
+                stringExpr = Expression.Condition(
+                    Expression.NotEqual(propAccess, Expression.Constant(null, propType)),
+                    toStringCall,
+                    Expression.Constant(""));
+            }
+            else
+            {
+                // Non-nullable value types: call ToString() directly
+                var toStringMethod = propType.GetMethod(nameof(ToString), Type.EmptyTypes)
+                                     ?? typeof(object).GetMethod(nameof(ToString))!;
+                stringExpr = Expression.Call(propAccess, toStringMethod);
+            }
+        }
+
+        var loweredProp = Expression.Call(stringExpr, toLowerMethod, invariantCulture);
+
+        // Build individual equality checks combined with OR
+        Expression? combined = null;
+        foreach (var v in valueList)
+        {
+            var loweredValue = v.ToLower(CultureInfo.InvariantCulture);
+            var check = Expression.Equal(loweredProp, Expression.Constant(loweredValue));
+            combined = combined == null ? check : Expression.OrElse(combined, check);
+        }
+
+        if (combined == null)
+        {
+            return Expression.Constant(!negate);
+        }
+
+        return negate ? Expression.Not(combined) : combined;
+    }
+
+    private static Dictionary<string, FilterFieldType>? BuildFieldTypeMap(IEnumerable<FilterField> fields)
+    {
+        var list = fields as IList<FilterField> ?? fields.ToList();
+        if (list.Count == 0)
+        {
+            return null;
+        }
+        return list.ToDictionary(f => f.Name, f => f.Type, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static object? ConvertValue(object? value, Type targetType)
+    {
+        if (value is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            if (targetType == typeof(string))
+            {
+                return value.ToString();
+            }
+
+            if (targetType == typeof(DateTime) && value is string dateStr)
+            {
+                return DateTime.Parse(dateStr, CultureInfo.InvariantCulture);
+            }
+
+            if (targetType == typeof(DateOnly))
+            {
+                return value switch
+                {
+                    DateOnly d => d,
+                    DateTime dt => DateOnly.FromDateTime(dt),
+                    string s => DateOnly.Parse(s, CultureInfo.InvariantCulture),
+                    _ => null
+                };
+            }
+
+            if (targetType == typeof(DateTimeOffset))
+            {
+                return value switch
+                {
+                    DateTimeOffset dto => dto,
+                    DateTime dt => new DateTimeOffset(dt),
+                    string s => DateTimeOffset.Parse(s, CultureInfo.InvariantCulture),
+                    _ => null
+                };
+            }
+
+            if (targetType == typeof(int))
+            {
+                return Convert.ToInt32(value, CultureInfo.InvariantCulture);
+            }
+
+            if (targetType == typeof(double))
+            {
+                return Convert.ToDouble(value, CultureInfo.InvariantCulture);
+            }
+
+            if (targetType == typeof(decimal))
+            {
+                return Convert.ToDecimal(value, CultureInfo.InvariantCulture);
+            }
+
+            if (targetType == typeof(float))
+            {
+                return Convert.ToSingle(value, CultureInfo.InvariantCulture);
+            }
+
+            if (targetType == typeof(long))
+            {
+                return Convert.ToInt64(value, CultureInfo.InvariantCulture);
+            }
+
+            if (targetType == typeof(bool))
+            {
+                return Convert.ToBoolean(value, CultureInfo.InvariantCulture);
+            }
+
+            if (targetType.IsEnum)
+            {
+                if (value is string enumStr)
+                {
+                    return Enum.Parse(targetType, enumStr, ignoreCase: true);
+                }
+                return Enum.ToObject(targetType, Convert.ToInt64(value, CultureInfo.InvariantCulture));
+            }
+
+            return Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    #endregion
+}

@@ -1,0 +1,18 @@
+@using AtomBlazor.Primitives.SignaturePad
+
+@code {
+    private SignaturePad? pad;
+
+    private async Task SaveAsync()
+    {
+        // currentColor ink, so it recolours wherever it is shown.
+        var svg = await pad!.GetSvgAsync();
+
+        // A PNG cannot defer the colour, so it is drawn in black by default
+        // rather than in the theme's ink.
+        var png = await pad.GetPngAsync(background: "#ffffff");
+
+        // Smallest, and replayable through SetStrokesAsync.
+        var strokes = await pad.GetStrokesAsync();
+    }
+}

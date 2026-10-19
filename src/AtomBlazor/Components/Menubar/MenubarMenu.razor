@@ -1,0 +1,40 @@
+@namespace AtomBlazor
+@implements IDisposable
+
+<div class="atom:relative" @attributes="AdditionalAttributes">
+    <AtomBlazor.Primitives.MenubarMenu @ref="primitiveRef">
+        <CascadingValue Value="this" IsFixed="false">
+            @ChildContent
+        </CascadingValue>
+    </AtomBlazor.Primitives.MenubarMenu>
+</div>
+
+@code {
+    private AtomBlazor.Primitives.MenubarMenu? primitiveRef;
+
+    [CascadingParameter]
+    public Menubar? Context { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用于根元素的额外 HTML 特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    internal AtomBlazor.Primitives.MenubarMenuContext? MenuContext =>
+        primitiveRef?.MenuContext;
+
+    internal bool IsOpen => MenuContext?.IsOpen == true;
+
+    internal void Open() => MenuContext?.Open();
+    internal void Close() => MenuContext?.Close();
+    internal void Toggle() => MenuContext?.Toggle();
+
+    public void Dispose()
+    {
+        // 基础组件通过其自身的 Dispose 负责注销。
+    }
+}

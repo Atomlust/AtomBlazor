@@ -1,0 +1,185 @@
+@namespace AtomBlazor.Primitives
+@implements IDisposable
+@using Microsoft.Extensions.Logging
+@inject ILogger<PopoverPrimitive> Logger
+
+@* Popover 基元根组件——headless，只负责行为，不负责任何样式 *@
+<CascadingValue Value="@_context" IsFixed="false">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    private PopoverContext _context = new();
+    private UseControllableState<bool> _state = null!;
+
+    /// <summary>
+    /// 上一次向使用者播报的开合状态。
+    /// <para>
+    /// 这里刻意不读 <c>_state.Value</c>——受控模式下它返回 <c>ControlledValue</c>
+    /// 而这个值只由 <see cref="OnParametersSet"/> 刷新，也就只在使用者重渲染时刷新。
+    /// 抑制重渲染的使用者（任何 <c>ShouldRender</c> 覆写，例如 <c>DataGrid</c>）会让它保持过期：
+    /// 于是下一次真正的变化比较起来"相等"，<c>OpenChanged</c> 永远不触发
+    /// 使用者自己的开合标志永远停在 <c>true</c>——与上下文彻底失同步（#437）。
+    /// </para>
+    /// </summary>
+    private bool lastNotifiedOpen;
+
+    /// <summary>
+    /// 接受此参数是为了让带样式的包装层能把自身属性 splat 到这个根上，但它不产生任何效果：
+    /// Popover 不渲染自己的元素——它只向子组件提供上下文。
+    /// 请把额外属性放到 PopoverContent 或 PopoverTrigger 上。
+    /// 在这里提供属性会让每个组件实例记录一次警告。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private bool rootAttributesWarningLogged;
+
+    /// <summary>
+    /// 在浮层上下文中渲染的子内容。
+    /// 通常包含 PopoverTrigger 与 PopoverContent。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 控制浮层是否打开（受控模式）。
+    /// 为 null 时浮层自管状态（非受控模式）。
+    /// </summary>
+    [Parameter]
+    public bool? Open { get; set; }
+
+    /// <summary>
+    /// 开合状态变化时触发的回调。
+    /// 与 @bind-Open 联用实现双向绑定。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>
+    /// 非受控模式下的默认开合状态。
+    /// </summary>
+    [Parameter]
+    public bool DefaultOpen { get; set; } = false;
+
+    /// <summary>
+    /// 浮层开合状态变化时触发的附加回调，参数为新的开合状态。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OnOpenChange { get; set; }
+
+    /// <summary>
+    /// 浮层能否通过点击外部或按 Escape 消除。
+    /// 这是历史遗留参数，控制的是"可否消除"，与焦点陷阱或渲染策略无关。
+    /// 默认为 true。
+    /// </summary>
+    [Parameter]
+    public bool Modal { get; set; } = true;
+
+    /// <summary>
+    /// 当浮层经由受控的 <see cref="Open"/> 绑定被关闭（即使用者把它设为 false——
+    /// 例如选中某项之后）时，是否把焦点归还给触发器，让键盘导航（Tab）从正确的位置继续。
+    /// 默认 <c>false</c> 以保持既有行为。浮层内部的消除（点击外部、Escape）不受影响——
+    /// 它们本就有自己的焦点处理。
+    /// </summary>
+    [Parameter]
+    public bool RestoreFocusOnClose { get; set; }
+
+    protected override void OnInitialized()
+    {
+        // 初始化可控状态
+        _state = new UseControllableState<bool>(DefaultOpen)
+        {
+            ControlledValue = Open ?? DefaultOpen,
+            OnValueChanged = OpenChanged,
+            IsControlled = Open.HasValue
+        };
+
+        // 把初始状态同步到上下文
+        _context.State.IsOpen = _state.Value;
+        lastNotifiedOpen = _state.Value;
+
+        // 订阅上下文状态变化
+        _context.OnStateChanged += HandleContextStateChanged;
+    }
+
+    protected override void OnParametersSet()
+    {
+        _context.AllowDismiss = Modal;
+        rootAttributesWarningLogged = ContextRootAttributes.WarnOnce(
+            Logger,
+            rootAttributesWarningLogged,
+            "Popover",
+            "请把额外属性放到 PopoverContent 或 PopoverTrigger 上。",
+            AdditionalAttributes);
+
+        if (_state.IsControlled && Open.HasValue)
+        {
+            var previousIsOpen = _context.State.IsOpen;
+
+            if (previousIsOpen != Open.Value)
+            {
+                // ⚠️ 顺序依赖——请勿调换。
+                // _context.Open()/Close() 必须在更新 _state.ControlledValue 之前调用。
+                // HandleContextStateChanged 拿 _context.State.IsOpen 与 _state.Value 比较
+                // 先调上下文 API 保证 _state.Value 仍是旧值，守卫（_state.Value != newOpenState）
+                // 得以通过，从而触发 OpenChanged、完成使用者的收尾（例如 Combobox 重置
+                // _focusDone、PopoverContent 释放 click-outside 监听器）。
+                // 若把 _state.ControlledValue 的赋值挪到上下文调用之上，这些通知会被无声吞掉。
+                if (Open.Value)
+                {
+                    _context.Open();
+                }
+                else
+                {
+                    // 父级发起的关闭（使用者把 Open 设为 false）。尊重使用者的焦点归还意图——
+                    // 点击外部/Escape 到不了这里（它们先更新上下文，所以这段只在使用者驱动关闭时执行）。
+                    _context.Close(RestoreFocusOnClose);
+                }
+
+                _state.ControlledValue = Open.Value;
+            }
+            else
+            {
+                _state.ControlledValue = Open.Value;
+                _context.State.IsOpen = Open.Value;
+
+                // 使用者与上下文本就一致，没有什么要播报的——记下这一点
+                // 否则下一次变化就会拿一个我们从未发出过的值作比较。
+                lastNotifiedOpen = Open.Value;
+            }
+        }
+    }
+
+    private void HandleContextStateChanged()
+    {
+        // 上下文状态变化时（例如来自 PopoverTrigger 的点击或点击外部）
+        // 同步更新可控状态
+        var newOpenState = _context.State.IsOpen;
+
+        if (lastNotifiedOpen != newOpenState)
+        {
+            lastNotifiedOpen = newOpenState;
+
+            _ = _state.SetValueAsync(newOpenState);
+
+            // 若提供了附加回调，一并调用
+            if (OnOpenChange.HasDelegate)
+            {
+                _ = OnOpenChange.InvokeAsync(newOpenState);
+            }
+        }
+
+        // 无条件调用。触发器的 aria-expanded 与 pointer-events 守卫、内容是否挂载
+        // 全都自上下文状态——所以状态一变，这棵子树就必须重绘
+        // 哪怕使用者的受控值没有变。把它留在上面的守卫里，正是 #437 里
+        // 已消除的筛选按钮仍渲染 aria-expanded="true" 且 pointer-events: none、
+        // 从此永远点不动的根源。
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        _context.OnStateChanged -= HandleContextStateChanged;
+    }
+}

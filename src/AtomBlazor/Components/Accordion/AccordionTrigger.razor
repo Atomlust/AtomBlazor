@@ -1,0 +1,92 @@
+@namespace AtomBlazor
+
+@*
+    带样式的 AccordionTrigger 组件。
+    以 shadcn/ui 样式包裹 AccordionTrigger 基元。
+*@
+
+<AtomBlazor.Primitives.AccordionTrigger As="@As"
+                                                      Class="@CssClass"
+                                                      @attributes="AdditionalAttributes">
+    <div class="atom:flex atom:flex-1 atom:items-center atom:justify-between atom:py-4 atom:font-medium atom:transition-all atom:hover:underline">
+        @ChildContent
+        @if (Icon != null)
+        {
+            @Icon(Item?.IsOpen == true)
+        }
+        else
+        {
+            <svg class="atom:h-4 atom:w-4 atom:shrink-0 atom:transition-transform atom:duration-200 atom:data-[state=open]:rotate-180"
+                 data-state="@(Item?.IsOpen == true ? "open" : "closed")"
+                 xmlns="http://www.w3.org/2000/svg"
+                 width="24"
+                 height="24"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+        }
+    </div>
+</AtomBlazor.Primitives.AccordionTrigger>
+
+@code {
+    /// <summary>
+    /// 级联参数，接收父级 Accordion 条目以读取状态。
+    /// </summary>
+    [CascadingParameter]
+    public AtomBlazor.Primitives.AccordionItem? Item { get; set; }
+
+    /// <summary>
+    /// 在触发器内渲染的子内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 要应用到触发器的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 渲染在触发器末端、用于替代默认箭头（chevron）的自定义图标。可接受任意图标组件
+    /// （例如 <c>&lt;LucideIcon&gt;</c>、
+    /// <c>&lt;FontAwesomeIcon&gt;</c>、<c>&lt;FeatherIcon&gt;</c>、<c>&lt;HeroIcon&gt;</c>）
+    /// 或临时编写的 SVG/标记内容。未指定时使用默认箭头图标
+    /// （展开时会旋转）。
+    /// </summary>
+    /// <remarks>
+    /// 上下文参数是一个 <see cref="bool"/>，指示父级 Accordion 条目是否展开，
+    /// 因此图标可依据展开状态做动画呈现。
+    /// </remarks>
+    [Parameter]
+    public RenderFragment<bool>? Icon { get; set; }
+
+    /// <summary>
+    /// 标题包裹层使用的 HTML 元素标签。
+    /// 默认值为 "h3"。
+    /// </summary>
+    [Parameter]
+    public string As { get; set; } = "h3";
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取 Accordion 触发器计算后的 CSS 类。
+    /// 使用 cn() 工具完成智能类名合并与 Tailwind 冲突消解。
+    /// </summary>
+    private string CssClass => ClassNames.cn(
+        "atom:flex atom:w-full atom:items-center atom:justify-between atom:text-sm atom:font-medium atom:transition-all",
+        // #459：见 CollapsibleTrigger——否则浏览器会绘制自有的轮廓线。
+        "atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2",
+        Class
+    );
+}

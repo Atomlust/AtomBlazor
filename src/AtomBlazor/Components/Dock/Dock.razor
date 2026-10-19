@@ -1,0 +1,47 @@
+@namespace AtomBlazor
+@inject ILocalizer Localizer
+
+@* 注册宿主：实例化 DockPanel 子项会让它们向本 dock 完成注册。
+   它们不渲染任何标记，因此这里不产生任何 DOM。CascadingValue 同时
+   覆盖布局区，使 DockTabGroup 能拿到 dock 引用。 *@
+<CascadingValue Value="this" IsFixed="true">
+    @ChildContent
+
+    <div @ref="rootRef" class="@CssClass" data-dock-root="@dockId" @attributes="AdditionalAttributes">
+        @if (MaximizedGroup is not null)
+        {
+            <DockNode Node="MaximizedGroup" />
+        }
+        else if (layout is not null)
+        {
+            <DockNode Node="layout" />
+        }
+        else
+        {
+            <div class="atom:flex atom:h-full atom:w-full atom:items-center atom:justify-center atom:p-8 atom:text-center atom:text-sm atom:text-muted-foreground">
+                @if (EmptyContent is not null)
+                {
+                    @EmptyContent
+                }
+                else
+                {
+                    <span>@Localizer["Dock.NoPanelsOpen"]</span>
+                }
+            </div>
+        }
+
+        @foreach (var win in floatingWindows)
+        {
+            <div class="atom:absolute atom:z-30 atom:flex atom:flex-col atom:overflow-hidden atom:border atom:bg-background atom:shadow-2xl atom:ring-1 atom:ring-black/5"
+                 style="@FloatingStyle(win)"
+                 data-dock-window="@win.Id"
+                 @key="win.Id">
+                <DockTabGroup Group="win.Group" FloatingWindowId="@win.Id" />
+                <div class="atom:absolute atom:bottom-0 atom:right-0 atom:z-10 atom:h-3.5 atom:w-3.5 atom:cursor-nwse-resize"
+                     data-dock-window-resize="@win.Id"
+                     @onpointerdown="e => StartWindowResize(win.Id, e)">
+                </div>
+            </div>
+        }
+    </div>
+</CascadingValue>

@@ -1,0 +1,41 @@
+@namespace AtomBlazor
+@inherits FormFieldBase
+
+<Field Orientation="@Orientation" IsInvalid="@IsInvalid" Class="@Class">
+    @if (Label is not null)
+    {
+        <FieldLabel For="@ControlId">@Label</FieldLabel>
+    }
+    <FieldContent>
+        <Textarea @ref="_textareaRef"
+                    Value="@Value"
+                    ValueChanged="HandleValueChanged"
+                    ValueExpression="@ValueExpression"
+                    Name="@Name"
+                    Placeholder="@Placeholder"
+                    Disabled="@Disabled"
+                    Required="@Required"
+                    MaxLength="@MaxLength"
+                    ShowCharacterCount="@ShowCharacterCount"
+                    UpdateTiming="@UpdateTiming"
+                    DebounceInterval="@DebounceInterval"
+                    Id="@ControlId"
+                    AriaLabel="@AriaLabel"
+                    AriaDescribedBy="@DescribedById"
+                    AriaInvalid="@(IsInvalid ? true : null)"
+                    Class="@InputClass"
+                    @attributes="AdditionalAttributes"/>
+        @if (!string.IsNullOrEmpty(HelperText) && !IsInvalid)
+        {
+            <FieldDescription Id="@DescriptionId">@HelperText</FieldDescription>
+        }
+        @if (IsInvalid && !string.IsNullOrEmpty(ErrorText))
+        {
+            <FieldError Id="@ErrorId">@ErrorText</FieldError>
+        }
+        else if (HasEditContextErrors)
+        {
+            <FieldError Id="@ErrorId" Errors="@EditContextErrors" />
+        }
+    </FieldContent>
+</Field>

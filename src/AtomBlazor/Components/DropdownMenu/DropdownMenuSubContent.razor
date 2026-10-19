@@ -1,0 +1,26 @@
+@namespace AtomBlazor
+
+<AtomBlazor.Primitives.MenuSubContent Side="@Side" Offset="@Offset" ZIndex="@ZIndex" Loop="@Loop"
+                                                 class="@CssClass" @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.MenuSubContent>
+
+@code {
+    /// <summary>嵌套的菜单项。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>偏好的放置方向（side）。对于从右到左的布局请设为 Left。</summary>
+    [Parameter] public PopoverSide Side { get; set; } = PopoverSide.Right;
+    /// <summary>距离触发元素的偏移量（像素）。</summary>
+    [Parameter] public int Offset { get; set; } = 2;
+    /// <summary>层叠顺序。默认值为 60。</summary>
+    [Parameter] public int ZIndex { get; set; } = 60;
+    /// <summary>箭头导航是否循环。默认值为 true。</summary>
+    [Parameter] public bool Loop { get; set; } = true;
+    /// <summary>额外的 CSS 类。</summary>
+    [Parameter] public string? Class { get; set; }
+    /// <summary>额外的 HTML 特性。</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string CssClass => ClassNames.cn(
+        "atom:min-w-32 atom:rounded-md atom:border atom:bg-(--atom-menu-surface) atom:p-1 atom:text-(--atom-menu-foreground) atom:shadow-(--atom-menu-shadow) atom:backdrop-blur-(--atom-menu-blur) atom:outline-none", Class);
+}

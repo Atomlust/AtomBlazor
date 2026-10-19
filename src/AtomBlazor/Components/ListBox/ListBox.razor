@@ -1,0 +1,122 @@
+@namespace AtomBlazor
+@typeparam TValue
+@using AtomBlazor.Icons.Lucide
+@inject ILocalizer Localizer
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+@*
+    ListBox - an always-visible list you choose from, with no trigger and no popover.
+
+    The list itself is the tab stop and owns the arrow keys, so unlike the list inside Select or
+    MultiSelect this one is reachable and operable by keyboard on its own.
+*@
+
+<div class="@RootClass" data-slot="listbox" @attributes="AdditionalAttributes">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <Label id="@($"{listId}-label")" For="@listId" Class="atom:mb-2 atom:block">@Label</Label>
+    }
+
+    <div class="@frameClass">
+        @if (ShowSearch)
+        {
+            <div class="atom:flex atom:items-center atom:border-b atom:border-border atom:px-3">
+                <LucideIcon Name="search" Size="16" Class="atom:me-2 atom:h-4 atom:w-4 atom:shrink-0 atom:opacity-50" />
+                <input id="@($"{listId}-search")"
+                       type="text"
+                       placeholder="@EffectiveSearchPlaceholder"
+                       aria-controls="@listId"
+                       aria-label="@EffectiveSearchPlaceholder"
+                       disabled="@Disabled"
+                       value="@searchQuery"
+                       @oninput="HandleSearchInputAsync"
+                       @onkeydown="HandleSearchKeyDownAsync"
+                       class="atom:flex atom:h-10 atom:w-full atom:bg-transparent atom:py-2 atom:text-sm atom:outline-none atom:placeholder:text-muted-foreground atom:disabled:cursor-not-allowed atom:disabled:opacity-50" />
+            </div>
+        }
+
+        @if (IsMultiple && ShowSelectAll && visibleOptions.Count > 0)
+        {
+            @* Outside the listbox on purpose. A select-all row rendered as an option would be
+               announced as one of the choices and would take a place in the arrow-key order. *@
+            <div class="atom:flex atom:items-center atom:gap-2 atom:border-b atom:border-border atom:px-3 atom:py-2">
+                <AtomBlazor.Primitives.CheckboxPrimitive Checked="@(SelectAllState == SelectAllKind.All)"
+                                                                Indeterminate="@(SelectAllState == SelectAllKind.Indeterminate)"
+                                                                Disabled="@Disabled"
+                                                                CheckedChanged="@(_ => ToggleSelectAllAsync())"
+                                                                class="@checkboxClass"
+                                                                AriaLabel="@EffectiveSelectAllLabel">
+                    @if (SelectAllState == SelectAllKind.All)
+                    {
+                        <LucideIcon Name="check" Size="14" Class="atom:h-3.5 atom:w-3.5 atom:stroke-current" />
+                    }
+                    else if (SelectAllState == SelectAllKind.Indeterminate)
+                    {
+                        <LucideIcon Name="minus" Size="14" Class="atom:h-3.5 atom:w-3.5 atom:stroke-current" />
+                    }
+                </AtomBlazor.Primitives.CheckboxPrimitive>
+                <span class="atom:text-sm atom:font-medium">@EffectiveSelectAllLabel</span>
+                <span class="atom:ms-auto atom:text-xs atom:text-muted-foreground">@SelectionSummary</span>
+            </div>
+        }
+
+        <ul @ref="listElement" id="@listId"
+            role="listbox"
+            tabindex="@(Disabled ? -1 : 0)"
+            aria-multiselectable="@(IsMultiple ? "true" : null)"
+            aria-activedescendant="@ActiveDescendantId"
+            aria-disabled="@(Disabled ? "true" : null)"
+            aria-label="@AriaLabel"
+            aria-labelledby="@(string.IsNullOrEmpty(AriaLabel) && !string.IsNullOrEmpty(Label) ? $"{listId}-label" : null)"
+            @onkeydown="HandleKeyDownAsync"
+            @onfocus="HandleFocus"
+            @onblur="HandleBlur"
+            style="max-height: @Height"
+            class="atom:m-0 atom:list-none atom:overflow-y-auto atom:p-1 atom:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-inset">
+            @if (visibleOptions.Count == 0)
+            {
+                <li class="atom:py-6 atom:text-center atom:text-sm atom:text-muted-foreground">@EffectiveEmptyMessage</li>
+            }
+            else
+            {
+                @for (var i = 0; i < visibleOptions.Count; i++)
+                {
+                    var index = i;
+                    var option = visibleOptions[index];
+                    var selected = IsSelected(option.Value);
+                    var optionDisabled = Disabled || IsOptionDisabled(option);
+
+                    <li @key="option.Value"
+                        id="@OptionId(index)"
+                        role="option"
+                        aria-selected="@selected.ToString().ToLowerInvariant()"
+                        aria-disabled="@(optionDisabled ? "true" : null)"
+                        data-active="@((index == activeIndex && hasFocus).ToString().ToLowerInvariant())"
+                        data-selected="@selected.ToString().ToLowerInvariant()"
+                        @onclick="@(e => HandleOptionClickAsync(index, e))"
+                        class="@OptionClass(optionDisabled)">
+                        @* A plain box, not a checkbox control: a focusable control inside an option
+                           would be a second tab stop and a second thing to announce. aria-selected
+                           on the option already carries the state. *@
+                        <span aria-hidden="true" class="@IndicatorClass(selected)">
+                            @if (selected)
+                            {
+                                <LucideIcon Name="check" Size="14" Class="atom:h-3.5 atom:w-3.5 atom:stroke-current" />
+                            }
+                        </span>
+
+                        @if (ItemTemplate is not null)
+                        {
+                            @ItemTemplate(option)
+                        }
+                        else
+                        {
+                            <span class="atom:truncate">@option.Text</span>
+                        }
+                    </li>
+                }
+            }
+        </ul>
+    </div>
+</div>

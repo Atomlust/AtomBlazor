@@ -1,0 +1,77 @@
+@namespace AtomBlazor
+
+@* 经过样式封装的 DropdownMenuTrigger - 不参与布局的透传封装 *@
+@* 在 AsChild 模式下，基础组件不渲染任何元素，因此触发元素自身的样式无处施加。
+   只有页面所设置的内容会被向下传递，因此开发警告中仅会提及该项，而不会涉及其他内容。 *@
+<AtomBlazor.Primitives.DropdownMenuTrigger class="@(AsChild ? Class : CssClass)"
+                                                            AsChild="@AsChild"
+                                                            Disabled="@Disabled"
+                                                            OnClick="@OnClick"
+                                                            CustomClickHandling="@CustomClickHandling"
+                                                            @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.DropdownMenuTrigger>
+
+@code {
+    [CascadingParameter]
+    private AtomBlazor.Primitives.DropdownMenuContext? Context { get; set; }
+
+    /// <summary>
+    /// 要在触发按钮内显示的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用于该包裹元素的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 下拉菜单打开时应用的 CSS 类。
+    /// 默认值为 <c>null</c>（无激活样式）。
+    /// 可设为例如 <c>"bg-accent text-accent-foreground"</c>，以在打开时高亮触发元素。
+    /// </summary>
+    [Parameter]
+    public string? ActiveClass { get; set; }
+
+    /// <summary>
+    /// 为 true 时，触发元素不渲染自身的按钮元素。
+    /// 而是经由 TriggerContext 将触发行为传递给子组件。
+    /// 当你希望自定义组件（如 Button）充当触发元素时使用此项。
+    /// </summary>
+    [Parameter]
+    public bool AsChild { get; set; } = true;
+
+    /// <summary>
+    /// 触发元素是否被禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; } = false;
+
+    /// <summary>
+    /// 自定义点击处理程序。
+    /// </summary>
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    /// <summary>
+    /// 是否仅使用自定义点击处理。
+    /// </summary>
+    [Parameter]
+    public bool CustomClickHandling { get; set; } = false;
+
+    /// <summary>
+    /// 应用于触发元素的额外特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private bool IsOpen => Context?.IsOpen ?? false;
+
+    private string? CssClass => ClassNames.cn(
+        IsOpen ? ActiveClass : null,
+        Class
+    );
+}

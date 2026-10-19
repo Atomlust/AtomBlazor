@@ -1,0 +1,23 @@
+@namespace AtomBlazor
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<span @ref="element" aria-hidden="true" class="@ClassNames.cn("atom:pointer-events-none atom:absolute atom:left-0 atom:top-0 atom:rounded-md atom:bg-accent", Class)" hidden></span>
+
+@code {
+    /// <summary>在指示器定位父元素内查找"活动"元素的选择器。</summary>
+    [Parameter] public string Selector { get; set; } = "[data-state=active], [aria-selected=true], [aria-current=page]";
+    /// <summary>可选的悬停/键盘聚焦临时目标选择器。</summary>
+    [Parameter] public string? HoverSelector { get; set; }
+    /// <summary>时长，单位毫秒。</summary>
+    [Parameter] public int Duration { get; set; } = 200;
+    /// <summary>指示器的额外 CSS 类；前景项需自带相对定位。</summary>
+    [Parameter] public string? Class { get; set; }
+    private ElementReference element;
+    private MotionInterop? interop;
+    protected override void OnParametersSet() => ArgumentOutOfRangeException.ThrowIfNegative(Duration);
+    protected override Task OnAfterRenderAsync(bool firstRender) => (interop ??= new(JS)).InvokeAsync("indicator", element,
+        new { selector = Selector, hoverSelector = HoverSelector, duration = Duration });
+    public async ValueTask DisposeAsync() { if (interop is not null) { await interop.DisposeAsync(); } }
+}

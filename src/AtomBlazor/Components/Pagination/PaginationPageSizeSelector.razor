@@ -1,0 +1,120 @@
+@namespace AtomBlazor
+@inject ILocalizer Localizer
+
+<div class="@CssClass" @attributes="AdditionalAttributes">
+    @if (ShowLabel)
+    {
+        <p class="atom:text-sm atom:font-medium">@EffectiveLabel</p>
+    }
+    <Select TValue="string"
+            Value="@_pageSizeValue"
+            ValueChanged="@HandlePageSizeChanged">
+        <AtomBlazor.SelectTrigger Class="@TriggerCssClass">
+            <AtomBlazor.SelectValue />
+        </AtomBlazor.SelectTrigger>
+        <AtomBlazor.SelectContent>
+            @foreach (var size in EffectivePageSizes)
+            {
+                <AtomBlazor.SelectItem Value="@size.ToString()">@size</AtomBlazor.SelectItem>
+            }
+        </AtomBlazor.SelectContent>
+    </Select>
+</div>
+
+@code {
+    private string _pageSizeValue = "10";
+    private bool _initialized = false;
+
+    [CascadingParameter]
+    private PaginationContext? Context { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// Select 触发器元素的 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? TriggerClass { get; set; }
+
+    /// <summary>
+    /// 是否显示标签。默认：true
+    /// </summary>
+    [Parameter]
+    public bool ShowLabel { get; set; } = true;
+
+    /// <summary>
+    /// 页大小选择器的标签文本。未提供时回退到本地化默认值。
+    /// </summary>
+    [Parameter]
+    public string? Label { get; set; }
+
+    private string EffectiveLabel => Label ?? Localizer["Pagination.RowsPerPage"];
+
+    /// <summary>
+    /// 覆盖上下文中的页大小。为 null 时，使用上下文的 PageSizes。
+    /// </summary>
+    [Parameter]
+    public int[]? PageSizes { get; set; }
+
+    /// <summary>
+    /// 页大小变化时的自定义回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<int> OnPageSizeChanged { get; set; }
+
+    private int[] EffectivePageSizes => PageSizes ?? Context?.PageSizes ?? [10, 20, 50, 100];
+
+    protected override void OnInitialized()
+    {
+        if (Context?.State != null)
+            _pageSizeValue = Context.State.PageSize.ToString();
+        _initialized = true;
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (_initialized && Context?.State != null)
+        {
+            var currentPageSize = Context.State.PageSize.ToString();
+            if (_pageSizeValue != currentPageSize)
+                _pageSizeValue = currentPageSize;
+        }
+    }
+
+    private async Task HandlePageSizeChanged(string newValue)
+    {
+        _pageSizeValue = newValue;
+
+        if (int.TryParse(newValue, out var newSize))
+        {
+            if (Context?.State != null && newSize != Context.State.PageSize)
+            {
+                Context.State.PageSize = newSize;
+                Context.State.CurrentPage = 1;
+
+                if (Context.OnPageSizeChanged != null)
+                    await Context.OnPageSizeChanged(newSize);
+            }
+
+            if (OnPageSizeChanged.HasDelegate)
+                await OnPageSizeChanged.InvokeAsync(newSize);
+        }
+    }
+
+    private string CssClass => ClassNames.cn(
+        "atom:flex atom:items-center atom:gap-2",
+        Class
+    );
+
+    private string TriggerCssClass => ClassNames.cn(
+        "atom:h-8 atom:w-[70px]",
+        TriggerClass
+    );
+}

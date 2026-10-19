@@ -1,0 +1,34 @@
+@namespace AtomBlazor
+
+@*
+    面板页头辅助组件，用于组织面板标题和描述。
+*@
+
+<div class="@GetClassNames()" @attributes="AdditionalAttributes">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// 在面板页头中显示的内容（通常为 SheetTitle 和 SheetDescription）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用到页头容器的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string GetClassNames() => ClassNames.cn(
+        "atom:flex atom:flex-col atom:space-y-2 atom:text-center atom:sm:text-start",
+        Class
+    );
+}

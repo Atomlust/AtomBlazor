@@ -1,0 +1,416 @@
+@page "/components/hovercard"
+<PageTitle>@L.T("HoverCard 悬浮卡片 - Atom BlazorUI", "Hover Card Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">Hover Card</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("鼠标悬停时出现的富预览卡片，打开与关闭延时都可以配置。",
+                 "Rich preview cards that appear on hover, with configurable open and close delays.")
+        </p>
+    </div>
+
+    <div class="space-y-6">
+        <!-- Basic Usage -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    用 <code>HoverCard</code> 把触发器与内容包在一起。触发器默认是
+                    <code>AsChild="true"</code>，因此一个 <code>Button</code>（或任意元素）就成了触发器。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    Wrap a trigger and content in a <code>HoverCard</code>. The trigger defaults to
+                    <code>AsChild="true"</code>, so a <code>Button</code> (or any element) becomes the trigger.
+                </p>
+                        </text>
+}
+
+            <div class="rounded-lg border bg-card p-6">
+                <HoverCard>
+                    <AtomBlazor.HoverCardTrigger AsChild>
+                        <Button Variant="ButtonVariant.Outline">@user.Name</Button>
+                    </AtomBlazor.HoverCardTrigger>
+                    <AtomBlazor.HoverCardContent>
+                        <div class="flex gap-3">
+                            <div class="w-10 h-10 rounded-full bg-muted" />
+                            <div class="space-y-1">
+                                <p class="text-sm font-semibold">@user.Name</p>
+                                <p class="text-sm text-muted-foreground">@user.Title</p>
+                            </div>
+                        </div>
+                    </AtomBlazor.HoverCardContent>
+                </HoverCard>
+            </div>
+
+            <CodeBlock Source="Components/HoverCard/basic.txt" />
+        </section>
+
+        <!-- Controlled -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("受控状态", "Controlled State")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    绑定 <code>@@bind-Open</code> 并监听 <code>OnOpenChange</code>，就能跟踪卡片的状态。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    Bind <code>@@bind-Open</code> and listen to <code>OnOpenChange</code> to track the card's state.
+                </p>
+                        </text>
+}
+
+            <div class="space-y-3 rounded-lg border bg-card p-6">
+                <p class="text-sm">@L.T("卡片当前", "Card is") @(isOpen ? L.T("已打开", "open") : L.T("已关闭", "closed"))</p>
+                <HoverCard @bind-Open="isOpen" OnOpenChange="HandleOpenChange">
+                    <AtomBlazor.HoverCardTrigger AsChild>
+                        <Button>@user.Name</Button>
+                    </AtomBlazor.HoverCardTrigger>
+                    <AtomBlazor.HoverCardContent>
+                        @if (L.IsChinese)
+                        {
+                                                <text>
+                                                    <p class="text-sm">@user.Name 的预览卡片。</p>
+                                                </text>
+}
+                        else
+                        {
+                                                <text>
+                                                    <p class="text-sm">A preview of @user.Name.</p>
+                                                </text>
+}
+                    </AtomBlazor.HoverCardContent>
+                </HoverCard>
+            </div>
+
+            <CodeBlock Source="Components/HoverCard/controlled.txt" />
+        </section>
+
+        <!-- Delays -->
+        <section class="space-y-4">
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <h2 class="text-2xl font-semibold">打开与关闭延时</h2>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <h2 class="text-2xl font-semibold">Open &amp; Close Delay</h2>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    调节 <code>OpenDelay</code>（默认 700ms）与 <code>CloseDelay</code>（默认 300ms），
+                    控制卡片出现与消失的快慢。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    Tune <code>OpenDelay</code> (default 700ms) and <code>CloseDelay</code> (default 300ms)
+                    to control how quickly the card appears and disappears.
+                </p>
+                        </text>
+}
+
+            <div class="rounded-lg border bg-card p-6">
+                <HoverCard OpenDelay="200" CloseDelay="100">
+                    <AtomBlazor.HoverCardTrigger AsChild>
+                        <Button>@L.T("悬停我", "Hover me")</Button>
+                    </AtomBlazor.HoverCardTrigger>
+                    <AtomBlazor.HoverCardContent>
+                        @L.T("悬停 200ms 后打开，离开 100ms 后关闭。", "Opens 200ms after hover, closes 100ms after you leave.")
+                    </AtomBlazor.HoverCardContent>
+                </HoverCard>
+            </div>
+
+            <CodeBlock Source="Components/HoverCard/delays.txt" />
+        </section>
+
+        <!-- AsChild -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("AsChild 触发器", "AsChild Trigger")</h2>
+            <p class="text-muted-foreground">
+                @L.T("对个人资料预览来说，链接是很自然的触发器。", "A link makes a natural trigger for a profile preview.")
+            </p>
+
+            <div class="rounded-lg border bg-card p-6">
+                <HoverCard>
+                    <AtomBlazor.HoverCardTrigger AsChild>
+                        <a href="#profile" class="text-primary underline underline-offset-4">@user.Name</a>
+                    </AtomBlazor.HoverCardTrigger>
+                    <AtomBlazor.HoverCardContent>
+                        <p class="text-sm">@L.T("个人资料预览卡片", "Profile preview card")</p>
+                    </AtomBlazor.HoverCardContent>
+                </HoverCard>
+            </div>
+
+            <CodeBlock Source="Components/HoverCard/as-child.txt" />
+        </section>
+
+    <!-- Plain Content Needs AsChild="false" -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("纯文本内容与图标", "Plain Content and Icons")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">AsChild</code> 默认是
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">true</code>，此时它自己不渲染任何元素——
+                    子组件会收到一个 <code class="text-xs bg-muted px-1 py-0.5 rounded">TriggerContext</code>，
+                    并被指望自己去挂接悬停与焦点行为。任何不消费这个上下文的东西——文本、普通标记，或一枚裸的
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">LucideIcon</code>——都需要
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">AsChild="false"</code>，好让触发器渲染出自己的
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">div</code> 并把处理器挂上去。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">AsChild</code> defaults to
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">true</code>, which renders no element of its own —
+                    the child is handed a <code class="text-xs bg-muted px-1 py-0.5 rounded">TriggerContext</code> and is
+                    expected to attach the hover and focus behaviour itself. Anything that does not consume that context —
+                    text, plain markup, or a bare <code class="text-xs bg-muted px-1 py-0.5 rounded">LucideIcon</code> — needs
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">AsChild="false"</code> so the trigger renders its own
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">div</code> with the handlers attached.
+                </p>
+                        </text>
+}
+        </div>
+
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2">
+                <span class="text-sm">Ada Lovelace</span>
+                <HoverCard OpenDelay="200">
+                    <AtomBlazor.HoverCardTrigger AsChild="false" Class="inline-flex cursor-help text-blue-600 dark:text-blue-500">
+                        <LucideIcon Name="badge-check" Size="18" />
+                    </AtomBlazor.HoverCardTrigger>
+                    <AtomBlazor.HoverCardContent>
+                        <div class="space-y-1">
+                            <h4 class="text-sm font-semibold">@L.T("已认证账号", "Verified account")</h4>
+                            <p class="text-sm text-muted-foreground">
+                                @L.T("身份已于 2026 年 3 月 4 日确认。", "Identity confirmed on 4 March 2026.")
+                            </p>
+                        </div>
+                    </AtomBlazor.HoverCardContent>
+                </HoverCard>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <span class="text-sm">@L.T("仓库", "Repository")</span>
+                <HoverCard OpenDelay="200">
+                    <AtomBlazor.HoverCardTrigger AsChild="false" Class="text-sm underline decoration-dotted cursor-help">
+                        @L.T("3 个开启中的议题", "3 open issues")
+                    </AtomBlazor.HoverCardTrigger>
+                    <AtomBlazor.HoverCardContent>
+                        <p class="text-sm">@L.T("两个缺陷和一个功能请求。", "Two bugs and one feature request.")</p>
+                    </AtomBlazor.HoverCardContent>
+                </HoverCard>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/HoverCard/plain-content.txt" />
+
+        @if (L.IsChinese)
+        {
+                <text>
+                    <div class="rounded-md border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
+                <strong>我该选哪种模式？</strong> 当子组件本身就是用来充当触发器的组件时——最常见的就是
+                <code>Button</code>——请使用默认的 <code>AsChild="true"</code>，因为它让 DOM 保持扁平，并让子组件自己掌管
+                焦点环、aria 属性与样式。其余情况都用 <code>AsChild="false"</code>。以前选错是什么现象都没有；
+                现在，如果子组件从不消费那个上下文，触发器会在应用以 Development 环境运行时记录一条警告。
+            </div>
+                </text>
+}
+        else
+        {
+                <text>
+                    <div class="rounded-md border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
+                <strong>Which mode do I want?</strong> Reach for the default
+                <code>AsChild="true"</code> when the child is a component built to act as a trigger —
+                <code>Button</code> is the common one — because it keeps the DOM flat and lets the child own its own
+                focus ring, aria attributes and styling. Use <code>AsChild="false"</code> for everything else. Getting it
+                wrong used to do nothing at all; a trigger whose child never consumes the context now logs a warning while
+                the app runs in the Development environment.
+            </div>
+                </text>
+}
+    </div>
+
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("用户资料卡片", "User Profile Card")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("悬停展示用户信息的常见用法。", "Common use case for showing user information on hover.")
+        </p>
+
+        <div class="text-sm">
+            @L.T("本文由", "Article written by")
+            <HoverCard>
+                <AtomBlazor.HoverCardTrigger AsChild="false" Class="font-semibold text-primary hover:underline cursor-pointer">
+                    @@johndoe
+                </AtomBlazor.HoverCardTrigger>
+                <AtomBlazor.HoverCardContent>
+                    <div class="flex gap-4">
+                        <div class="h-16 w-16 rounded-full bg-gradient-to-br from-blue-500 to-teal-500 flex items-center justify-center text-white font-bold text-2xl">
+                            JD
+                        </div>
+                        <div class="space-y-2 flex-1">
+                            <div>
+                                <h4 class="text-sm font-semibold leading-none">John Doe</h4>
+                                <p class="text-sm text-muted-foreground">@@johndoe</p>
+                            </div>
+                            <p class="text-sm">
+                                @L.T("全栈开发者，热衷于打造美观的用户体验与可扩展的系统。",
+                                     "Full-stack developer passionate about creating beautiful user experiences and scalable systems.")
+                            </p>
+                            <div class="flex gap-4 text-xs text-muted-foreground">
+                                <div>
+                                    <span class="font-semibold text-foreground">2.5k</span> @L.T("关注者", "followers")
+                                </div>
+                                <div>
+                                    <span class="font-semibold text-foreground">890</span> @L.T("正在关注", "following")
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </AtomBlazor.HoverCardContent>
+            </HoverCard>
+            @L.T("撰写于 2024 年 1 月 15 日。", "on January 15, 2024.")
+        </div>
+
+        <CodeBlock Source="Components/HoverCard/user-profile.txt" />
+    </div>
+
+        <AccessibilityList>
+            <AriaAttributes>
+                <AccessibilityItem>@L.T("触发器元素会接收焦点与悬停事件", "Trigger element receives focus and hover events")</AccessibilityItem>
+                <AccessibilityItem>@L.T("内容以 dialog 角色渲染。请把关键信息留在页面正文里，不要只依赖悬停内容。", "Content renders with a dialog role. Keep essential information in the page rather than relying on hover content alone.")</AccessibilityItem>
+                <AccessibilityItem>@L.T("请使用可聚焦且有意义无障碍名称的触发器，并为其中可交互的内容保留键盘访问。", "Use a focusable trigger with a meaningful accessible name, and preserve keyboard access to any interactive content.")</AccessibilityItem>
+            </AriaAttributes>
+            <KeyboardNavigation>
+                <KeyboardShortcutItem Description="@(L.T("聚焦时显示悬浮卡片", "Show hover card on focus"))">
+                    <Kbd>Tab</Kbd>
+                </KeyboardShortcutItem>
+            </KeyboardNavigation>
+        </AccessibilityList>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+                <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+            </div>
+            <div class="space-y-4">
+                <ApiReference ComponentName="HoverCard">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="Open" Type="bool?" Default="null">
+                            控制卡片是否打开（受控模式）。为 null 时卡片自行管理状态（非受控模式）。支持通过 <code>@@bind-Open</code> 双向绑定。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="Open" Type="bool?" Default="null">
+                            Controls whether the card is open (controlled mode). When null, the card manages its own state (uncontrolled mode). Supports two-way binding with <code>@@bind-Open</code>.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="OpenChanged" Type="EventCallback&lt;bool&gt;">
+                        @L.T("打开状态发生变化时调用的事件回调。", "Event callback invoked when the open state changes.")
+                    </ApiParameter>
+                    <ApiParameter Name="OnOpenChange" Type="EventCallback&lt;bool&gt;">
+                        @L.T("打开状态发生变化时额外调用的回调。", "Additional callback invoked when the open state changes.")
+                    </ApiParameter>
+                    <ApiParameter Name="DefaultOpen" Type="bool" Default="false">
+                        @L.T("非受控模式下的默认打开状态。", "Default open state when in uncontrolled mode.")
+                    </ApiParameter>
+                    <ApiParameter Name="OpenDelay" Type="int" Default="700">
+                        @L.T("悬停后显示卡片的延时（毫秒）。", "Delay before showing the card on hover (ms).")
+                    </ApiParameter>
+                    <ApiParameter Name="CloseDelay" Type="int" Default="300">
+                        @L.T("指针离开后隐藏卡片的延时（毫秒）。", "Delay before hiding the card after the pointer leaves (ms).")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在悬浮卡片上下文中渲染的子内容，通常包含 HoverCardTrigger 与 HoverCardContent。", "The child content to render within the hover card context. Typically includes HoverCardTrigger and HoverCardContent.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到组件根元素上的额外 HTML 属性。", "Additional HTML attributes applied to the component's root element.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="HoverCardTrigger">
+                    <ApiParameter Name="AsChild" Type="bool" Default="true">
+                        @L.T("为 true（默认）时不渲染自己的元素，而是把 TriggerContext 级联给子组件（例如 Button）。纯标记或裸图标应当设置 AsChild=\"false\"，它会把内容包进一枚带有悬停/焦点处理器的 div。", "When true (default), does not render its own element; cascades TriggerContext to a child (e.g. Button). Pure markup or bare icons should set AsChild=\"false\", which wraps content in a div carrying the hover/focus handlers.")
+                    </ApiParameter>
+                    <ApiParameter Name="Class" Type="string?">
+                        @L.T("触发器元素的额外 CSS 类。", "Additional CSS classes for the trigger element.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在触发器内部显示的内容。", "The content to display inside the trigger.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到触发器元素上的额外 HTML 属性。", "Additional HTML attributes applied to the trigger element.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="HoverCardContent">
+                    <ApiParameter Name="Side" Type="PopoverSide" Default="PopoverSide.Bottom">
+                        @L.T("相对于触发器的首选定位边。", "Preferred side for positioning relative to the trigger.")
+                    </ApiParameter>
+                    <ApiParameter Name="Align" Type="PopoverAlign" Default="PopoverAlign.Center">
+                        @L.T("相对于触发器的对齐方式（Start、Center、End）。", "Alignment relative to the trigger (Start, Center, End).")
+                    </ApiParameter>
+                    <ApiParameter Name="Offset" Type="int" Default="4">
+                        @L.T("距离触发器元素的偏移像素值。", "Offset distance from the trigger element in pixels.")
+                    </ApiParameter>
+                    <ApiParameter Name="Class" Type="string?">
+                        @L.T("内容容器的额外 CSS 类。", "Additional CSS classes for the content container.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在卡片内部渲染的内容。", "The content to render inside the card.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到内容容器上的额外 HTML 属性。", "Additional HTML attributes applied to the content container.")
+                    </ApiParameter>
+                </ApiReference>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private bool isOpen;
+    private readonly User user = new("Ada Lovelace", "Principal Engineer");
+
+    private void HandleOpenChange(bool open) => isOpen = open;
+
+    private sealed record User(string Name, string Title);
+}

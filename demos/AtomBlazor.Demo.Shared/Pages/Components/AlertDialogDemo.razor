@@ -1,0 +1,342 @@
+@page "/components/alert-dialog"
+<PageTitle>@L.T("Alert Dialog 确认对话框 - Atom BlazorUI", "Alert Dialog Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Alert Dialog 确认对话框", "Alert Dialog")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("需要用户明确确认后才能继续的模态确认框。", "A modal confirmation that requires explicit acknowledgement before proceeding.")
+        </p>
+    </div>
+
+    <div class="space-y-6">
+        <!-- Basic Usage -->
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+                <p class="text-muted-foreground">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <code>AlertDialog</code> 会打断用户以取得一个决定。用 <code>AlertDialogCancel</code>
+                        与 <code>AlertDialogAction</code> 表示这两个选择。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            An <code>AlertDialog</code> interrupts the user for a decision. Use
+                        <code>AlertDialogCancel</code> and <code>AlertDialogAction</code> for the two choices.
+                                        </text>
+}
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <AlertDialog>
+                    <AtomBlazor.AlertDialogTrigger>
+                        <Button Variant="ButtonVariant.Destructive">@L.T("删除账户", "Delete account")</Button>
+                    </AtomBlazor.AlertDialogTrigger>
+                    <AtomBlazor.AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AtomBlazor.AlertDialogTitle>@L.T("删除账户？", "Delete account?")</AtomBlazor.AlertDialogTitle>
+                            <AtomBlazor.AlertDialogDescription>
+                                @L.T("此操作会永久删除你的账户及其全部数据。", "This permanently removes your account and all of its data.")
+                                @L.T("该操作无法撤销。", "This action cannot be undone.")
+                            </AtomBlazor.AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AtomBlazor.AlertDialogCancel>@L.T("取消", "Cancel")</AtomBlazor.AlertDialogCancel>
+                            <AtomBlazor.AlertDialogAction>@L.T("删除", "Delete")</AtomBlazor.AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AtomBlazor.AlertDialogContent>
+                </AlertDialog>
+            </div>
+
+            <CodeBlock Source="Components/AlertDialog/basic.txt" />
+        </section>
+
+        <!-- AsChild -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("AsChild 触发器", "AsChild Trigger")</h2>
+            <p class="text-muted-foreground">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    把任意元素——这里是一个破坏性的 <code>Button</code>——设为触发器，只需使用 <code>AsChild</code>。
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    Make any element — here a destructive <code>Button</code> — the trigger with <code>AsChild</code>.
+                                </text>
+}
+            </p>
+
+            <div class="rounded-lg border bg-card p-6">
+                <AlertDialog>
+                    <AtomBlazor.AlertDialogTrigger AsChild>
+                        <Button Variant="ButtonVariant.Destructive">Delete</Button>
+                    </AtomBlazor.AlertDialogTrigger>
+                    <AtomBlazor.AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AtomBlazor.AlertDialogTitle>@L.T("删除该条目？", "Delete item?")</AtomBlazor.AlertDialogTitle>
+                            <AtomBlazor.AlertDialogDescription>@L.T("此操作无法撤销。", "This cannot be undone.")</AtomBlazor.AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AtomBlazor.AlertDialogCancel>@L.T("取消", "Cancel")</AtomBlazor.AlertDialogCancel>
+                            <AtomBlazor.AlertDialogAction>@L.T("删除", "Delete")</AtomBlazor.AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AtomBlazor.AlertDialogContent>
+                </AlertDialog>
+            </div>
+
+            <CodeBlock Source="Components/AlertDialog/as-child.txt" />
+        </section>
+
+    <!-- Destructive Action -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("危险操作", "Destructive Action")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("危险操作请使用 Destructive 按钮变体。", "Use destructive button variant for dangerous actions.")
+            </p>
+        </div>
+        <AlertDialog>
+            <AtomBlazor.AlertDialogTrigger>
+                <Button Variant="ButtonVariant.Destructive">@L.T("删除账户", "Delete Account")</Button>
+            </AtomBlazor.AlertDialogTrigger>
+            <AtomBlazor.AlertDialogContent>
+                <AlertDialogHeader>
+                    <AtomBlazor.AlertDialogTitle>@L.T("删除账户", "Delete Account")</AtomBlazor.AlertDialogTitle>
+                    <AtomBlazor.AlertDialogDescription>
+                        @if (L.IsChinese)
+                        {
+                                                <text>
+                                                    确定要删除你的账户吗？你的全部数据将被永久移除。
+                            该操作无法撤销。
+                                                </text>
+}
+                        else
+                        {
+                                                <text>
+                                                    Are you sure you want to delete your account? All of your data will be
+                            permanently removed. This action cannot be undone.
+                                                </text>
+}
+                    </AtomBlazor.AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AtomBlazor.AlertDialogCancel>
+                        <Button Variant="ButtonVariant.Outline">@L.T("取消", "Cancel")</Button>
+                    </AtomBlazor.AlertDialogCancel>
+                    <AtomBlazor.AlertDialogAction>
+                        <Button Variant="ButtonVariant.Destructive">@L.T("确认，删除账户", "Yes, delete account")</Button>
+                    </AtomBlazor.AlertDialogAction>
+                </AlertDialogFooter>
+            </AtomBlazor.AlertDialogContent>
+        </AlertDialog>
+
+        <CodeBlock Source="Components/AlertDialog/destructive.txt" />
+    </div>
+
+    <!-- Key Differences from Dialog -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("Alert Dialog 与 Dialog 的差别", "Alert Dialog vs Dialog")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("Alert Dialog 与常规 Dialog 的关键差异。", "Key differences between Alert Dialog and regular Dialog.")
+            </p>
+        </div>
+        <div class="border rounded-lg p-6 space-y-3 bg-muted/50">
+            <p class="text-sm">
+                <strong>@L.T("Alert Dialog：", "Alert Dialog:")</strong>
+            </p>
+            <ul class="text-sm space-y-2 ml-4">
+                <li>• @L.T("不能通过点击遮罩关闭——组件层面已强制约束", "Cannot be dismissed by clicking the backdrop — enforced at the component level")</li>
+                <li>• @L.T("不能通过按下 Escape 关闭", "Cannot be dismissed by pressing Escape")</li>
+                <li>• @L.T("必须由用户点击操作按钮来确认", "Must be acknowledged with an action button")</li>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <li>• 使用 role="alertdialog" 提供无障碍语义</li>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <li>• Uses role="alertdialog" for accessibility</li>
+                                </text>
+}
+                <li>• @L.T("用于破坏性或关键的确认场景", "Use for destructive or critical confirmations")</li>
+            </ul>
+            <p class="text-sm mt-4">
+                <strong>@L.T("常规 Dialog：", "Regular Dialog:")</strong>
+            </p>
+            <ul class="text-sm space-y-2 ml-4">
+                <li>• @L.T("可以通过点击外部区域关闭", "Can be dismissed by clicking outside")</li>
+                <li>• @L.T("可以通过按下 Escape 关闭", "Can be dismissed by pressing Escape")</li>
+                <li>• @L.T("对一般内容更灵活", "More flexible for general content")</li>
+                <li>• @L.T("用于表单、设置与非关键内容", "Use for forms, settings, and non-critical content")</li>
+            </ul>
+        </div>
+    </div>
+
+        <AccessibilityList>
+            <AriaAttributes>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="alertdialog"</code> 设在内容面板上，用来把它和常规对话框区分开
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="alertdialog"</code> on the content panel distinguishes it from a regular dialog
+                                        </text>
+}
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-modal="true"</code> 表明该对话框会阻断与页面其余部分的交互
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-modal="true"</code> indicates the dialog blocks interaction with the rest of the page
+                                        </text>
+}
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-labelledby</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code> 把标题和描述关联到对话框
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-labelledby</code> and <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code> link the title and description to the dialog
+                                        </text>
+}
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @L.T("对话框打开时会自动把焦点限制在其内部", "Focus is automatically trapped within the dialog")
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @L.T("点击遮罩与按 Escape 都不会关闭对话框——用户必须通过操作按钮响应", "Overlay click and Escape key do not close the dialog — user must respond via an action button")
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @L.T("对话框打开时会锁定页面滚动", "Scroll lock on body when dialog is open")
+                </AccessibilityItem>
+            </AriaAttributes>
+            <KeyboardNavigation>
+                <KeyboardShortcutItem Description="@(L.T("把焦点移到下一个元素", "Move focus to next element"))">
+                    <Kbd>Tab</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("把焦点移到上一个元素", "Move focus to previous element"))">
+                    <Kbd>Shift+Tab</Kbd>
+                </KeyboardShortcutItem>
+            </KeyboardNavigation>
+        </AccessibilityList>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+                <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+            </div>
+            <div class="space-y-4">
+                <ApiReference ComponentName="AlertDialog">
+                    <ApiParameter Name="Open" Type="bool?" Default="null">
+                        @L.T("控制对话框是否打开（受控模式）。为 null 时自行管理状态。", "Controls whether the dialog is open (controlled mode). When null, manages its own state.")
+                    </ApiParameter>
+                    <ApiParameter Name="OpenChanged" Type="EventCallback&lt;bool&gt;">
+                        @L.T("打开状态发生变化时触发的事件回调。", "Event callback invoked when the open state changes.")
+                    </ApiParameter>
+                    <ApiParameter Name="DefaultOpen" Type="bool" Default="false">
+                        @L.T("非受控模式下的默认打开状态。", "Default open state when in uncontrolled mode.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("子内容，通常是 AlertDialogTrigger 与 AlertDialogContent。", "The child content, typically an AlertDialogTrigger and AlertDialogContent.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到根元素的附加 HTML 特性。", "Additional HTML attributes applied to the root element.")
+                    </ApiParameter>
+                                    <ApiParameter Name="OnOpenChange" Type="EventCallback&lt;bool&gt;">
+                        @L.T("打开状态发生变化时调用的回调。", "Callback when the open state changes.")
+                    </ApiParameter>
+</ApiReference>
+
+                <ApiReference ComponentName="AlertDialogTrigger">
+                    <ApiParameter Name="AsChild" Type="bool" Default="true">
+                        @L.T("为 true（默认）时不自行渲染按钮，而是把触发行为级联给子元素；设为 false 则渲染自带按钮。", "When true (default), does not render its own button; cascades trigger behavior to the child. Set false for a standalone button.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在触发器内显示的内容。", "The content to display inside the trigger.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到触发器元素的附加 HTML 特性。", "Additional HTML attributes applied to the trigger element.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="AlertDialogAction">
+                    <ApiParameter Name="Class" Type="string?">
+                        @L.T("追加到操作按钮的 CSS 类。", "Additional CSS classes for the action button.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("操作按钮的标签文字。", "The action button label.")
+                    </ApiParameter>
+                </ApiReference>
+
+            <ApiReference ComponentName="AlertDialogContent">
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("用于自定义尺寸或样式的附加 CSS 类。", "Additional CSS classes for custom sizing or styling.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到组件根元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+
+            <div class="rounded-md border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <strong>注意：</strong> <code>AlertDialogContent</code> 有意不暴露 <code>CloseOnOverlayClick</code> 与 <code>CloseOnEscape</code> 参数。
+                    两者都被固定为 <code>false</code>，以落实 <code>role="alertdialog"</code> 约定——用户必须通过操作按钮作出响应。
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <strong>Note:</strong> <code>AlertDialogContent</code> intentionally does not expose <code>CloseOnOverlayClick</code> or <code>CloseOnEscape</code> parameters.
+                    Both are hardcoded to <code>false</code> to enforce the <code>role="alertdialog"</code> contract — the user must respond via an action button.
+                                </text>
+}
+            </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

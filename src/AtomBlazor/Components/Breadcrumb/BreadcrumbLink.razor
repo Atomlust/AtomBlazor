@@ -1,0 +1,38 @@
+@namespace AtomBlazor
+
+@if (string.IsNullOrEmpty(Href))
+{
+    <span class="@CssClass" @attributes="AdditionalAttributes">
+        @ChildContent
+    </span>
+}
+else
+{
+    <a href="@Href" class="@CssClass" @attributes="AdditionalAttributes">
+        @ChildContent
+    </a>
+}
+
+@code {
+    [Parameter]
+    public string? Href { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private string CssClass => ClassNames.cn(
+        "atom:transition-colors atom:hover:text-foreground",
+        // #459：用圆角，让焦点环贴着文字走，而不是把整行框成一个盒子。
+        "atom:rounded-sm atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2",
+        Class
+    );
+}

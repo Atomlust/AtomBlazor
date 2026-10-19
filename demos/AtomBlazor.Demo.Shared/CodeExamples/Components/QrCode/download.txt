@@ -1,0 +1,29 @@
+<QrCode @ref="code" Value="https://example.com" />
+
+<a download="qr-code.svg" href="@DownloadHref">Download the SVG</a>
+
+@code {
+ private QrCode? code;
+
+ // GetSvg() returns a standalone document with the colours baked in, so a data URL
+ // is all a download needs - no canvas and no JavaScript.
+ private string DownloadHref
+ {
+ get
+ {
+ var markup = code?.GetSvg();
+ return markup is null
+ ? "#"
+ : "data:image/svg+xml;base64,"
+ + Convert.ToBase64String(Encoding.UTF8.GetBytes(markup));
+ }
+ }
+
+ protected override void OnAfterRender(bool firstRender)
+ {
+ if (firstRender)
+ {
+ StateHasChanged();
+ }
+ }
+}

@@ -1,0 +1,59 @@
+@namespace AtomBlazor
+@inject ILocalizer Localizer
+
+<div @attributes="AdditionalAttributes" class="@ClassNames.cn("atom:relative atom:inline-flex", Class)">
+    @ChildContent
+    @if (Visible)
+    {
+        <span role="status" aria-label="@EffectiveLabel" class="@BadgeCssClass">
+            <span aria-hidden="true">@(Dot ? null : DisplayCount)</span>
+        </span>
+    }
+</div>
+
+@code {
+    /// <summary>要被装饰的内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>通知计数。为 null 时隐藏计数徽章。</summary>
+    [Parameter] public int? Count { get; set; }
+    /// <summary>超过该值的计数显示为 Maximum+。</summary>
+    [Parameter] public int Maximum { get; set; } = 99;
+    /// <summary>是否显示零计数。</summary>
+    [Parameter] public bool ShowZero { get; set; }
+    /// <summary>显示圆点而非计数，与 Count 相互独立。</summary>
+    [Parameter] public bool Dot { get; set; }
+    /// <summary>徽章的可访问描述文本。</summary>
+    [Parameter] public string? AriaLabel { get; set; }
+    /// <summary>要装饰的角落。</summary>
+    [Parameter] public BadgeDotPosition Position { get; set; } = BadgeDotPosition.TopRight;
+    /// <summary>徽章颜色。</summary>
+    [Parameter] public BadgeVariant Variant { get; set; } = BadgeVariant.Destructive;
+    /// <summary>外层容器的额外 CSS 类。</summary>
+    [Parameter] public string? Class { get; set; }
+    /// <summary>徽章本身的额外 CSS 类。</summary>
+    [Parameter] public string? BadgeClass { get; set; }
+    /// <summary>外层容器的额外 HTML 属性。</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    private bool Visible => Dot || (Count.HasValue && (Count > 0 || ShowZero));
+    private string DisplayCount => Count > Maximum ? $"{Maximum}+" : Count?.ToString(System.Globalization.CultureInfo.CurrentCulture) ?? "";
+    private string EffectiveLabel => AriaLabel ?? (Dot ? Localizer["NotificationBadge.Unread"] : Localizer["NotificationBadge.Count", Count ?? 0]);
+    private string BadgeCssClass => ClassNames.cn("atom:pointer-events-none atom:absolute atom:flex atom:items-center atom:justify-center atom:rounded-full atom:ring-2 atom:ring-background atom:text-[10px] atom:font-semibold", Dot ? "atom:size-2" : "atom:h-4 atom:min-w-4 atom:px-1", Position switch
+    {
+        BadgeDotPosition.TopLeft => "atom:-top-1 atom:-left-1",
+        BadgeDotPosition.BottomLeft => "atom:-bottom-1 atom:-left-1",
+        BadgeDotPosition.BottomRight => "atom:-bottom-1 atom:-right-1",
+        _ => "atom:-top-1 atom:-right-1"
+    }, Variant switch
+    {
+        BadgeVariant.Destructive => "atom:bg-destructive atom:text-destructive-foreground",
+        BadgeVariant.Secondary => "atom:bg-secondary atom:text-secondary-foreground",
+        BadgeVariant.Outline => "atom:border atom:bg-background atom:text-foreground",
+        _ => "atom:bg-primary atom:text-primary-foreground"
+    }, BadgeClass);
+
+    protected override void OnParametersSet()
+    {
+        if (Count < 0) { throw new ArgumentOutOfRangeException(nameof(Count)); }
+        if (Maximum < 1) { throw new ArgumentOutOfRangeException(nameof(Maximum)); }
+    }
+}

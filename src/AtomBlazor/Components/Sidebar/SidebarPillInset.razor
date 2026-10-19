@@ -1,0 +1,21 @@
+@namespace AtomBlazor
+@implements IDisposable
+
+<div @attributes="AdditionalAttributes" class="@ClassNames.cn("atom:min-w-0 atom:transition-[padding] atom:duration-200 atom:motion-reduce:transition-none", Active ? "atom:pt-20" : null, Active ? CollapsedClass : ExpandedClass, Class)">@ChildContent</div>
+@code {
+    [CascadingParameter] private SidebarContext? Context { get; set; }
+    /// <summary>页面内容；胶囊态激活时为其在上方预留空间。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>侧边栏展开时的附加类。</summary>
+    [Parameter] public string? ExpandedClass { get; set; }
+    /// <summary>胶囊态激活时的附加类。</summary>
+    [Parameter] public string? CollapsedClass { get; set; }
+    /// <summary>始终应用的类。</summary>
+    [Parameter] public string? Class { get; set; }
+    /// <summary>附加 HTML 属性。</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    private bool Active => Context?.CollapsedMode == SidebarCollapsedMode.Pill && !Context.IsOpen;
+    private SidebarStateSubscription? subscription;
+    protected override void OnParametersSet() => (subscription ??= new(() => _ = InvokeAsync(StateHasChanged))).Observe(Context);
+    public void Dispose() => subscription?.Dispose();
+}

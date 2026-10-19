@@ -1,0 +1,627 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@using Microsoft.AspNetCore.Components.Forms
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+@inject ILocalizer Localizer
+
+<div class="@ContainerClass">
+    @* 拖放区 *@
+    <div @ref="_dropzoneRef"
+         class="@DropzoneClass"
+         aria-required="@(Required ? "true" : null)"
+         @ondragenter="HandleDragEnter"
+         @ondragleave="HandleDragLeave"
+         @ondragover="HandleDragOver"
+         @ondragover:preventDefault="true">
+
+        @foreach (var selection in inputSelections)
+        {
+            var active = selection == inputSelections[^1];
+            <InputFile aria-label="@AriaLabel" @key="selection.Id" @ref="selection.Input"
+                       OnChange="@(e => HandleFileSelected(e, selection))" accept="@Accept" multiple="@Multiple"
+                       disabled="@(!active || Disabled)" hidden="@(!active)" tabindex="@(active ? 0 : -1)"
+                       class="atom:absolute atom:inset-0 atom:w-full atom:h-full atom:opacity-0 atom:cursor-pointer"
+                       @attributes="AdditionalAttributes" id="@(active ? EffectiveId : selection.Id)" />
+        }
+
+
+        @if (DropzoneContent != null)
+        {
+            @DropzoneContent
+        }
+        else
+        {
+            <div class="atom:flex atom:flex-col atom:items-center atom:gap-2 atom:pointer-events-none">
+                <div class="atom:p-3 atom:rounded-full atom:bg-muted">
+                    <LucideIcon Name="upload" Class="atom:h-6 atom:w-6 atom:text-muted-foreground" />
+                </div>
+                <div class="atom:text-center">
+                    <p class="atom:text-sm atom:font-medium">
+                        @if (_isDragging)
+                        {
+                            <span>@Localizer["FileUpload.Drop"]</span>
+                        }
+                        else
+                        {
+                            <span>@Localizer["FileUpload.Drag"]</span>
+                        }
+                    </p>
+                    <p class="atom:text-xs atom:text-muted-foreground atom:mt-1">
+                        <span class="atom:text-primary atom:underline">@Localizer["FileUpload.Browse"]</span>
+                    </p>
+                </div>
+                @if (!string.IsNullOrEmpty(Accept))
+                {
+                    <p class="atom:text-xs atom:text-muted-foreground">
+                        @Localizer["FileUpload.Accepted", Accept]
+                    </p>
+                }
+                <p class="atom:text-xs atom:text-muted-foreground">
+                    @Localizer["FileUpload.MaxSize", FormatSize(MaxFileSize)]
+                    @if (Multiple)
+                    {
+                        <span> | @Localizer["FileUpload.MaxFiles", MaxFileCount]</span>
+                    }
+                </p>
+            </div>
+        }
+    </div>
+
+    @* 文件列表 *@
+    @if (_files.Count > 0)
+    {
+        <div class="atom:mt-4 atom:space-y-2">
+            @foreach (var file in _files)
+            {
+                <div class="@FileItemClass">
+                    @* 预览或图标 *@
+                    <div class="atom:flex-shrink-0">
+                        @if (ShowPreview && file.IsImage && !string.IsNullOrEmpty(file.PreviewUrl))
+                        {
+                            <img src="@file.PreviewUrl"
+                                 alt="@file.Name"
+                                 class="atom:h-12 atom:w-12 atom:rounded atom:object-cover" />
+                        }
+                        else
+                        {
+                            <div class="atom:h-12 atom:w-12 atom:rounded atom:bg-muted atom:flex atom:items-center atom:justify-center">
+                                <LucideIcon Name="@GetFileIcon(file)" Class="atom:h-6 atom:w-6 atom:text-muted-foreground" />
+                            </div>
+                        }
+                    </div>
+
+                    @* 文件信息 *@
+                    <div class="atom:flex-1 atom:min-w-0">
+                        <p class="atom:text-sm atom:font-medium atom:truncate">@file.Name</p>
+                        <p class="atom:text-xs atom:text-muted-foreground">@file.FormattedSize</p>
+                        @if (UploadHandler != null)
+                        {
+                            <div class="atom:space-y-1 atom:mt-1">
+                                <progress class="atom:w-full" max="100" value="@file.Progress" aria-label="@Localizer["FileUpload.Progress", file.Name]"></progress>
+                                <span class="atom:text-xs" role="status">@Localizer[$"FileUpload.{file.Status}"]</span>
+                                @if (file.Status is FileUploadStatus.Uploading or FileUploadStatus.Queued)
+                                {
+                                    <Button Size="ButtonSize.Small" Variant="ButtonVariant.Ghost" Disabled="@Disabled" OnClick="@(() => CancelUpload(file))">@Localizer["FileUpload.Cancel"]</Button>
+                                }
+                                else if (file.Status != FileUploadStatus.Succeeded)
+                                {
+                                    <Button Size="ButtonSize.Small" Variant="ButtonVariant.Outline" Disabled="@Disabled" OnClick="@(() => UploadFileAsync(file))">@Localizer[file.Status == FileUploadStatus.Selected ? "FileUpload.Upload" : "FileUpload.Retry"]</Button>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    @* 移除按钮 *@
+                    <Button Variant="ButtonVariant.Ghost"
+                            Size="ButtonSize.Icon"
+                            Class="atom:h-8 atom:w-8 atom:flex-shrink-0"
+                            OnClick="@(() => RemoveFile(file))"
+                            Disabled="@Disabled"
+                            AriaLabel="@Localizer["FileUpload.Remove", file.Name]">
+                        <LucideIcon Name="x" Class="atom:h-4 atom:w-4" />
+                    </Button>
+                </div>
+            }
+        </div>
+    }
+
+    @* 校验错误 *@
+    @if (_errors.Count > 0)
+    {
+        <div class="atom:mt-2 atom:space-y-1">
+            @foreach (var error in _errors)
+            {
+                <p class="atom:text-sm atom:text-destructive atom:flex atom:items-center atom:gap-1">
+                    <LucideIcon Name="alert-circle" Class="atom:h-4 atom:w-4" />
+                    @error.Message
+                </p>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>控件的无障碍名称。</summary>
+    [Parameter] public string? AriaLabel { get; set; }
+
+
+    private InputFile? _inputFile => inputSelections[^1].Input;
+    private IJSObjectReference? _pasteCleanup;
+    private ElementReference _dropzoneRef;
+    private string? _generatedId;
+    private bool _isDragging;
+    private bool _jsInitialized;
+    private List<FileUploadItem> _files = new();
+    private List<FileValidationError> _errors = new();
+    private IJSObjectReference? _jsModule;
+    private IJSObjectReference? _jsCleanup;
+
+    /// <summary>
+    /// 获取或设置文件输入元素的 HTML id 属性。
+    /// </summary>
+    /// <remarks>
+    /// 用于通过 label 元素的 'for' 属性把输入与标签关联起来，让外部控件也能打开文件对话框——
+    /// 在拖放区本身被隐藏时尤其有用。未设置时会生成唯一 id。
+    /// </remarks>
+    [Parameter]
+    public string? Id { get; set; }
+
+    /// <summary>
+    /// 获取或设置已选文件。
+    /// </summary>
+    [Parameter]
+    public IReadOnlyList<FileUploadItem>? Files { get; set; }
+
+    /// <summary>
+    /// 文件变更时的回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<IReadOnlyList<FileUploadItem>> FilesChanged { get; set; }
+
+    /// <summary>
+    /// 是否允许多选。
+    /// </summary>
+    [Parameter]
+    public bool Multiple { get; set; }
+
+    /// <summary>
+    /// 是否允许把文件粘贴进上传区，作为拖放的替代方式。默认为 <c>true</c>。
+    /// </summary>
+    /// <remarks>
+    /// 粘贴仅在焦点位于本上传区内时才会被处理，因此不会抢走页面上其他目标想要的粘贴
+    /// 同一页的两个上传区也不会同时认领同一次粘贴。粘贴的文本会被忽略——只读取文件。
+    /// 若页面自身要处理粘贴且两者会竞争，可将其设为 <c>false</c>。
+    /// </remarks>
+    [Parameter]
+    public bool AllowPaste { get; set; } = true;
+
+    /// <summary>
+    /// 接受的文件类型（MIME 类型或扩展名）。
+    /// </summary>
+    [Parameter]
+    public string? Accept { get; set; }
+
+    /// <summary>
+    /// 文件字节大小上限。
+    /// </summary>
+    [Parameter]
+    public long MaxFileSize { get; set; } = 10 * 1024 * 1024; // 10MB
+
+    /// <summary>
+    /// 文件数量上限。
+    /// </summary>
+    [Parameter]
+    public int MaxFileCount { get; set; } = 10;
+
+    /// <summary>
+    /// 是否显示图片预览。
+    /// </summary>
+    [Parameter]
+    public bool ShowPreview { get; set; } = true;
+
+    /// <summary>
+    /// 是否禁用上传。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 获取或设置上传是否为必填。
+    /// </summary>
+    [Parameter]
+    public bool Required { get; set; }
+
+    /// <summary>
+    /// 发生校验错误时的回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<FileValidationError> OnValidationError { get; set; }
+
+    /// <summary>
+    /// 自定义拖放区内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? DropzoneContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到文件输入元素的附加 HTML 属性。
+    /// </summary>
+    /// <remarks>
+    /// 属性应用在底层的 &lt;input type="file"&gt; 而非容器上，因此 <c>name</c> 或
+    /// <c>aria-label</c> 之类的表单与无障碍属性能落到真正承载文件的元素上。样式容器请用
+    /// <see cref="Class"/>，设置输入 id 请用 <see cref="Id"/>。
+    /// </remarks>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    private bool filesParameterSupplied;
+
+    /// <inheritdoc />
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        filesParameterSupplied = parameters.TryGetValue<IReadOnlyList<FileUploadItem>?>(nameof(Files), out _);
+        return base.SetParametersAsync(parameters);
+    }
+
+    protected override void OnParametersSet()
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(MaxFileSize);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(MaxFileCount);
+        if (filesParameterSupplied && !ReferenceEquals(Files, _files))
+        {
+            var supplied = Files ?? Array.Empty<FileUploadItem>();
+            foreach (var removed in _files.Where(f => !supplied.Contains(f)))
+            {
+                ReleaseFile(removed);
+            }
+            _files = supplied.ToList();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_jsInitialized && _inputFile != null)
+        {
+            try
+            {
+                // 有意偏差（沿 multiselect 口径，记录在案）：按实例直连
+                // ./_content/…/js/file-upload.js 模块路径，本仓库统一改走共享
+                // components-core.js barrel（camelCase 点分标识符 fileUpload.*）
+                // 规则见 PrimitiveJsModuleTests。
+                _jsModule = await ComponentModules.GetCoreAsync(JSRuntime);
+
+                // 取得 InputFile 底层的输入元素
+                _jsCleanup = await _jsModule.InvokeAsync<IJSObjectReference>(
+                    "fileUpload.initializeDropZone", _dropzoneRef, _inputFile.Element);
+
+                _jsInitialized = true;
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            {
+                // 电路断开期间的预期异常
+            }
+            catch (InvalidOperationException)
+            {
+                // 预渲染期间 JS interop 不可用
+            }
+        }
+        if (_jsInitialized && _jsModule is not null && _inputFile is not null)
+        {
+            try
+            {
+                if (AllowPaste && _pasteCleanup is null)
+                {
+                    // 清理句柄上的 dispose 是对象方法而非模块导出，调用点保持原样不改。
+                    _pasteCleanup = await _jsModule.InvokeAsync<IJSObjectReference>(
+                        "fileUpload.initializePaste", _dropzoneRef, _inputFile.Element);
+                }
+                else if (!AllowPaste && _pasteCleanup is not null)
+                {
+                    await _pasteCleanup.InvokeVoidAsync("dispose");
+                    await _pasteCleanup.DisposeAsync();
+                    _pasteCleanup = null;
+                }
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            {
+                // 电路断开期间的预期异常。
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        GC.SuppressFinalize(this);
+        disposed = true;
+        foreach (var operation in operations.Values)
+        {
+            operation.Dispose();
+        }
+
+        if (_pasteCleanup != null)
+        {
+            try
+            {
+                await _pasteCleanup.InvokeVoidAsync("dispose");
+                await _pasteCleanup.DisposeAsync();
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException) { }
+        }
+
+        if (_jsCleanup != null)
+        {
+            try
+            {
+                await _jsCleanup.InvokeVoidAsync("dispose");
+                await _jsCleanup.DisposeAsync();
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException) { }
+        }
+
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e, InputSelection selection)
+    {
+        if (Disabled || selection != inputSelections[^1])
+        {
+            return;
+        }
+        // 在等待预览或回调之前先轮转，避免另一次选择使这批文件失效。
+        inputSelections.Add(new InputSelection());
+        _jsInitialized = false;
+        // BL0016（.NET 11）：此两处句柄 dispose 派发本无 try/catch 守卫（轮转清理沿
+        // 与 OnAfterRender 段的守卫沿不同），按 InputOTP/Cascader 先例定点抑制并注记。
+#pragma warning disable BL0016
+        if (_jsCleanup != null)
+        {
+            await _jsCleanup.InvokeVoidAsync("dispose");
+            await _jsCleanup.DisposeAsync();
+            _jsCleanup = null;
+        }
+        if (_pasteCleanup != null)
+        {
+            await _pasteCleanup.InvokeVoidAsync("dispose");
+            await _pasteCleanup.DisposeAsync();
+            _pasteCleanup = null;
+        }
+#pragma warning restore BL0016
+        StateHasChanged();
+        _errors.Clear();
+        var filesToAdd = new List<FileUploadItem>();
+
+        foreach (var file in e.GetMultipleFiles(e.FileCount).Take(Multiple ? e.FileCount : 1))
+        {
+            var validationError = ValidateFile(file);
+            if (validationError != null)
+            {
+                _errors.Add(validationError);
+                await OnValidationError.InvokeAsync(validationError);
+                continue;
+            }
+
+            if (Multiple && _files.Count + filesToAdd.Count >= MaxFileCount)
+            {
+                var error = new FileValidationError
+                {
+                    FileName = file.Name,
+                    ErrorType = FileValidationErrorType.TooManyFiles,
+                    Message = Localizer["FileUpload.TooMany", MaxFileCount]
+                };
+                _errors.Add(error);
+                await OnValidationError.InvokeAsync(error);
+                break;
+            }
+
+            var item = new FileUploadItem { File = file };
+            selection.FileIds.Add(item.Id);
+
+            // 为图片生成预览
+            if (ShowPreview && item.IsImage && file.Size < 5 * 1024 * 1024) // 仅预览小于 5MB 的图片
+            {
+                try
+                {
+                    var format = file.ContentType;
+                    var resizedImage = await file.RequestImageFileAsync(format, 200, 200);
+                    using var stream = resizedImage.OpenReadStream(5 * 1024 * 1024);
+                    using var ms = new MemoryStream();
+                    await stream.CopyToAsync(ms);
+                    var base64 = Convert.ToBase64String(ms.ToArray());
+                    item.PreviewUrl = $"data:{format};base64,{base64}";
+                }
+                catch
+                {
+                    // 预览生成失败，继续且不带预览
+                }
+            }
+
+            filesToAdd.Add(item);
+        }
+
+        if (filesToAdd.Count > 0)
+        {
+            if (!Multiple)
+            {
+                foreach (var existing in _files)
+                {
+                    ReleaseFile(existing);
+                }
+                _files.Clear();
+            }
+            _files.AddRange(filesToAdd);
+            await FilesChanged.InvokeAsync(_files);
+            if (AutoUpload && UploadHandler != null)
+            {
+                await Task.WhenAll(filesToAdd.Select(UploadFileAsync));
+            }
+        }
+        inputSelections.RemoveAll(s => s != inputSelections[^1] && s.FileIds.Count == 0);
+    }
+
+    private FileValidationError? ValidateFile(IBrowserFile file)
+    {
+        // 检查文件大小
+        if (file.Size > MaxFileSize)
+        {
+            return new FileValidationError
+            {
+                FileName = file.Name,
+                ErrorType = FileValidationErrorType.FileTooLarge,
+                Message = Localizer["FileUpload.TooLarge", file.Name, FormatSize(MaxFileSize)]
+            };
+        }
+
+        // 检查文件类型
+        if (!string.IsNullOrEmpty(Accept))
+        {
+            var accepted = Accept.Split(',').Select(a => a.Trim().ToLowerInvariant()).ToList();
+            var extension = Path.GetExtension(file.Name).ToLowerInvariant();
+            var contentType = file.ContentType.ToLowerInvariant();
+
+            var isAccepted = accepted.Any(a =>
+                a == extension ||
+                a == contentType ||
+                (a.EndsWith("/*") && contentType.StartsWith(a.Replace("/*", "/")))
+            );
+
+            if (!isAccepted)
+            {
+                return new FileValidationError
+                {
+                    FileName = file.Name,
+                    ErrorType = FileValidationErrorType.InvalidType,
+                    Message = Localizer["FileUpload.InvalidType", file.Name]
+                };
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 清空所有文件与校验错误，把组件重置回初始状态。
+    /// </summary>
+    public async Task ClearFiles()
+    {
+        foreach (var file in _files)
+        {
+            ReleaseFile(file);
+        }
+        _files.Clear();
+        _errors.Clear();
+        await FilesChanged.InvokeAsync(_files);
+
+        if (_jsModule != null && _inputFile?.Element != null)
+        {
+            try
+            {
+                await _jsModule.InvokeVoidAsync("fileUpload.resetInput", _inputFile.Element);
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            {
+                // 电路断开期间的预期异常
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task RemoveFile(FileUploadItem file)
+    {
+        ReleaseFile(file);
+        _files.Remove(file);
+        await FilesChanged.InvokeAsync(_files);
+    }
+
+    private void TriggerFileInput()
+    {
+        if (Disabled) return;
+        // 通过 JS 或 label 触发隐藏输入的点击
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (Disabled) return;
+        if (e.Key == "Enter" || e.Key == " ")
+        {
+            TriggerFileInput();
+        }
+    }
+
+    private void HandleDragEnter(DragEventArgs e)
+    {
+        if (Disabled) return;
+        _isDragging = true;
+    }
+
+    private void HandleDragLeave(DragEventArgs e)
+    {
+        _isDragging = false;
+    }
+
+    private void HandleDragOver(DragEventArgs e)
+    {
+        // 阻止默认行为以允许放置
+    }
+
+    private void HandleDrop(DragEventArgs e)
+    {
+        _isDragging = false;
+        // 实际的文件放置由 InputFile 组件处理
+    }
+
+    private string GetFileIcon(FileUploadItem file)
+    {
+        var contentType = file.ContentType.ToLowerInvariant();
+
+        if (contentType.StartsWith("image/")) return "image";
+        if (contentType.StartsWith("video/")) return "video";
+        if (contentType.StartsWith("audio/")) return "music";
+        if (contentType.Contains("pdf")) return "file-text";
+        if (contentType.Contains("word") || contentType.Contains("document")) return "file-text";
+        if (contentType.Contains("excel") || contentType.Contains("spreadsheet")) return "table";
+        if (contentType.Contains("zip") || contentType.Contains("compressed")) return "file-archive";
+        if (contentType.Contains("text") || contentType.Contains("json") || contentType.Contains("xml")) return "file-code";
+
+        return "file";
+    }
+
+    private static string FormatSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F0} KB";
+        if (bytes < 1024 * 1024 * 1024) return $"{bytes / (1024.0 * 1024):F0} MB";
+        return $"{bytes / (1024.0 * 1024 * 1024):F1} GB";
+    }
+
+    private string EffectiveId => Id ?? (_generatedId ??= $"file-upload-{Guid.NewGuid():N}");
+
+    private string ContainerClass => ClassNames.cn(
+        "atom:w-full",
+        Class
+    );
+
+    private string DropzoneClass => ClassNames.cn(
+        "atom:relative atom:flex atom:flex-col atom:items-center atom:justify-center",
+        "atom:w-full atom:min-h-[150px] atom:p-6",
+        "atom:border-2 atom:border-dashed atom:rounded-lg",
+        "atom:transition-colors atom:cursor-pointer",
+        // #459：真正的焦点目标是叠在本区之上、opacity-0 的 <input type="file">，聚焦它此前
+        // 没有任何可见变化。focus-within 把焦点环落在用户实际可见的框上。不加偏移——
+        // 虚线边框本身就是边缘。
+        "atom:focus-within:ring-2 atom:focus-within:ring-ring",
+        _isDragging ? "atom:border-primary atom:bg-primary/5" : "atom:border-muted-foreground/25 atom:hover:border-muted-foreground/50",
+        Disabled ? "atom:opacity-50 atom:cursor-not-allowed" : null
+    );
+
+    private string FileItemClass => ClassNames.cn(
+        "atom:flex atom:items-center atom:gap-3 atom:p-3",
+        "atom:border atom:rounded-lg atom:bg-muted/30"
+    );
+}

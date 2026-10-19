@@ -1,0 +1,27 @@
+<DataView TItem="Person" Data="@people" InitialPageSize="5">
+    <ToolbarActions>
+        <Button Variant="ButtonVariant.Default" Size="ButtonSize.Small" OnClick="@AddNewPerson">
+            Add Person
+        </Button>
+        <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="@ExportData">
+            Export
+        </Button>
+    </ToolbarActions>
+    <ListTemplate Context="person">
+        <Card Class="p-4">
+            <div class="flex items-center gap-3">
+                <Avatar>
+                    <AvatarFallback>@GetInitials(person.Name)</AvatarFallback>
+                </Avatar>
+                <div>
+                    <p class="text-sm font-medium">@person.Name</p>
+                    <TypographyMuted>@person.Email</TypographyMuted>
+                </div>
+            </div>
+        </Card>
+    </ListTemplate>
+    <Fields>
+        <DataViewColumn TItem="Person" TValue="string" Property="@(p => p.Name)" Header="Name" Sortable Filterable />
+        <DataViewColumn TItem="Person" TValue="string" Property="@(p => p.Email)" Header="Email" Filterable />
+    </Fields>
+</DataView>

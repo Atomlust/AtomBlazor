@@ -1,0 +1,544 @@
+@page "/components/form-field-input"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("FormFieldInput 输入字段 - Atom BlazorUI", "FormFieldInput Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("FormFieldInput 输入字段组件", "FormFieldInput Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("带有内置标签、辅助文本与自动错误提示的表单字段。",
+                     "An opinionated form field with built-in label, helper text, and automatic error messages.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Which form component? -->
+    <div class="rounded-lg border border-dashed bg-muted/30 p-6 space-y-3">
+        <h2 class="text-lg font-semibold">@L.T("该用哪个表单组件？", "Which form component?")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <div class="space-y-2 text-sm text-muted-foreground">
+                <p><strong>文本输入</strong>（string、int、日期等）？ &rarr; <strong>FormFieldInput&lt;T&gt;</strong>（当前页面）</p>
+                <p><strong>多行文本</strong>？ &rarr; <a href="/components/form-field-textarea" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTextarea</a></p>
+                <p><strong>数字输入</strong>？ &rarr; <a href="/components/form-field-numeric-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldNumericInput</a></p>
+                <p><strong>货币输入</strong>？ &rarr; <a href="/components/form-field-currency-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCurrencyInput</a></p>
+                <p><strong>掩码输入</strong>（电话、社保号等）？ &rarr; <a href="/components/form-field-masked-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldMaskedInput</a></p>
+                <p><strong>OTP / 验证码</strong>？ &rarr; <a href="/components/form-field-input-otp" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldInputOTP</a></p>
+                <p><strong>日期选择器</strong>？ &rarr; <a href="/components/form-field-date-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldDatePicker</a></p>
+                <p><strong>日期区间选择器</strong>？ &rarr; <a href="/components/form-field-date-range-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldDateRangePicker</a></p>
+                <p><strong>时间选择器</strong>？ &rarr; <a href="/components/form-field-time-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTimePicker</a></p>
+                <p><strong>复选框</strong>？ &rarr; <a href="/components/form-field-checkbox" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCheckbox</a></p>
+                <p><strong>复选框组</strong>？ &rarr; <a href="/components/form-field-checkbox-group" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCheckboxGroup</a></p>
+                <p><strong>开关</strong>？ &rarr; <a href="/components/form-field-switch" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldSwitch</a></p>
+                <p><strong>单选组</strong>？ &rarr; <a href="/components/form-field-radio-group" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldRadioGroup</a></p>
+                <p><strong>下拉选择</strong>？ &rarr; <a href="/components/form-field-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldSelect</a></p>
+                <p><strong>原生下拉框</strong>？ &rarr; <a href="/components/form-field-native-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldNativeSelect</a></p>
+                <p><strong>可搜索下拉</strong>？ &rarr; <a href="/components/form-field-combobox" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCombobox</a></p>
+                <p><strong>多选</strong>？ &rarr; <a href="/components/form-field-multi-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldMultiSelect</a></p>
+                <p><strong>标签输入</strong>？ &rarr; <a href="/components/form-field-tag-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTagInput</a></p>
+                <p><strong>文件上传</strong>？ &rarr; <a href="/components/form-field-file-upload" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldFileUpload</a></p>
+            </div>
+                </text>
+}
+        else
+        {
+                <text>
+                    <div class="space-y-2 text-sm text-muted-foreground">
+                <p><strong>Text input</strong> (string, int, date, etc.)? &rarr; <strong>FormFieldInput&lt;T&gt;</strong> (this page)</p>
+                <p><strong>Textarea</strong>? &rarr; <a href="/components/form-field-textarea" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTextarea</a></p>
+                <p><strong>Numeric input</strong>? &rarr; <a href="/components/form-field-numeric-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldNumericInput</a></p>
+                <p><strong>Currency input</strong>? &rarr; <a href="/components/form-field-currency-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCurrencyInput</a></p>
+                <p><strong>Masked input</strong> (phone, SSN, etc.)? &rarr; <a href="/components/form-field-masked-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldMaskedInput</a></p>
+                <p><strong>OTP / verification code</strong>? &rarr; <a href="/components/form-field-input-otp" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldInputOTP</a></p>
+                <p><strong>Date picker</strong>? &rarr; <a href="/components/form-field-date-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldDatePicker</a></p>
+                <p><strong>Date range picker</strong>? &rarr; <a href="/components/form-field-date-range-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldDateRangePicker</a></p>
+                <p><strong>Time picker</strong>? &rarr; <a href="/components/form-field-time-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTimePicker</a></p>
+                <p><strong>Checkbox</strong>? &rarr; <a href="/components/form-field-checkbox" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCheckbox</a></p>
+                <p><strong>Checkbox group</strong>? &rarr; <a href="/components/form-field-checkbox-group" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCheckboxGroup</a></p>
+                <p><strong>Switch</strong>? &rarr; <a href="/components/form-field-switch" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldSwitch</a></p>
+                <p><strong>Radio group</strong>? &rarr; <a href="/components/form-field-radio-group" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldRadioGroup</a></p>
+                <p><strong>Select dropdown</strong>? &rarr; <a href="/components/form-field-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldSelect</a></p>
+                <p><strong>Native select</strong>? &rarr; <a href="/components/form-field-native-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldNativeSelect</a></p>
+                <p><strong>Searchable select</strong>? &rarr; <a href="/components/form-field-combobox" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCombobox</a></p>
+                <p><strong>Multi-select</strong>? &rarr; <a href="/components/form-field-multi-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldMultiSelect</a></p>
+                <p><strong>Tag input</strong>? &rarr; <a href="/components/form-field-tag-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTagInput</a></p>
+                <p><strong>File upload</strong>? &rarr; <a href="/components/form-field-file-upload" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldFileUpload</a></p>
+            </div>
+                </text>
+}
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    一个简单的表单字段，带有标签与辅助文本。标签会通过
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">for</code>/<code class="text-xs bg-muted px-1 py-0.5 rounded">id</code> 属性自动与输入框建立关联。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    A simple form field with label and helper text. The label is automatically associated
+                    with the input via <code class="text-xs bg-muted px-1 py-0.5 rounded">for</code>/<code class="text-xs bg-muted px-1 py-0.5 rounded">id</code> attributes.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldInput TValue="string"
+                       @bind-Value="_name"
+                       Label="@(L.T("姓名", "Full Name"))"
+                       HelperText="@(L.T("请输入你的名字和姓氏。", "Enter your first and last name."))"
+                       Placeholder="John Doe" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Current value:")</p>
+            <p class="text-sm font-mono">@(string.IsNullOrEmpty(_name) ? L.T("（空）", "(empty)") : _name)</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldInput/basic.txt" />
+    </div>
+
+    <!-- Auto Error Messages -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自动错误提示", "Automatic Error Messages")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("FormFieldInput 会根据错误类型自动生成上下文化的错误提示。试试输入一个非数字值来看解析错误，或输入 1-100 之外的数字来看校验错误。处于错误状态时，辅助文本会被错误提示替换。",
+                     "FormFieldInput automatically generates contextual error messages based on the error kind. Try entering a non-numeric value to see a parse error, or a number outside 1-100 to see a validation error. The helper text is replaced by the error message during the error state.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldInput TValue="int"
+                       @bind-Value="_age"
+                       Label="@(L.T("年龄", "Age"))"
+                       HelperText="@(L.T("取值必须在 1 到 100 之间。", "Must be between 1 and 100."))"
+                       Validation="v => v >= 1 && v <= 100"
+                       Placeholder="@(L.T("请输入年龄", "Enter your age"))" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Current value:")</p>
+            <p class="text-sm font-mono">@_age</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldInput/auto-errors.txt" />
+    </div>
+
+    <!-- Custom Error Text -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义错误文本", "Custom Error Text")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">ErrorText</code> 参数，用一条贴合业务的提示
+                    覆盖自动生成的错误消息。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use the <code class="text-xs bg-muted px-1 py-0.5 rounded">ErrorText</code> parameter to override
+                    the auto-generated error message with a domain-specific one.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldInput TValue="decimal"
+                       @bind-Value="_price"
+                       Label="@(L.T("价格", "Price"))"
+                       HelperText="@(L.T("以美元输入商品价格。", "Enter the product price in USD."))"
+                       ErrorText="@(L.T("请输入有效的美元金额。", "Please enter a valid dollar amount."))"
+                       Format="N2"
+                       Placeholder="0.00" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Current value:")</p>
+            <p class="text-sm font-mono">@_price</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldInput/custom-error.txt" />
+    </div>
+
+    <!-- Email with Pattern Validation -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("正则校验", "Pattern Validation")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    把 <code class="text-xs bg-muted px-1 py-0.5 rounded">ValidationPattern</code> 与 FormFieldInput 组合使用，
+                    即可基于正则表达式做校验并自动展示错误。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Combine <code class="text-xs bg-muted px-1 py-0.5 rounded">ValidationPattern</code> with FormFieldInput
+                    for regex-based validation with automatic error display.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldInput TValue="string"
+                       @bind-Value="_email"
+                       Label="@(L.T("电子邮箱地址", "Email Address"))"
+                       HelperText="@(L.T("我们不会把你的邮箱分享给任何人。", "We'll never share your email with anyone else."))"
+                       Type="InputType.Email"
+                       ValidationPattern="@("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")"
+                       Placeholder="you@example.com" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Current value:")</p>
+            <p class="text-sm font-mono">@(string.IsNullOrEmpty(_email) ? L.T("（空）", "(empty)") : _email)</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldInput/pattern.txt" />
+    </div>
+
+    <!-- Nullable DateTime -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("可空 DateTime", "Nullable DateTime")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("InputField 的全部特性都能透过 FormFieldInput 使用，包括可空类型与格式字符串。",
+                     "All InputField features work through FormFieldInput, including nullable types and format strings.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldInput TValue="DateTime?"
+                       @bind-Value="_birthDate"
+                       Label="@(L.T("出生日期", "Date of Birth"))"
+                       HelperText="@(L.T("可选。用于年龄核验。", "Optional. Used for age verification."))"
+                       Format="yyyy-MM-dd"
+                       Type="InputType.Date" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Current value:")</p>
+            <p class="text-sm font-mono">@(_birthDate?.ToString("yyyy-MM-dd") ?? L.T("（无）", "(null)"))</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldInput/nullable-datetime.txt" />
+    </div>
+
+    <!-- Required Field -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("必填字段", "Required Field")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Required</code> 参数会在底层输入框上设置 HTML 的 required 属性。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    The <code class="text-xs bg-muted px-1 py-0.5 rounded">Required</code> parameter sets the HTML required attribute
+                    on the underlying input.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldInput TValue="string"
+                       @bind-Value="_username"
+                       Label="@(L.T("用户名", "Username"))"
+                       HelperText="@(L.T("必填。取一个唯一的用户名。", "Required. Choose a unique username."))"
+                       Required="true"
+                       Placeholder="johndoe" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Current value:")</p>
+            <p class="text-sm font-mono">@(string.IsNullOrEmpty(_username) ? L.T("（空）", "(empty)") : _username)</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldInput/required.txt" />
+    </div>
+
+    <!-- Disabled Field -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个被禁用的 FormFieldInput。标签与辅助文本仍然可见。",
+                     "A disabled FormFieldInput. The label and helper text remain visible.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldInput TValue="string"
+                       Value="@("readonly@example.com")"
+                       Label="@(L.T("邮箱（已锁定）", "Email (locked)"))"
+                       HelperText="@(L.T("如需更换邮箱请联系客服。", "Contact support to change your email."))"
+                       Disabled="true" />
+        </div>
+        <CodeBlock Source="Components/FormFieldInput/disabled.txt" />
+    </div>
+
+    <!-- Multiple Fields (Form Example) -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表单示例", "Form Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("把多个 FormFieldInput 组合成一个简单的表单。",
+                     "Multiple FormFieldInputs composed together as a simple form.")
+            </p>
+        </div>
+        <div class="max-w-md space-y-4">
+            <FormFieldInput TValue="string"
+                       @bind-Value="_formName"
+                       Label="@(L.T("姓名", "Name"))"
+                       Required="true"
+                       Placeholder="Jane Smith" />
+            <FormFieldInput TValue="string"
+                       @bind-Value="_formEmail"
+                       Label="@(L.T("邮箱", "Email"))"
+                       Type="InputType.Email"
+                       Required="true"
+                       Placeholder="jane@example.com" />
+            <FormFieldInput TValue="int"
+                       @bind-Value="_formAge"
+                       Label="@(L.T("年龄", "Age"))"
+                       HelperText="@(L.T("需年满 18 岁。", "Must be 18 or older."))"
+                       Validation="v => v >= 18"
+                       Placeholder="25" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-2">@L.T("表单值：", "Form values:")</p>
+            <div class="space-y-1 text-sm font-mono">
+                <p>@L.T("姓名：", "Name:") @(string.IsNullOrEmpty(_formName) ? L.T("（空）", "(empty)") : _formName)</p>
+                <p>@L.T("邮箱：", "Email:") @(string.IsNullOrEmpty(_formEmail) ? L.T("（空）", "(empty)") : _formEmail)</p>
+                <p>@L.T("年龄：", "Age:") @_formAge</p>
+            </div>
+        </div>
+        <CodeBlock Source="Components/FormFieldInput/form.txt" />
+    </div>
+
+    <!-- EditForm Integration -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("EditForm 集成", "EditForm Integration")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    FormFieldInput 可以放在 Blazor 的 <code class="text-xs bg-muted px-1 py-0.5 rounded">EditForm</code> 里，
+                    配合 <code class="text-xs bg-muted px-1 py-0.5 rounded">DataAnnotationsValidator</code> 使用。
+                    DataAnnotations 的校验消息会自动展示 &mdash; 不需要
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">ValidationMessage</code> 组件。
+                    InputField 产生的解析错误在视觉上优先于 DataAnnotations 错误。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    FormFieldInput works inside Blazor's <code class="text-xs bg-muted px-1 py-0.5 rounded">EditForm</code>
+                    with <code class="text-xs bg-muted px-1 py-0.5 rounded">DataAnnotationsValidator</code>.
+                    DataAnnotations validation messages are displayed automatically &mdash; no
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">ValidationMessage</code> component needed.
+                    Parse errors from InputField take visual priority over DataAnnotations errors.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <EditForm Model="_editFormModel" OnValidSubmit="HandleEditFormSubmit" class="space-y-4">
+                <DataAnnotationsValidator />
+                <FormFieldInput TValue="string"
+                           @bind-Value="_editFormModel.FullName"
+                           Label="@(L.T("姓名", "Full Name"))"
+                           HelperText="@(L.T("必填。请输入你的名字和姓氏。", "Required. Enter your first and last name."))"
+                           Placeholder="Jane Smith" />
+                <FormFieldInput TValue="int"
+                           @bind-Value="_editFormModel.Age"
+                           Label="@(L.T("年龄", "Age"))"
+                           HelperText="@(L.T("取值必须在 1 到 120 之间。", "Must be between 1 and 120."))"
+                           Placeholder="25" />
+                <FormFieldInput TValue="string"
+                           @bind-Value="_editFormModel.Email"
+                           Label="@(L.T("邮箱", "Email"))"
+                           HelperText="@(L.T("我们会用它与你联系。", "We'll use this to contact you."))"
+                           Type="InputType.Email"
+                           Placeholder="jane@example.com" />
+                <div class="flex gap-2">
+                    <Button Type="ButtonType.Submit">@L.T("提交", "Submit")</Button>
+                    <Button Type="ButtonType.Button" Variant="ButtonVariant.Outline" OnClick="ResetEditForm">@L.T("重置", "Reset")</Button>
+                </div>
+            </EditForm>
+        </div>
+        @if (_editFormSubmitted)
+        {
+            <div class="rounded-lg border p-4 bg-muted/50">
+                <p class="text-sm font-medium mb-1">@L.T("已提交的值：", "Submitted values:")</p>
+                <div class="space-y-1 text-sm font-mono">
+                    <p>@L.T("姓名：", "Name:") @_editFormModel.FullName</p>
+                    <p>@L.T("年龄：", "Age:") @_editFormModel.Age</p>
+                    <p>@L.T("邮箱：", "Email:") @_editFormModel.Email</p>
+                </div>
+            </div>
+        }
+        <CodeBlock Source="Components/FormFieldInput/edit-form.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("通过生成的 ID 自动把标签与输入框关联", "Automatically associates label with input via generated ID")</AccessibilityItem>
+            <AccessibilityItem>@L.T("描述文本通过 aria-describedby 关联", "Description linked via aria-describedby")</AccessibilityItem>
+            <AccessibilityItem>@L.T("校验错误通过 aria-invalid 展示", "Validation errors displayed with aria-invalid")</AccessibilityItem>
+        </AriaAttributes>
+            <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可用的表单控件之间移动", "Move between enabled form controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("移动文本光标", "Move the text cursor"))"><Kbd>ArrowLeft</Kbd> / <Kbd>ArrowRight</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("删除文本", "Delete text"))"><Kbd>Backspace</Kbd> / <Kbd>Delete</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="FormFieldInput&lt;TValue&gt;">
+                <ApiParameter Name="Label" Type="string?" Default="null">
+                    @L.T("显示在输入框上方的标签文本。", "The label text displayed above the input.")
+                </ApiParameter>
+                <ApiParameter Name="HelperText" Type="string?" Default="null">
+                    @L.T("显示在输入框下方的辅助文本。错误状态下隐藏。", "Helper text displayed below the input. Hidden during error state.")
+                </ApiParameter>
+                <ApiParameter Name="ErrorText" Type="string?" Default="null">
+                    @L.T("手动指定的错误文本。字段无效且设置了该值时，用于替换自动生成的提示。", "Manual error text override. When the field is invalid and this is set, replaces auto-generated messages.")
+                </ApiParameter>
+                <ApiParameter Name="Orientation" Type="FieldOrientation" Default="Vertical">
+                    @L.T("字段的布局方向。", "Layout orientation of the field.")
+                </ApiParameter>
+                <ApiParameter Name="Value" Type="TValue?" Default="null">
+                    @L.T("当前的强类型值。使用 @bind-Value 进行双向绑定。", "The current typed value. Use @bind-Value for two-way binding.")
+                </ApiParameter>
+                <ApiParameter Name="ValueChanged" Type="EventCallback&lt;TValue?&gt;">
+                    @L.T("强类型值发生变化时调用的回调。", "Callback invoked when the typed value changes.")
+                </ApiParameter>
+                <ApiParameter Name="Type" Type="InputType" Default="Text">
+                    @L.T("输入框的类型（Text、Email、Password、Date 等）。", "The type of input (Text, Email, Password, Date, etc.).")
+                </ApiParameter>
+                <ApiParameter Name="Placeholder" Type="string?" Default="null">
+                    @L.T("输入框为空时显示的占位文本。", "Placeholder text displayed when the input is empty.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("输入框是否被禁用。", "Whether the input is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">
+                    @L.T("输入框是否为必填（会设置 HTML 的 required 属性）。", "Whether the input is required (sets the HTML required attribute).")
+                </ApiParameter>
+                <ApiParameter Name="Validation" Type="Func&lt;TValue, bool&gt;?" Default="null">
+                    @L.T("解析之后的校验函数。值有效时返回 true。", "Post-parse validation function. Returns true if the value is valid.")
+                </ApiParameter>
+                <ApiParameter Name="ValidationPattern" Type="string?" Default="null">
+                    @L.T("用于解析之前校验的正则表达式。", "Regex pattern for pre-parse validation.")
+                </ApiParameter>
+                <ApiParameter Name="Format" Type="string?" Default="null">
+                    @L.T("显示用的格式字符串（例如 “N2”、“yyyy-MM-dd”）。", "Display format string (e.g., \"N2\", \"yyyy-MM-dd\").")
+                </ApiParameter>
+                <ApiParameter Name="Converter" Type="InputConverter&lt;TValue&gt;?" Default="null">
+                    @L.T("可选的自定义转换器，用于值的解析与格式化。", "Optional custom converter for value parsing and formatting.")
+                </ApiParameter>
+                <ApiParameter Name="UpdateTiming" Type="UpdateTiming" Default="Immediate">
+                    @L.T("ValueChanged 的触发时机（Immediate 或 Debounced）。", "When ValueChanged fires (Immediate or Debounced).")
+                </ApiParameter>
+                <ApiParameter Name="DebounceInterval" Type="int" Default="500">
+                    @L.T("使用 Debounced 更新时机时的防抖延迟（毫秒）。", "Debounce delay in milliseconds when using Debounced update timing.")
+                </ApiParameter>
+                <ApiParameter Name="InputClass" Type="string?" Default="null">
+                    @L.T("应用到内部 InputField 元素上的额外 CSS 类。", "Additional CSS classes applied to the inner InputField element.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到外部 Field 容器上的额外 CSS 类。", "Additional CSS classes applied to the outer Field container.")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                    @L.T("控件的 ARIA 标签。", "ARIA label for the control.")
+                </ApiParameter>
+                <ApiParameter Name="Name" Type="string?" Default="null">
+                    @L.T("透传给内部 InputField 的 HTML name 属性。", "HTML name attribute passed through to the inner InputField.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string? _name;
+    private int _age;
+    private decimal _price = 19.99m;
+    private string? _email;
+    private DateTime? _birthDate;
+    private string? _username;
+    private string? _formName;
+    private string? _formEmail;
+    private int _formAge;
+
+    // EditForm integration
+    private EditFormModel _editFormModel = new();
+    private bool _editFormSubmitted;
+
+    private void HandleEditFormSubmit()
+    {
+        _editFormSubmitted = true;
+    }
+
+    private void ResetEditForm()
+    {
+        _editFormModel = new();
+        _editFormSubmitted = false;
+    }
+
+    private sealed class EditFormModel
+    {
+        [Required(ErrorMessage = "Name is required.")]
+        [StringLength(100, ErrorMessage = "Name must be 100 characters or fewer.")]
+        public string? FullName { get; set; }
+
+        [Range(1, 120, ErrorMessage = "Age must be between 1 and 120.")]
+        public int Age { get; set; }
+
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Please enter a valid email address.")]
+        public string? Email { get; set; }
+    }
+}

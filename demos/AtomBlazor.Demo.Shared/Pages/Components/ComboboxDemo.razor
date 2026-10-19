@@ -1,0 +1,1553 @@
+@page "/components/combobox"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("Combobox 组合框 - Atom BlazorUI", "Combobox Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+        <div class="flex items-center gap-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Combobox 组合框", "Combobox Component")</h1>
+            <span class="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20">v3</span>
+        </div>
+        <p class="text-xl text-muted-foreground">
+            @L.T("可搜索的选择组件，把自动完成与下拉界面结合在一起。",
+                 "A searchable select component that combines autocomplete with a dropdown interface.")
+        </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+    </div>
+
+    <!-- Basic Combobox -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("基础组合框", "Basic Combobox")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("从可搜索的列表里选择一个框架。再次点击可取消选择。",
+                 "Select a framework from the searchable list. Click to deselect.")
+        </p>
+
+        <div class="flex flex-col gap-2">
+            <Combobox AriaLabel="@(L.T("选择一个选项", "Choose an option"))" TValue="string"
+                     Options="frameworks"
+                     @bind-Value="selectedFramework"
+                     Placeholder="@(L.T("选择框架……", "Select framework..."))"
+                     SearchPlaceholder="@(L.T("搜索框架……", "Search framework..."))"
+                     EmptyMessage="@(L.T("未找到框架。", "No framework found."))"
+                     PopoverWidth="w-[200px]" />
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("选中值：", "Selected value:")</span> <span class="font-mono">@(string.IsNullOrEmpty(selectedFramework) ? L.T("（无）", "(none)") : selectedFramework)</span></p>
+                <p class="text-sm"><span class="font-medium">@L.T("选中文本：", "Selected text:")</span> @(string.IsNullOrEmpty(selectedFramework) ? L.T("（无）", "(none)") : frameworks.GetText(selectedFramework))</p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Combobox/basic.txt" />
+    </section>
+
+    <!-- Language Selector -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("编程语言", "Programming Language")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("更宽一些的组合框，列出编程语言。", "Wider combobox with programming languages.")
+        </p>
+
+        <div class="flex flex-col gap-2">
+            <Combobox TValue="string"
+                     Options="languages"
+                     @bind-Value="selectedLanguage"
+                     Placeholder="@(L.T("选择语言……", "Select language..."))"
+                     SearchPlaceholder="@(L.T("搜索语言……", "Search language..."))"
+                     EmptyMessage="@(L.T("未找到语言。", "No language found."))"
+                     PopoverWidth="w-[250px]" />
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("选中值：", "Selected value:")</span> <span class="font-mono">@(string.IsNullOrEmpty(selectedLanguage) ? L.T("（无）", "(none)") : selectedLanguage)</span></p>
+                <p class="text-sm"><span class="font-medium">@L.T("选中文本：", "Selected text:")</span> @(string.IsNullOrEmpty(selectedLanguage) ? L.T("（无）", "(none)") : languages.GetText(selectedLanguage))</p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Combobox/language.txt" />
+    </section>
+
+    <!-- Country Selector -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("国家选择", "Country Selector")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("带搜索功能的大数据集。", "Large dataset with search functionality.")
+        </p>
+
+        <div class="flex flex-col gap-2">
+            <Combobox TValue="string"
+                     Options="countries"
+                     @bind-Value="selectedCountry"
+                     Placeholder="@(L.T("选择国家……", "Select country..."))"
+                     SearchPlaceholder="@(L.T("搜索国家……", "Search country..."))"
+                     EmptyMessage="@(L.T("未找到国家。", "No country found."))"
+                     PopoverWidth="w-[280px]" />
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("选中值：", "Selected value:")</span> <span class="font-mono">@(string.IsNullOrEmpty(selectedCountry) ? L.T("（无）", "(none)") : selectedCountry)</span></p>
+                <p class="text-sm"><span class="font-medium">@L.T("选中文本：", "Selected text:")</span> @(string.IsNullOrEmpty(selectedCountry) ? L.T("（无）", "(none)") : countries.GetText(selectedCountry))</p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Combobox/country.txt" />
+    </section>
+
+    <!-- Non-String Value Types -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("非字符串值类型", "Non-String Value Types")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                用 <code class="text-xs bg-muted px-1 py-0.5 rounded">TValue="int?"</code> 绑定到
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">int?</code> 值，
+                类型转换由组件自动处理。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Bind to <code class="text-xs bg-muted px-1 py-0.5 rounded">int?</code> values using
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">TValue="int?"</code>.
+                The component handles conversion automatically.
+            </p>
+                </text>
+}
+
+        <div class="flex flex-col gap-2">
+            <Combobox TValue="int?"
+                     Options="priorities"
+                     @bind-Value="selectedPriority"
+                     Placeholder="@(L.T("选择优先级……", "Select priority..."))"
+                     SearchPlaceholder="@(L.T("搜索优先级……", "Search priority..."))"
+                     EmptyMessage="@(L.T("未找到优先级。", "No priority found."))"
+                     PopoverWidth="w-[200px]" />
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("选中值：", "Selected value:")</span> <span class="font-mono">@(selectedPriority.HasValue ? selectedPriority.Value.ToString() : L.T("（无）", "(none)"))</span></p>
+                <p class="text-sm"><span class="font-medium">@L.T("选中文本：", "Selected text:")</span> @(selectedPriority.HasValue ? priorities.GetText(selectedPriority) : L.T("（无）", "(none)"))</p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Combobox/non-string-values.txt" />
+    </section>
+
+    <!-- Enum Values -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("枚举值", "Enum Values")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                用 <code class="text-xs bg-muted px-1 py-0.5 rounded">TValue="Status?"</code> 绑定到可空枚举，
+                每个选项把一个枚举值映射到一个显示标签。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Bind to a nullable enum using
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">TValue="Status?"</code>.
+                Each option maps an enum value to a display label.
+            </p>
+                </text>
+}
+
+        <div class="flex flex-col gap-2">
+            <Combobox TValue="Status?"
+                     Options="statusOptions"
+                     @bind-Value="selectedStatus"
+                     Placeholder="@(L.T("选择状态……", "Select status..."))"
+                     SearchPlaceholder="@(L.T("搜索状态……", "Search status..."))"
+                     EmptyMessage="@(L.T("未找到状态。", "No status found."))"
+                     PopoverWidth="w-[200px]" />
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("选中值：", "Selected value:")</span> <span class="font-mono">@(selectedStatus.HasValue ? selectedStatus.Value.ToString() : L.T("（无）", "(none)"))</span></p>
+                <p class="text-sm"><span class="font-medium">@L.T("选中文本：", "Selected text:")</span> @(selectedStatus.HasValue ? statusOptions.GetText(selectedStatus) : L.T("（无）", "(none)"))</p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Combobox/enum-values.txt" />
+    </section>
+
+    <!-- Guid Values -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("Guid 值", "Guid Values")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                用 <code class="text-xs bg-muted px-1 py-0.5 rounded">TValue="Guid?"</code> 绑定到
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">Guid?</code> 值。
+                适合挑选以 GUID 标识的实体，例如项目、租户或资源。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Bind to a <code class="text-xs bg-muted px-1 py-0.5 rounded">Guid?</code> value using
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">TValue="Guid?"</code>.
+                Useful for selecting entities identified by GUIDs such as projects, tenants, or resources.
+            </p>
+                </text>
+}
+
+        <div class="flex flex-col gap-2">
+            <Combobox TValue="Guid?"
+                     Options="projects"
+                     @bind-Value="selectedProject"
+                     Placeholder="@(L.T("选择项目……", "Select project..."))"
+                     SearchPlaceholder="@(L.T("搜索项目……", "Search project..."))"
+                     EmptyMessage="@(L.T("未找到项目。", "No project found."))"
+                     PopoverWidth="w-[280px]" />
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("选中值：", "Selected value:")</span> <span class="font-mono">@(selectedProject.HasValue ? selectedProject.Value.ToString() : L.T("（无）", "(none)"))</span></p>
+                <p class="text-sm"><span class="font-medium">@L.T("选中文本：", "Selected text:")</span> @(selectedProject.HasValue ? projects.GetText(selectedProject) : L.T("（无）", "(none)"))</p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Combobox/guid-values.txt" />
+    </section>
+
+    <!-- Match Trigger Width -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("匹配触发器宽度", "Match Trigger Width")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                打开 <code class="bg-muted px-1 py-0.5 rounded text-sm">MatchTriggerWidth="true"</code> 后，
+                下拉面板会自动与触发元素的宽度保持一致。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                With <code class="bg-muted px-1 py-0.5 rounded text-sm">MatchTriggerWidth="true"</code>,
+                the dropdown automatically matches the width of the trigger element.
+            </p>
+                </text>
+}
+
+        <div class="flex flex-col gap-4">
+            <div class="w-64">
+                <label class="text-sm font-medium mb-2 block">@L.T("固定宽度容器（w-64）", "Fixed width container (w-64)")</label>
+                <Combobox TValue="string"
+                         Options="frameworks"
+                         @bind-Value="matchWidthValue1"
+                         Placeholder="@(L.T("选择框架……", "Select framework..."))"
+                         SearchPlaceholder="@(L.T("搜索……", "Search..."))"
+                         MatchTriggerWidth="true"
+                         Class="w-full" />
+            </div>
+
+            <div class="w-96">
+                <label class="text-sm font-medium mb-2 block">@L.T("更宽的容器（w-96）", "Wider container (w-96)")</label>
+                <Combobox TValue="string"
+                         Options="countries"
+                         @bind-Value="matchWidthValue2"
+                         Placeholder="@(L.T("选择国家……", "Select country..."))"
+                         SearchPlaceholder="@(L.T("搜索国家……", "Search country..."))"
+                         MatchTriggerWidth="true"
+                         Class="w-full" />
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Combobox/match-trigger-width.txt" />
+    </section>
+
+    <!-- Async Data Loading -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("异步数据加载", "Async Data Loading")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                用 <code class="bg-muted px-1 py-0.5 rounded text-sm">SearchQueryChanged</code> 响应筛选变化，
+                并从外部来源加载数据。搜索词通过 <code class="bg-muted px-1 py-0.5 rounded text-sm">@@bind-SearchQuery</code> 暴露。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Use <code class="bg-muted px-1 py-0.5 rounded text-sm">SearchQueryChanged</code> to react to filter changes
+                and load data from an external source. The search query is exposed via
+                <code class="bg-muted px-1 py-0.5 rounded text-sm">@@bind-SearchQuery</code>.
+            </p>
+                </text>
+}
+
+        <div class="flex flex-col gap-2">
+            <Combobox TValue="string"
+                     Options="asyncCities"
+                     @bind-Value="asyncSelectedCity"
+                     SearchQueryChanged="@HandleCitySearch"
+                     Placeholder="@(L.T("搜索城市……", "Search for a city..."))"
+                     SearchPlaceholder="@(L.T("输入即可搜索城市……", "Type to search cities..."))"
+                     EmptyMessage="@(asyncIsLoading ? L.T("加载中……", "Loading...") : L.T("未找到城市。", "No cities found."))"
+                     PopoverWidth="w-[280px]" />
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("选中值：", "Selected value:")</span> <span class="font-mono">@(string.IsNullOrEmpty(asyncSelectedCity) ? L.T("（无）", "(none)") : asyncSelectedCity)</span></p>
+                <p class="text-sm"><span class="font-medium">@L.T("选中文本：", "Selected text:")</span> @(string.IsNullOrEmpty(asyncSelectedCity) ? L.T("（无）", "(none)") : asyncCities.GetText(asyncSelectedCity))</p>
+                <p class="text-sm"><span class="font-medium">@L.T("已载入结果数：", "Results loaded:")</span> @asyncCities.Length</p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Combobox/async-data-loading.txt" />
+    </section>
+
+    <!-- Infinite Scroll -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("无限滚动", "Infinite Scroll")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                面对大数据集，用 <code class="bg-muted px-1 py-0.5 rounded text-sm">OnLoadMore</code>
+                在用户滚动时按批次载入条目，并配合
+                <code class="bg-muted px-1 py-0.5 rounded text-sm">IsLoading</code> 显示加载动画、避免重复请求。
+                本例有 200 件商品，每次载入 20 件。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                For large datasets, use <code class="bg-muted px-1 py-0.5 rounded text-sm">OnLoadMore</code> to load items
+                in batches as the user scrolls. Combine with
+                <code class="bg-muted px-1 py-0.5 rounded text-sm">IsLoading</code> to show a spinner and prevent duplicate requests.
+                This example has 200 products and loads 20 at a time.
+            </p>
+                </text>
+}
+
+        <div class="flex flex-col gap-2">
+            <Combobox TValue="string"
+                     Options="infiniteScrollProducts"
+                     @bind-Value="infiniteScrollSelected"
+                     SearchQueryChanged="@HandleProductSearch"
+                     OnLoadMore="@HandleLoadMoreProducts"
+                     IsLoading="@infiniteScrollIsLoading"
+                     EndOfListMessage="@(infiniteScrollProducts.Length >= infiniteScrollFilteredTotal && infiniteScrollFilteredTotal > 0 ? L.T("已加载全部商品。", "All products loaded.") : null)"
+                     Placeholder="@(L.T("选择商品……", "Select a product..."))"
+                     SearchPlaceholder="@(L.T("搜索商品……", "Search products..."))"
+                     EmptyMessage="@(infiniteScrollIsLoading ? L.T("加载中……", "Loading...") : L.T("未找到商品。", "No products found."))"
+                     MatchTriggerWidth="true"
+                     Class="w-[320px]" />
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("选中值：", "Selected value:")</span> <span class="font-mono">@(string.IsNullOrEmpty(infiniteScrollSelected) ? L.T("（无）", "(none)") : infiniteScrollSelected)</span></p>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm"><span class="font-medium">已载入：</span> @infiniteScrollProducts.Length / @infiniteScrollFilteredTotal 条匹配</p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm"><span class="font-medium">Loaded:</span> @infiniteScrollProducts.Length of @infiniteScrollFilteredTotal matching</p>
+                                </text>
+}
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Combobox/infinite-scroll.txt" />
+    </section>
+
+    <!-- Infinite Scroll (Compositional) -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("无限滚动（组合式）", "Infinite Scroll (Compositional)")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                无限滚动在组合式模式下同样可用。本例用 <code class="bg-muted px-1 py-0.5 rounded text-sm">ComboboxItem</code> 子内容
+                渲染 100 个带国旗 emoji 的国家，每次载入 20 个。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Infinite scroll works with compositional mode too. This example renders 100 countries with flag emojis
+                using <code class="bg-muted px-1 py-0.5 rounded text-sm">ComboboxItem</code> children, loading 20 at a time.
+            </p>
+                </text>
+}
+
+        <div class="flex flex-col gap-2">
+            <Combobox TValue="string"
+                     @bind-Value="countryScrollSelected"
+                     SearchQueryChanged="@HandleCountrySearch"
+                     OnLoadMore="@HandleLoadMoreCountries"
+                     IsLoading="@countryScrollIsLoading"
+                     Placeholder="@(L.T("选择国家……", "Select a country..."))"
+                     SearchPlaceholder="@(L.T("搜索国家……", "Search countries..."))"
+                     EmptyMessage="@(countryScrollIsLoading ? L.T("加载中……", "Loading...") : L.T("未找到国家。", "No countries found."))"
+                     MatchTriggerWidth="true"
+                     Class="w-[320px]">
+                @foreach (var c in countryScrollVisible)
+                {
+                    <ComboboxItem Value="@c.Code" Text="@($"{c.Flag} {c.Name}")">
+                        <div class="flex items-center gap-2">
+                            <span>@c.Flag</span>
+                            <span>@c.Name</span>
+                        </div>
+                    </ComboboxItem>
+                }
+            </Combobox>
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("选中值：", "Selected value:")</span> <span class="font-mono">@(string.IsNullOrEmpty(countryScrollSelected) ? L.T("（无）", "(none)") : countryScrollSelected)</span></p>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm"><span class="font-medium">已载入：</span> @countryScrollVisible.Length / @countryScrollFilteredTotal 条匹配</p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm"><span class="font-medium">Loaded:</span> @countryScrollVisible.Length of @countryScrollFilteredTotal matching</p>
+                                </text>
+}
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Combobox/infinite-scroll-compositional.txt" />
+    </section>
+
+    <!-- Disabled State -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("禁用状态", "Disabled State")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("处于禁用状态的组合框。", "Combobox in disabled state.")
+        </p>
+
+        <Combobox TValue="string"
+                 Options="frameworks"
+                 @bind-Value="disabledValue"
+                 Placeholder="@(L.T("已禁用的组合框", "Disabled combobox"))"
+                 Disabled="true"
+                 PopoverWidth="w-[200px]" />
+
+        <CodeBlock Source="Components/Combobox/disabled.txt" />
+    </section>
+
+    <!-- Form Validation with EditForm -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("EditForm 校验", "EditForm Validation")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Combobox 与 Blazor 的 EditForm、EditContext 集成以做模型校验。
+                在 EditForm 内使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code>，
+                校验错误会通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> 自动套用错误样式。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Combobox integrates with Blazor's EditForm and EditContext for model validation.
+                Use <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code> within an EditForm and
+                validation errors will automatically apply error styling via <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code>.
+            </p>
+                </text>
+}
+
+        <EditForm Model="comboboxFormModel" OnValidSubmit="HandleComboboxFormSubmit" class="max-w-md space-y-4">
+            <DataAnnotationsValidator />
+
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("框架", "Framework")</label>
+                <Combobox TValue="string"
+                         Options="frameworks"
+                         @bind-Value="comboboxFormModel.Framework"
+                         Placeholder="@(L.T("选择框架……", "Select framework..."))"
+                         SearchPlaceholder="@(L.T("搜索框架……", "Search framework..."))"
+                         EmptyMessage="@(L.T("未找到框架。", "No framework found."))"
+                         Class="w-full"
+                         MatchTriggerWidth="true" />
+                <ValidationMessage For="@(() => comboboxFormModel.Framework)" class="text-sm text-destructive" />
+            </div>
+
+            <div class="flex gap-4">
+                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Default">@L.T("提交", "Submit")</Button>
+                <Button Type="ButtonType.Button" Variant="ButtonVariant.Outline" OnClick="ResetComboboxForm">@L.T("重置", "Reset")</Button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(comboboxFormMessage))
+            {
+                <div class="p-4 bg-card rounded-lg border">
+                    <p class="text-sm">@comboboxFormMessage</p>
+                </div>
+            }
+        </EditForm>
+
+        <CodeBlock Source="Components/Combobox/form-validation.txt" />
+    </section>
+
+    <!-- Form Example -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("表单集成", "Form Integration")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("把组合框放进表单布局里的示例。", "Example of comboboxes in a form layout.")
+        </p>
+
+        <div class="space-y-4 max-w-md border rounded-lg p-6">
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("框架", "Framework")</label>
+                <Combobox TValue="string"
+                         Options="frameworks"
+                         @bind-Value="formFramework"
+                         Placeholder="@(L.T("选择框架……", "Select framework..."))"
+                         SearchPlaceholder="@(L.T("搜索框架……", "Search framework..."))"
+                         Class="w-full"
+                         MatchTriggerWidth="true" />
+                <p class="text-xs text-muted-foreground">@L.T("选择你偏好的框架。", "Choose your preferred framework.")</p>
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("语言", "Language")</label>
+                <Combobox TValue="string"
+                         Options="languages"
+                         @bind-Value="formLanguage"
+                         Placeholder="@(L.T("选择语言……", "Select language..."))"
+                         SearchPlaceholder="@(L.T("搜索语言……", "Search language..."))"
+                         Class="w-full"
+                         MatchTriggerWidth="true" />
+                <p class="text-xs text-muted-foreground">@L.T("选择你的主要语言。", "Choose your primary language.")</p>
+            </div>
+
+            <div class="pt-4 border-t">
+                <Button Variant="ButtonVariant.Default" OnClick="HandleFormSubmit">
+                    @L.T("提交", "Submit")
+                </Button>
+                @if (formSubmitted)
+                {
+                    <div class="text-sm text-green-600 mt-2 space-y-1">
+                        <p>@L.T("表单已提交！", "Form submitted!")</p>
+                        <p><span class="font-medium">@L.T("框架值：", "Framework value:")</span> <span class="font-mono">@formFramework</span> | <span class="font-medium">@L.T("文本：", "text:")</span> @frameworks.GetText(formFramework)</p>
+                        <p><span class="font-medium">@L.T("语言值：", "Language value:")</span> <span class="font-mono">@formLanguage</span> | <span class="font-medium">@L.T("文本：", "text:")</span> @languages.GetText(formLanguage)</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Combobox/form-integration.txt" />
+    </section>
+
+    <!-- Compositional Mode -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("组合式模式", "Compositional Mode")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                需要完全掌控条目渲染时，用 <code class="bg-muted px-1 py-0.5 rounded text-sm">ComboboxItem</code> 子内容
+                代替 <code class="bg-muted px-1 py-0.5 rounded text-sm">Options</code> 参数。
+                搜索、键盘导航与选择的行为完全一致。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                For full control over item rendering, use <code class="bg-muted px-1 py-0.5 rounded text-sm">ComboboxItem</code> children
+                instead of the <code class="bg-muted px-1 py-0.5 rounded text-sm">Options</code> parameter.
+                Search, keyboard navigation, and selection work identically.
+            </p>
+                </text>
+}
+
+        <div class="flex flex-col gap-2">
+            <Combobox TValue="string"
+                     @bind-Value="compositionalValue"
+                     Placeholder="@(L.T("选择技术栈……", "Select a stack..."))"
+                     SearchPlaceholder="@(L.T("搜索……", "Search..."))"
+                     EmptyMessage="@(L.T("未找到技术栈。", "No stack found."))"
+                     PopoverWidth="w-[280px]">
+                <ComboboxItem Value="@("blazor")" Text="Blazor">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block h-2 w-2 rounded-full bg-purple-500"></span>
+                        Blazor
+                    </div>
+                </ComboboxItem>
+                <ComboboxItem Value="@("react")" Text="React">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block h-2 w-2 rounded-full bg-blue-500"></span>
+                        React
+                    </div>
+                </ComboboxItem>
+                <ComboboxItem Value="@("vue")" Text="Vue.js">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block h-2 w-2 rounded-full bg-green-500"></span>
+                        Vue.js
+                    </div>
+                </ComboboxItem>
+                <ComboboxItem Value="@("angular")" Text="Angular">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block h-2 w-2 rounded-full bg-red-500"></span>
+                        Angular
+                    </div>
+                </ComboboxItem>
+                <ComboboxItem Value="@("svelte")" Text="Svelte">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block h-2 w-2 rounded-full bg-orange-500"></span>
+                        Svelte
+                    </div>
+                </ComboboxItem>
+            </Combobox>
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("选中值：", "Selected value:")</span> <span class="font-mono">@(string.IsNullOrEmpty(compositionalValue) ? L.T("（无）", "(none)") : compositionalValue)</span></p>
+                <p class="text-sm"><span class="font-medium">@L.T("选中文本：", "Selected text:")</span> @(string.IsNullOrEmpty(compositionalValue) ? L.T("（无）", "(none)") : GetCompositionalLabel(compositionalValue))</p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Combobox/compositional.txt" />
+    </section>
+
+    <!-- Grouped Items -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("分组条目", "Grouped Items")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                用 <code class="bg-muted px-1 py-0.5 rounded text-sm">ComboboxGroup</code> 把条目
+                归到有标题的小节下。当某组的条目被搜索词全部筛掉时，该组会自动隐藏。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Use <code class="bg-muted px-1 py-0.5 rounded text-sm">ComboboxGroup</code> to organize items
+                under labeled sections. Groups automatically hide when their items are filtered out by the search query.
+            </p>
+                </text>
+}
+
+        <div class="flex flex-col gap-2">
+            <Combobox TValue="string"
+                     @bind-Value="groupedValue"
+                     Placeholder="@(L.T("选择属性……", "Select attribute..."))"
+                     SearchPlaceholder="@(L.T("搜索……", "Search..."))"
+                     EmptyMessage="@(L.T("未找到属性。", "No attribute found."))"
+                     PopoverWidth="w-[250px]">
+                <ComboboxGroup Label="@(L.T("员工", "Employee"))">
+                    <ComboboxItem Value="@("gender")" Text="@(L.T("性别", "Gender"))">@L.T("性别", "Gender")</ComboboxItem>
+                    <ComboboxItem Value="@("nationality")" Text="@(L.T("国籍", "Nationality"))">@L.T("国籍", "Nationality")</ComboboxItem>
+                    <ComboboxItem Value="@("age")" Text="@(L.T("年龄", "Age"))">@L.T("年龄", "Age")</ComboboxItem>
+                </ComboboxGroup>
+                <ComboboxGroup Label="@(L.T("雇佣", "Employment"))">
+                    <ComboboxItem Value="@("company")" Text="@(L.T("公司", "Company"))">@L.T("公司", "Company")</ComboboxItem>
+                    <ComboboxItem Value="@("jobTitle")" Text="@(L.T("职位", "Job Title"))">@L.T("职位", "Job Title")</ComboboxItem>
+                    <ComboboxItem Value="@("department")" Text="@(L.T("部门", "Department"))">@L.T("部门", "Department")</ComboboxItem>
+                </ComboboxGroup>
+                <ComboboxGroup Label="@(L.T("地点", "Location"))">
+                    <ComboboxItem Value="@("country")" Text="@(L.T("国家", "Country"))">@L.T("国家", "Country")</ComboboxItem>
+                    <ComboboxItem Value="@("city")" Text="@(L.T("城市", "City"))">@L.T("城市", "City")</ComboboxItem>
+                </ComboboxGroup>
+            </Combobox>
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("选中值：", "Selected value:")</span> <span class="font-mono">@(string.IsNullOrEmpty(groupedValue) ? L.T("（无）", "(none)") : groupedValue)</span></p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Combobox/grouped.txt" />
+    </section>
+
+    <!-- Grouped Items with Custom Label -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("分组条目（自定义标签）", "Grouped Items (Custom Label)")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                用 <code class="bg-muted px-1 py-0.5 rounded text-sm">LabelClass</code> 覆盖默认的标签样式。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Use <code class="bg-muted px-1 py-0.5 rounded text-sm">LabelClass</code> to override the default label styling.
+            </p>
+                </text>
+}
+
+        <div class="flex flex-col gap-2">
+            <Combobox TValue="string"
+                     @bind-Value="groupedCustomLabelValue"
+                     Placeholder="@(L.T("选择水果……", "Select fruit..."))"
+                     SearchPlaceholder="@(L.T("搜索……", "Search..."))"
+                     EmptyMessage="@(L.T("未找到水果。", "No fruit found."))"
+                     PopoverWidth="w-[250px]">
+                <ComboboxGroup Label="@(L.T("热带水果", "Tropical"))" LabelClass="text-sm font-bold text-primary">
+                    <ComboboxItem Value="@("mango")" Text="@(L.T("芒果", "Mango"))">@L.T("芒果", "Mango")</ComboboxItem>
+                    <ComboboxItem Value="@("pineapple")" Text="@(L.T("菠萝", "Pineapple"))">@L.T("菠萝", "Pineapple")</ComboboxItem>
+                    <ComboboxItem Value="@("papaya")" Text="@(L.T("木瓜", "Papaya"))">@L.T("木瓜", "Papaya")</ComboboxItem>
+                </ComboboxGroup>
+                <ComboboxGroup Label="@(L.T("浆果", "Berries"))" LabelClass="text-sm font-bold text-primary">
+                    <ComboboxItem Value="@("strawberry")" Text="@(L.T("草莓", "Strawberry"))">@L.T("草莓", "Strawberry")</ComboboxItem>
+                    <ComboboxItem Value="@("blueberry")" Text="@(L.T("蓝莓", "Blueberry"))">@L.T("蓝莓", "Blueberry")</ComboboxItem>
+                    <ComboboxItem Value="@("raspberry")" Text="@(L.T("覆盆子", "Raspberry"))">@L.T("覆盆子", "Raspberry")</ComboboxItem>
+                </ComboboxGroup>
+            </Combobox>
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("选中值：", "Selected value:")</span> <span class="font-mono">@(string.IsNullOrEmpty(groupedCustomLabelValue) ? L.T("（无）", "(none)") : groupedCustomLabelValue)</span></p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Combobox/grouped-custom-label.txt" />
+    </section>
+
+    <!-- Async Compositional Mode -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("异步组合式模式", "Async Compositional Mode")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                把 <code class="bg-muted px-1 py-0.5 rounded text-sm">SearchQueryChanged</code> 与组合式的
+                <code class="bg-muted px-1 py-0.5 rounded text-sm">ComboboxItem</code> 子内容结合，就能异步加载数据，
+                同时对条目渲染保持完全控制。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Combine <code class="bg-muted px-1 py-0.5 rounded text-sm">SearchQueryChanged</code> with compositional
+                <code class="bg-muted px-1 py-0.5 rounded text-sm">ComboboxItem</code> children to load data asynchronously
+                while retaining full control over item rendering.
+            </p>
+                </text>
+}
+
+        <div class="flex flex-col gap-2">
+            <Combobox TValue="string"
+                     @bind-Value="asyncCompSelectedUser"
+                     SearchQueryChanged="@HandleUserSearch"
+                     Placeholder="@(L.T("搜索用户……", "Search for a user..."))"
+                     SearchPlaceholder="@(L.T("输入即可搜索用户……", "Type to search users..."))"
+                     EmptyMessage="@(asyncCompIsLoading ? L.T("加载中……", "Loading...") : L.T("未找到用户。", "No users found."))"
+                     PopoverWidth="w-[300px]">
+                @foreach (var user in asyncCompUsers)
+                {
+                    <ComboboxItem Value="@user.Id" Text="@user.Name">
+                        <div class="flex items-center gap-2">
+                            <span class="@($"inline-block h-2 w-2 rounded-full {user.StatusColor}")"></span>
+                            <div class="flex flex-col">
+                                <span>@user.Name</span>
+                                <span class="text-xs text-muted-foreground">@user.Role</span>
+                            </div>
+                        </div>
+                    </ComboboxItem>
+                }
+            </Combobox>
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("选中值：", "Selected value:")</span> <span class="font-mono">@(string.IsNullOrEmpty(asyncCompSelectedUser) ? L.T("（无）", "(none)") : asyncCompSelectedUser)</span></p>
+                <p class="text-sm"><span class="font-medium">@L.T("选中文本：", "Selected text:")</span> @(string.IsNullOrEmpty(asyncCompSelectedUser) ? L.T("（无）", "(none)") : GetAsyncCompUserName(asyncCompSelectedUser))</p>
+                <p class="text-sm"><span class="font-medium">@L.T("已载入结果数：", "Results loaded:")</span> @asyncCompUsers.Length</p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Combobox/async-compositional.txt" />
+    </section>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    触发输入框上带有 <code>role="combobox"</code>
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    <code>aria-expanded</code> 标示下拉的展开状态
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    <code>aria-activedescendant</code> 跟踪当前聚焦的选项
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    搜索输入框会实时筛选项
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    role="combobox" on the trigger input
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    aria-expanded indicates dropdown state
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    aria-activedescendant tracks focused option
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    Search input filters options in real-time
+                </AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("打开下拉面板", "Open dropdown"))">
+                <Kbd>Enter</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在选项间导航", "Navigate options"))">
+                <Kbd>Arrow Keys</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("选中当前选项", "Select option"))">
+                <Kbd>Enter</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭下拉面板", "Close dropdown"))">
+                <Kbd>Escape</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="Combobox&lt;TValue&gt;">
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">@L.T("转发给交互控件或分组的可访问名称。", "Accessible name forwarded to the interactive control or group.")</ApiParameter>
+                <ApiParameter Name="Options" Type="IEnumerable&lt;SelectOption&lt;TValue&gt;&gt;?">
+                    @L.T("数据驱动模式下的选项集合。为 null 时改用组合式模式，由 ChildContent 提供内容。", "Collection of options for data-driven mode. When null, uses compositional mode with ChildContent.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Value" Type="TValue?">
+                        当前选中的值。支持用 <code>@@bind-Value</code> 双向绑定。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Value" Type="TValue?">
+                        Currently selected value. Supports two-way binding with <code>@@bind-Value</code>.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="ValueChanged" Type="EventCallback&lt;TValue?&gt;">
+                    @L.T("选中值发生变化时触发的回调。", "Callback invoked when the selected value changes.")
+                </ApiParameter>
+                <ApiParameter Name="Placeholder" Type="string" Default="&quot;Select an option...&quot;">
+                    @L.T("未选择任何条目时显示的占位文本。", "Placeholder text shown when no item is selected.")
+                </ApiParameter>
+                <ApiParameter Name="SearchPlaceholder" Type="string" Default="&quot;Search...&quot;">
+                    @L.T("搜索输入框里的占位文本。", "Placeholder text shown in the search input.")
+                </ApiParameter>
+                <ApiParameter Name="EmptyMessage" Type="string" Default="&quot;No results found.&quot;">
+                    @L.T("没有条目匹配搜索时显示的消息。", "Message displayed when no items match the search.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("组合框是否被禁用。", "Whether the combobox is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">
+                    @L.T("组合框是否为必填。", "Whether the combobox is required.")
+                </ApiParameter>
+                <ApiParameter Name="MatchTriggerWidth" Type="bool" Default="false">
+                    @L.T("是否让下拉面板宽度与触发元素一致。", "Whether to match dropdown width to the trigger element width.")
+                </ApiParameter>
+                <ApiParameter Name="PopoverWidth" Type="string" Default="&quot;w-[200px]&quot;">
+                    @L.T("弹层宽度。MatchTriggerWidth 为 true 时忽略。", "Width of the popover. Ignored when MatchTriggerWidth is true.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="ActiveClass" Type="string?" Default="&quot;bg-accent text-accent-foreground&quot;">
+                        下拉展开时应用到触发器的 CSS 类。设为 <code>null</code> 或空串即可关闭。
+                        也可用来贴合所在上下文（例如侧边栏里的 <code>"bg-sidebar-accent text-sidebar-accent-foreground"</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="ActiveClass" Type="string?" Default="&quot;bg-accent text-accent-foreground&quot;">
+                        CSS classes applied to the trigger when the dropdown is open. Set to <code>null</code> or empty to disable.
+                        Use to match the context (e.g., <code>"bg-sidebar-accent text-sidebar-accent-foreground"</code> in sidebars).
+                    </ApiParameter>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="SearchQuery" Type="string" Default="&quot;&quot;">
+                        当前的搜索词文本。支持用 <code>@@bind-SearchQuery</code> 双向绑定以响应筛选变化。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="SearchQuery" Type="string" Default="&quot;&quot;">
+                        Current search query text. Supports two-way binding with <code>@@bind-SearchQuery</code> for reacting to filter changes.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="SearchQueryChanged" Type="EventCallback&lt;string&gt;">
+                    @L.T("搜索词变化时触发的回调。可用于服务端筛选或加载外部数据。", "Callback invoked when the search query changes. Use for server-side filtering or loading external data.")
+                </ApiParameter>
+                <ApiParameter Name="OnLoadMore" Type="EventCallback">
+                    @L.T("用户滚动到下拉列表底部附近时触发的回调。用于在无限滚动场景里追加更多条目。", "Callback invoked when the user scrolls near the bottom of the dropdown list. Use to load additional items for infinite scroll scenarios.")
+                </ApiParameter>
+                <ApiParameter Name="IsLoading" Type="bool" Default="false">
+                    @L.T("是否正在追加加载条目。为 true 时底部显示加载动画，并暂停触发 OnLoadMore 直到加载完成。", "Whether additional items are currently being loaded. Shows a spinner at the bottom and suppresses OnLoadMore until loading completes.")
+                </ApiParameter>
+                <ApiParameter Name="EndOfListMessage" Type="string?" Default="null">
+                    @L.T("全部条目加载完毕后显示在下拉底部的消息。可根据是否还有更多条目动态设置。", "Message displayed at the bottom of the dropdown when all items have been loaded. Set dynamically based on whether more items are available.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("组合式模式的内容。把 ComboboxItem 作为子内容使用。", "Content for compositional mode. Use ComboboxItem components as children.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;div&gt;</code> 元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="ComboboxItem&lt;TValue&gt;">
+                <ApiParameter Name="Value" Type="TValue">
+                    @L.T("该条目的值。必填。", "The value of this item. Required.")
+                </ApiParameter>
+                <ApiParameter Name="Text" Type="string">
+                    @L.T("用于筛选与触发器显示的文本。必填。", "Display text for filtering and trigger display. Required.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("该条目是否被禁用。", "Whether this item is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("自定义渲染内容。为 null 时把 Text 以纯文本呈现。", "Custom content to render. When null, renders Text as plain text.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="ComboboxGroup">
+                <ApiParameter Name="Label" Type="string?" Default="null">
+                    @L.T("显示在组条目上方的标签文本。当组内条目全部被筛掉时整组隐藏。", "Label text displayed above the group items. The entire group hides when its items are filtered out.")
+                </ApiParameter>
+                <ApiParameter Name="LabelClass" Type="string?" Default="null">
+                    @L.T("应用到标签元素的附加 CSS 类。", "Additional CSS classes applied to the label element.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("分组内容。通常包含若干 ComboboxItem 组件。", "Content for the group. Typically contains ComboboxItem components.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+
+    <LocalizationSection
+        Description="@(L.T("组合框的占位符、搜索与空状态文案均可配置。", "Combobox placeholder, search, and empty state labels are configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("EmptyMessage", "No results found.", L.T("没有选项匹配搜索词时显示。", "Shown when no options match the search query")),
+            new("Placeholder", "Select an option...", L.T("尚未选择任何内容时的占位文本。", "Placeholder text when nothing is selected")),
+            new("SearchPlaceholder", "Search...", L.T("搜索输入框里的占位文本。", "Placeholder in the search input")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""Combobox.Placeholder"", ""Option auswählen..."");
+    localizer.Set(""Combobox.SearchPlaceholder"", ""Suchen..."");
+    localizer.Set(""Combobox.EmptyMessage"", ""Keine Ergebnisse."");
+});")" />
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    // Basic example
+    private string? selectedFramework;
+
+    // Language example
+    private string? selectedLanguage;
+
+    // Country example
+    private string? selectedCountry;
+
+    // Non-string value type examples
+    private int? selectedPriority;
+    private Status? selectedStatus;
+    private Guid? selectedProject;
+
+    // Disabled example
+    private string? disabledValue = "next.js";
+
+    // Match trigger width examples
+    private string? matchWidthValue1;
+    private string? matchWidthValue2;
+
+    // Form example
+    private string? formFramework;
+    private string? formLanguage;
+    private bool formSubmitted;
+
+    private readonly SelectOption<string>[] frameworks =
+    [
+        new("next.js", "Next.js"),
+        new("sveltekit", "SvelteKit"),
+        new("nuxt.js", "Nuxt.js"),
+        new("remix", "Remix"),
+        new("astro", "Astro"),
+        new("gatsby", "Gatsby"),
+        new("blazor", "Blazor")
+    ];
+
+    private readonly SelectOption<string>[] languages =
+    [
+        new("csharp", "C#"),
+        new("typescript", "TypeScript"),
+        new("javascript", "JavaScript"),
+        new("python", "Python"),
+        new("java", "Java"),
+        new("go", "Go"),
+        new("rust", "Rust"),
+        new("php", "PHP"),
+        new("ruby", "Ruby"),
+        new("swift", "Swift")
+    ];
+
+    private readonly SelectOption<string>[] countries =
+    [
+        new("US", "United States"),
+        new("GB", "United Kingdom"),
+        new("CA", "Canada"),
+        new("AU", "Australia"),
+        new("DE", "Germany"),
+        new("FR", "France"),
+        new("JP", "Japan"),
+        new("CN", "China"),
+        new("IN", "India"),
+        new("BR", "Brazil"),
+        new("MX", "Mexico"),
+        new("ES", "Spain"),
+        new("IT", "Italy"),
+        new("NL", "Netherlands"),
+        new("SE", "Sweden")
+    ];
+
+    private readonly SelectOption<int?>[] priorities =
+    [
+        new(1, "Low"),
+        new(2, "Medium"),
+        new(3, "High"),
+        new(4, "Critical")
+    ];
+
+    private readonly SelectOption<Status?>[] statusOptions =
+    [
+        new(Status.Active, "Active"),
+        new(Status.Inactive, "Inactive"),
+        new(Status.Pending, "Pending"),
+        new(Status.Archived, "Archived")
+    ];
+
+    private static readonly Guid projectAlphaId = Guid.Parse("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
+    private static readonly Guid projectBetaId = Guid.Parse("b2c3d4e5-f6a7-8901-bcde-f12345678901");
+    private static readonly Guid projectGammaId = Guid.Parse("c3d4e5f6-a7b8-9012-cdef-123456789012");
+    private static readonly Guid projectDeltaId = Guid.Parse("d4e5f6a7-b8c9-0123-defa-234567890123");
+
+    private readonly SelectOption<Guid?>[] projects =
+    [
+        new(projectAlphaId, "Project Alpha"),
+        new(projectBetaId, "Project Beta"),
+        new(projectGammaId, "Project Gamma"),
+        new(projectDeltaId, "Project Delta")
+    ];
+
+    // Compositional mode example
+    private string? compositionalValue;
+
+    // Grouped examples
+    private string? groupedValue;
+    private string? groupedCustomLabelValue;
+
+    private static readonly Dictionary<string, string> compositionalLabels = new()
+    {
+        ["blazor"] = "Blazor",
+        ["react"] = "React",
+        ["vue"] = "Vue.js",
+        ["angular"] = "Angular",
+        ["svelte"] = "Svelte"
+    };
+
+    private string GetCompositionalLabel(string? value) =>
+        value is not null && compositionalLabels.TryGetValue(value, out var label) ? label : (L.IsChinese ? "（无）" : "(none)");
+
+    // Infinite scroll example
+    private string? infiniteScrollSelected;
+    private SelectOption<string>[] infiniteScrollProducts = Array.Empty<SelectOption<string>>();
+    private bool infiniteScrollIsLoading;
+    private string infiniteScrollCurrentQuery = string.Empty;
+    private int infiniteScrollFilteredTotal;
+    private CancellationTokenSource? productSearchCts;
+    private const int productPageSize = 20;
+
+    private static readonly SelectOption<string>[] allProducts = GenerateProducts();
+
+    private static SelectOption<string>[] GenerateProducts()
+    {
+        var categories = new[] { "Widget", "Gadget", "Module", "Adapter", "Sensor", "Controller", "Display", "Connector", "Filter", "Driver" };
+        var materials = new[] { "Steel", "Carbon", "Titanium", "Copper", "Ceramic", "Polymer", "Silicon", "Aluminum", "Glass", "Platinum" };
+        var products = new List<SelectOption<string>>();
+
+        for (int i = 1; i <= 200; i++)
+        {
+            var category = categories[(i - 1) % categories.Length];
+            var material = materials[(i - 1) / categories.Length % materials.Length];
+            var id = $"prod-{i:D4}";
+            var name = $"{material} {category} {i:D4}";
+            products.Add(new SelectOption<string>(id, name));
+        }
+
+        return products.ToArray();
+    }
+
+    protected override void OnInitialized()
+    {
+        // Load initial page for Options mode demo
+        infiniteScrollFilteredTotal = allProducts.Length;
+        infiniteScrollProducts = allProducts.Take(productPageSize).ToArray();
+
+        // Load initial page for compositional mode demo
+        InitCountryScroll();
+    }
+
+    private async Task HandleProductSearch(string query)
+    {
+        productSearchCts?.Cancel();
+        var cts = productSearchCts = new CancellationTokenSource();
+
+        infiniteScrollIsLoading = true;
+        infiniteScrollCurrentQuery = query;
+        // BL0012（.NET 11）：事件处理器触发的重渲染由框架自动完成，此处的显式 StateHasChanged 无需保留。
+
+        try
+        {
+            await Task.Delay(200, cts.Token);
+        }
+        catch (TaskCanceledException)
+        {
+            return;
+        }
+
+        var filtered = GetFilteredProducts(query);
+        infiniteScrollFilteredTotal = filtered.Length;
+        infiniteScrollProducts = filtered.Take(productPageSize).ToArray();
+        infiniteScrollIsLoading = false;
+    }
+
+    private async Task HandleLoadMoreProducts()
+    {
+        infiniteScrollIsLoading = true;
+        // BL0012（.NET 11）：事件处理器触发的重渲染由框架自动完成，此处的显式 StateHasChanged 无需保留。
+
+        // Simulate network latency
+        await Task.Delay(300);
+
+        var filtered = GetFilteredProducts(infiniteScrollCurrentQuery);
+        infiniteScrollFilteredTotal = filtered.Length;
+        var nextCount = infiniteScrollProducts.Length + productPageSize;
+        infiniteScrollProducts = filtered.Take(nextCount).ToArray();
+        infiniteScrollIsLoading = false;
+    }
+
+    private SelectOption<string>[] GetFilteredProducts(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return allProducts;
+        }
+
+        return allProducts
+            .Where(p => p.Text.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+    }
+
+    // Infinite scroll compositional example (countries with flags)
+    private string? countryScrollSelected;
+    private CountryInfo[] countryScrollVisible = Array.Empty<CountryInfo>();
+    private bool countryScrollIsLoading;
+    private string countryScrollCurrentQuery = string.Empty;
+    private int countryScrollFilteredTotal;
+    private CancellationTokenSource? countrySearchCts;
+    private const int countryPageSize = 20;
+
+    private record CountryInfo(string Code, string Name, string Flag);
+
+    private static readonly CountryInfo[] allCountryData =
+    [
+        new("AF", "Afghanistan", "\U0001F1E6\U0001F1EB"), new("AL", "Albania", "\U0001F1E6\U0001F1F1"),
+        new("DZ", "Algeria", "\U0001F1E9\U0001F1FF"), new("AD", "Andorra", "\U0001F1E6\U0001F1E9"),
+        new("AO", "Angola", "\U0001F1E6\U0001F1F4"), new("AG", "Antigua and Barbuda", "\U0001F1E6\U0001F1EC"),
+        new("AR", "Argentina", "\U0001F1E6\U0001F1F7"), new("AM", "Armenia", "\U0001F1E6\U0001F1F2"),
+        new("AU", "Australia", "\U0001F1E6\U0001F1FA"), new("AT", "Austria", "\U0001F1E6\U0001F1F9"),
+        new("AZ", "Azerbaijan", "\U0001F1E6\U0001F1FF"), new("BS", "Bahamas", "\U0001F1E7\U0001F1F8"),
+        new("BH", "Bahrain", "\U0001F1E7\U0001F1ED"), new("BD", "Bangladesh", "\U0001F1E7\U0001F1E9"),
+        new("BB", "Barbados", "\U0001F1E7\U0001F1E7"), new("BY", "Belarus", "\U0001F1E7\U0001F1FE"),
+        new("BE", "Belgium", "\U0001F1E7\U0001F1EA"), new("BZ", "Belize", "\U0001F1E7\U0001F1FF"),
+        new("BJ", "Benin", "\U0001F1E7\U0001F1EF"), new("BT", "Bhutan", "\U0001F1E7\U0001F1F9"),
+        new("BO", "Bolivia", "\U0001F1E7\U0001F1F4"), new("BA", "Bosnia and Herzegovina", "\U0001F1E7\U0001F1E6"),
+        new("BW", "Botswana", "\U0001F1E7\U0001F1FC"), new("BR", "Brazil", "\U0001F1E7\U0001F1F7"),
+        new("BN", "Brunei", "\U0001F1E7\U0001F1F3"), new("BG", "Bulgaria", "\U0001F1E7\U0001F1EC"),
+        new("BF", "Burkina Faso", "\U0001F1E7\U0001F1EB"), new("BI", "Burundi", "\U0001F1E7\U0001F1EE"),
+        new("KH", "Cambodia", "\U0001F1F0\U0001F1ED"), new("CM", "Cameroon", "\U0001F1E8\U0001F1F2"),
+        new("CA", "Canada", "\U0001F1E8\U0001F1E6"), new("TD", "Chad", "\U0001F1F9\U0001F1E9"),
+        new("CL", "Chile", "\U0001F1E8\U0001F1F1"), new("CN", "China", "\U0001F1E8\U0001F1F3"),
+        new("CO", "Colombia", "\U0001F1E8\U0001F1F4"), new("CR", "Costa Rica", "\U0001F1E8\U0001F1F7"),
+        new("HR", "Croatia", "\U0001F1ED\U0001F1F7"), new("CU", "Cuba", "\U0001F1E8\U0001F1FA"),
+        new("CY", "Cyprus", "\U0001F1E8\U0001F1FE"), new("CZ", "Czech Republic", "\U0001F1E8\U0001F1FF"),
+        new("DK", "Denmark", "\U0001F1E9\U0001F1F0"), new("DO", "Dominican Republic", "\U0001F1E9\U0001F1F4"),
+        new("EC", "Ecuador", "\U0001F1EA\U0001F1E8"), new("EG", "Egypt", "\U0001F1EA\U0001F1EC"),
+        new("SV", "El Salvador", "\U0001F1F8\U0001F1FB"), new("EE", "Estonia", "\U0001F1EA\U0001F1EA"),
+        new("ET", "Ethiopia", "\U0001F1EA\U0001F1F9"), new("FI", "Finland", "\U0001F1EB\U0001F1EE"),
+        new("FR", "France", "\U0001F1EB\U0001F1F7"), new("DE", "Germany", "\U0001F1E9\U0001F1EA"),
+        new("GH", "Ghana", "\U0001F1EC\U0001F1ED"), new("GR", "Greece", "\U0001F1EC\U0001F1F7"),
+        new("GT", "Guatemala", "\U0001F1EC\U0001F1F9"), new("HT", "Haiti", "\U0001F1ED\U0001F1F9"),
+        new("HN", "Honduras", "\U0001F1ED\U0001F1F3"), new("HU", "Hungary", "\U0001F1ED\U0001F1FA"),
+        new("IS", "Iceland", "\U0001F1EE\U0001F1F8"), new("IN", "India", "\U0001F1EE\U0001F1F3"),
+        new("ID", "Indonesia", "\U0001F1EE\U0001F1E9"), new("IR", "Iran", "\U0001F1EE\U0001F1F7"),
+        new("IQ", "Iraq", "\U0001F1EE\U0001F1F6"), new("IE", "Ireland", "\U0001F1EE\U0001F1EA"),
+        new("IL", "Israel", "\U0001F1EE\U0001F1F1"), new("IT", "Italy", "\U0001F1EE\U0001F1F9"),
+        new("JM", "Jamaica", "\U0001F1EF\U0001F1F2"), new("JP", "Japan", "\U0001F1EF\U0001F1F5"),
+        new("JO", "Jordan", "\U0001F1EF\U0001F1F4"), new("KZ", "Kazakhstan", "\U0001F1F0\U0001F1FF"),
+        new("KE", "Kenya", "\U0001F1F0\U0001F1EA"), new("KR", "South Korea", "\U0001F1F0\U0001F1F7"),
+        new("KW", "Kuwait", "\U0001F1F0\U0001F1FC"), new("LV", "Latvia", "\U0001F1F1\U0001F1FB"),
+        new("LB", "Lebanon", "\U0001F1F1\U0001F1E7"), new("LY", "Libya", "\U0001F1F1\U0001F1FE"),
+        new("LT", "Lithuania", "\U0001F1F1\U0001F1F9"), new("LU", "Luxembourg", "\U0001F1F1\U0001F1FA"),
+        new("MY", "Malaysia", "\U0001F1F2\U0001F1FE"), new("MX", "Mexico", "\U0001F1F2\U0001F1FD"),
+        new("MA", "Morocco", "\U0001F1F2\U0001F1E6"), new("MZ", "Mozambique", "\U0001F1F2\U0001F1FF"),
+        new("MM", "Myanmar", "\U0001F1F2\U0001F1F2"), new("NP", "Nepal", "\U0001F1F3\U0001F1F5"),
+        new("NL", "Netherlands", "\U0001F1F3\U0001F1F1"), new("NZ", "New Zealand", "\U0001F1F3\U0001F1FF"),
+        new("NI", "Nicaragua", "\U0001F1F3\U0001F1EE"), new("NG", "Nigeria", "\U0001F1F3\U0001F1EC"),
+        new("NO", "Norway", "\U0001F1F3\U0001F1F4"), new("OM", "Oman", "\U0001F1F4\U0001F1F2"),
+        new("PK", "Pakistan", "\U0001F1F5\U0001F1F0"), new("PA", "Panama", "\U0001F1F5\U0001F1E6"),
+        new("PY", "Paraguay", "\U0001F1F5\U0001F1FE"), new("PE", "Peru", "\U0001F1F5\U0001F1EA"),
+        new("PH", "Philippines", "\U0001F1F5\U0001F1ED"), new("PL", "Poland", "\U0001F1F5\U0001F1F1"),
+        new("PT", "Portugal", "\U0001F1F5\U0001F1F9"), new("QA", "Qatar", "\U0001F1F6\U0001F1E6"),
+        new("RO", "Romania", "\U0001F1F7\U0001F1F4"), new("RU", "Russia", "\U0001F1F7\U0001F1FA"),
+        new("SA", "Saudi Arabia", "\U0001F1F8\U0001F1E6"), new("SN", "Senegal", "\U0001F1F8\U0001F1F3"),
+        new("RS", "Serbia", "\U0001F1F7\U0001F1F8"), new("SG", "Singapore", "\U0001F1F8\U0001F1EC"),
+        new("SK", "Slovakia", "\U0001F1F8\U0001F1F0"), new("ZA", "South Africa", "\U0001F1FF\U0001F1E6"),
+        new("ES", "Spain", "\U0001F1EA\U0001F1F8"), new("LK", "Sri Lanka", "\U0001F1F1\U0001F1F0"),
+        new("SE", "Sweden", "\U0001F1F8\U0001F1EA"), new("CH", "Switzerland", "\U0001F1E8\U0001F1ED"),
+        new("TW", "Taiwan", "\U0001F1F9\U0001F1FC"), new("TH", "Thailand", "\U0001F1F9\U0001F1ED"),
+        new("TR", "Turkey", "\U0001F1F9\U0001F1F7"), new("UA", "Ukraine", "\U0001F1FA\U0001F1E6"),
+        new("AE", "United Arab Emirates", "\U0001F1E6\U0001F1EA"), new("GB", "United Kingdom", "\U0001F1EC\U0001F1E7"),
+        new("US", "United States", "\U0001F1FA\U0001F1F8"), new("UY", "Uruguay", "\U0001F1FA\U0001F1FE"),
+        new("VE", "Venezuela", "\U0001F1FB\U0001F1EA"), new("VN", "Vietnam", "\U0001F1FB\U0001F1F3"),
+    ];
+
+    private void InitCountryScroll()
+    {
+        countryScrollFilteredTotal = allCountryData.Length;
+        countryScrollVisible = allCountryData.Take(countryPageSize).ToArray();
+    }
+
+    private async Task HandleCountrySearch(string query)
+    {
+        countrySearchCts?.Cancel();
+        var cts = countrySearchCts = new CancellationTokenSource();
+
+        countryScrollIsLoading = true;
+        countryScrollCurrentQuery = query;
+        // BL0012（.NET 11）：事件处理器触发的重渲染由框架自动完成，此处的显式 StateHasChanged 无需保留。
+
+        try
+        {
+            await Task.Delay(200, cts.Token);
+        }
+        catch (TaskCanceledException)
+        {
+            return;
+        }
+
+        var filtered = GetFilteredCountries(query);
+        countryScrollFilteredTotal = filtered.Length;
+        countryScrollVisible = filtered.Take(countryPageSize).ToArray();
+        countryScrollIsLoading = false;
+    }
+
+    private async Task HandleLoadMoreCountries()
+    {
+        countryScrollIsLoading = true;
+        // BL0012（.NET 11）：事件处理器触发的重渲染由框架自动完成，此处的显式 StateHasChanged 无需保留。
+
+        await Task.Delay(300);
+
+        var filtered = GetFilteredCountries(countryScrollCurrentQuery);
+        countryScrollFilteredTotal = filtered.Length;
+        var nextCount = countryScrollVisible.Length + countryPageSize;
+        countryScrollVisible = filtered.Take(nextCount).ToArray();
+        countryScrollIsLoading = false;
+    }
+
+    private CountryInfo[] GetFilteredCountries(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return allCountryData;
+        }
+
+        return allCountryData
+            .Where(c => c.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
+                     || c.Code.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+    }
+
+    // Async data loading example
+    private string? asyncSelectedCity;
+    private SelectOption<string>[] asyncCities = allCities[0..5];
+    private bool asyncIsLoading;
+    private CancellationTokenSource? searchCts;
+
+    private static readonly SelectOption<string>[] allCities =
+    [
+        new("new-york", "New York"),
+        new("los-angeles", "Los Angeles"),
+        new("chicago", "Chicago"),
+        new("houston", "Houston"),
+        new("phoenix", "Phoenix"),
+        new("philadelphia", "Philadelphia"),
+        new("san-antonio", "San Antonio"),
+        new("san-diego", "San Diego"),
+        new("dallas", "Dallas"),
+        new("san-jose", "San Jose"),
+        new("london", "London"),
+        new("paris", "Paris"),
+        new("tokyo", "Tokyo"),
+        new("berlin", "Berlin"),
+        new("sydney", "Sydney"),
+        new("toronto", "Toronto"),
+        new("amsterdam", "Amsterdam"),
+        new("singapore", "Singapore"),
+        new("dubai", "Dubai"),
+        new("mumbai", "Mumbai")
+    ];
+
+    private async Task HandleCitySearch(string query)
+    {
+        // Cancel any in-flight search to avoid stale results overwriting newer ones
+        searchCts?.Cancel();
+        var cts = searchCts = new CancellationTokenSource();
+
+        asyncIsLoading = true;
+        // BL0012（.NET 11）：事件处理器触发的重渲染由框架自动完成，此处的显式 StateHasChanged 无需保留。
+
+        try
+        {
+            // Simulate API call delay
+            await Task.Delay(300, cts.Token);
+        }
+        catch (TaskCanceledException)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            var defaults = allCities[0..5];
+
+            // Ensure the selected city is visible so the user can see/deselect it,
+            // even when it falls outside the default top-N slice.
+            if (asyncSelectedCity is not null
+                && !defaults.Any(c => c.Value == asyncSelectedCity))
+            {
+                var selected = allCities.FirstOrDefault(c => c.Value == asyncSelectedCity);
+                if (selected is not null)
+                {
+                    defaults = [selected, .. defaults];
+                }
+            }
+
+            asyncCities = defaults;
+        }
+        else
+        {
+            asyncCities = allCities
+                .Where(c => c.Text.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+        }
+
+        asyncIsLoading = false;
+    }
+
+    // Async compositional mode example
+    private string? asyncCompSelectedUser;
+    private UserInfo[] asyncCompUsers = allUsers[0..5];
+    private bool asyncCompIsLoading;
+    private CancellationTokenSource? userSearchCts;
+
+    private static readonly UserInfo[] allUsers =
+    [
+        new("alice", "Alice Johnson", "Engineering Lead", "bg-green-500"),
+        new("bob", "Bob Smith", "Senior Developer", "bg-green-500"),
+        new("carol", "Carol Williams", "Product Manager", "bg-green-500"),
+        new("dave", "Dave Brown", "Designer", "bg-yellow-500"),
+        new("eve", "Eve Davis", "QA Engineer", "bg-green-500"),
+        new("frank", "Frank Miller", "DevOps Engineer", "bg-red-500"),
+        new("grace", "Grace Wilson", "Data Scientist", "bg-yellow-500"),
+        new("hank", "Hank Taylor", "Backend Developer", "bg-green-500"),
+        new("ivy", "Ivy Anderson", "Frontend Developer", "bg-green-500"),
+        new("jack", "Jack Thomas", "Architect", "bg-red-500")
+    ];
+
+    private async Task HandleUserSearch(string query)
+    {
+        userSearchCts?.Cancel();
+        var cts = userSearchCts = new CancellationTokenSource();
+
+        asyncCompIsLoading = true;
+        // BL0012（.NET 11）：事件处理器触发的重渲染由框架自动完成，此处的显式 StateHasChanged 无需保留。
+
+        try
+        {
+            await Task.Delay(300, cts.Token);
+        }
+        catch (TaskCanceledException)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            var defaults = allUsers[0..5];
+
+            // Ensure the selected user is visible so the user can see/deselect it,
+            // even when it falls outside the default top-N slice.
+            if (asyncCompSelectedUser is not null
+                && !defaults.Any(u => u.Id == asyncCompSelectedUser))
+            {
+                var selected = allUsers.FirstOrDefault(u => u.Id == asyncCompSelectedUser);
+                if (selected is not null)
+                {
+                    defaults = [selected, .. defaults];
+                }
+            }
+
+            asyncCompUsers = defaults;
+        }
+        else
+        {
+            asyncCompUsers = allUsers
+                .Where(u => u.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
+                         || u.Role.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+        }
+
+        asyncCompIsLoading = false;
+    }
+
+    private string GetAsyncCompUserName(string? id) =>
+        id is not null ? allUsers.FirstOrDefault(u => u.Id == id)?.Name ?? (L.IsChinese ? "（无）" : "(none)") : (L.IsChinese ? "（无）" : "(none)");
+
+    private record UserInfo(string Id, string Name, string Role, string StatusColor);
+
+    private void HandleFormSubmit()
+    {
+        formSubmitted = true;
+        // BL0012（.NET 11）：事件处理器触发的重渲染由框架自动完成，此处的显式 StateHasChanged 无需保留。
+    }
+
+    private ComboboxFormModel comboboxFormModel = new();
+    private string? comboboxFormMessage;
+
+    private void HandleComboboxFormSubmit()
+    {
+        if (L.IsChinese)
+        {
+            comboboxFormMessage = $"已提交值：{comboboxFormModel.Framework} ｜ 已选文本：{frameworks.GetText(comboboxFormModel.Framework)}";
+        }
+        else
+        {
+            comboboxFormMessage = $"Submitted value: {comboboxFormModel.Framework} | Submitted text: {frameworks.GetText(comboboxFormModel.Framework)}";
+        }
+    }
+
+    private void ResetComboboxForm()
+    {
+        comboboxFormModel = new();
+        comboboxFormMessage = null;
+    }
+
+    public enum Status { Active, Inactive, Pending, Archived }
+
+    private class ComboboxFormModel
+    {
+        [Required(ErrorMessage = "Please select a framework.")]
+        public string? Framework { get; set; }
+    }
+}

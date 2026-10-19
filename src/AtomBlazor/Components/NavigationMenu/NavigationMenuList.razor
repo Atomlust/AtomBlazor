@@ -1,0 +1,37 @@
+@namespace AtomBlazor
+
+@*
+    Navigation Menu List——容纳导航菜单条目。
+*@
+
+<ul class="@CssClass" @attributes="AdditionalAttributes">
+    @ChildContent
+</ul>
+
+@code {
+    /// <summary>
+    /// 导航菜单条目。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 要应用到列表上的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取列表计算出的 CSS 类串。
+    /// </summary>
+    private string CssClass => ClassNames.cn(
+        "atom:group atom:flex atom:flex-1 atom:list-none atom:items-center atom:justify-center atom:space-x-1",
+        Class
+    );
+}

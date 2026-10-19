@@ -1,0 +1,117 @@
+@namespace AtomBlazor
+@implements IAsyncDisposable
+
+@*
+    SidebarProvider 组件：管理侧边栏状态、持久化与响应式行为。
+    包裹整个应用或页面布局以提供侧边栏上下文。
+*@
+
+<TooltipProvider>
+    <CascadingValue Value="@Context" IsFixed="true">
+        <div class="@($"atom:flex atom:w-full {HeightClass}{(Variant == SidebarVariant.Inset ? " atom:bg-sidebar" : "")}")" @attributes="AdditionalAttributes">
+            @ChildContent
+        </div>
+    </CascadingValue>
+</TooltipProvider>
+
+@code {
+    /// <summary>
+    /// 在侧边栏提供者内部渲染的内容。
+    /// 通常应包含由 Sidebar 与 SidebarInset 组成的 SidebarLayout。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 桌面端侧边栏的默认打开状态。
+    /// 在 <see cref="Open"/> 未绑定时使用；受控模式下忽略。
+    /// </summary>
+    [Parameter]
+    public bool DefaultOpen { get; set; } = true;
+
+    /// <summary>
+    /// 桌面端打开状态，用于受控用法。
+    /// 保持 <c>null</c>（默认）时由提供者自持状态，初值取自
+    /// <see cref="DefaultOpen"/>，并经 <see cref="CookieKey"/> 持久化。绑定它——
+    /// 通常用 <c>@bind-Open</c>——此后你的值就是唯一事实来源。
+    /// <para>
+    /// 受控模式会关闭 cookie 持久化——既无启动时读取，也无变更时写入：
+    /// 状态归组件外部所有时，cookie 会在重载时与绑定值争夺主导权
+    /// 而非恢复它。需要跨会话存活就请自行持久化。
+    /// </para>
+    /// <para>
+    /// 本属性专指桌面状态，与 <see cref="DefaultOpen"/> 对应。移动端
+    /// 抽屉是独立状态——见 <see cref="OpenMobile"/>。
+    /// </para>
+    /// </summary>
+    [Parameter]
+    public bool? Open { get; set; }
+
+    /// <summary>
+    /// 桌面打开状态变化时调用——无论来自触发器、导轨、
+    /// Ctrl/Cmd + B 快捷键还是 <see cref="SidebarContext.SetOpen"/>。
+    /// 与 <c>@bind-Open</c> 搭配实现双向绑定。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>
+    /// 移动端抽屉打开状态，用于受控用法。
+    /// 与 <see cref="Open"/> 相互独立：低于移动断点时侧边栏渲染为
+    /// 自带打开状态的抽屉，绑其一不会连带另一个。保持 <c>null</c>
+    /// 则交由提供者自持。
+    /// </summary>
+    [Parameter]
+    public bool? OpenMobile { get; set; }
+
+    /// <summary>
+    /// 移动端抽屉打开状态变化时调用。
+    /// 与 <c>@bind-OpenMobile</c> 搭配实现双向绑定。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OpenMobileChanged { get; set; }
+
+    /// <summary>
+    /// 侧边栏变体/样式。
+    /// </summary>
+    [Parameter]
+    public SidebarVariant Variant { get; set; } = SidebarVariant.Sidebar;
+
+    /// <summary>折叠时的图标导轨或浮动胶囊导航。Pill 模式需将 SidebarPillNav 与侧边栏并排放置。</summary>
+    [Parameter] public SidebarCollapsedMode CollapsedMode { get; set; }
+
+    /// <summary>
+    /// 侧边栏出现的一侧。
+    /// </summary>
+    [Parameter]
+    public SidebarSide Side { get; set; } = SidebarSide.Left;
+
+    /// <summary>
+    /// 持久化侧边栏状态所用的 cookie 键。
+    /// 设为 null 可禁用持久化。
+    /// </summary>
+    [Parameter]
+    public string? CookieKey { get; set; } = "sidebar:state";
+
+    /// <summary>
+    /// Ctrl/Cmd + B 键盘快捷键是否切换侧边栏。
+    /// 当快捷键与页面内容冲突时设为 false，例如
+    /// Ctrl/Cmd + B 表示加粗的富文本编辑器。
+    /// </summary>
+    [Parameter]
+    public bool EnableToggleShortcut { get; set; } = true;
+
+    /// <summary>
+    /// 控制容器高度的 CSS 类。
+    /// 默认 "min-h-screen"：填满视口并随内容增长。
+    /// 可设为 "h-screen" 固定视口高度，或 "h-full" 用于容器化布局。
+    /// </summary>
+    [Parameter]
+    public string HeightClass { get; set; } = "atom:min-h-screen";
+}

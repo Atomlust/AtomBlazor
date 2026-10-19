@@ -1,0 +1,24 @@
+<div dir="rtl">
+    <Gantt TItem="PlanTask"
+             Data="@plan"
+             IdSelector="@(t => t.Id)"
+             ParentIdSelector="@(t => t.Parent)"
+             TextSelector="@(t => t.Name)"
+             StartSelector="@(t => t.Start)"
+             EndSelector="@(t => t.End)"
+             Dependencies="@links"
+             Height="24rem" />
+</div>
+
+@* Nothing is configured. Time runs the way the page reads: the task list moves to the right,
+   the timeline starts at the right edge, and the bars, the weekend shading, the today line and
+   the arrows all turn round with it.
+
+   Everything is placed with logical offsets, which mirror on their own. Two things cannot:
+
+     the grid lines, because a repeating gradient needs a physical direction; and
+     the arrows, because an SVG coordinate system does not flip with the page, so an arrow
+     that still pointed right would be pointing backwards in time.
+
+   Both are handled in the stylesheet, off [dir="rtl"], so there is no parameter to remember
+   and no way for the chart to disagree with the page it is on. *@

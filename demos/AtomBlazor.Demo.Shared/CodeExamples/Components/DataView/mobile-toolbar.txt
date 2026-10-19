@@ -1,0 +1,19 @@
+<DataView TItem="Person" Data="@(activeOnly ? people.Where(p => p.IsActive) : people)" MobileToolbar="true">
+    <Fields>
+        <DataViewColumn TItem="Person" TValue="string" Id="name" Property="@(p => p.Name)" Header="Name" Sortable="true" Filterable="true" />
+        <DataViewColumn TItem="Person" TValue="string" Id="department" Property="@(p => p.Department)" Header="Department" Sortable="true" />
+    </Fields>
+    <FilterContent>
+        <div class="flex items-center gap-2">
+            <Checkbox @bind-Checked="activeOnly" Id="active-only" />
+            <label for="active-only" class="text-sm font-medium">Active employees only</label>
+        </div>
+    </FilterContent>
+    <ListTemplate Context="person">
+        <div class="flex min-h-12 items-center justify-between rounded-md border p-3"><span>@person.Name</span><span>@person.Department</span></div>
+    </ListTemplate>
+</DataView>
+
+@code {
+    private bool activeOnly;
+}

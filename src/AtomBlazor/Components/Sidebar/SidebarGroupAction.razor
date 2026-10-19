@@ -1,0 +1,77 @@
+@namespace AtomBlazor
+
+@*
+    SidebarGroupAction 组件：分组标题处的操作按钮。
+*@
+
+@if (!string.IsNullOrEmpty(Tooltip))
+{
+    <AtomBlazor.Primitives.TooltipPrimitive>
+        <AtomBlazor.Primitives.TooltipTrigger>
+            @RenderButton()
+        </AtomBlazor.Primitives.TooltipTrigger>
+        <AtomBlazor.Primitives.TooltipContent Side="@PopoverSide.Right">
+            <span>@Tooltip</span>
+        </AtomBlazor.Primitives.TooltipContent>
+    </AtomBlazor.Primitives.TooltipPrimitive>
+}
+else
+{
+    @RenderButton()
+}
+
+@code {
+    /// <summary>
+    /// 按钮内容（通常是图标）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 操作的工具提示文本。
+    /// </summary>
+    [Parameter]
+    public string? Tooltip { get; set; }
+
+    /// <summary>
+    /// 要渲染的元素标签（button 或 a）。
+    /// </summary>
+    [Parameter]
+    public SidebarMenuButtonElement AsChild { get; set; } = SidebarMenuButtonElement.Button;
+
+    /// <summary>
+    /// 附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private RenderFragment RenderButton() => __builder =>
+    {
+        if (AsChild == SidebarMenuButtonElement.Anchor)
+        {
+            <a class="@GetClasses()" data-sidebar="group-action" @attributes="AdditionalAttributes">
+                @ChildContent
+            </a>
+        }
+        else
+        {
+            <button type="button" class="@GetClasses()" data-sidebar="group-action" @attributes="AdditionalAttributes">
+                @ChildContent
+            </button>
+        }
+    };
+
+    private string GetClasses()
+    {
+        return ClassNames.cn(
+            "atom:absolute atom:end-3 atom:top-3.5 atom:flex atom:aspect-square atom:w-5 atom:items-center atom:justify-center atom:rounded-md atom:p-0 atom:text-sidebar-foreground atom:outline-none atom:ring-sidebar-ring atom:transition-transform atom:hover:bg-sidebar-accent atom:hover:text-sidebar-accent-foreground atom:focus-visible:ring-2 atom:[&>svg]:size-4 atom:[&>svg]:shrink-0",
+            Class
+        );
+    }
+}

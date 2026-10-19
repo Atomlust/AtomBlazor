@@ -1,0 +1,111 @@
+@page "/components/date-input"
+@using System.Globalization
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("日期输入框 - Atom BlazorUI", "Date Input - Atom BlazorUI")</PageTitle>
+<div class="space-y-8 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("日期输入框", "Date Input")</h1>
+        <p class="text-xl text-muted-foreground">@L.T("按你所用语言的日期顺序，分别编辑日、月与四位数年份。", "Edit day, month and four-digit year separately, in your culture’s date order.")</p>
+    </div>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("分段编辑", "Segmented editing")</h2>
+        <div class="rounded-lg border p-6 space-y-4">
+            @* 偏差：本仓 _Imports 同时引入 Microsoft.AspNetCore.Components.Forms（其 Label<TValue> 带 For 参数），
+               裸 <AtomBlazor.Label For=...> 触发 RZ10012 泛型/非泛型歧义，照 FileUploadDemo 先例改全限定标签，渲染行为零变化（下同）。 *@
+            <AtomBlazor.Label For="basic-date">@L.T("预约日期", "Appointment date")</AtomBlazor.Label>
+            <DateInput Id="basic-date" @bind-Value="value" AriaLabel="@(L.T("预约日期", "Appointment date"))" />
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p role="status" class="text-sm text-muted-foreground">已选择：@(value?.ToString() ?? "无")</p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p role="status" class="text-sm text-muted-foreground">Selected: @(value?.ToString() ?? "None")</p>
+                        </text>
+}
+        </div>
+        <CodeBlock Source="Components/DateInput/basic.txt" />
+    </section>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("显示选项", "Display options")</h2>
+        <div class="rounded-lg border p-6 space-y-4">
+            <DateInput @bind-Value="alternate" Culture="@CultureInfo.GetCultureInfo("en-GB")" ShowCalendar="false" AriaLabel="@(L.T("另一种日期格式", "Alternate date format"))" />
+            <DateInput Value="value" Disabled="true" AriaLabel="@(L.T("已禁用的日期", "Disabled date"))" />
+            <DateInput Value="value" ReadOnly="true" AriaLabel="@(L.T("只读日期", "Read-only date"))" />
+        </div>
+        <CodeBlock Source="Components/DateInput/options.txt" />
+    </section>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("校验与取值范围", "Validation and bounds")</h2>
+        <EditForm Model="model" FormName="segmented-date" OnValidSubmit="@(() => saved = true)" class="rounded-lg border p-6 space-y-4">
+            <DataAnnotationsValidator />
+            <AtomBlazor.Label For="required-date">@L.T("必填日期", "Required date")</AtomBlazor.Label>
+            <DateInput @ref="requiredInput" Id="required-date" @bind-Value="model.Value" MinDate="@(new DateTime(2026, 1, 1))" MaxDate="@(new DateTime(2026, 12, 31))" Required="true" AriaDescribedBy="date-help" />
+            <p id="date-help" class="text-sm text-muted-foreground">@L.T("请选择 2026 年内的日期。不完整或无效的输入会保持可见，并阻止表单提交。", "Choose a date in 2026. Partial or invalid entries remain visible and prevent form submission.")</p>
+            <ValidationMessage For="@(() => model.Value)" />
+            <div class="flex gap-2">
+                <Button Type="ButtonType.Submit">@L.T("保存", "Save")</Button>
+                <Button Variant="ButtonVariant.Outline" OnClick="Clear">@L.T("清除", "Clear")</Button>
+            </div>
+            @if (saved) { <p role="status">@L.T("保存成功。", "Saved successfully.")</p> }
+        </EditForm>
+        <CodeBlock Source="Components/DateInput/validation.txt" />
+    </section>
+
+
+        <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("这个控件是一个带标签的分组。数字分段会暴露 spinbutton 角色、各自的名称、当前值与取值范围。", "The control is a labelled group. Numeric segments expose spinbutton roles, individual names, current values and ranges.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("第一段用 Id 配合 Label，整个分组用 AriaLabel， help 或校验文本用 AriaDescribedBy 关联。", "Use Id with Label for the first segment, AriaLabel for the group, and AriaDescribedBy to associate help or validation text.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("不完整或无效的输入会保留其文本，把分组与各分段标记为无效，并追加一条 EditContext 校验消息。禁用的分段无法编辑；只读的数字分段仍可聚焦。", "Partial or invalid entries retain their text, mark the group and segments invalid, and add an EditContext validation message. Disabled segments cannot be edited; read-only numeric segments remain focusable.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("日历按钮会打开一个日期网格。超出 MinDate 与 MaxDate 的日期无法选择。", "The calendar button opens a date grid. Dates outside MinDate and MaxDate cannot be selected.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在数字分段与选择器控件之间移动", "Move between numeric segments and picker controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在数字分段之间移动（方向随 RTL 变化）", "Move between numeric segments (direction follows RTL)"))"><Kbd>ArrowLeft</Kbd> / <Kbd>ArrowRight</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("增大或减小当前聚焦的数字分段", "Increase or decrease the focused numeric segment"))"><Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("把当前聚焦的数字分段设为最小值或最大值", "Set the focused numeric segment to its minimum or maximum"))"><Kbd>Home</Kbd> / <Kbd>End</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("清除所选分段的文本", "Clear selected segment text"))"><Kbd>Backspace</Kbd> / <Kbd>Delete</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("打开聚焦的日历按钮，或选择聚焦的日期", "Open the focused calendar button or choose a focused date"))"><Kbd>Enter</Kbd> / <Kbd>Space</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭日历弹出层", "Close the calendar popup"))"><Kbd>Escape</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+        <ApiReference Since="v4" ComponentName="DateInput">
+            <ApiParameter Name="Value / ValueChanged / ValueExpression" Type="DateTime? / callback / expression">@L.T("双向值绑定与表单校验。输入不完整或无效时，绑定值会被置为 null，而草稿文本仍然保留。", "Two-way value binding and form validation. Partial or invalid text sets the bound value to null while retaining the draft.")</ApiParameter>
+            <ApiParameter Name="Culture" Type="CultureInfo?" Default="null">@L.T("默认取 CultureInfo.CurrentCulture。", "Defaults to CultureInfo.CurrentCulture.")</ApiParameter>
+            <ApiParameter Name="MinDate / MaxDate" Type="DateTime?">@L.T("含边界的日期范围。日期按公历计算；Culture 决定分段顺序与分隔符。", "Inclusive date bounds. Dates use the Gregorian calendar; Culture controls segment order and separators.")</ApiParameter>
+            <ApiParameter Name="ShowCalendar" Type="bool" Default="true">@L.T("是否显示日历按钮。", "Show the calendar button.")</ApiParameter>
+            <ApiParameter Name="Disabled / ReadOnly / Required" Type="bool" Default="false">@L.T("禁止编辑、保持只读展示，或把分段标记为必填。必填值的校验请交给模型校验。", "Disable editing, keep a read-only display, or mark segments required. Use model validation for required-value enforcement.")</ApiParameter>
+            <ApiParameter Name="Id / Name / AriaLabel / AriaDescribedBy" Type="string?">@L.T("第一段的 ID、隐藏表单字段的 name、分组标签以及说明文本的 ID。", "First-segment ID, hidden form-field name, group label and descriptive text ID.")</ApiParameter>
+            <ApiParameter Name="Class / AdditionalAttributes" Type="presentation parameters">@L.T("容器的样式与属性。", "Container styling and attributes.")</ApiParameter>
+            <ApiParameter Name="ClearAsync()" Type="Task">@L.T("清除值以及每一个分段；禁用或只读时忽略。", "Clear the value and every segment; ignored when disabled or read-only.")</ApiParameter>
+        </ApiReference>
+    </section>
+
+</div>
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private DateTime? value = new DateTime(2026, 9, 16);
+    private DateTime? alternate = new DateTime(2026, 9, 16);
+    private readonly FormModel model = new();
+    private DateInput? requiredInput;
+    private bool saved;
+    private async Task Clear()
+    {
+        saved = false;
+        if (requiredInput != null) { await requiredInput.ClearAsync(); }
+    }
+    private sealed class FormModel
+    {
+        [Required] public DateTime? Value { get; set; }
+    }
+}

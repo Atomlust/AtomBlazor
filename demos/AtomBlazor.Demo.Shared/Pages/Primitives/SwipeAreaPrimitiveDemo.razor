@@ -1,0 +1,401 @@
+@page "/primitives/swipe-area"
+@using System.Globalization
+<PageTitle>@L.T("Swipe Area 滑动区域原语 - Atom BlazorUI", "Swipe Area Primitive - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Swipe Area 滑动区域原语", "Swipe Area Primitive")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("无头、无样式的滑动手势检测。手势运算在浏览器里进行，因此一次滑动只需调用一次 C#，而不是每次指针移动都调用。", "Headless, unstyled swipe gesture detection. The gesture maths runs in the browser, so a swipe costs one call into C# rather than one per pointer move.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("用鼠标或手指在方框上拖动。拖动满 50 像素即上报一次滑动，较短但足够快的轻扫同样会上报。", "Drag across the box with a mouse or a finger. A swipe is reported when it travels 50 pixels, or when a shorter flick is fast enough.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <SwipeAreaPrimitive OnSwipe="HandleBasicSwipe"
+                             class="select-none rounded-md border border-dashed bg-muted/40 p-10 text-center text-sm text-muted-foreground cursor-grab active:cursor-grabbing">
+                    @L.T("向任意方向滑动", "Swipe in any direction")
+                </SwipeAreaPrimitive>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("最近一次滑动：", "Last swipe:")
+                    <span class="font-mono text-foreground">@BasicResult</span>
+                </p>
+            </div>
+
+            <CodeBlock Source="Primitives/SwipeArea/basic.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("轴向与浏览器滚动", "Axis and Browser Scrolling")</h2>
+                <p class="text-muted-foreground">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">Axis</code> 决定上报哪些
+                            方向。<code class="text-xs bg-muted px-1 py-0.5 rounded">TouchAction</code>
+                            决定浏览器为自己保留什么 —— 它直接映射到 CSS 的
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">touch-action</code> 属性，因此是在手势开始之前
+                            就告知浏览器，而不是要它撤销一个已经开始的滚动。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">Axis</code> decides which
+                            directions are reported. <code class="text-xs bg-muted px-1 py-0.5 rounded">TouchAction</code>
+                            decides what the browser keeps for itself — it maps straight to the CSS
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">touch-action</code> property, so the
+                            browser is told before the gesture starts rather than asked to undo a scroll it
+                            already began.
+                        </text>
+                    }
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <SwipeAreaPrimitive Axis="SwipeAxis.Horizontal"
+                             TouchAction="SwipeTouchAction.PanY"
+                             OnSwipe="HandleAxisSwipe"
+                             class="select-none rounded-md border border-dashed bg-muted/40 p-10 text-center text-sm text-muted-foreground cursor-grab active:cursor-grabbing">
+                    @L.T("向左或向右滑动。在触摸屏上页面仍可上下滚动。", "Swipe left or right. On a touch screen the page still scrolls up and down.")
+                </SwipeAreaPrimitive>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("最近一次滑动：", "Last swipe:")
+                    <span class="font-mono text-foreground">@AxisResult</span>
+                </p>
+            </div>
+
+            <CodeBlock Source="Primitives/SwipeArea/axis-and-touch-action.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("跟随手势", "Following the Gesture")</h2>
+                <p class="text-muted-foreground">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">OnSwipeMove</code> 会在指针按下时
+                            上报当前偏移，节流为每 50 ms 一次调用。
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">OnSwipeCancel</code> 是手势结束却未提交时
+                            回弹的信号。若没有为
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">OnSwipeMove</code> 提供处理程序，就不会发送任何位置更新。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">OnSwipeMove</code> reports the
+                            current offset while the pointer is down, throttled to one call every 50 ms.
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">OnSwipeCancel</code> is the signal
+                            to spring back when the gesture ends without committing. Without a handler on
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">OnSwipeMove</code>, no position
+                            updates are sent at all.
+                        </text>
+                    }
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <SwipeAreaPrimitive Axis="SwipeAxis.Horizontal"
+                             TouchAction="SwipeTouchAction.PanY"
+                             OnSwipeMove="HandleFollowMove"
+                             OnSwipe="HandleFollowSwipe"
+                             OnSwipeCancel="HandleFollowCancel"
+                             class="select-none overflow-hidden rounded-md border border-dashed bg-muted/40 p-4">
+                    <div class="rounded-md border bg-card p-6 text-center text-sm cursor-grab active:cursor-grabbing"
+                         style="@FollowCardStyle">
+                        @(followDismissed ? L.T("已划走。再滑动一次即可重置。", "Dismissed. Swipe again to reset.") : L.T("横向拖动我", "Drag me sideways"))
+                    </div>
+                </SwipeAreaPrimitive>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("偏移：", "Offset:") <span class="font-mono text-foreground">@followOffset.ToString("F0", CultureInfo.InvariantCulture)px</span>
+                </p>
+            </div>
+
+            <CodeBlock Source="Primitives/SwipeArea/follow-the-gesture.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("阈值", "Thresholds")</h2>
+                <p class="text-muted-foreground">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">Threshold</code> 是一次滑动必须覆盖的距离。
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">MinVelocity</code>
+                            让较短但快速的轻扫也能通过 —— 它仍需要 16 像素的位移，因此
+                            点击时的抖动无法触发它。把它设为
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">double.PositiveInfinity</code> 就只按距离判定。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">Threshold</code> is the distance a
+                            swipe must cover. <code class="text-xs bg-muted px-1 py-0.5 rounded">MinVelocity</code>
+                            lets a short, fast flick through anyway — it still needs 16 pixels of travel, so
+                            the jitter of a tap cannot trip it. Set it to
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">double.PositiveInfinity</code> to
+                            judge on distance alone.
+                        </text>
+                    }
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <SwipeAreaPrimitive Threshold="150"
+                             MinVelocity="double.PositiveInfinity"
+                             OnSwipe="HandleThresholdSwipe"
+                             class="select-none rounded-md border border-dashed bg-muted/40 p-10 text-center text-sm text-muted-foreground cursor-grab active:cursor-grabbing">
+                    @L.T("一次有意的 150 像素拖动。轻扫在这里不起作用。", "A deliberate 150 pixel drag. A flick does nothing here.")
+                </SwipeAreaPrimitive>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("最近一次滑动：", "Last swipe:")
+                    <span class="font-mono text-foreground">@ThresholdResult</span>
+                </p>
+            </div>
+
+            <CodeBlock Source="Primitives/SwipeArea/thresholds.txt" />
+        </section>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        该区域渲染为一个朴素的 <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;div&gt;</code>，
+                        自身不带任何角色，因此它不会改变其中内容的播报方式。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        The area renders a plain <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;div&gt;</code>
+                        with no role of its own, so it does not change how the content inside it is announced.
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <strong>滑动永远无法通过键盘触达。</strong>滑动所能提供的每一个操作
+                        都需要第二条看得见的途径 —— 一个按钮、一个菜单项或一个键盘快捷键。请把
+                        手势当作给能用它的人的快捷方式，而不要把它当成唯一的入口。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <strong>A swipe is never reachable by keyboard.</strong> Every action offered by a swipe
+                        needs a second, visible route — a button, a menu item or a keyboard shortcut. Treat the
+                        gesture as a shortcut for people who can use it, never as the only way in.
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        把 <code class="text-xs bg-muted px-1 py-0.5 rounded">TouchAction</code> 设为
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">None</code> 还会把页面自身的
+                        滚动也从区域内部移除。请优先选择
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">PanX</code> 或
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">PanY</code>，它们只让出一个轴向。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">TouchAction</code> set to
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">None</code> also removes the page's own
+                        scrolling from inside the area. Prefer
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">PanX</code> or
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">PanY</code>, which give up one axis only.
+                    </text>
+                }
+            </AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("无。请为滑动所做的任何操作提供你自己的键盘等价方式。", "None. Provide your own keyboard equivalent for whatever the swipe does."))">
+                <span class="text-muted-foreground">&mdash;</span>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件的属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="SwipeArea">
+                <ApiParameter Name="OnSwipe" Type="EventCallback&lt;SwipeEventArgs&gt;">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            当一个手势结束时，若距离足够远或速度足够快即可算作一次滑动，此时调用一次。参数携带 <code class="text-xs bg-muted px-1 py-0.5 rounded">Direction</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">DeltaX</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">DeltaY</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Distance</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">Velocity</code>。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Invoked once when a gesture ends far enough or fast enough to count as a swipe. The arguments carry <code class="text-xs bg-muted px-1 py-0.5 rounded">Direction</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">DeltaX</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">DeltaY</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Distance</code> and <code class="text-xs bg-muted px-1 py-0.5 rounded">Velocity</code>.
+                        </text>
+                    }
+                </ApiParameter>
+                <ApiParameter Name="OnSwipeMove" Type="EventCallback&lt;SwipeMoveEventArgs&gt;">
+                    @L.T("指针按下期间调用，给出相对手势起始位置的当前偏移。节流为每 50 ms 一次调用，且同时只有一个调用在途。没有处理程序就不会发送位置更新。", "Invoked while the pointer is down, with the current offset from where the gesture started. Throttled to one call every 50 ms with a single call in flight. No handler means no position updates are sent.")
+                </ApiParameter>
+                <ApiParameter Name="OnSwipeCancel" Type="EventCallback">
+                    @L.T("当上报过移动的手势结束却没有成为一次滑动时，或者浏览器把指针拿走时调用。单纯的一次点击不会触发任何东西。", "Invoked when a gesture that reported movement ends without becoming a swipe, or when the browser takes the pointer away. A plain tap raises nothing.")
+                </ApiParameter>
+                <ApiParameter Name="Threshold" Type="double" Default="50">
+                    @L.T("指针必须沿所上报的轴向行进的距离，单位为 CSS 像素。", "How far the pointer must travel along the reported axis, in CSS pixels.")
+                </ApiParameter>
+                <ApiParameter Name="MinVelocity" Type="double" Default="0.5">
+                    @L.T("较短轻扫仍然可以算数时的速度，单位为每毫秒 CSS 像素。至少需要 16 像素的位移。", "The speed, in CSS pixels per millisecond, at which a shorter flick still counts. Requires at least 16 pixels of travel.")
+                </ApiParameter>
+                <ApiParameter Name="Axis" Type="SwipeAxis" Default="SwipeAxis.Both">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            滑动在哪个轴向上被上报：<code class="text-xs bg-muted px-1 py-0.5 rounded">Both</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Horizontal</code> 或 <code class="text-xs bg-muted px-1 py-0.5 rounded">Vertical</code>。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Which axis swipes are reported on: <code class="text-xs bg-muted px-1 py-0.5 rounded">Both</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Horizontal</code> or <code class="text-xs bg-muted px-1 py-0.5 rounded">Vertical</code>.
+                        </text>
+                    }
+                </ApiParameter>
+                <ApiParameter Name="TouchAction" Type="SwipeTouchAction" Default="SwipeTouchAction.Auto">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            浏览器仍可对手势区域内的触摸做的事：<code class="text-xs bg-muted px-1 py-0.5 rounded">Auto</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">PanX</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">PanY</code> 或 <code class="text-xs bg-muted px-1 py-0.5 rounded">None</code>。映射到同名的 CSS 属性。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            What the browser may still do with a touch inside the area: <code class="text-xs bg-muted px-1 py-0.5 rounded">Auto</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">PanX</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">PanY</code> or <code class="text-xs bg-muted px-1 py-0.5 rounded">None</code>. Maps to the CSS property of the same name.
+                        </text>
+                    }
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("是否忽略手势。", "Whether gestures are ignored.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("在其上进行手势检测的内容。", "The content the gesture is detected over.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            应用到根 <code>&lt;div&gt;</code> 的额外 HTML 属性。此处传入的 <code class="text-xs bg-muted px-1 py-0.5 rounded">style</code> 会与该区域自身的样式合并，而不是替换它。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code>. A <code class="text-xs bg-muted px-1 py-0.5 rounded">style</code> passed here is merged with the area's own, rather than replacing it.
+                        </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="@(L.T("方法", "Methods"))">
+                <ApiParameter Name="CancelAsync()" Type="Task">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            放弃正在进行的手势且不上报，也不会触发 <code class="text-xs bg-muted px-1 py-0.5 rounded">OnSwipeCancel</code>。用于中途被别的东西接管的情形。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Abandons a gesture in progress without reporting it, and without raising <code class="text-xs bg-muted px-1 py-0.5 rounded">OnSwipeCancel</code>. For when something else takes over mid-gesture.
+                        </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private SwipeEventArgs? basicSwipe;
+    private SwipeEventArgs? axisSwipe;
+    private SwipeEventArgs? thresholdSwipe;
+
+    private double followOffset;
+    private bool followDismissed;
+
+    private string BasicResult => LocalizeReadout(Describe(basicSwipe));
+    private string AxisResult => LocalizeReadout(Describe(axisSwipe));
+    private string ThresholdResult => LocalizeReadout(Describe(thresholdSwipe));
+
+    // Describe 是静态方法，取不到级联语言，因此占位文案只能在实例侧按当前语言归位。
+    private string LocalizeReadout(string readout)
+        => readout == "none yet" ? L.T("暂无记录", "none yet") : readout;
+
+    private static string Describe(SwipeEventArgs? swipe) => swipe is { } e
+        ? $"{e.Direction} — {e.Distance.ToString("F0", CultureInfo.InvariantCulture)}px at {e.Velocity.ToString("F2", CultureInfo.InvariantCulture)}px/ms"
+        : "none yet";
+
+    private string FollowCardStyle
+    {
+        get
+        {
+            var transform = $"transform: translateX({followOffset.ToString("F0", CultureInfo.InvariantCulture)}px)";
+            // The spring back is an animation; following the finger is not.
+            return followOffset == 0 ? $"{transform}; transition: transform 200ms ease-out" : transform;
+        }
+    }
+
+    private void HandleBasicSwipe(SwipeEventArgs e) => basicSwipe = e;
+
+    private void HandleAxisSwipe(SwipeEventArgs e) => axisSwipe = e;
+
+    private void HandleThresholdSwipe(SwipeEventArgs e) => thresholdSwipe = e;
+
+    private void HandleFollowMove(SwipeMoveEventArgs e)
+    {
+        followDismissed = false;
+        followOffset = e.DeltaX;
+    }
+
+    private void HandleFollowSwipe(SwipeEventArgs e)
+    {
+        followDismissed = true;
+        followOffset = 0;
+    }
+
+    private void HandleFollowCancel()
+    {
+        followOffset = 0;
+    }
+}

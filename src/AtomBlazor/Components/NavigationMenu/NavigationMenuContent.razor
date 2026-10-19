@@ -1,0 +1,240 @@
+@namespace AtomBlazor
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+@* Navigation Menu Content——下拉内容面板。
+*@
+
+@if (MenuItem?.IsOpen == true)
+{
+    <div @ref="_contentRef"
+         class="@CssClass"
+         role="menu"
+         tabindex="@(IsKeyboardNavigationEnabled ? -1 : null)"
+         data-state="@(MenuItem?.IsOpen == true ? "open" : "closed")"
+         @onmouseenter="HandleMouseEnter"
+         @onmouseleave="HandleMouseLeave"
+         @onclick="HandleClick"
+         @attributes="AdditionalAttributes">
+        @ChildContent
+    </div>
+}
+
+@code {
+    private ElementReference _contentRef;
+    private IJSObjectReference? _navModule;
+    private IJSObjectReference? _keyboardCleanup;
+    private DotNetObjectReference<NavigationMenuContent>? _dotNetRef;
+    private bool _moduleLoaded = false;
+    private bool _wasOpen = false;
+
+    /// <summary>
+    /// 对父级菜单项的引用。
+    /// </summary>
+    [CascadingParameter]
+    public NavigationMenuItem? MenuItem { get; set; }
+
+    /// <summary>
+    /// 要在下拉里渲染的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 要应用到内容的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    protected override void OnInitialized()
+    {
+        MenuItem?.RegisterContent(this);
+    }
+
+    /// <summary>
+    /// 获取父级菜单是否启用了键盘导航。
+    /// </summary>
+    private bool IsKeyboardNavigationEnabled => MenuItem?.Menu?.EnableKeyboardNavigation == true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusFirstOnNextRender)
+        {
+            _focusFirstOnNextRender = false;
+            await FocusFirstItemAsync();
+        }
+
+        var isOpen = MenuItem?.IsOpen == true;
+
+        // 仅在启用时才装配键盘导航
+        if (IsKeyboardNavigationEnabled)
+        {
+            // 模块未加载则加载
+            if (isOpen && !_moduleLoaded)
+            {
+                try
+                {
+ _navModule = await ComponentModules.GetCoreAsync(JSRuntime); // 有意偏差（记录在案）：此处直连 navigation-menu.js 独立路径，本仓库统一改走共享 components-core.js barrel（照先例）
+                    _moduleLoaded = true;
+                }
+                catch
+                {
+                    // 模块加载失败
+                }
+            }
+
+            // 菜单打开时装配键盘导航
+            if (isOpen && !_wasOpen && _navModule != null)
+            {
+                try
+                {
+                    _dotNetRef = DotNetObjectReference.Create(this);
+                    _keyboardCleanup = await _navModule.InvokeAsync<IJSObjectReference>(
+                        "navigationMenu.setupKeyboardNavigation", _contentRef, _dotNetRef);
+
+                    // 聚焦内容中的第一个条目
+                    await _navModule.InvokeVoidAsync("navigationMenu.navigateFirst", _contentRef);
+                }
+                catch
+                {
+                    // 键盘导航装配失败
+                }
+            }
+
+            // 菜单关闭时清理键盘导航
+            if (!isOpen && _wasOpen && _keyboardCleanup != null)
+            {
+                try
+                {
+                    await _keyboardCleanup.InvokeVoidAsync("dispose");
+                    await _keyboardCleanup.DisposeAsync();
+                    _keyboardCleanup = null;
+                    _dotNetRef?.Dispose();
+                    _dotNetRef = null;
+                }
+                catch
+                {
+                    // 清理失败
+                }
+            }
+        }
+
+        _wasOpen = isOpen;
+    }
+
+    /// <summary>
+    /// 聚焦内容中第一个可聚焦的条目。
+    /// </summary>
+    private bool _focusFirstOnNextRender;
+
+    /// <summary>
+    /// 在下一次渲染——即把内容放上屏幕的那一次——之后聚焦第一个条目。
+    /// </summary>
+    /// <remarks>
+    /// 在 Blazor Server 上，OnAfterRenderAsync 于浏览器确认渲染之后才运行，所以到那时元素
+    /// 必然已存在。触发器过去睡 50ms，然后直接调
+    /// <see cref="FocusFirstItemAsync"/>，那是在猜这个时机。
+    /// </remarks>
+    internal void FocusFirstItemOnNextRender() => _focusFirstOnNextRender = true;
+
+    internal async Task FocusFirstItemAsync()
+    {
+        // 确保模块已加载
+        if (!_moduleLoaded)
+        {
+            try
+            {
+ _navModule = await ComponentModules.GetCoreAsync(JSRuntime); // 有意偏差（记录在案）：同 OnAfterRenderAsync 处，改走 components-core.js barrel
+                _moduleLoaded = true;
+            }
+            catch
+            {
+                return;
+            }
+        }
+
+        if (_navModule != null)
+        {
+            // BL0016（.NET 11）：与一致不加 try/catch 守卫——模块已加载且元素在屏
+            // 断线时由电路生命周期兜底。
+#pragma warning disable BL0016
+            await _navModule.InvokeVoidAsync("navigationMenu.navigateFirst", _contentRef);
+#pragma warning restore BL0016
+        }
+    }
+
+    /// <summary>
+    /// 由 JavaScript 在按下 Escape 键时调用。
+    /// </summary>
+    [JSInvokable]
+    public async Task HandleEscapeKey()
+    {
+        if (MenuItem != null)
+        {
+            MenuItem.IsOpen = false;
+            await MenuItem.FocusTriggerAsync();
+        }
+    }
+
+    private void HandleMouseEnter()
+    {
+        if (MenuItem != null)
+        {
+            MenuItem.CancelCloseTimer();
+            MenuItem.IsOpen = true;
+        }
+    }
+
+    private void HandleMouseLeave()
+    {
+        MenuItem?.StartCloseTimer();
+    }
+
+    private void HandleClick()
+    {
+        // 点击任何内容时立即关闭菜单
+        // 这比等 LocationChanged 的反馈更快
+        if (MenuItem != null)
+        {
+            MenuItem.IsOpen = false;
+        }
+    }
+
+    /// <summary>
+    /// 获取内容面板计算出的 CSS 类串。
+    /// </summary>
+    private string CssClass => ClassNames.cn(
+        "atom:absolute atom:start-0 atom:top-full atom:mt-1.5 atom:w-max atom:z-50",
+        "atom:rounded-md atom:border atom:bg-popover atom:text-popover-foreground atom:shadow-lg",
+        "atom:outline-none atom:ring-0 atom:focus:outline-none atom:focus:ring-0 atom:focus-visible:outline-none atom:focus-visible:ring-0 atom:focus-within:bg-popover",
+        "atom:data-[state=open]:animate-in atom:data-[state=closed]:animate-out",
+        "atom:data-[state=closed]:fade-out-0 atom:data-[state=open]:fade-in-0",
+        "atom:data-[state=closed]:zoom-out-95 atom:data-[state=open]:zoom-in-95",
+        Class
+    );
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_keyboardCleanup != null)
+        {
+            try
+            {
+                await _keyboardCleanup.InvokeVoidAsync("dispose");
+                await _keyboardCleanup.DisposeAsync();
+            }
+            catch
+            {
+                // 清理对象可能已被释放
+            }
+        }
+
+
+        _dotNetRef?.Dispose();
+    }
+}

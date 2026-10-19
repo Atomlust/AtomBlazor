@@ -1,0 +1,572 @@
+@page "/charts/line"
+@using AtomBlazor.Icons.Lucide
+<PageTitle>@L.T("折线图 - Atom BlazorUI", "Line Chart - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-6xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("折线图", "Line Chart")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("用相连的数据点呈现随时间的趋势与变化。", "Visualize trends and changes over time with connected data points.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Interactive Line Chart (full width hero) -->
+    <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+        <div class="flex items-start justify-between p-6">
+            <div class="flex flex-col space-y-1.5">
+                <h3 class="font-semibold leading-none tracking-tight">@L.T("折线图 - 交互示例", "Line Chart - Interactive")</h3>
+                <p class="text-sm text-muted-foreground">@L.T("展示最近 3 个月的访客总量", "Showing total visitors for the last 3 months")</p>
+            </div>
+            <div class="flex">
+                <div class="flex flex-col gap-1 border-l px-6 py-0.5">
+                    <span class="text-xs text-muted-foreground">@L.T("桌面端", "Desktop")</span>
+                    <span class="text-2xl font-bold leading-none">@_chartData.Sum(d => d.Desktop).ToString("N0")</span>
+                </div>
+                <div class="flex flex-col gap-1 border-l px-6 py-0.5">
+                    <span class="text-xs text-muted-foreground">@L.T("移动端", "Mobile")</span>
+                    <span class="text-2xl font-bold leading-none">@_chartData.Sum(d => d.Mobile).ToString("N0")</span>
+                </div>
+            </div>
+        </div>
+        <div class="p-6 pt-0">
+            <LineChart Data="@_chartData" Height="300px">
+                <XAxis DataKey="date" />
+                <YAxis />
+                <ChartTooltip />
+                <Line DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" Curve="CurveType.Smooth" ShowDots="false" />
+            </LineChart>
+        </div>
+    </div>
+    <CodeBlock Source="Charts/LineChart/interactive.txt" />
+
+    <!-- Grid of chart variants -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- Default -->
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("折线图", "Line Chart")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("2024 年 1 月 - 6 月", "January - June 2024")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <LineChart Data="@_monthlyData" Height="200px">
+                        <XAxis DataKey="month" />
+                        <YAxis Show="false" />
+                        <ChartTooltip />
+                        <Line DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" Curve="CurveType.Smooth" ShowDots="false" />
+                        <Line DataKey="mobile" Name="@(L.T("移动端", "Mobile"))" Color="var(--chart-2)" Curve="CurveType.Smooth" ShowDots="false" />
+                    </LineChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("本月上升 5.2%", "Trending up by 5.2% this month") <LucideIcon Name="trending-up" Size="16" />
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/LineChart/default.txt" />
+        </div>
+
+        <!-- Linear -->
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("折线图 - 线性", "Line Chart - Linear")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("2024 年 1 月 - 6 月", "January - June 2024")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <LineChart Data="@_monthlyData" Height="200px">
+                        <XAxis DataKey="month" />
+                        <YAxis Show="false" />
+                        <ChartTooltip />
+                        <Line DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" ShowDots="false" />
+                        <Line DataKey="mobile" Name="@(L.T("移动端", "Mobile"))" Color="var(--chart-2)" ShowDots="false" />
+                    </LineChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("本月上升 5.2%", "Trending up by 5.2% this month") <LucideIcon Name="trending-up" Size="16" />
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/LineChart/linear.txt" />
+        </div>
+
+        <!-- Step -->
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("折线图 - 阶梯", "Line Chart - Step")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("2024 年 1 月 - 6 月", "January - June 2024")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <LineChart Data="@_monthlyData" Height="200px">
+                        <XAxis DataKey="month" />
+                        <YAxis Show="false" />
+                        <ChartTooltip />
+                        <Line DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" Curve="CurveType.Step" ShowDots="false" />
+                    </LineChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("本月上升 5.2%", "Trending up by 5.2% this month") <LucideIcon Name="trending-up" Size="16" />
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/LineChart/step.txt" />
+        </div>
+
+        <!-- Multiple -->
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("折线图 - 多系列", "Line Chart - Multiple")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("2024 年 1 月 - 6 月", "January - June 2024")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <LineChart Data="@_monthlyData" Height="200px">
+                        <XAxis DataKey="month" />
+                        <YAxis Show="false" />
+                        <ChartTooltip />
+                        <ChartLegend />
+                        <Line DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" Curve="CurveType.Smooth" ShowDots="false" />
+                        <Line DataKey="mobile" Name="@(L.T("移动端", "Mobile"))" Color="var(--chart-2)" Curve="CurveType.Smooth" ShowDots="false" />
+                    </LineChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("本月上升 5.2%", "Trending up by 5.2% this month") <LucideIcon Name="trending-up" Size="16" />
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/LineChart/multiple.txt" />
+        </div>
+
+        <!-- Dots -->
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("折线图 - 数据点", "Line Chart - Dots")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("2024 年 1 月 - 6 月", "January - June 2024")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <LineChart Data="@_monthlyData" Height="200px">
+                        <XAxis DataKey="month" />
+                        <YAxis Show="false" />
+                        <ChartTooltip />
+                        <Line DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" Curve="CurveType.Smooth" />
+                        <Line DataKey="mobile" Name="@(L.T("移动端", "Mobile"))" Color="var(--chart-2)" Curve="CurveType.Smooth" />
+                    </LineChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("本月上升 5.2%", "Trending up by 5.2% this month") <LucideIcon Name="trending-up" Size="16" />
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/LineChart/dots.txt" />
+        </div>
+
+        <!-- Custom Dots -->
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("折线图 - 自定义数据点", "Line Chart - Custom Dots")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("2024 年 1 月 - 6 月", "January - June 2024")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <LineChart Data="@_monthlyData" Height="200px">
+                        <XAxis DataKey="month" />
+                        <YAxis Show="false" />
+                        <ChartTooltip />
+                        <Line DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" Curve="CurveType.Smooth" DotSize="8" />
+                    </LineChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("本月上升 5.2%", "Trending up by 5.2% this month") <LucideIcon Name="trending-up" Size="16" />
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/LineChart/custom-dots.txt" />
+        </div>
+
+        <!-- Numeric X Axis -->
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("折线图 - 数值型 X 轴", "Line Chart - Numeric X Axis")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("按不规律间隔采集的读数", "Readings at irregular intervals")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <LineChart Data="@_readingData" Height="200px">
+                        <XAxis Type="AxisType.Value" />
+                        <YAxis />
+                        <ChartTooltip />
+                        <Line XDataKey="elapsed" DataKey="value" Name="@(L.T("读数", "Reading"))" Color="var(--chart-1)" ShowDots="true" />
+                    </LineChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("点间距反映各次读数之间的间隔", "Spacing reflects the gaps between readings")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("XDataKey 会把每个点画在它自己的 X 坐标上", "XDataKey plots each point at its own X coordinate")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/LineChart/numeric-x.txt" />
+        </div>
+    </div>
+
+    <!-- API Reference -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+        </div>
+        <div class="border rounded-lg p-6 space-y-4">
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Line.XDataKey</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">string?</code>（默认值：null）
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">string?</code> (default: null)
+                    </p>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        保存每个点 X 值的属性名，让该点按自己的坐标画在
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code>、
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Time</code> 或
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Log</code> 轴上。
+                        常规的类目型折线图不必设置：此时各点等距排布，标签由 X 轴自己给出。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        Property name holding each point's X value, plotting it at its own coordinate on a
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code>,
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Time</code> or
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Log</code> axis. Leave it unset for the
+                        usual categorical line, where points are spaced evenly and the X axis supplies its own labels.
+                    </p>
+                                </text>
+}
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Line.Curve</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">CurveType</code>（默认值：Linear）
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">CurveType</code> (default: Linear)
+                    </p>
+                                </text>
+}
+                <p class="text-sm text-muted-foreground">
+                    @L.T("曲线插值类型。可选值：Linear、Smooth、Step、StepBefore、StepAfter。", "Curve interpolation type. Options: Linear, Smooth, Step, StepBefore, StepAfter.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Line.ShowDots</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code>（默认值：true）
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code> (default: true)
+                    </p>
+                                </text>
+}
+                <p class="text-sm text-muted-foreground">
+                    @L.T("是否在数据点处显示圆点标记。", "Whether to show dot markers at data points.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Line.DotSize</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">int</code>（默认值：4）
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">int</code> (default: 4)
+                    </p>
+                                </text>
+}
+                <p class="text-sm text-muted-foreground">
+                    @L.T("数据点圆点的像素尺寸。", "Size of data point dots in pixels.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Line.Dashed</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code>（默认值：false）
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code> (default: false)
+                    </p>
+                                </text>
+}
+                <p class="text-sm text-muted-foreground">
+                    @L.T("该折线是否以虚线描边渲染。", "Whether the line should be rendered with a dashed stroke.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Line.StrokeWidth</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">int</code>（默认值：2）
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">int</code> (default: 2)
+                    </p>
+                                </text>
+}
+                <p class="text-sm text-muted-foreground">
+                    @L.T("折线描边的像素宽度。", "Line stroke width in pixels.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Line.Color</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">string?</code>
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">string?</code>
+                    </p>
+                                </text>
+}
+                <p class="text-sm text-muted-foreground">
+                    @L.T("折线的 CSS 颜色；请用 var(--chart-N) 令牌以适配主题。", "CSS color for the line. Use var(--chart-N) tokens for theme-aware colors.")
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    public class ChartData
+    {
+        public string Date { get; set; } = "";
+        public int Desktop { get; set; }
+        public int Mobile { get; set; }
+    }
+
+    public class MonthlyData
+    {
+        public string Month { get; set; } = "";
+        public int Desktop { get; set; }
+        public int Mobile { get; set; }
+    }
+
+    public class ReadingData
+    {
+        public int Elapsed { get; set; }
+        public int Value { get; set; }
+    }
+
+    private readonly List<ReadingData> _readingData =
+    [
+        new() { Elapsed = 0, Value = 12 },
+        new() { Elapsed = 5, Value = 34 },
+        new() { Elapsed = 8, Value = 28 },
+        new() { Elapsed = 20, Value = 61 },
+        new() { Elapsed = 24, Value = 55 },
+        new() { Elapsed = 45, Value = 78 },
+        new() { Elapsed = 60, Value = 72 }
+    ];
+
+    private readonly List<MonthlyData> _monthlyData =
+    [
+        new() { Month = "Jan", Desktop = 186, Mobile = 80 },
+        new() { Month = "Feb", Desktop = 305, Mobile = 200 },
+        new() { Month = "Mar", Desktop = 237, Mobile = 120 },
+        new() { Month = "Apr", Desktop = 73, Mobile = 190 },
+        new() { Month = "May", Desktop = 209, Mobile = 130 },
+        new() { Month = "Jun", Desktop = 214, Mobile = 140 }
+    ];
+
+    private readonly List<ChartData> _chartData =
+    [
+        new() { Date = "2024-04-01", Desktop = 222, Mobile = 150 },
+        new() { Date = "2024-04-02", Desktop = 97, Mobile = 180 },
+        new() { Date = "2024-04-03", Desktop = 167, Mobile = 120 },
+        new() { Date = "2024-04-04", Desktop = 242, Mobile = 260 },
+        new() { Date = "2024-04-05", Desktop = 373, Mobile = 290 },
+        new() { Date = "2024-04-06", Desktop = 301, Mobile = 340 },
+        new() { Date = "2024-04-07", Desktop = 245, Mobile = 180 },
+        new() { Date = "2024-04-08", Desktop = 409, Mobile = 320 },
+        new() { Date = "2024-04-09", Desktop = 59, Mobile = 110 },
+        new() { Date = "2024-04-10", Desktop = 261, Mobile = 190 },
+        new() { Date = "2024-04-11", Desktop = 327, Mobile = 350 },
+        new() { Date = "2024-04-12", Desktop = 292, Mobile = 210 },
+        new() { Date = "2024-04-13", Desktop = 342, Mobile = 380 },
+        new() { Date = "2024-04-14", Desktop = 137, Mobile = 220 },
+        new() { Date = "2024-04-15", Desktop = 120, Mobile = 170 },
+        new() { Date = "2024-04-16", Desktop = 138, Mobile = 190 },
+        new() { Date = "2024-04-17", Desktop = 446, Mobile = 360 },
+        new() { Date = "2024-04-18", Desktop = 364, Mobile = 410 },
+        new() { Date = "2024-04-19", Desktop = 243, Mobile = 180 },
+        new() { Date = "2024-04-20", Desktop = 89, Mobile = 150 },
+        new() { Date = "2024-04-21", Desktop = 137, Mobile = 200 },
+        new() { Date = "2024-04-22", Desktop = 224, Mobile = 170 },
+        new() { Date = "2024-04-23", Desktop = 138, Mobile = 230 },
+        new() { Date = "2024-04-24", Desktop = 387, Mobile = 290 },
+        new() { Date = "2024-04-25", Desktop = 215, Mobile = 250 },
+        new() { Date = "2024-04-26", Desktop = 75, Mobile = 130 },
+        new() { Date = "2024-04-27", Desktop = 383, Mobile = 420 },
+        new() { Date = "2024-04-28", Desktop = 122, Mobile = 180 },
+        new() { Date = "2024-04-29", Desktop = 315, Mobile = 240 },
+        new() { Date = "2024-04-30", Desktop = 454, Mobile = 380 },
+        new() { Date = "2024-05-01", Desktop = 165, Mobile = 220 },
+        new() { Date = "2024-05-02", Desktop = 293, Mobile = 310 },
+        new() { Date = "2024-05-03", Desktop = 247, Mobile = 190 },
+        new() { Date = "2024-05-04", Desktop = 385, Mobile = 420 },
+        new() { Date = "2024-05-05", Desktop = 481, Mobile = 390 },
+        new() { Date = "2024-05-06", Desktop = 498, Mobile = 520 },
+        new() { Date = "2024-05-07", Desktop = 388, Mobile = 300 },
+        new() { Date = "2024-05-08", Desktop = 149, Mobile = 210 },
+        new() { Date = "2024-05-09", Desktop = 227, Mobile = 180 },
+        new() { Date = "2024-05-10", Desktop = 293, Mobile = 330 },
+        new() { Date = "2024-05-11", Desktop = 335, Mobile = 270 },
+        new() { Date = "2024-05-12", Desktop = 197, Mobile = 240 },
+        new() { Date = "2024-05-13", Desktop = 197, Mobile = 160 },
+        new() { Date = "2024-05-14", Desktop = 448, Mobile = 490 },
+        new() { Date = "2024-05-15", Desktop = 473, Mobile = 380 },
+        new() { Date = "2024-05-16", Desktop = 338, Mobile = 400 },
+        new() { Date = "2024-05-17", Desktop = 499, Mobile = 420 },
+        new() { Date = "2024-05-18", Desktop = 315, Mobile = 350 },
+        new() { Date = "2024-05-19", Desktop = 235, Mobile = 180 },
+        new() { Date = "2024-05-20", Desktop = 177, Mobile = 230 },
+        new() { Date = "2024-05-21", Desktop = 82, Mobile = 140 },
+        new() { Date = "2024-05-22", Desktop = 81, Mobile = 120 },
+        new() { Date = "2024-05-23", Desktop = 252, Mobile = 290 },
+        new() { Date = "2024-05-24", Desktop = 294, Mobile = 220 },
+        new() { Date = "2024-05-25", Desktop = 201, Mobile = 250 },
+        new() { Date = "2024-05-26", Desktop = 213, Mobile = 170 },
+        new() { Date = "2024-05-27", Desktop = 420, Mobile = 460 },
+        new() { Date = "2024-05-28", Desktop = 233, Mobile = 190 },
+        new() { Date = "2024-05-29", Desktop = 78, Mobile = 130 },
+        new() { Date = "2024-05-30", Desktop = 340, Mobile = 280 },
+        new() { Date = "2024-05-31", Desktop = 178, Mobile = 230 },
+        new() { Date = "2024-06-01", Desktop = 178, Mobile = 200 },
+        new() { Date = "2024-06-02", Desktop = 470, Mobile = 410 },
+        new() { Date = "2024-06-03", Desktop = 103, Mobile = 160 },
+        new() { Date = "2024-06-04", Desktop = 439, Mobile = 380 },
+        new() { Date = "2024-06-05", Desktop = 88, Mobile = 140 },
+        new() { Date = "2024-06-06", Desktop = 294, Mobile = 250 },
+        new() { Date = "2024-06-07", Desktop = 323, Mobile = 370 },
+        new() { Date = "2024-06-08", Desktop = 385, Mobile = 320 },
+        new() { Date = "2024-06-09", Desktop = 438, Mobile = 480 },
+        new() { Date = "2024-06-10", Desktop = 155, Mobile = 200 },
+        new() { Date = "2024-06-11", Desktop = 92, Mobile = 150 },
+        new() { Date = "2024-06-12", Desktop = 492, Mobile = 420 },
+        new() { Date = "2024-06-13", Desktop = 81, Mobile = 130 },
+        new() { Date = "2024-06-14", Desktop = 426, Mobile = 380 },
+        new() { Date = "2024-06-15", Desktop = 307, Mobile = 350 },
+        new() { Date = "2024-06-16", Desktop = 371, Mobile = 310 },
+        new() { Date = "2024-06-17", Desktop = 475, Mobile = 520 },
+        new() { Date = "2024-06-18", Desktop = 107, Mobile = 170 },
+        new() { Date = "2024-06-19", Desktop = 341, Mobile = 290 },
+        new() { Date = "2024-06-20", Desktop = 408, Mobile = 450 },
+        new() { Date = "2024-06-21", Desktop = 169, Mobile = 210 },
+        new() { Date = "2024-06-22", Desktop = 317, Mobile = 270 },
+        new() { Date = "2024-06-23", Desktop = 480, Mobile = 530 },
+        new() { Date = "2024-06-24", Desktop = 132, Mobile = 180 },
+        new() { Date = "2024-06-25", Desktop = 141, Mobile = 190 },
+        new() { Date = "2024-06-26", Desktop = 434, Mobile = 380 },
+        new() { Date = "2024-06-27", Desktop = 448, Mobile = 490 },
+        new() { Date = "2024-06-28", Desktop = 149, Mobile = 200 },
+        new() { Date = "2024-06-29", Desktop = 103, Mobile = 160 },
+        new() { Date = "2024-06-30", Desktop = 446, Mobile = 400 }
+    ];
+}

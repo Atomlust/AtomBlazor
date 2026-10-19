@@ -1,0 +1,153 @@
+@namespace AtomBlazor.Primitives
+@implements IDisposable
+@using Microsoft.Extensions.Logging
+@inject ILogger<HoverCardPrimitive> Logger
+
+@* HoverCard 基元根组件——headless，只提供行为不提供样式 *@
+<CascadingValue Value="@_context" IsFixed="false">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    private HoverCardContext _context = new();
+    private UseControllableState<bool> _state = null!;
+
+    /// <summary>
+    /// 上一次向使用者播报的开合状态。
+    /// <para>
+    /// 这里刻意不读 <c>_state.Value</c>——受控模式下它返回 <c>ControlledValue</c>
+    /// 而这个值只由 <see cref="OnParametersSet"/> 刷新，也就只在使用者重渲染时刷新。
+    /// 抑制重渲染的使用者（任何 <c>ShouldRender</c> 覆写）会让它保持过期：
+    /// 于是下一次真正的变化比较起来"相等"，<c>OpenChanged</c> 永远不触发
+    /// 使用者自己的开合标志永远停在 <c>true</c>——与上下文彻底失同步（#437）。
+    /// </para>
+    /// </summary>
+    private bool lastNotifiedOpen;
+
+    /// <summary>
+    /// 接受此参数是为了让带样式的包装层能把自身属性 splat 到这个根上，但它不产生任何效果：
+    /// HoverCard 不渲染自己的元素——它只向子组件提供上下文。
+    /// 请把额外属性放到 HoverCardContent 或 HoverCardTrigger 上。
+    /// 在这里提供属性会让每个组件实例记录一次警告。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private bool rootAttributesWarningLogged;
+
+    /// <summary>
+    /// 在悬浮卡片上下文中渲染的子内容，通常包含 HoverCardTrigger 与 HoverCardContent。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 控制卡片是否展开（受控模式）。为 null 时卡片自行管理状态（非受控模式）。
+    /// </summary>
+    [Parameter]
+    public bool? Open { get; set; }
+
+    /// <summary>
+    /// 开合状态变化时调用的事件回调，配合 <c>@bind-Open</c> 实现双向绑定。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>
+    /// 非受控模式下的默认展开状态。
+    /// </summary>
+    [Parameter]
+    public bool DefaultOpen { get; set; } = false;
+
+    /// <summary>
+    /// 卡片开合状态变化时调用的额外回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OnOpenChange { get; set; }
+
+    /// <summary>
+    /// 展开前的延时（毫秒），默认 700。
+    /// </summary>
+    [Parameter]
+    public int OpenDelay { get; set; } = 700;
+
+    /// <summary>
+    /// 收起前的延时（毫秒），默认 300。
+    /// </summary>
+    [Parameter]
+    public int CloseDelay { get; set; } = 300;
+
+    protected override void OnInitialized()
+    {
+        // 初始化可控状态
+        _state = new UseControllableState<bool>(DefaultOpen)
+        {
+            ControlledValue = Open ?? DefaultOpen,
+            OnValueChanged = OpenChanged,
+            IsControlled = OpenChanged.HasDelegate
+        };
+
+        // 把初始状态同步进上下文
+        _context.State.IsOpen = _state.Value;
+        lastNotifiedOpen = _state.Value;
+        _context.State.OpenDelay = OpenDelay;
+        _context.State.CloseDelay = CloseDelay;
+
+        // 订阅上下文状态变化
+        _context.OnStateChanged += HandleContextStateChanged;
+    }
+
+    protected override void OnParametersSet()
+    {
+        rootAttributesWarningLogged = ContextRootAttributes.WarnOnce(
+            Logger,
+            rootAttributesWarningLogged,
+            "HoverCard",
+            "请把额外属性放到 HoverCardContent 或 HoverCardTrigger 上。",
+            AdditionalAttributes);
+
+        // 受控值变化时跟进
+        if (_state.IsControlled && Open.HasValue && Open.Value != _state.ControlledValue)
+        {
+            _state.ControlledValue = Open.Value;
+            _context.State.IsOpen = Open.Value;
+
+            // 此处以使用者的值为准，因此把它视为已播报——否则下一次变化会
+            // 拿一个从未真正发出去的状态作比较。
+            lastNotifiedOpen = Open.Value;
+        }
+
+        // 跟进延时
+        _context.State.OpenDelay = OpenDelay;
+        _context.State.CloseDelay = CloseDelay;
+    }
+
+    private void HandleContextStateChanged()
+    {
+        // 上下文状态变化（例如来自 HoverCardTrigger）时更新可控状态
+        var newOpenState = _context.State.IsOpen;
+
+        if (lastNotifiedOpen != newOpenState)
+        {
+            lastNotifiedOpen = newOpenState;
+
+            _ = _state.SetValueAsync(newOpenState);
+
+            // 有额外回调时一并调用
+            if (OnOpenChange.HasDelegate)
+            {
+                _ = OnOpenChange.InvokeAsync(newOpenState);
+            }
+        }
+
+        // 无条件重渲染：触发器的 aria-expanded 与 pointer-events 守卫
+        // 以及内容是否挂载，都自上下文状态，因此只要该状态移动
+        // 本子树就必须重绘——即便使用者的受控值并未移动（#437）。
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        _context.OnStateChanged -= HandleContextStateChanged;
+    }
+}

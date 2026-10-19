@@ -1,0 +1,62 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@implements IDisposable
+@inject ILocalizer Localizer
+
+@*
+    带样式的 TabsTrigger 组件。
+    以 shadcn/ui 样式包裹 TabsTrigger 基元。
+
+    关闭入口是一个 span，而不是 button。一个 role="tab" 元素不得包含另一个可交互
+    元素，所以指针得到一个带点击处理函数的图标，键盘得到 Delete——后者由基元抛出。
+    通向同一个回调的两条通路，其中一条是合法的 HTML。
+*@
+
+@if (isRenaming)
+{
+    @* 编辑器取代标签本身、而非坐在其中。文本框位于 role="tab" 之内与关闭按钮是
+       同一个嵌套问题，而一个同时是 Tab 停靠点的输入框会与列表赖以维系的
+       roving tabindex 相争。 *@
+    <input @ref="renameInput"
+           type="text"
+           value="@renameText"
+           @oninput="@(e => renameText = e.Value?.ToString() ?? string.Empty)"
+           @onkeydown="HandleRenameKeyDownAsync"
+           @onblur="CommitRenameAsync"
+           aria-label="@Localizer["Tabs.RenameLabel", EffectiveLabel]"
+           class="@RenameCssClass" />
+}
+else
+{
+    <AtomBlazor.Primitives.TabsTrigger Value="@Value"
+                                                Disabled="@Disabled"
+                                                OnCloseRequested="@RequestCloseAsync"
+                                                OnRenameRequested="@BeginRenameAsync"
+                                                OnMoveRequested="@HandleKeyboardMoveAsync"
+                                                class="@CssClass"
+                                                data-tab-value="@Value"
+                                                draggable="@(IsReorderable ? "true" : null)"
+                                                @ondblclick="HandleDoubleClickAsync"
+                                                @attributes="AdditionalAttributes">
+        @if (ChildContent is not null)
+        {
+            @ChildContent
+        }
+        else
+        {
+            @EffectiveLabel
+        }
+
+        @if (IsClosable && !Disabled)
+        {
+            <span role="presentation"
+                  aria-hidden="true"
+                  class="@CloseCssClass"
+                  title="@Localizer["Tabs.Close"]"
+                  @onclick="HandleCloseClickAsync"
+                  @onclick:stopPropagation="true">
+                <LucideIcon Name="x" Size="12" />
+            </span>
+        }
+    </AtomBlazor.Primitives.TabsTrigger>
+}

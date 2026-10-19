@@ -1,0 +1,362 @@
+@namespace AtomBlazor.Primitives
+@using System.ComponentModel
+@using AtomBlazor.Primitives.Services
+@inject IJSRuntime JSRuntime
+@inject IFocusManager FocusManager
+@implements IAsyncDisposable
+
+@*
+    DropdownMenuContent 是 DropdownMenu 的主内容容器。
+    使用 FloatingPortal 提供传送（portal）/定位基础设施。
+    维护 DropdownMenu 特有的行为：点击外部关闭、键盘导航、焦点管理。
+*@
+
+<FloatingPortal IsOpen="@(Context.IsOpen && Context.State.TriggerElement.HasValue)"
+                AnchorElement="@Context.State.TriggerElement"
+                PortalId="@_portalId"
+                Side="@Side"
+                Align="@Align"
+                Offset="@Offset"
+                MatchAnchorWidth="@MatchTriggerWidth"
+                Strategy="@Strategy"
+                ZIndex="@ZIndex"
+                ForceMount="@ForceMount"
+                SideElementId="@Context.ContentId"
+                RestoreFocusToId="@Context.TriggerId"
+                RestoreFocusOnClose="@Context.State.RestoreFocusOnClose"
+                Dismiss="@BuildDismissOptions()"
+                Keyboard="@BuildKeyboardOptions()"
+                OnDismiss="@HandleDismissAsync">
+    @RenderDropdownContent()
+</FloatingPortal>
+
+@code {
+    [CascadingParameter]
+    private DropdownMenuContext Context { get; set; } = null!;
+
+    /// <summary>
+    /// DropdownMenu 内部渲染的内容。
+    /// 通常包含 DropdownMenuItem、DropdownMenuLabel、DropdownMenuSeparator 等。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用于内容容器的附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 按下 Escape 键是否应关闭 DropdownMenu。
+    /// 默认值为 true。
+    /// </summary>
+    [Parameter]
+    public bool CloseOnEscape { get; set; } = true;
+
+    /// <summary>
+    /// 点击外部区域是否应关闭 DropdownMenu。
+    /// 默认值为 true。
+    /// </summary>
+    [Parameter]
+    public bool CloseOnClickOutside { get; set; } = true;
+
+    /// <summary>
+    /// 定位时偏好的方向侧。
+    /// 默认值为 Bottom。
+    /// </summary>
+    [Parameter]
+    public PopoverSide Side { get; set; } = PopoverSide.Bottom;
+
+    /// <summary>
+    /// 相对于触发器的对齐方式。
+    /// 默认值为 Start。
+    /// </summary>
+    [Parameter]
+    public PopoverAlign Align { get; set; } = PopoverAlign.Start;
+
+    /// <summary>
+    /// 距触发器元素的偏移距离（像素）。
+    /// 默认值为 4。
+    /// </summary>
+    [Parameter]
+    public int Offset { get; set; } = 4;
+
+    /// <summary>
+    /// 按下 Escape 键时触发的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<KeyboardEventArgs> OnEscapeKeyDown { get; set; }
+
+    /// <summary>
+    /// 点击 DropdownMenu 外部区域时触发的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback OnClickOutside { get; set; }
+
+    /// <summary>
+    /// 是否启用键盘循环导航（从最后一项回到第一项）。
+    /// 默认值为 true。
+    /// </summary>
+    [Parameter]
+    public bool Loop { get; set; } = true;
+
+    /// <summary>
+    /// DropdownMenu 的 z-index 值。
+    /// 默认值为 50。
+    /// </summary>
+    [Parameter]
+    public int ZIndex { get; set; } = 50;
+
+    /// <summary>
+    /// DropdownMenu 内容是否应与触发器宽度一致。
+    /// 默认值为 false。
+    /// </summary>
+    [Parameter]
+    public bool MatchTriggerWidth { get; set; } = false;
+
+    /// <summary>
+    /// 关闭时是否将内容保留挂载在 DOM 中。
+    /// 为 true 时，可启用 CSS 退出动画。
+    /// 默认值为 false。
+    /// </summary>
+    [Parameter]
+    public bool ForceMount { get; set; } = false;
+
+    /// <summary>
+    /// 定位策略："absolute"（默认）或 "fixed"。
+    /// 当 DropdownMenu 需要脱离父级层叠上下文（例如在侧边栏中）时使用 "fixed"。
+    /// fixed 策略渲染在 document.body 层级。
+    /// </summary>
+    [Parameter]
+    public PositioningStrategy Strategy { get; set; } = PositioningStrategy.Absolute;
+
+    private MenuScope menuScope = null!;
+    private ElementReference _contentRef;
+    private DotNetObjectReference<DropdownMenuContent>? _dotNetRef;
+    private bool _disposed = false;
+    private string _portalId = "";
+
+    protected override void OnInitialized()
+    {
+        if (Context == null)
+        {
+            throw new InvalidOperationException(
+                "DropdownMenuContent must be used within a DropdownMenu component. " +
+                "Ensure DropdownMenuContent is a child of a DropdownMenu component.");
+        }
+
+        menuScope = new MenuScope(() => Context.IsOpen, () => { Context.Close(restoreFocus: true); return Task.CompletedTask; });
+
+        _portalId = $"dropdown-portal-{Context.ContentId}";
+
+        // Subscribe to context changes
+        Context.OnStateChanged += HandleContextStateChanged;
+    }
+
+    private RenderFragment RenderDropdownContent() => __builder =>
+    {
+        <div @ref="_contentRef" dir="@Context.Dir"
+             id="@Context.ContentId"
+             role="menu"
+             aria-labelledby="@Context.TriggerId"
+             tabindex="-1"
+             data-autofocus
+             @attributes="GetAttributesWithoutStyle()"
+             data-state="@(Context.IsOpen ? "open" : "closed")"
+             data-side="@Side.ToValue()">
+            <CascadingValue Value="Context" IsFixed="true">
+                <CascadingValue Value="this" Name="DropdownMenuContentContext" IsFixed="true">
+                    <CascadingValue Value="menuScope" IsFixed="true">
+                        @ChildContent
+                    </CascadingValue>
+                </CascadingValue>
+            </CascadingValue>
+        </div>
+    };
+
+    // Declared rather than wired. FloatingPortal attaches the menu's key handling inside the
+    // same interop call that positions and reveals it, and releases it inside the one that closes
+    // it. Both used to be separately awaited calls from a ready callback that itself only ran
+    // after the browser acknowledged the content's render batch — so the menu was on screen and
+    // deaf to the arrow keys for a further round trip.
+    //
+    // matchTriggerWidth is gone from here entirely rather than folded in. MatchAnchorWidth above
+    // already asks Floating UI's size middleware for the same width on every position pass, and
+    // autoUpdate re-runs that on resize, so the separate ResizeObserver was a second writer of one
+    // style — bought with an awaited interop call that also allocated a JS object reference to
+    // dispose later.
+    private FloatingKeyboardOptions? BuildKeyboardOptions()
+    {
+        if (Context == null)
+        {
+            return null;
+        }
+
+        return new FloatingKeyboardOptions
+        {
+            Kind = FloatingKeyboardKind.Menu,
+            ContentId = Context.ContentId,
+            CallbackRef = _dotNetRef ??= DotNetObjectReference.Create(this),
+            Loop = Loop,
+            Mode = "vertical"
+        };
+    }
+
+    // Declared rather than wired, so FloatingPortal registers the listener in the same interop
+    // call that positions and reveals the menu.
+    //
+    // This also moves the menu from the element-based onClickOutside to the id-based one, which
+    // matters for more than the round trip. The element variant captured the content node once at
+    // registration, so a Blazor re-render that replaced it left `contains` testing a detached
+    // node — every click then read as outside. And it had no exemption for nested portals, so any
+    // portal-based component placed inside a menu (a Select, a Popover) rendered at body level,
+    // outside the menu's DOM subtree, and clicking it closed the menu underneath. The id-based
+    // variant re-resolves both elements per event and tracks which portal an interaction started
+    // in.
+    //
+    // Escape is not listed: the menu watches it through menuKeyboard.initialize, alongside the
+    // arrow keys and typeahead.
+    private FloatingDismissOptions? BuildDismissOptions()
+    {
+        if (!CloseOnClickOutside && !OnClickOutside.HasDelegate)
+        {
+            return null;
+        }
+
+        return new FloatingDismissOptions
+        {
+            ContentId = Context.ContentId,
+            TriggerId = Context.TriggerId,
+            OnOutsideInteraction = true
+        };
+    }
+
+    private async Task HandleDismissAsync(FloatingDismissReason reason)
+    {
+        if (_disposed || reason != FloatingDismissReason.OutsideInteraction || !Context.IsOpen) return;
+
+        if (OnClickOutside.HasDelegate)
+        {
+            await OnClickOutside.InvokeAsync();
+        }
+
+        if (CloseOnClickOutside)
+        {
+            Context.Close();
+        }
+    }
+
+    private Dictionary<string, object>? GetAttributesWithoutStyle()
+    {
+        if (AdditionalAttributes == null) return null;
+
+        // Create a copy without the style attribute
+        var attributes = new Dictionary<string, object>(AdditionalAttributes);
+        attributes.Remove("style");
+
+        return attributes.Count > 0 ? attributes : null;
+    }
+
+    private void HandleContextStateChanged()
+    {
+        _ = InvokeAsync(HandleContextStateChangedAsync);
+    }
+
+    private async Task HandleContextStateChangedAsync()
+    {
+        try
+        {
+            if (!Context.IsOpen)
+            {
+                // Capture both the trigger ref and the restore flag before teardown.
+                // Focus goes back to the trigger inside overlay.close, through the portal's
+                // RestoreFocusToId and RestoreFocusOnClose above — for an intentional close
+                // only. Awaiting FocusAsync from here was a round trip on every Escape.
+                await CleanupAsync();
+                StateHasChanged();
+            }
+            // No StateHasChanged for the open. DropdownMenu re-renders unconditionally on every context
+            // change (#437), and this content is in its subtree, so it is already re-rendered
+            // in that same batch. Rendering it a second time here made FloatingPortal raise
+            // RefreshPortal while the host's render cycle was still open — the host had drawn
+            // this exact content moments earlier in the same batch — and the host, unable to
+            // tell that from a genuine mid-cycle update (#418), deferred a flush that landed one
+            // round trip after the overlay was already on screen. Every open paid for it.
+        }
+        catch (Exception ex) when (ex is ObjectDisposedException or TaskCanceledException)
+        {
+            // Component may be disposed during async operation
+        }
+    }
+
+    [JSInvokable]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public async Task JsOnEscapeKey()
+    {
+        if (_disposed) { return; }
+
+        if (OnEscapeKeyDown.HasDelegate)
+        {
+            await OnEscapeKeyDown.InvokeAsync(new KeyboardEventArgs { Key = "Escape" });
+        }
+
+        if (CloseOnEscape)
+        {
+            // Escape is an intentional dismiss — return focus to the trigger.
+            Context.Close(restoreFocus: true);
+        }
+    }
+
+    // Cleanup has two callers — the close path and DisposeAsync — and a close racing a teardown
+    // puts both in flight at once. Each block therefore takes ownership of what it is about to
+    // release, clearing the field before the first await, so the second caller sees nothing to do
+    // rather than dereferencing a field the first one nulled while suspended. Reading the field
+    // after an await instead threw a NullReferenceException, which no filter here catches, so it
+    // escaped DisposeAsync into the renderer's disposal queue and took the circuit down (#441).
+    private Task CleanupAsync()
+    {
+        // The menu's key handlers are released by overlay.close, in the same call that hides the
+        // element, so a close no longer reaches here at all — only a teardown does, and by then
+        // the close has already run. Releasing them again from here would be a round trip spent
+        // removing a listener that is already gone.
+
+        // Dispose DotNetObjectReference to prevent stale callbacks
+        var dotNetRef = _dotNetRef;
+        if (dotNetRef != null)
+        {
+            _dotNetRef = null;
+            dotNetRef.Dispose();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed) { return; }
+        _disposed = true;
+
+        try
+        {
+            await CleanupAsync();
+        }
+        catch (Exception)
+        {
+            // Disposal runs inside the renderer's disposal queue, where anything that escapes
+            // is unhandled and tears down the whole circuit. A teardown-time cleanup failure is
+            // not worth that, so it stops here — the races it can hit are handled above.
+        }
+
+
+
+
+        _dotNetRef?.Dispose();
+
+        if (Context != null)
+        {
+            Context.OnStateChanged -= HandleContextStateChanged;
+        }
+    }
+
+}

@@ -1,0 +1,64 @@
+@namespace AtomBlazor.Primitives
+
+@* ScrollArea 基元——headless 自定义滚动条容器，具备无障碍支持。 *@
+
+<CascadingValue Value="context" IsFixed="true">
+    <div data-orientation="@Orientation.ToString().ToLower()"
+         data-scrollarea
+         style="@MergedStyle"
+         @attributes="NonStyleAttributes">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    private ScrollAreaContext context = default!;
+
+    /// <summary>
+    /// 获取或设置可滚动方向。默认为 Vertical。
+    /// </summary>
+    [Parameter]
+    public ScrollAreaOrientation Orientation { get; set; } = ScrollAreaOrientation.Vertical;
+
+    /// <summary>
+    /// 获取或设置子内容（Viewport、Scrollbar 子组件）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    protected override void OnInitialized()
+    {
+        context = new ScrollAreaContext { Orientation = Orientation };
+    }
+
+    private string MergedStyle
+    {
+        get
+        {
+            var baseStyle = "position: relative; overflow: hidden";
+            var consumerStyle = AdditionalAttributes?.TryGetValue("style", out var s) == true ? s?.ToString() : null;
+            return string.IsNullOrEmpty(consumerStyle) ? baseStyle : $"{baseStyle}; {consumerStyle}";
+        }
+    }
+
+    private Dictionary<string, object>? NonStyleAttributes
+    {
+        get
+        {
+            if (AdditionalAttributes == null || !AdditionalAttributes.ContainsKey("style"))
+            {
+                return AdditionalAttributes;
+            }
+
+            var filtered = new Dictionary<string, object>(AdditionalAttributes);
+            filtered.Remove("style");
+            return filtered.Count > 0 ? filtered : null;
+        }
+    }
+}

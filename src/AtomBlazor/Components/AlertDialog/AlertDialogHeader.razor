@@ -1,0 +1,37 @@
+@namespace AtomBlazor
+
+@*
+    警告对话框页头 - 包含标题和描述。
+*@
+
+<div class="@CssClass" @attributes="AdditionalAttributes">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// 在页头中呈现的内容（通常为 AlertDialogTitle 和 AlertDialogDescription）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用到页头的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取为页头计算得到的 CSS 类。
+    /// </summary>
+    private string CssClass => ClassNames.cn(
+        "atom:flex atom:flex-col atom:space-y-2 atom:text-center atom:sm:text-start",
+        Class
+    );
+}

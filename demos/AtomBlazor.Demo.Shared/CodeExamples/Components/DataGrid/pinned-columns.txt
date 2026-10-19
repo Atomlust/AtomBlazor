@@ -1,0 +1,31 @@
+<div style="max-width: 700px; overflow-x: auto;">
+    <DataGrid TData="Person" Items="@people"
+                SelectionMode="DataTableSelectionMode.Multiple">
+        <Columns>
+            <DataGridSelectColumn TData="Person" Pinned="ColumnPinning.Left" />
+            <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)"
+                                      Sortable Pinned="ColumnPinning.Left" Width="180px" />
+            <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" Width="220px" />
+            <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Width="180px" />
+            <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Role)" Width="160px" />
+            <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Age)" Width="100px" />
+            <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Width="140px" />
+            <DataGridTemplateColumn TData="Person" Title="Actions"
+                                      Pinned="ColumnPinning.Right" Width="200px">
+                <ChildContent Context="person">
+                    <div @onclick:stopPropagation="true">
+                        <SplitButton Variant="ButtonVariant.Outline" Size="ButtonSize.Small">
+                            <ChildContent>Edit</ChildContent>
+                            <DropdownContent>
+                                <SplitButtonItem>Duplicate</SplitButtonItem>
+                                <SplitButtonItem>Archive</SplitButtonItem>
+                                <SplitButtonSeparator />
+                                <SplitButtonItem>Delete</SplitButtonItem>
+                            </DropdownContent>
+                        </SplitButton>
+                    </div>
+                </ChildContent>
+            </DataGridTemplateColumn>
+        </Columns>
+    </DataGrid>
+</div>

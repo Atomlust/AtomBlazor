@@ -1,0 +1,31 @@
+@namespace AtomBlazor.Primitives
+@typeparam TValue
+
+<div @attributes="AdditionalAttributes" role="group" aria-disabled="@(Disabled ? "true" : null)">
+    <CascadingValue Value="this" IsFixed="false">
+        @ChildContent
+    </CascadingValue>
+</div>
+
+@code {
+    /// <summary>当前选中的值。</summary>
+    [Parameter] public TValue? Value { get; set; }
+    /// <summary>选中的值发生变化时调用。</summary>
+    [Parameter] public EventCallback<TValue> ValueChanged { get; set; }
+    /// <summary>禁用组内的所有项。</summary>
+    [Parameter] public bool Disabled { get; set; }
+    /// <summary>单选（radio）项。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>HTML 属性，包括一个可访问的分组标签。</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    internal bool IsSelected(TValue? value) => EqualityComparer<TValue>.Default.Equals(Value, value);
+
+    internal async Task SelectAsync(TValue value)
+    {
+        if (Disabled || IsSelected(value)) { return; }
+        Value = value;
+        await ValueChanged.InvokeAsync(value);
+        StateHasChanged();
+    }
+}

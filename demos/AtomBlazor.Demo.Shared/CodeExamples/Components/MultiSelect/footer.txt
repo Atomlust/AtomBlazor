@@ -1,0 +1,16 @@
+<MultiSelect TValue="string" @ref="footerSelect" @bind-Values="footerValues" Options="footerOptions">
+    <FooterContent>
+        <div class="flex items-center justify-between gap-3">
+            <span class="text-sm">@(footerValues?.Count() ?? 0) selected</span>
+            <Button Size="ButtonSize.Small" OnClick="ApplyFooterSelection">Apply</Button>
+        </div>
+    </FooterContent>
+</MultiSelect>
+
+@code {
+    private MultiSelect<string>? footerSelect;
+    // MultiSelect reports null, not an empty sequence, once the last value is removed.
+    private IEnumerable<string>? footerValues = [];
+    private readonly SelectOption<string>[] footerOptions = [new("Design", "Design"), new("Engineering", "Engineering"), new("Support", "Support")];
+    private Task ApplyFooterSelection() => footerSelect?.CloseAsync() ?? Task.CompletedTask;
+}

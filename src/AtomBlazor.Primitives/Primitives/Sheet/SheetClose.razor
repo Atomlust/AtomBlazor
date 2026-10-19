@@ -1,0 +1,112 @@
+@namespace AtomBlazor.Primitives
+@using AtomBlazor.Primitives.Utilities
+@inject IServiceProvider Services
+
+@*
+    SheetClose 提供用于关闭 Sheet 的按钮。
+    可在 Sheet 内多次使用（例如 X 按钮、取消按钮等）。
+*@
+
+@if (AsChild)
+{
+    @* 当 AsChild 为 true 时，将触发上下文传递给子组件由其处理 *@
+    <CascadingValue Value="TriggerContext" Name="TriggerContext">
+        @ChildContent
+    </CascadingValue>
+}
+else
+{
+    <button type="button"
+            @onclick="HandleClick"
+            @attributes="AdditionalAttributes">
+        @ChildContent
+    </button>
+}
+
+@code {
+    [CascadingParameter]
+    private SheetContext Context { get; set; } = null!;
+
+    /// <summary>
+    /// 显示在关闭按钮内部的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 为 true 时，关闭按钮不渲染自身的按钮元素。
+    /// 而是通过 TriggerContext 将触发行为传递给子组件。
+    /// 当你希望某个自定义组件（如 Button）充当关闭按钮时，可使用此项。
+    /// </summary>
+    [Parameter]
+    public bool AsChild { get; set; } = false;
+
+    /// <summary>
+    /// 应用到关闭按钮元素的附加特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 自定义点击处理程序。在 Sheet 关闭后调用。
+    /// </summary>
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    /// <summary>
+    /// 是否阻止默认的关闭行为。
+    /// 为 true 时，仅调用 OnClick 处理程序。
+    /// 默认值为 false（点击时关闭 Sheet）。
+    /// </summary>
+    [Parameter]
+    public bool PreventClose { get; set; } = false;
+
+    private static readonly AsChildTriggerDescription diagnostic = new("SheetClose", "close this sheet", "<button>");
+
+    // The context the last render cascaded, kept so the first after-render can ask whether
+    // anything read it.
+    private TriggerContext? lastTriggerContext;
+
+    /// <summary>
+    /// 当 AsChild 为 true 时传递给子组件的上下文。
+    /// 对于关闭按钮，我们仅提供 Close（而非 Toggle），以便 Button
+    /// 知悉这是一个仅用于关闭的操作。
+    /// </summary>
+    private TriggerContext TriggerContext => lastTriggerContext = new()
+    {
+        IsOpen = Context.IsOpen,
+        // Note: Toggle is intentionally null - this tells Button it's a close-only button
+        Close = () => Context.Close()
+    };
+
+    protected override void OnInitialized()
+    {
+        if (Context == null)
+        {
+            throw new InvalidOperationException(
+                "SheetClose must be used within a Sheet component. " +
+                "Ensure SheetClose is a child of a Sheet component.");
+        }
+    }
+
+    private async Task HandleClick(MouseEventArgs args)
+    {
+        if (!PreventClose)
+        {
+            Context.Close();
+        }
+
+        if (OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync(args);
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            AsChildDiagnostics.WarnIfUnconsumed<SheetClose>(Services, diagnostic, AsChild, lastTriggerContext, AdditionalAttributes);
+        }
+    }
+}

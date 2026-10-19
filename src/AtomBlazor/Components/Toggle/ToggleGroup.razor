@@ -1,0 +1,110 @@
+@namespace AtomBlazor
+@typeparam TValue
+@attribute [CascadingTypeParameter(nameof(TValue))]
+
+<AtomBlazor.Primitives.ToggleGroup TValue="TValue"
+    Type="@MappedType"
+    Value="@Value"
+    ValueChanged="@ValueChanged"
+    DefaultValue="@DefaultValue"
+    Values="@Values"
+    ValuesChanged="@ValuesChanged"
+    Disabled="@Disabled"
+    Required="@Required"
+    class="@CssClass"
+    @attributes="AdditionalAttributes">
+    <CascadingValue Value="this" IsFixed="true">
+        @ChildContent
+    </CascadingValue>
+</AtomBlazor.Primitives.ToggleGroup>
+
+@code {
+    /// <summary>
+    /// 获取或设置当前选中的值（单选模式）。
+    /// </summary>
+    [Parameter]
+    public TValue? Value { get; set; }
+
+    /// <summary>
+    /// 获取或设置选中值变化时调用的回调（单选模式）。
+    /// </summary>
+    [Parameter]
+    public EventCallback<TValue?> ValueChanged { get; set; }
+
+    /// <summary>
+    /// 获取或设置非受控单选的默认值。
+    /// </summary>
+    [Parameter]
+    public TValue? DefaultValue { get; set; }
+
+    /// <summary>
+    /// 获取或设置选择类型（单选 Single 或多选 Multiple）。
+    /// </summary>
+    [Parameter]
+    public ToggleGroupType Type { get; set; } = ToggleGroupType.Single;
+
+    /// <summary>
+    /// 获取或设置当前选中的值集合（多选模式）。
+    /// </summary>
+    [Parameter]
+    public List<TValue>? Values { get; set; }
+
+    /// <summary>
+    /// 获取或设置选中值集合变化时调用的回调（多选模式）。
+    /// </summary>
+    [Parameter]
+    public EventCallback<List<TValue>> ValuesChanged { get; set; }
+
+    /// <summary>
+    /// 获取或设置组内各项的视觉样式变体。
+    /// </summary>
+    [Parameter]
+    public ToggleVariant Variant { get; set; } = ToggleVariant.Default;
+
+    /// <summary>
+    /// 获取或设置组内各项的尺寸。
+    /// </summary>
+    [Parameter]
+    public ToggleSize Size { get; set; } = ToggleSize.Default;
+
+    /// <summary>
+    /// 获取或设置组是否禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到组上的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取或设置的子内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>阻止移除最后一个选中值；请提供初始选中项。</summary>
+    [Parameter] public bool Required { get; set; }
+
+    /// <summary>当各项超出可用宽度时允许横向滚动。</summary>
+    [Parameter] public bool Scrollable { get; set; }
+
+    private Primitives.ToggleGroupType MappedType =>
+        Type == ToggleGroupType.Multiple
+            ? Primitives.ToggleGroupType.Multiple
+            : Primitives.ToggleGroupType.Single;
+
+    private string CssClass => ClassNames.cn(
+        "atom:flex atom:items-center atom:gap-1",
+        Scrollable ? "atom:justify-start atom:overflow-x-auto atom:[&>*]:shrink-0 atom:py-1" : "atom:justify-center",
+        Class
+    );
+}

@@ -1,0 +1,41 @@
+@inherits LayoutComponentBase
+@inject DemoCultureService CultureService
+
+<PageTitle>@CultureService.T("Atom BlazorUI 组件文档站", "Atom BlazorUI Demo")</PageTitle>
+
+@* 整棵树都在 provider 之内，浮层宿主也是：经门户宿主渲染的浮层同样需要书写方向。 *@
+<DirectionProvider Direction="@direction">
+    @* 语言快照级联下发：版本递增即唤醒整棵渲染树，页面双语文本经 Culture.T(...) 就地二选一。 *@
+    <CascadingValue Value="CultureService.Snapshot" IsFixed="false">
+    <SidebarProvider DefaultOpen="true" HeightClass="h-screen">
+        <DemoSidebar />
+
+        <SidebarInset Class="overflow-hidden">
+            <header class="flex h-16 shrink-0 items-center gap-4 border-b bg-background px-4 z-10 focus:outline-none">
+                <SidebarTrigger />
+                <DemoPager />
+                <div class="ms-auto flex items-center gap-2">
+                    <CommandSearch />
+                    <AnimationToggle />
+                    <DirectionToggle Direction="@direction" DirectionChanged="@(value => direction = value)" />
+                    <LanguageToggle />
+                    <DarkModeToggle />
+                    <ThemeSwitcher />
+                </div>
+            </header>
+
+            <div id="main-content" class="flex-1 overflow-auto p-6 md:p-8">
+                @Body
+            </div>
+        </SidebarInset>
+    </SidebarProvider>
+
+    <ToastProvider Position="ToastPosition.BottomRight" />
+    <DialogProvider />
+    <PortalHost />
+    </CascadingValue>
+</DirectionProvider>
+
+@code {
+    private TextDirection direction = TextDirection.LeftToRight;
+}

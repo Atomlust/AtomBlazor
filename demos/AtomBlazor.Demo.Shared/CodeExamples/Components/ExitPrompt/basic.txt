@@ -1,0 +1,20 @@
+@* While the draft differs from what was saved, leaving is held and confirmed. *@
+<ExitPrompt Enabled="@dirty" />
+
+<FormFieldInput Label="Draft title" Value="@title" ValueChanged="@OnTitleChanged" TValue="string" />
+<Button OnClick="Save" Disabled="@(!dirty)">Save</Button>
+
+@code {
+    private const string Original = "Quarterly report";
+
+    private string title = Original;
+    private bool dirty;
+
+    private void OnTitleChanged(string value)
+    {
+        title = value;
+        dirty = !string.Equals(title, Original, StringComparison.Ordinal);
+    }
+
+    private void Save() => dirty = false;
+}

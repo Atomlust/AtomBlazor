@@ -1,0 +1,30 @@
+@inject DialogService DialogService
+
+private async Task HandleDelete()
+{
+    // ConfirmAsync returns a ConfirmDialogResult, not a bool.
+    var result = await DialogService.ConfirmAsync(
+        "Delete item?",
+        "This action cannot be undone.");
+
+    if (result.Confirmed)
+    {
+        // Perform delete
+    }
+}
+
+// With custom options:
+var result = await DialogService.ConfirmAsync(
+    "Delete item?",
+    "This action cannot be undone.",
+    new ConfirmDialogOptions
+    {
+        ConfirmText = "Yes, delete",
+        CancelText = "Keep it",
+        Destructive = true
+    });
+
+if (result.Confirmed)
+{
+    // Perform delete
+}

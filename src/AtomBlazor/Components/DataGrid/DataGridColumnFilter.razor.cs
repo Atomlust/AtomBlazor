@@ -1,0 +1,262 @@
+using AtomBlazor.Primitives.Filtering;
+using Microsoft.AspNetCore.Components;
+using AtomBlazor.Primitives;
+
+namespace AtomBlazor;
+
+/// <summary>
+/// 在弹出气泡（popover）内渲染按列筛选的 UI。显示一个运算符下拉框，
+/// 以及一个随类型变化的取值输入框，并带有“应用”和“清除”按钮。
+/// </summary>
+public partial class DataGridColumnFilter : ComponentBase
+{
+    private Primitives.Filtering.FilterCondition editCondition = new();
+    private IEnumerable<SelectOption<FilterOperator>>? operatorOptions;
+    private bool hasInitializedEditCondition;
+    private Primitives.Filtering.FilterCondition? trackedCurrentFilter;
+
+    [Inject] private ILocalizer Localizer { get; set; } = default!;
+
+    private IEnumerable<SelectOption<InLastPeriod>> InLastPeriodOptions => new[]
+    {
+        new SelectOption<InLastPeriod>(InLastPeriod.Days, Localizer["FilterBuilder.Days"]),
+        new SelectOption<InLastPeriod>(InLastPeriod.Weeks, Localizer["FilterBuilder.Weeks"]),
+        new SelectOption<InLastPeriod>(InLastPeriod.Months, Localizer["FilterBuilder.Months"]),
+        new SelectOption<InLastPeriod>(InLastPeriod.Hours, Localizer["FilterBuilder.Hours"]),
+        new SelectOption<InLastPeriod>(InLastPeriod.Minutes, Localizer["FilterBuilder.Minutes"]),
+        new SelectOption<InLastPeriod>(InLastPeriod.Seconds, Localizer["FilterBuilder.Seconds"])
+    };
+
+    private IEnumerable<SelectOption<DatePreset>> DatePresetOptions => new[]
+    {
+        new SelectOption<DatePreset>(DatePreset.Today, Localizer["FilterBuilder.Today"]),
+        new SelectOption<DatePreset>(DatePreset.Yesterday, Localizer["FilterBuilder.Yesterday"]),
+        new SelectOption<DatePreset>(DatePreset.Tomorrow, Localizer["FilterBuilder.Tomorrow"]),
+        new SelectOption<DatePreset>(DatePreset.ThisWeek, Localizer["FilterBuilder.ThisWeek"]),
+        new SelectOption<DatePreset>(DatePreset.LastWeek, Localizer["FilterBuilder.LastWeek"]),
+        new SelectOption<DatePreset>(DatePreset.NextWeek, Localizer["FilterBuilder.NextWeek"]),
+        new SelectOption<DatePreset>(DatePreset.ThisMonth, Localizer["FilterBuilder.ThisMonth"]),
+        new SelectOption<DatePreset>(DatePreset.LastMonth, Localizer["FilterBuilder.LastMonth"]),
+        new SelectOption<DatePreset>(DatePreset.NextMonth, Localizer["FilterBuilder.NextMonth"]),
+        new SelectOption<DatePreset>(DatePreset.ThisQuarter, Localizer["FilterBuilder.ThisQuarter"]),
+        new SelectOption<DatePreset>(DatePreset.LastQuarter, Localizer["FilterBuilder.LastQuarter"]),
+        new SelectOption<DatePreset>(DatePreset.ThisYear, Localizer["FilterBuilder.ThisYear"]),
+        new SelectOption<DatePreset>(DatePreset.LastYear, Localizer["FilterBuilder.LastYear"])
+    };
+
+    /// <summary>
+    /// 用作筛选表头标签的列标题。
+    /// </summary>
+    [Parameter]
+    public string? ColumnTitle { get; set; }
+
+    /// <summary>
+    /// 决定可用运算符与取值输入框的筛选字段类型。
+    /// </summary>
+    [Parameter]
+    public FilterFieldType FieldType { get; set; }
+
+    /// <summary>
+    /// 用于 FilterCondition.Field 属性的字段名。
+    /// </summary>
+    [Parameter]
+    public string FieldName { get; set; } = "";
+
+    /// <summary>
+    /// Enum 类型筛选字段的预定义选项。
+    /// </summary>
+    [Parameter]
+    public IEnumerable<SelectOption<string>>? FilterOptions { get; set; }
+
+    /// <summary>
+    /// 当前活动的筛选条件；若无筛选活动则为 null。
+    /// </summary>
+    [Parameter]
+    public Primitives.Filtering.FilterCondition? CurrentFilter { get; set; }
+
+    /// <summary>
+    /// 应用筛选时调用的回调，传入新的条件。
+    /// </summary>
+    [Parameter]
+    public EventCallback<Primitives.Filtering.FilterCondition> OnApply { get; set; }
+
+    /// <summary>
+    /// 清除筛选时调用的回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback OnClear { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        operatorOptions = FilterOperatorHelper.GetOperatorOptions(FieldType, key => Localizer[key]);
+
+        // Only reset the edit condition when the external CurrentFilter actually changes.
+        // Re-renders caused by portal registrations (e.g. Select opening its dropdown)
+        // must NOT discard the user's in-progress edits.
+        if (!hasInitializedEditCondition || !ReferenceEquals(CurrentFilter, trackedCurrentFilter))
+        {
+            hasInitializedEditCondition = true;
+            trackedCurrentFilter = CurrentFilter;
+
+            if (CurrentFilter != null)
+            {
+                editCondition = CurrentFilter.Clone();
+            }
+            else
+            {
+                ResetEditCondition();
+            }
+        }
+    }
+
+    private void ResetEditCondition()
+    {
+        var operators = FilterOperatorHelper.GetOperatorsForType(FieldType);
+        editCondition = new Primitives.Filtering.FilterCondition
+        {
+            Field = FieldName,
+            Operator = operators.Length > 0 ? operators[0] : default
+        };
+    }
+
+    private void HandleOperatorChanged(FilterOperator newOperator)
+    {
+        var previousOperator = editCondition.Operator;
+        editCondition.Operator = newOperator;
+
+        if (FilterOperatorHelper.IsValuelessOperator(editCondition.Operator))
+        {
+            editCondition.Value = null;
+            editCondition.ValueEnd = null;
+        }
+        else if (FilterOperatorHelper.IsRangeOperator(editCondition.Operator) != FilterOperatorHelper.IsRangeOperator(previousOperator))
+        {
+            editCondition.Value = null;
+            editCondition.ValueEnd = null;
+        }
+        else if (FilterOperatorHelper.IsDatePresetOperator(editCondition.Operator) != FilterOperatorHelper.IsDatePresetOperator(previousOperator))
+        {
+            editCondition.Value = FilterOperatorHelper.IsDatePresetOperator(editCondition.Operator) ? DatePreset.Today : null;
+            editCondition.ValueEnd = null;
+        }
+    }
+
+    private async Task HandleApply()
+    {
+        editCondition.Field = FieldName;
+        await OnApply.InvokeAsync(editCondition.Clone());
+    }
+
+    private async Task HandleClear()
+    {
+        ResetEditCondition();
+        await OnClear.InvokeAsync();
+    }
+
+    // String value helpers
+    private string GetStringValue() => editCondition.Value as string ?? "";
+
+    private void HandleStringValueChanged(string? value) => editCondition.Value = value;
+
+    // Double value helpers
+    private double GetDoubleValue() => editCondition.Value switch
+    {
+        double d => d,
+        int i => i,
+        float f => f,
+        decimal m => (double)m,
+        _ => 0
+    };
+
+    private double GetDoubleValueEnd() => editCondition.ValueEnd switch
+    {
+        double d => d,
+        int i => i,
+        float f => f,
+        decimal m => (double)m,
+        _ => 0
+    };
+
+    private void HandleDoubleValueChanged(double value) => editCondition.Value = value;
+
+    private void HandleDoubleValueEndChanged(double value) => editCondition.ValueEnd = value;
+
+    // DateTime value helpers
+    private DateTime? GetDateTimeValue() => editCondition.Value switch
+    {
+        DateTime dt => dt,
+        _ => null
+    };
+
+    private void HandleDateTimeValueChanged(DateTime? value) => editCondition.Value = value;
+
+    // DateRange value helpers
+    private DateRange? GetDateRangeValue()
+    {
+        if (editCondition.Value is DateTime start && editCondition.ValueEnd is DateTime end)
+        {
+            return new DateRange(start, end);
+        }
+        return null;
+    }
+
+    private void HandleDateRangeValueChanged(DateRange? range)
+    {
+        if (range != null)
+        {
+            editCondition.Value = range.Start;
+            editCondition.ValueEnd = range.End;
+        }
+        else
+        {
+            editCondition.Value = null;
+            editCondition.ValueEnd = null;
+        }
+    }
+
+    // DatePreset helpers
+    private DatePreset GetDatePreset() => editCondition.Value switch
+    {
+        DatePreset p => p,
+        int i when Enum.IsDefined(typeof(DatePreset), i) => (DatePreset)i,
+        string s when Enum.TryParse<DatePreset>(s, out var p) => p,
+        _ => DatePreset.Today
+    };
+
+    private void HandleDatePresetChanged(DatePreset value) => editCondition.Value = value;
+
+    // InLast helpers
+    private int GetInLastAmount() => editCondition.Value switch
+    {
+        int i => i,
+        double d => (int)d,
+        _ => 0
+    };
+
+    private InLastPeriod GetInLastPeriod() => editCondition.ValueEnd switch
+    {
+        InLastPeriod p => p,
+        int i when Enum.IsDefined(typeof(InLastPeriod), i) => (InLastPeriod)i,
+        string s when Enum.TryParse<InLastPeriod>(s, out var p) => p,
+        _ => InLastPeriod.Days
+    };
+
+    private void HandleInLastAmountChanged(int value) => editCondition.Value = value;
+
+    private void HandleInLastPeriodChanged(InLastPeriod value) => editCondition.ValueEnd = value;
+
+    // MultiSelect helpers
+    private IEnumerable<string>? GetMultiSelectValues() => editCondition.Value switch
+    {
+        IEnumerable<string> values => values,
+        _ => null
+    };
+
+    private void HandleMultiSelectValuesChanged(IEnumerable<string>? values) => editCondition.Value = values?.ToArray();
+}

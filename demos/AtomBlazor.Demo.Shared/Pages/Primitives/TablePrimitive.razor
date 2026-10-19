@@ -1,0 +1,1622 @@
+@page "/primitives/table"
+@using AtomBlazor.Primitives.Services
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("Table 原语 - Atom BlazorUI", "Table Primitive - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-7xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Table 原语", "Table Primitive")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("无头、无样式的表格原语，具备排序、分页与选择能力。", "Headless, unstyled table primitive with sorting, pagination, and selection capabilities.")
+        </p>
+    </div>
+
+    <div class="space-y-6">
+
+    @* Basic Table Example *@
+    <section class="space-y-4">
+        <div>
+            <h2 class="text-2xl font-semibold">@L.T("基础表格", "Basic Table")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("不含排序、分页或选择的简单表格", "Simple table with no sorting, pagination, or selection")</p>
+        </div>
+
+        <div class="rounded-md border">
+            <AtomBlazor.Primitives.TablePrimitive TData="Person" Data="@people" Class="w-full caption-bottom text-sm">
+                <AtomBlazor.Primitives.TableHeader Class="[&_tr]:border-b">
+                    <AtomBlazor.Primitives.TableRow TData="Person" Class="border-b transition-colors hover:bg-muted/50">
+                        <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("名称", "Name")</AtomBlazor.Primitives.TableHeaderCell>
+                        <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("邮箱", "Email")</AtomBlazor.Primitives.TableHeaderCell>
+                        <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("年龄", "Age")</AtomBlazor.Primitives.TableHeaderCell>
+                        <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("部门", "Department")</AtomBlazor.Primitives.TableHeaderCell>
+                    </AtomBlazor.Primitives.TableRow>
+                </AtomBlazor.Primitives.TableHeader>
+                <AtomBlazor.Primitives.TableBody Class="[&_tr:last-child]:border-0">
+                    @foreach (var person in people)
+                    {
+                        <AtomBlazor.Primitives.TableRow TData="Person" Class="border-b transition-colors hover:bg-muted/50">
+                            <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Name</AtomBlazor.Primitives.TableCell>
+                            <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Email</AtomBlazor.Primitives.TableCell>
+                            <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Age</AtomBlazor.Primitives.TableCell>
+                            <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Department</AtomBlazor.Primitives.TableCell>
+                        </AtomBlazor.Primitives.TableRow>
+                    }
+                </AtomBlazor.Primitives.TableBody>
+            </AtomBlazor.Primitives.TablePrimitive>
+        </div>
+    </section>
+
+    @* Row Actions Example *@
+    <section class="space-y-4">
+        <div>
+            <h2 class="text-2xl font-semibold">@L.T("行操作", "Row Actions")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("为每一行提供操作下拉菜单的表格", "Table with an actions dropdown menu for each row")</p>
+        </div>
+
+        <div class="rounded-md border">
+            <AtomBlazor.Primitives.TablePrimitive TData="Person" Data="@people" Class="w-full caption-bottom text-sm">
+                <AtomBlazor.Primitives.TableHeader Class="[&_tr]:border-b">
+                    <AtomBlazor.Primitives.TableRow TData="Person" Class="border-b transition-colors hover:bg-muted/50">
+                        <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("名称", "Name")</AtomBlazor.Primitives.TableHeaderCell>
+                        <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("邮箱", "Email")</AtomBlazor.Primitives.TableHeaderCell>
+                        <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("部门", "Department")</AtomBlazor.Primitives.TableHeaderCell>
+                        <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-right align-middle font-medium text-muted-foreground w-[70px]">@L.T("操作", "Actions")</AtomBlazor.Primitives.TableHeaderCell>
+                    </AtomBlazor.Primitives.TableRow>
+                </AtomBlazor.Primitives.TableHeader>
+                <AtomBlazor.Primitives.TableBody Class="[&_tr:last-child]:border-0">
+                    @foreach (var person in people)
+                    {
+                        <AtomBlazor.Primitives.TableRow TData="Person" Class="border-b transition-colors hover:bg-muted/50">
+                            <AtomBlazor.Primitives.TableCell Class="p-4 align-middle font-medium">@person.Name</AtomBlazor.Primitives.TableCell>
+                            <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Email</AtomBlazor.Primitives.TableCell>
+                            <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Department</AtomBlazor.Primitives.TableCell>
+                            <AtomBlazor.Primitives.TableCell Class="p-4 align-middle text-right">
+                                <AtomBlazor.Primitives.DropdownMenuPrimitive>
+                                    <AtomBlazor.Primitives.DropdownMenuTrigger>
+                                        <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Icon" Class="h-8 w-8" AriaLabel="@(L.T("打开菜单", "Open menu"))">
+                                            <LucideIcon Name="ellipsis" Size="16" />
+                                        </Button>
+                                    </AtomBlazor.Primitives.DropdownMenuTrigger>
+                                    <AtomBlazor.Primitives.DropdownMenuContent Class="w-48 rounded-md border bg-popover p-1 text-popover-foreground shadow-md" Align="PopoverAlign.End">
+                                        <DropdownMenuLabel Class="px-2 py-1.5 text-sm font-semibold">@L.T("操作", "Actions")</DropdownMenuLabel>
+                                        <DropdownMenuSeparator Class="my-1 h-px bg-muted" />
+                                        <AtomBlazor.Primitives.DropdownMenuItem Class="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                                          OnClick="@(() => HandleViewDetails(person))">
+                                            <LucideIcon Name="eye" Size="16" Class="mr-2" />
+                                            @L.T("查看详情", "View details")
+                                        </AtomBlazor.Primitives.DropdownMenuItem>
+                                        <AtomBlazor.Primitives.DropdownMenuItem Class="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                                          OnClick="@(() => HandleEdit(person))">
+                                            <LucideIcon Name="pencil" Size="16" Class="mr-2" />
+                                            @L.T("编辑", "Edit")
+                                        </AtomBlazor.Primitives.DropdownMenuItem>
+                                        <AtomBlazor.Primitives.DropdownMenuItem Class="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                                          OnClick="@(() => HandleDuplicate(person))">
+                                            <LucideIcon Name="copy" Size="16" Class="mr-2" />
+                                            @L.T("复制", "Duplicate")
+                                        </AtomBlazor.Primitives.DropdownMenuItem>
+                                        <DropdownMenuSeparator Class="my-1 h-px bg-muted" />
+                                        <AtomBlazor.Primitives.DropdownMenuItem Class="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground text-destructive"
+                                                          OnClick="@(() => HandleDelete(person))">
+                                            <LucideIcon Name="trash-2" Size="16" Class="mr-2" />
+                                            @L.T("删除", "Delete")
+                                        </AtomBlazor.Primitives.DropdownMenuItem>
+                                    </AtomBlazor.Primitives.DropdownMenuContent>
+                                </AtomBlazor.Primitives.DropdownMenuPrimitive>
+                            </AtomBlazor.Primitives.TableCell>
+                        </AtomBlazor.Primitives.TableRow>
+                    }
+                </AtomBlazor.Primitives.TableBody>
+            </AtomBlazor.Primitives.TablePrimitive>
+        </div>
+
+        @if (!string.IsNullOrEmpty(actionMessage))
+        {
+            <div class="rounded-lg border bg-card p-4">
+                <p class="text-sm">@actionMessage</p>
+            </div>
+        }
+    </section>
+
+    @* Sortable Table Example *@
+    <section class="space-y-4">
+        <div>
+            <h2 class="text-2xl font-semibold">@L.T("可排序表格", "Sortable Table")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("点击列标题进行排序。三态循环：None → Ascending → Descending → None", "Click column headers to sort. Three-state cycle: None → Ascending → Descending → None")</p>
+        </div>
+
+        <div class="rounded-md border">
+            <AtomBlazor.Primitives.TablePrimitive TData="Person" Data="@GetSortedPeople()" @bind-State="@sortableTableState" Class="w-full caption-bottom text-sm">
+                <AtomBlazor.Primitives.TableHeader Class="[&_tr]:border-b">
+                    <AtomBlazor.Primitives.TableRow TData="Person" Class="border-b transition-colors hover:bg-muted/50">
+                        <AtomBlazor.Primitives.TableHeaderCell TData="Person" ColumnId="name" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground cursor-pointer select-none hover:bg-accent">
+                            <div class="flex items-center gap-2">
+                                <span>@L.T("名称", "Name")</span>
+                                @if (sortableTableState.Sorting.SortedColumn == "name")
+                                {
+                                    @if (sortableTableState.Sorting.Direction == SortDirection.Ascending)
+                                    {
+                                        <span class="text-xs">↑</span>
+                                    }
+                                    else if (sortableTableState.Sorting.Direction == SortDirection.Descending)
+                                    {
+                                        <span class="text-xs">↓</span>
+                                    }
+                                }
+                            </div>
+                        </AtomBlazor.Primitives.TableHeaderCell>
+                        <AtomBlazor.Primitives.TableHeaderCell TData="Person" ColumnId="email" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground cursor-pointer select-none hover:bg-accent">
+                            <div class="flex items-center gap-2">
+                                <span>@L.T("邮箱", "Email")</span>
+                                @if (sortableTableState.Sorting.SortedColumn == "email")
+                                {
+                                    @if (sortableTableState.Sorting.Direction == SortDirection.Ascending)
+                                    {
+                                        <span class="text-xs">↑</span>
+                                    }
+                                    else if (sortableTableState.Sorting.Direction == SortDirection.Descending)
+                                    {
+                                        <span class="text-xs">↓</span>
+                                    }
+                                }
+                            </div>
+                        </AtomBlazor.Primitives.TableHeaderCell>
+                        <AtomBlazor.Primitives.TableHeaderCell TData="Person" ColumnId="age" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground cursor-pointer select-none hover:bg-accent">
+                            <div class="flex items-center gap-2">
+                                <span>@L.T("年龄", "Age")</span>
+                                @if (sortableTableState.Sorting.SortedColumn == "age")
+                                {
+                                    @if (sortableTableState.Sorting.Direction == SortDirection.Ascending)
+                                    {
+                                        <span class="text-xs">↑</span>
+                                    }
+                                    else if (sortableTableState.Sorting.Direction == SortDirection.Descending)
+                                    {
+                                        <span class="text-xs">↓</span>
+                                    }
+                                }
+                            </div>
+                        </AtomBlazor.Primitives.TableHeaderCell>
+                        <AtomBlazor.Primitives.TableHeaderCell TData="Person" ColumnId="department" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground cursor-pointer select-none hover:bg-accent">
+                            <div class="flex items-center gap-2">
+                                <span>@L.T("部门", "Department")</span>
+                                @if (sortableTableState.Sorting.SortedColumn == "department")
+                                {
+                                    @if (sortableTableState.Sorting.Direction == SortDirection.Ascending)
+                                    {
+                                        <span class="text-xs">↑</span>
+                                    }
+                                    else if (sortableTableState.Sorting.Direction == SortDirection.Descending)
+                                    {
+                                        <span class="text-xs">↓</span>
+                                    }
+                                }
+                            </div>
+                        </AtomBlazor.Primitives.TableHeaderCell>
+                    </AtomBlazor.Primitives.TableRow>
+                </AtomBlazor.Primitives.TableHeader>
+                <AtomBlazor.Primitives.TableBody Class="[&_tr:last-child]:border-0">
+                    @foreach (var person in GetSortedPeople())
+                    {
+                        <AtomBlazor.Primitives.TableRow TData="Person" Class="border-b transition-colors hover:bg-muted/50">
+                            <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Name</AtomBlazor.Primitives.TableCell>
+                            <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Email</AtomBlazor.Primitives.TableCell>
+                            <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Age</AtomBlazor.Primitives.TableCell>
+                            <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Department</AtomBlazor.Primitives.TableCell>
+                        </AtomBlazor.Primitives.TableRow>
+                    }
+                </AtomBlazor.Primitives.TableBody>
+            </AtomBlazor.Primitives.TablePrimitive>
+        </div>
+
+        <div class="rounded-lg border bg-card p-4">
+            <h3 class="font-semibold mb-2">@L.T("当前排序状态", "Current Sort State")</h3>
+            <div class="text-sm space-y-1">
+                <p><span class="font-medium">@L.T("列：", "Column:")</span> @(sortableTableState.Sorting.SortedColumn ?? L.T("无", "None"))</p>
+                <p><span class="font-medium">@L.T("方向：", "Direction:")</span> @sortableTableState.Sorting.Direction</p>
+            </div>
+        </div>
+    </section>
+
+    @* Paginated Table Example *@
+    <section class="space-y-4">
+        <div>
+            <h2 class="text-2xl font-semibold">@L.T("分页表格", "Paginated Table")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("带分页控件且可配置每页条数的表格", "Table with pagination controls and configurable page size")</p>
+        </div>
+
+        <div class="space-y-4">
+            <div class="rounded-md border">
+                <AtomBlazor.Primitives.TablePrimitive TData="Person" Data="@largePeopleDataset" @bind-State="@paginatedTableState"
+                       OnPageChange="@HandlePaginationChange"
+                       OnPageSizeChange="@HandlePaginationChange"
+                       Class="w-full caption-bottom text-sm">
+                    <AtomBlazor.Primitives.TableHeader Class="[&_tr]:border-b">
+                        <AtomBlazor.Primitives.TableRow TData="Person" Class="border-b transition-colors hover:bg-muted/50">
+                            <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("名称", "Name")</AtomBlazor.Primitives.TableHeaderCell>
+                            <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("邮箱", "Email")</AtomBlazor.Primitives.TableHeaderCell>
+                            <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("年龄", "Age")</AtomBlazor.Primitives.TableHeaderCell>
+                            <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("部门", "Department")</AtomBlazor.Primitives.TableHeaderCell>
+                        </AtomBlazor.Primitives.TableRow>
+                    </AtomBlazor.Primitives.TableHeader>
+                    <AtomBlazor.Primitives.TableBody Class="[&_tr:last-child]:border-0">
+                        @foreach (var person in GetPaginatedData())
+                        {
+                            <AtomBlazor.Primitives.TableRow TData="Person" Class="border-b transition-colors hover:bg-muted/50">
+                                <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Name</AtomBlazor.Primitives.TableCell>
+                                <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Email</AtomBlazor.Primitives.TableCell>
+                                <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Age</AtomBlazor.Primitives.TableCell>
+                                <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Department</AtomBlazor.Primitives.TableCell>
+                            </AtomBlazor.Primitives.TableRow>
+                        }
+                    </AtomBlazor.Primitives.TableBody>
+                </AtomBlazor.Primitives.TablePrimitive>
+            </div>
+
+            <AtomBlazor.Primitives.TablePagination TData="Person" State="@paginatedTableState.Pagination"
+                             OnPageChange="@HandlePaginationChange"
+                             OnPageSizeChange="@HandlePaginationChange">
+                <PaginationTemplate Context="context">
+                    <div class="flex items-center justify-between px-2">
+                        <div class="flex-1 text-sm text-muted-foreground">
+                            @context.GetPageInfoText()
+                        </div>
+                        <div class="flex items-center space-x-6 lg:space-x-8">
+                            <div class="flex items-center space-x-2">
+                                <p class="text-sm font-medium">@L.T("每页条数", "Rows per page")</p>
+                                <select @onchange="@((e) => context.ChangePageSize(int.Parse(e.Value?.ToString() ?? "10")))"
+                                        class="h-8 w-[70px] rounded-md border border-input bg-background px-2 py-1 text-sm">
+                                    @foreach (var size in context.PageSizeOptions)
+                                    {
+                                        <option value="@size" selected="@(context.State.PageSize == size)">@size</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="flex w-[100px] items-center justify-center text-sm font-medium">
+                                @L.F("第 {0} 页，共 {1} 页", "Page {0} of {1}", context.State.CurrentPage, context.State.TotalPages)
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <Button Variant="ButtonVariant.Outline"
+                                        Size="ButtonSize.Icon"
+                                        OnClick="@context.GoToFirstPage"
+                                        Disabled="@(!context.State.CanGoPrevious)"
+                                        AriaLabel="@(L.T("跳转到第一页", "Go to first page"))">
+                                    <LucideIcon Name="chevrons-left" Size="16" />
+                                </Button>
+                                <Button Variant="ButtonVariant.Outline"
+                                        Size="ButtonSize.Icon"
+                                        OnClick="@context.GoToPreviousPage"
+                                        Disabled="@(!context.State.CanGoPrevious)"
+                                        AriaLabel="@(L.T("跳转到上一页", "Go to previous page"))">
+                                    <LucideIcon Name="chevron-left" Size="16" />
+                                </Button>
+                                <Button Variant="ButtonVariant.Outline"
+                                        Size="ButtonSize.Icon"
+                                        OnClick="@context.GoToNextPage"
+                                        Disabled="@(!context.State.CanGoNext)"
+                                        AriaLabel="@(L.T("跳转到下一页", "Go to next page"))">
+                                    <LucideIcon Name="chevron-right" Size="16" />
+                                </Button>
+                                <Button Variant="ButtonVariant.Outline"
+                                        Size="ButtonSize.Icon"
+                                        OnClick="@context.GoToLastPage"
+                                        Disabled="@(!context.State.CanGoNext)"
+                                        AriaLabel="@(L.T("跳转到最后一页", "Go to last page"))">
+                                    <LucideIcon Name="chevrons-right" Size="16" />
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </PaginationTemplate>
+            </AtomBlazor.Primitives.TablePagination>
+        </div>
+    </section>
+
+    @* Selectable Table Example *@
+    <section class="space-y-4">
+        <div>
+            <h2 class="text-2xl font-semibold">@L.T("可选择表格（多选）", "Selectable Table (Multi-Select)")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("点击行或复选框进行选择。点击表头复选框可全选/取消全选。使用方向键导航，按 Enter/空格进行选择。", "Click rows or checkboxes to select. Click header checkbox to select/deselect all. Use arrow keys to navigate and Enter/Space to select.")</p>
+        </div>
+
+        <div class="flex items-center gap-2 mb-2">
+            <input type="checkbox"
+                   id="enableKeyboardNav"
+                   checked="@enableKeyboardNavigation"
+                   @onchange="@((e) => enableKeyboardNavigation = (bool)(e.Value ?? true))"
+                   class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary" />
+            <label for="enableKeyboardNav" class="text-sm font-medium">@L.T("启用键盘导航", "Enable keyboard navigation")</label>
+        </div>
+
+        <div class="space-y-4">
+            <div class="rounded-md border">
+                <AtomBlazor.Primitives.TablePrimitive TData="Person" Data="@people" @bind-State="@selectableTableState"
+                       SelectionMode="SelectionMode.Multiple"
+                       EnableKeyboardNavigation="@enableKeyboardNavigation"
+                       OnSelectionChange="@HandleSelectionChange"
+                       Class="w-full caption-bottom text-sm">
+                    <AtomBlazor.Primitives.TableHeader Class="[&_tr]:border-b">
+                        <AtomBlazor.Primitives.TableRow TData="Person" Class="border-b transition-colors hover:bg-muted/50">
+                            <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 w-12 px-4">
+                                <input type="checkbox"
+                                       checked="@selectAllChecked"
+                                       @onchange="@((e) => { selectAllChecked = (bool)(e.Value ?? false); HandleSelectAllChanged(); })"
+                                       class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary"
+                                       aria-label="@(L.T("全选", "Select all"))" />
+                            </AtomBlazor.Primitives.TableHeaderCell>
+                            <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("名称", "Name")</AtomBlazor.Primitives.TableHeaderCell>
+                            <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("邮箱", "Email")</AtomBlazor.Primitives.TableHeaderCell>
+                            <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("年龄", "Age")</AtomBlazor.Primitives.TableHeaderCell>
+                            <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("部门", "Department")</AtomBlazor.Primitives.TableHeaderCell>
+                            <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-right align-middle font-medium text-muted-foreground w-[70px]">@L.T("操作", "Actions")</AtomBlazor.Primitives.TableHeaderCell>
+                        </AtomBlazor.Primitives.TableRow>
+                    </AtomBlazor.Primitives.TableHeader>
+                    <AtomBlazor.Primitives.TableBody Class="[&_tr:last-child]:border-0">
+                        @foreach (var person in people)
+                        {
+                            var isSelected = selectableTableState.Selection.IsSelected(person);
+                            <AtomBlazor.Primitives.TableRow TData="Person" Item="@person" Class="@($"border-b transition-colors hover:bg-muted/50 {(isSelected ? "bg-muted" : "")}")">
+                                <AtomBlazor.Primitives.TableCell Class="w-12 px-4">
+                                    <input type="checkbox"
+                                           checked="@isSelected"
+                                           @onchange="@(() => ToggleRowSelection(person))"
+                                           @onclick:stopPropagation="true"
+                                           @onkeydown:stopPropagation="true"
+                                           tabindex="-1"
+                                           class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary"
+                                           aria-label="@(L.IsChinese ? $"选择 {person.Name}" : $"Select {person.Name}")" />
+                                </AtomBlazor.Primitives.TableCell>
+                                <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Name</AtomBlazor.Primitives.TableCell>
+                                <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Email</AtomBlazor.Primitives.TableCell>
+                                <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Age</AtomBlazor.Primitives.TableCell>
+                                <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Department</AtomBlazor.Primitives.TableCell>
+                                <AtomBlazor.Primitives.TableCell Class="p-4 align-middle text-right" @onclick:stopPropagation="true">
+                                    <AtomBlazor.Primitives.DropdownMenuPrimitive>
+                                        <AtomBlazor.Primitives.DropdownMenuTrigger>
+                                            <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Icon" Class="h-8 w-8" AriaLabel="@(L.T("打开菜单", "Open menu"))">
+                                                <LucideIcon Name="ellipsis" Size="16" />
+                                            </Button>
+                                        </AtomBlazor.Primitives.DropdownMenuTrigger>
+                                        <AtomBlazor.Primitives.DropdownMenuContent Class="w-48 rounded-md border bg-popover p-1 text-popover-foreground shadow-md" Align="PopoverAlign.End">
+                                            <DropdownMenuLabel Class="px-2 py-1.5 text-sm font-semibold">@L.T("操作", "Actions")</DropdownMenuLabel>
+                                            <DropdownMenuSeparator Class="my-1 h-px bg-muted" />
+                                            <AtomBlazor.Primitives.DropdownMenuItem Class="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                                              OnClick="@(() => HandleViewDetails(person))">
+                                                <LucideIcon Name="eye" Size="16" Class="mr-2" />
+                                                @L.T("查看详情", "View details")
+                                            </AtomBlazor.Primitives.DropdownMenuItem>
+                                            <AtomBlazor.Primitives.DropdownMenuItem Class="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                                              OnClick="@(() => HandleEdit(person))">
+                                                <LucideIcon Name="pencil" Size="16" Class="mr-2" />
+                                                @L.T("编辑", "Edit")
+                                            </AtomBlazor.Primitives.DropdownMenuItem>
+                                            <AtomBlazor.Primitives.DropdownMenuItem Class="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                                              OnClick="@(() => HandleDuplicate(person))">
+                                                <LucideIcon Name="copy" Size="16" Class="mr-2" />
+                                                @L.T("复制", "Duplicate")
+                                            </AtomBlazor.Primitives.DropdownMenuItem>
+                                            <DropdownMenuSeparator Class="my-1 h-px bg-muted" />
+                                            <AtomBlazor.Primitives.DropdownMenuItem Class="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground text-destructive"
+                                                              OnClick="@(() => HandleDelete(person))">
+                                                <LucideIcon Name="trash-2" Size="16" Class="mr-2" />
+                                                @L.T("删除", "Delete")
+                                            </AtomBlazor.Primitives.DropdownMenuItem>
+                                        </AtomBlazor.Primitives.DropdownMenuContent>
+                                    </AtomBlazor.Primitives.DropdownMenuPrimitive>
+                                </AtomBlazor.Primitives.TableCell>
+                            </AtomBlazor.Primitives.TableRow>
+                        }
+                    </AtomBlazor.Primitives.TableBody>
+                </AtomBlazor.Primitives.TablePrimitive>
+            </div>
+
+            <div class="rounded-lg border bg-card p-4">
+                <h3 class="font-semibold mb-2">@L.T("选择状态", "Selection State")</h3>
+                <div class="text-sm space-y-1">
+                    <p><span class="font-medium">@L.T("已选择：", "Selected:")</span> @L.F("{0} 行", "{0} rows", selectableTableState.Selection.SelectedCount)</p>
+                    @if (selectableTableState.Selection.SelectedCount > 0)
+                    {
+                        <div class="mt-2">
+                            <button @onclick="@(() => { selectableTableState.Selection.Clear(); selectAllChecked = false; })"
+                                    class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-4">
+                                @L.T("清除选择", "Clear Selection")
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+
+    @* Combined Features Example *@
+    <section class="space-y-4">
+        <div>
+            <h2 class="text-2xl font-semibold">@L.T("全部功能组合", "All Features Combined")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("筛选、排序、分页与选择协同工作", "Filtering, sorting, pagination, and selection all working together")</p>
+        </div>
+
+        <div class="space-y-4">
+            <div class="rounded-md border">
+                <AtomBlazor.Primitives.TablePrimitive TData="Person" Data="@GetSortedCombinedData()" @bind-State="@combinedTableState"
+                       SelectionMode="SelectionMode.Multiple"
+                       OnPageChange="@HandleCombinedPaginationChange"
+                       OnPageSizeChange="@HandleCombinedPaginationChange"
+                       OnSelectionChange="@HandleCombinedSelectionChange"
+                       Class="w-full caption-bottom text-sm">
+                    <AtomBlazor.Primitives.TableHeader Class="[&_tr]:border-b">
+                        <AtomBlazor.Primitives.TableRow TData="Person" Class="border-b transition-colors hover:bg-muted/50">
+                            <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 w-12 px-4">
+                                <input type="checkbox"
+                                       checked="@combinedSelectAllChecked"
+                                       @onchange="@((e) => { combinedSelectAllChecked = (bool)(e.Value ?? false); HandleCombinedSelectAllChanged(); })"
+                                       class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary"
+                                       aria-label="@(L.T("选择本页全部", "Select all on page"))" />
+                            </AtomBlazor.Primitives.TableHeaderCell>
+                            <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2 cursor-pointer select-none hover:text-foreground flex-1"
+                                         @onclick="@(() => combinedTableState.Sorting.ToggleSort("name"))">
+                                        <span>@L.T("名称", "Name")</span>
+                                        @if (combinedTableState.Sorting.SortedColumn == "name")
+                                        {
+                                            @if (combinedTableState.Sorting.Direction == SortDirection.Ascending)
+                                            {
+                                                <span class="text-xs">↑</span>
+                                            }
+                                            else if (combinedTableState.Sorting.Direction == SortDirection.Descending)
+                                            {
+                                                <span class="text-xs">↓</span>
+                                            }
+                                        }
+                                    </div>
+                                    <AtomBlazor.Primitives.PopoverPrimitive>
+                                        <AtomBlazor.Primitives.PopoverTrigger>
+                                            <button class="inline-flex items-center justify-center h-6 w-6 rounded hover:bg-accent @(!string.IsNullOrWhiteSpace(combinedNameFilter) ? "text-primary" : "text-muted-foreground")"
+                                                    aria-label="@(L.T("按名称筛选", "Filter name"))">
+                                                <LucideIcon Name="filter" Size="14" />
+                                            </button>
+                                        </AtomBlazor.Primitives.PopoverTrigger>
+                                        <AtomBlazor.Primitives.PopoverContent Class="w-64 p-4 bg-popover text-popover-foreground rounded-md border shadow-md" Align="PopoverAlign.Start">
+                                            <div class="space-y-2">
+                                                <h4 class="font-medium text-sm">@L.T("按名称筛选", "Filter by Name")</h4>
+                                                <input type="text"
+                                                       @bind="combinedNameFilter"
+                                                       @bind:event="oninput"
+                                                       @onchange="@((e) => StateHasChanged())"
+                                                       placeholder="@(L.T("请输入名称...", "Enter name..."))"
+                                                       class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+                                                @if (!string.IsNullOrWhiteSpace(combinedNameFilter))
+                                                {
+                                                    <button @onclick="@(() => { combinedNameFilter = ""; StateHasChanged(); })"
+                                                            class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 border border-input bg-background hover:bg-accent hover:text-accent-foreground">
+                                                        @L.T("清除", "Clear")
+                                                    </button>
+                                                }
+                                            </div>
+                                        </AtomBlazor.Primitives.PopoverContent>
+                                    </AtomBlazor.Primitives.PopoverPrimitive>
+                                </div>
+                            </AtomBlazor.Primitives.TableHeaderCell>
+                            <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2 cursor-pointer select-none hover:text-foreground flex-1"
+                                         @onclick="@(() => combinedTableState.Sorting.ToggleSort("email"))">
+                                        <span>@L.T("邮箱", "Email")</span>
+                                        @if (combinedTableState.Sorting.SortedColumn == "email")
+                                        {
+                                            @if (combinedTableState.Sorting.Direction == SortDirection.Ascending)
+                                            {
+                                                <span class="text-xs">↑</span>
+                                            }
+                                            else if (combinedTableState.Sorting.Direction == SortDirection.Descending)
+                                            {
+                                                <span class="text-xs">↓</span>
+                                            }
+                                        }
+                                    </div>
+                                    <AtomBlazor.Primitives.PopoverPrimitive>
+                                        <AtomBlazor.Primitives.PopoverTrigger>
+                                            <button class="inline-flex items-center justify-center h-6 w-6 rounded hover:bg-accent @(!string.IsNullOrWhiteSpace(combinedEmailFilter) ? "text-primary" : "text-muted-foreground")"
+                                                    aria-label="@(L.T("按邮箱筛选", "Filter email"))">
+                                                <LucideIcon Name="filter" Size="14" />
+                                            </button>
+                                        </AtomBlazor.Primitives.PopoverTrigger>
+                                        <AtomBlazor.Primitives.PopoverContent Class="w-64 p-4 bg-popover text-popover-foreground rounded-md border shadow-md" Align="PopoverAlign.Start">
+                                            <div class="space-y-2">
+                                                <h4 class="font-medium text-sm">@L.T("按邮箱筛选", "Filter by Email")</h4>
+                                                <input type="text"
+                                                       @bind="combinedEmailFilter"
+                                                       @bind:event="oninput"
+                                                       @onchange="@((e) => StateHasChanged())"
+                                                       placeholder="@(L.T("请输入邮箱...", "Enter email..."))"
+                                                       class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+                                                @if (!string.IsNullOrWhiteSpace(combinedEmailFilter))
+                                                {
+                                                    <button @onclick="@(() => { combinedEmailFilter = ""; StateHasChanged(); })"
+                                                            class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 border border-input bg-background hover:bg-accent hover:text-accent-foreground">
+                                                        @L.T("清除", "Clear")
+                                                    </button>
+                                                }
+                                            </div>
+                                        </AtomBlazor.Primitives.PopoverContent>
+                                    </AtomBlazor.Primitives.PopoverPrimitive>
+                                </div>
+                            </AtomBlazor.Primitives.TableHeaderCell>
+                            <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2 cursor-pointer select-none hover:text-foreground flex-1"
+                                         @onclick="@(() => combinedTableState.Sorting.ToggleSort("age"))">
+                                        <span>@L.T("年龄", "Age")</span>
+                                        @if (combinedTableState.Sorting.SortedColumn == "age")
+                                        {
+                                            @if (combinedTableState.Sorting.Direction == SortDirection.Ascending)
+                                            {
+                                                <span class="text-xs">↑</span>
+                                            }
+                                            else if (combinedTableState.Sorting.Direction == SortDirection.Descending)
+                                            {
+                                                <span class="text-xs">↓</span>
+                                            }
+                                        }
+                                    </div>
+                                    <AtomBlazor.Primitives.PopoverPrimitive>
+                                        <AtomBlazor.Primitives.PopoverTrigger>
+                                            <button class="inline-flex items-center justify-center h-6 w-6 rounded hover:bg-accent @(!string.IsNullOrWhiteSpace(combinedAgeFilter) ? "text-primary" : "text-muted-foreground")"
+                                                    aria-label="@(L.T("按年龄筛选", "Filter age"))">
+                                                <LucideIcon Name="filter" Size="14" />
+                                            </button>
+                                        </AtomBlazor.Primitives.PopoverTrigger>
+                                        <AtomBlazor.Primitives.PopoverContent Class="w-64 p-4 bg-popover text-popover-foreground rounded-md border shadow-md" Align="PopoverAlign.Start">
+                                            <div class="space-y-2">
+                                                <h4 class="font-medium text-sm">@L.T("按年龄筛选", "Filter by Age")</h4>
+                                                <input type="text"
+                                                       @bind="combinedAgeFilter"
+                                                       @bind:event="oninput"
+                                                       @onchange="@((e) => StateHasChanged())"
+                                                       placeholder="@(L.T("请输入年龄...", "Enter age..."))"
+                                                       class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+                                                @if (!string.IsNullOrWhiteSpace(combinedAgeFilter))
+                                                {
+                                                    <button @onclick="@(() => { combinedAgeFilter = ""; StateHasChanged(); })"
+                                                            class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 border border-input bg-background hover:bg-accent hover:text-accent-foreground">
+                                                        @L.T("清除", "Clear")
+                                                    </button>
+                                                }
+                                            </div>
+                                        </AtomBlazor.Primitives.PopoverContent>
+                                    </AtomBlazor.Primitives.PopoverPrimitive>
+                                </div>
+                            </AtomBlazor.Primitives.TableHeaderCell>
+                            <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2 cursor-pointer select-none hover:text-foreground flex-1"
+                                         @onclick="@(() => combinedTableState.Sorting.ToggleSort("department"))">
+                                        <span>@L.T("部门", "Department")</span>
+                                        @if (combinedTableState.Sorting.SortedColumn == "department")
+                                        {
+                                            @if (combinedTableState.Sorting.Direction == SortDirection.Ascending)
+                                            {
+                                                <span class="text-xs">↑</span>
+                                            }
+                                            else if (combinedTableState.Sorting.Direction == SortDirection.Descending)
+                                            {
+                                                <span class="text-xs">↓</span>
+                                            }
+                                        }
+                                    </div>
+                                    <AtomBlazor.Primitives.PopoverPrimitive>
+                                        <AtomBlazor.Primitives.PopoverTrigger>
+                                            <button class="inline-flex items-center justify-center h-6 w-6 rounded hover:bg-accent @(!string.IsNullOrWhiteSpace(combinedDepartmentFilter) ? "text-primary" : "text-muted-foreground")"
+                                                    aria-label="@(L.T("按部门筛选", "Filter department"))">
+                                                <LucideIcon Name="filter" Size="14" />
+                                            </button>
+                                        </AtomBlazor.Primitives.PopoverTrigger>
+                                        <AtomBlazor.Primitives.PopoverContent Class="w-64 p-4 bg-popover text-popover-foreground rounded-md border shadow-md" Align="PopoverAlign.Start">
+                                            <div class="space-y-2">
+                                                <h4 class="font-medium text-sm">@L.T("按部门筛选", "Filter by Department")</h4>
+                                                <input type="text"
+                                                       @bind="combinedDepartmentFilter"
+                                                       @bind:event="oninput"
+                                                       @onchange="@((e) => StateHasChanged())"
+                                                       placeholder="@(L.T("请输入部门...", "Enter department..."))"
+                                                       class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+                                                @if (!string.IsNullOrWhiteSpace(combinedDepartmentFilter))
+                                                {
+                                                    <button @onclick="@(() => { combinedDepartmentFilter = ""; StateHasChanged(); })"
+                                                            class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 border border-input bg-background hover:bg-accent hover:text-accent-foreground">
+                                                        @L.T("清除", "Clear")
+                                                    </button>
+                                                }
+                                            </div>
+                                        </AtomBlazor.Primitives.PopoverContent>
+                                    </AtomBlazor.Primitives.PopoverPrimitive>
+                                </div>
+                            </AtomBlazor.Primitives.TableHeaderCell>
+                        </AtomBlazor.Primitives.TableRow>
+                    </AtomBlazor.Primitives.TableHeader>
+                    <AtomBlazor.Primitives.TableBody Class="[&_tr:last-child]:border-0">
+                        @foreach (var person in GetCombinedPageData())
+                        {
+                            var isSelected = combinedTableState.Selection.IsSelected(person);
+                            <AtomBlazor.Primitives.TableRow TData="Person" Item="@person" Class="@($"border-b transition-colors hover:bg-muted/50 {(isSelected ? "bg-muted" : "")}")">
+                                <AtomBlazor.Primitives.TableCell Class="w-12 px-4">
+                                    <input type="checkbox"
+                                           checked="@isSelected"
+                                           @onchange="@(() => ToggleCombinedRowSelection(person))"
+                                           @onclick:stopPropagation="true"
+                                           @onkeydown:stopPropagation="true"
+                                           tabindex="-1"
+                                           class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary"
+                                           aria-label="@(L.IsChinese ? $"选择 {person.Name}" : $"Select {person.Name}")" />
+                                </AtomBlazor.Primitives.TableCell>
+                                <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Name</AtomBlazor.Primitives.TableCell>
+                                <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Email</AtomBlazor.Primitives.TableCell>
+                                <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Age</AtomBlazor.Primitives.TableCell>
+                                <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Department</AtomBlazor.Primitives.TableCell>
+                            </AtomBlazor.Primitives.TableRow>
+                        }
+                    </AtomBlazor.Primitives.TableBody>
+                </AtomBlazor.Primitives.TablePrimitive>
+            </div>
+
+            <AtomBlazor.Primitives.TablePagination TData="Person" State="@combinedTableState.Pagination"
+                             OnPageChange="@HandleCombinedPaginationChange"
+                             OnPageSizeChange="@HandleCombinedPaginationChange">
+                <PaginationTemplate Context="context">
+                    <div class="flex items-center justify-between px-2">
+                        <div class="flex-1 text-sm text-muted-foreground">
+                            @{
+                                var selectedOnPage = combinedTableState.Selection.SelectedCount;
+                                var pageInfo = context.GetPageInfoText();
+                            }
+                            @pageInfo
+                            @if (selectedOnPage > 0)
+                            {
+                                <span class="ml-2">@L.F("已选 {0}", "({0} selected)", selectedOnPage)</span>
+                            }
+                        </div>
+                        <div class="flex items-center space-x-6 lg:space-x-8">
+                            <div class="flex items-center space-x-2">
+                                <p class="text-sm font-medium">@L.T("每页条数", "Rows per page")</p>
+                                <select @onchange="@((e) => context.ChangePageSize(int.Parse(e.Value?.ToString() ?? "10")))"
+                                        class="h-8 w-[70px] rounded-md border border-input bg-background px-2 py-1 text-sm">
+                                    @foreach (var size in context.PageSizeOptions)
+                                    {
+                                        <option value="@size" selected="@(context.State.PageSize == size)">@size</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="flex w-[100px] items-center justify-center text-sm font-medium">
+                                @L.F("第 {0} 页，共 {1} 页", "Page {0} of {1}", context.State.CurrentPage, context.State.TotalPages)
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <Button Variant="ButtonVariant.Outline"
+                                        Size="ButtonSize.Icon"
+                                        OnClick="@context.GoToFirstPage"
+                                        Disabled="@(!context.State.CanGoPrevious)"
+                                        AriaLabel="@(L.T("跳转到第一页", "Go to first page"))">
+                                    <LucideIcon Name="chevrons-left" Size="16" />
+                                </Button>
+                                <Button Variant="ButtonVariant.Outline"
+                                        Size="ButtonSize.Icon"
+                                        OnClick="@context.GoToPreviousPage"
+                                        Disabled="@(!context.State.CanGoPrevious)"
+                                        AriaLabel="@(L.T("跳转到上一页", "Go to previous page"))">
+                                    <LucideIcon Name="chevron-left" Size="16" />
+                                </Button>
+                                <Button Variant="ButtonVariant.Outline"
+                                        Size="ButtonSize.Icon"
+                                        OnClick="@context.GoToNextPage"
+                                        Disabled="@(!context.State.CanGoNext)"
+                                        AriaLabel="@(L.T("跳转到下一页", "Go to next page"))">
+                                    <LucideIcon Name="chevron-right" Size="16" />
+                                </Button>
+                                <Button Variant="ButtonVariant.Outline"
+                                        Size="ButtonSize.Icon"
+                                        OnClick="@context.GoToLastPage"
+                                        Disabled="@(!context.State.CanGoNext)"
+                                        AriaLabel="@(L.T("跳转到最后一页", "Go to last page"))">
+                                    <LucideIcon Name="chevrons-right" Size="16" />
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </PaginationTemplate>
+            </AtomBlazor.Primitives.TablePagination>
+
+            <div class="rounded-lg border bg-card p-4">
+                <h3 class="font-semibold mb-2">@L.T("当前状态", "Current State")</h3>
+                <div class="text-sm space-y-1">
+                    <p><span class="font-medium">@L.T("生效筛选：", "Active Filters:")</span> @(new[] { combinedNameFilter, combinedEmailFilter, combinedAgeFilter, combinedDepartmentFilter }.Count(f => !string.IsNullOrWhiteSpace(f)))</p>
+                    <p><span class="font-medium">@L.T("排序列：", "Sort Column:")</span> @(combinedTableState.Sorting.SortedColumn ?? L.T("无", "None"))</p>
+                    <p><span class="font-medium">@L.T("排序方向：", "Sort Direction:")</span> @combinedTableState.Sorting.Direction</p>
+                    <p><span class="font-medium">@L.T("当前页：", "Current Page:")</span> @combinedTableState.Pagination.CurrentPage / @combinedTableState.Pagination.TotalPages</p>
+                    <p><span class="font-medium">@L.T("已选行数：", "Selected Rows:")</span> @combinedTableState.Selection.SelectedCount</p>
+                    <p><span class="font-medium">@L.T("筛选结果：", "Filtered Results:")</span> @GetSortedCombinedData().Count() / @largePeopleDataset.Count</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    @* Column Filtering Example *@
+    <section class="space-y-4">
+        <div>
+            <h2 class="text-2xl font-semibold">@L.T("列筛选", "Column Filtering")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("点击表头中的筛选图标按列筛选", "Click filter icons in headers to filter by column")</p>
+        </div>
+
+        <div class="space-y-4">
+            <div class="rounded-md border">
+                <AtomBlazor.Primitives.TablePrimitive TData="Person" Data="@GetFilteredPeople()" @bind-State="@filteredTableState"
+                       OnPageChange="@HandleFilteredPaginationChange"
+                       OnPageSizeChange="@HandleFilteredPaginationChange"
+                       Class="w-full caption-bottom text-sm">
+                    <AtomBlazor.Primitives.TableHeader Class="[&_tr]:border-b">
+                        <AtomBlazor.Primitives.TableRow TData="Person" Class="border-b transition-colors hover:bg-muted/50">
+                            <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                                <div class="flex items-center gap-2">
+                                    <span>@L.T("名称", "Name")</span>
+                                    <AtomBlazor.Primitives.PopoverPrimitive>
+                                        <AtomBlazor.Primitives.PopoverTrigger>
+                                            <button class="inline-flex items-center justify-center h-6 w-6 rounded hover:bg-accent @(!string.IsNullOrWhiteSpace(nameFilter) ? "text-primary" : "text-muted-foreground")"
+                                                    aria-label="@(L.T("按名称筛选", "Filter name"))">
+                                                <LucideIcon Name="filter" Size="14" />
+                                            </button>
+                                        </AtomBlazor.Primitives.PopoverTrigger>
+                                        <AtomBlazor.Primitives.PopoverContent Class="w-64 p-4 bg-popover text-popover-foreground rounded-md border shadow-md" Align="PopoverAlign.Start">
+                                            <div class="space-y-2">
+                                                <h4 class="font-medium text-sm">@L.T("按名称筛选", "Filter by Name")</h4>
+                                                <input type="text"
+                                                       @bind="nameFilter"
+                                                       @bind:event="oninput"
+                                                       @onchange="@((e) => { filteredTableState.Pagination.Reset(); StateHasChanged(); })"
+                                                       placeholder="@(L.T("请输入名称...", "Enter name..."))"
+                                                       class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+                                                @if (!string.IsNullOrWhiteSpace(nameFilter))
+                                                {
+                                                    <button @onclick="@(() => { nameFilter = ""; filteredTableState.Pagination.Reset(); StateHasChanged(); })"
+                                                            class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 border border-input bg-background hover:bg-accent hover:text-accent-foreground">
+                                                        @L.T("清除", "Clear")
+                                                    </button>
+                                                }
+                                            </div>
+                                        </AtomBlazor.Primitives.PopoverContent>
+                                    </AtomBlazor.Primitives.PopoverPrimitive>
+                                </div>
+                            </AtomBlazor.Primitives.TableHeaderCell>
+                            <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                                <div class="flex items-center gap-2">
+                                    <span>@L.T("邮箱", "Email")</span>
+                                    <AtomBlazor.Primitives.PopoverPrimitive>
+                                        <AtomBlazor.Primitives.PopoverTrigger>
+                                            <button class="inline-flex items-center justify-center h-6 w-6 rounded hover:bg-accent @(!string.IsNullOrWhiteSpace(emailFilter) ? "text-primary" : "text-muted-foreground")"
+                                                    aria-label="@(L.T("按邮箱筛选", "Filter email"))">
+                                                <LucideIcon Name="filter" Size="14" />
+                                            </button>
+                                        </AtomBlazor.Primitives.PopoverTrigger>
+                                        <AtomBlazor.Primitives.PopoverContent Class="w-64 p-4 bg-popover text-popover-foreground rounded-md border shadow-md" Align="PopoverAlign.Start">
+                                            <div class="space-y-2">
+                                                <h4 class="font-medium text-sm">@L.T("按邮箱筛选", "Filter by Email")</h4>
+                                                <input type="text"
+                                                       @bind="emailFilter"
+                                                       @bind:event="oninput"
+                                                       @onchange="@((e) => { filteredTableState.Pagination.Reset(); StateHasChanged(); })"
+                                                       placeholder="@(L.T("请输入邮箱...", "Enter email..."))"
+                                                       class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+                                                @if (!string.IsNullOrWhiteSpace(emailFilter))
+                                                {
+                                                    <button @onclick="@(() => { emailFilter = ""; filteredTableState.Pagination.Reset(); StateHasChanged(); })"
+                                                            class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 border border-input bg-background hover:bg-accent hover:text-accent-foreground">
+                                                        @L.T("清除", "Clear")
+                                                    </button>
+                                                }
+                                            </div>
+                                        </AtomBlazor.Primitives.PopoverContent>
+                                    </AtomBlazor.Primitives.PopoverPrimitive>
+                                </div>
+                            </AtomBlazor.Primitives.TableHeaderCell>
+                            <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                                <div class="flex items-center gap-2">
+                                    <span>@L.T("部门", "Department")</span>
+                                    <AtomBlazor.Primitives.PopoverPrimitive>
+                                        <AtomBlazor.Primitives.PopoverTrigger>
+                                            <button class="inline-flex items-center justify-center h-6 w-6 rounded hover:bg-accent @(!string.IsNullOrWhiteSpace(departmentFilter) ? "text-primary" : "text-muted-foreground")"
+                                                    aria-label="@(L.T("按部门筛选", "Filter department"))">
+                                                <LucideIcon Name="filter" Size="14" />
+                                            </button>
+                                        </AtomBlazor.Primitives.PopoverTrigger>
+                                        <AtomBlazor.Primitives.PopoverContent Class="w-64 p-4 bg-popover text-popover-foreground rounded-md border shadow-md" Align="PopoverAlign.Start">
+                                            <div class="space-y-2">
+                                                <h4 class="font-medium text-sm">@L.T("按部门筛选", "Filter by Department")</h4>
+                                                <input type="text"
+                                                       @bind="departmentFilter"
+                                                       @bind:event="oninput"
+                                                       @onchange="@((e) => { filteredTableState.Pagination.Reset(); StateHasChanged(); })"
+                                                       placeholder="@(L.T("请输入部门...", "Enter department..."))"
+                                                       class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+                                                @if (!string.IsNullOrWhiteSpace(departmentFilter))
+                                                {
+                                                    <button @onclick="@(() => { departmentFilter = ""; filteredTableState.Pagination.Reset(); StateHasChanged(); })"
+                                                            class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 border border-input bg-background hover:bg-accent hover:text-accent-foreground">
+                                                        @L.T("清除", "Clear")
+                                                    </button>
+                                                }
+                                            </div>
+                                        </AtomBlazor.Primitives.PopoverContent>
+                                    </AtomBlazor.Primitives.PopoverPrimitive>
+                                </div>
+                            </AtomBlazor.Primitives.TableHeaderCell>
+                        </AtomBlazor.Primitives.TableRow>
+                    </AtomBlazor.Primitives.TableHeader>
+                    <AtomBlazor.Primitives.TableBody Class="[&_tr:last-child]:border-0">
+                        @{
+                            var filteredPeople = GetFilteredPageData().ToList();
+                        }
+                        @if (filteredPeople.Any())
+                        {
+                            @foreach (var person in filteredPeople)
+                            {
+                                <AtomBlazor.Primitives.TableRow TData="Person" Class="border-b transition-colors hover:bg-muted/50">
+                                    <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Name</AtomBlazor.Primitives.TableCell>
+                                    <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Email</AtomBlazor.Primitives.TableCell>
+                                    <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Department</AtomBlazor.Primitives.TableCell>
+                                </AtomBlazor.Primitives.TableRow>
+                            }
+                        }
+                        else
+                        {
+                            <AtomBlazor.Primitives.TableRow TData="Person" Class="border-b">
+                                <AtomBlazor.Primitives.TableCell Class="p-4 align-middle text-center text-muted-foreground" colspan="3">
+                                    @L.T("未找到结果", "No results found")
+                                </AtomBlazor.Primitives.TableCell>
+                            </AtomBlazor.Primitives.TableRow>
+                        }
+                    </AtomBlazor.Primitives.TableBody>
+                </AtomBlazor.Primitives.TablePrimitive>
+            </div>
+
+            <AtomBlazor.Primitives.TablePagination TData="Person" State="@filteredTableState.Pagination"
+                             OnPageChange="@HandleFilteredPaginationChange"
+                             OnPageSizeChange="@HandleFilteredPaginationChange">
+                <PaginationTemplate Context="context">
+                    <div class="flex items-center justify-between px-2">
+                        <div class="flex-1 text-sm text-muted-foreground">
+                            @context.GetPageInfoText()
+                        </div>
+                        <div class="flex items-center space-x-6 lg:space-x-8">
+                            <div class="flex items-center space-x-2">
+                                <p class="text-sm font-medium">@L.T("每页条数", "Rows per page")</p>
+                                <select @onchange="@((e) => context.ChangePageSize(int.Parse(e.Value?.ToString() ?? "10")))"
+                                        class="h-8 w-[70px] rounded-md border border-input bg-background px-2 py-1 text-sm">
+                                    @foreach (var size in context.PageSizeOptions)
+                                    {
+                                        <option value="@size" selected="@(context.State.PageSize == size)">@size</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="flex w-[100px] items-center justify-center text-sm font-medium">
+                                @L.F("第 {0} 页，共 {1} 页", "Page {0} of {1}", context.State.CurrentPage, context.State.TotalPages)
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <Button Variant="ButtonVariant.Outline"
+                                        Size="ButtonSize.Icon"
+                                        OnClick="@context.GoToFirstPage"
+                                        Disabled="@(!context.State.CanGoPrevious)"
+                                        AriaLabel="@(L.T("跳转到第一页", "Go to first page"))">
+                                    <LucideIcon Name="chevrons-left" Size="16" />
+                                </Button>
+                                <Button Variant="ButtonVariant.Outline"
+                                        Size="ButtonSize.Icon"
+                                        OnClick="@context.GoToPreviousPage"
+                                        Disabled="@(!context.State.CanGoPrevious)"
+                                        AriaLabel="@(L.T("跳转到上一页", "Go to previous page"))">
+                                    <LucideIcon Name="chevron-left" Size="16" />
+                                </Button>
+                                <Button Variant="ButtonVariant.Outline"
+                                        Size="ButtonSize.Icon"
+                                        OnClick="@context.GoToNextPage"
+                                        Disabled="@(!context.State.CanGoNext)"
+                                        AriaLabel="@(L.T("跳转到下一页", "Go to next page"))">
+                                    <LucideIcon Name="chevron-right" Size="16" />
+                                </Button>
+                                <Button Variant="ButtonVariant.Outline"
+                                        Size="ButtonSize.Icon"
+                                        OnClick="@context.GoToLastPage"
+                                        Disabled="@(!context.State.CanGoNext)"
+                                        AriaLabel="@(L.T("跳转到最后一页", "Go to last page"))">
+                                    <LucideIcon Name="chevrons-right" Size="16" />
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </PaginationTemplate>
+            </AtomBlazor.Primitives.TablePagination>
+
+            <div class="rounded-lg border bg-card p-4">
+                <h3 class="font-semibold mb-2">@L.T("筛选状态", "Filter State")</h3>
+                <div class="text-sm space-y-1">
+                    <p><span class="font-medium">@L.T("生效筛选：", "Active Filters:")</span> @(new[] { nameFilter, emailFilter, departmentFilter }.Count(f => !string.IsNullOrWhiteSpace(f)))</p>
+                    <p><span class="font-medium">@L.T("结果：", "Results:")</span> @GetFilteredPeople().Count() / @people.Count</p>
+                    @if (new[] { nameFilter, emailFilter, departmentFilter }.Any(f => !string.IsNullOrWhiteSpace(f)))
+                    {
+                        <button @onclick="@(() => { nameFilter = ""; emailFilter = ""; departmentFilter = ""; StateHasChanged(); })"
+                                class="mt-2 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-4">
+                            @L.T("清除筛选", "Clear Filters")
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+
+    @* Global Search Example *@
+    <section class="space-y-4">
+        <div>
+            <h2 class="text-2xl font-semibold">@L.T("全局搜索", "Global Search")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("同时在所有列中搜索", "Search across all columns simultaneously")</p>
+        </div>
+
+        <div class="space-y-4">
+            <div class="flex items-center gap-4">
+                <input type="text"
+                       @bind="globalSearchFilter"
+                       @bind:event="oninput"
+                       @onchange="@(() => { globalSearchTableState.Pagination.Reset(); StateHasChanged(); })"
+                       placeholder="@(L.T("在所有列中搜索...", "Search across all columns..."))"
+                       class="flex-1 h-10 px-3 rounded-md border border-input bg-background" />
+                @if (!string.IsNullOrWhiteSpace(globalSearchFilter))
+                {
+                    <button @onclick="@(() => { globalSearchFilter = ""; globalSearchTableState.Pagination.Reset(); StateHasChanged(); })"
+                            class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4">
+                        @L.T("清除", "Clear")
+                    </button>
+                }
+            </div>
+
+            <div class="rounded-md border">
+                <AtomBlazor.Primitives.TablePrimitive TData="Person" Data="@GetGloballyFilteredPeople()" @bind-State="@globalSearchTableState"
+                       OnPageChange="@HandleGlobalSearchPaginationChange"
+                       OnPageSizeChange="@HandleGlobalSearchPaginationChange"
+                       Class="w-full caption-bottom text-sm">
+                    <AtomBlazor.Primitives.TableHeader Class="[&_tr]:border-b">
+                        <AtomBlazor.Primitives.TableRow TData="Person" Class="border-b transition-colors hover:bg-muted/50">
+                            <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("名称", "Name")</AtomBlazor.Primitives.TableHeaderCell>
+                            <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("邮箱", "Email")</AtomBlazor.Primitives.TableHeaderCell>
+                            <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("年龄", "Age")</AtomBlazor.Primitives.TableHeaderCell>
+                            <AtomBlazor.Primitives.TableHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("部门", "Department")</AtomBlazor.Primitives.TableHeaderCell>
+                        </AtomBlazor.Primitives.TableRow>
+                    </AtomBlazor.Primitives.TableHeader>
+                    <AtomBlazor.Primitives.TableBody Class="[&_tr:last-child]:border-0">
+                        @{
+                            var globalFilteredPeople = GetGlobalSearchPageData().ToList();
+                        }
+                        @if (globalFilteredPeople.Any())
+                        {
+                            @foreach (var person in globalFilteredPeople)
+                            {
+                                <AtomBlazor.Primitives.TableRow TData="Person" Class="border-b transition-colors hover:bg-muted/50">
+                                    <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Name</AtomBlazor.Primitives.TableCell>
+                                    <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Email</AtomBlazor.Primitives.TableCell>
+                                    <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Age</AtomBlazor.Primitives.TableCell>
+                                    <AtomBlazor.Primitives.TableCell Class="p-4 align-middle">@person.Department</AtomBlazor.Primitives.TableCell>
+                                </AtomBlazor.Primitives.TableRow>
+                            }
+                        }
+                        else
+                        {
+                            <AtomBlazor.Primitives.TableRow TData="Person" Class="border-b">
+                                <AtomBlazor.Primitives.TableCell Class="p-4 align-middle text-center text-muted-foreground" colspan="4">
+                                    @L.F("未找到与 “{0}” 匹配的结果", "No results found for \"{0}\"", globalSearchFilter)
+                                </AtomBlazor.Primitives.TableCell>
+                            </AtomBlazor.Primitives.TableRow>
+                        }
+                    </AtomBlazor.Primitives.TableBody>
+                </AtomBlazor.Primitives.TablePrimitive>
+            </div>
+
+            <AtomBlazor.Primitives.TablePagination TData="Person" State="@globalSearchTableState.Pagination"
+                             OnPageChange="@HandleGlobalSearchPaginationChange"
+                             OnPageSizeChange="@HandleGlobalSearchPaginationChange">
+                <PaginationTemplate Context="context">
+                    <div class="flex items-center justify-between px-2">
+                        <div class="flex-1 text-sm text-muted-foreground">
+                            @context.GetPageInfoText()
+                        </div>
+                        <div class="flex items-center space-x-6 lg:space-x-8">
+                            <div class="flex items-center space-x-2">
+                                <p class="text-sm font-medium">@L.T("每页条数", "Rows per page")</p>
+                                <select @onchange="@((e) => context.ChangePageSize(int.Parse(e.Value?.ToString() ?? "10")))"
+                                        class="h-8 w-[70px] rounded-md border border-input bg-background px-2 py-1 text-sm">
+                                    @foreach (var size in context.PageSizeOptions)
+                                    {
+                                        <option value="@size" selected="@(context.State.PageSize == size)">@size</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="flex w-[100px] items-center justify-center text-sm font-medium">
+                                @L.F("第 {0} 页，共 {1} 页", "Page {0} of {1}", context.State.CurrentPage, context.State.TotalPages)
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <Button Variant="ButtonVariant.Outline"
+                                        Size="ButtonSize.Icon"
+                                        OnClick="@context.GoToFirstPage"
+                                        Disabled="@(!context.State.CanGoPrevious)"
+                                        AriaLabel="@(L.T("跳转到第一页", "Go to first page"))">
+                                    <LucideIcon Name="chevrons-left" Size="16" />
+                                </Button>
+                                <Button Variant="ButtonVariant.Outline"
+                                        Size="ButtonSize.Icon"
+                                        OnClick="@context.GoToPreviousPage"
+                                        Disabled="@(!context.State.CanGoPrevious)"
+                                        AriaLabel="@(L.T("跳转到上一页", "Go to previous page"))">
+                                    <LucideIcon Name="chevron-left" Size="16" />
+                                </Button>
+                                <Button Variant="ButtonVariant.Outline"
+                                        Size="ButtonSize.Icon"
+                                        OnClick="@context.GoToNextPage"
+                                        Disabled="@(!context.State.CanGoNext)"
+                                        AriaLabel="@(L.T("跳转到下一页", "Go to next page"))">
+                                    <LucideIcon Name="chevron-right" Size="16" />
+                                </Button>
+                                <Button Variant="ButtonVariant.Outline"
+                                        Size="ButtonSize.Icon"
+                                        OnClick="@context.GoToLastPage"
+                                        Disabled="@(!context.State.CanGoNext)"
+                                        AriaLabel="@(L.T("跳转到最后一页", "Go to last page"))">
+                                    <LucideIcon Name="chevrons-right" Size="16" />
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </PaginationTemplate>
+            </AtomBlazor.Primitives.TablePagination>
+
+            <div class="rounded-lg border bg-card p-4">
+                <h3 class="font-semibold mb-2">@L.T("搜索结果", "Search Results")</h3>
+                <div class="text-sm space-y-1">
+                    <p><span class="font-medium">@L.T("查询：", "Query:")</span> @(string.IsNullOrWhiteSpace(globalSearchFilter) ? L.T("无", "None") : $"\"{globalSearchFilter}\"")</p>
+                    <p><span class="font-medium">@L.T("结果：", "Results:")</span> @GetGloballyFilteredPeople().Count() / @people.Count</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+        <AccessibilityList>
+            <AriaAttributes>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="grid"</code> 供屏幕阅读器使用
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="grid"</code> for screen readers
+                        </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-sort</code> 指示列的排序方向
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-sort</code> indicates column sort direction
+                        </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-selected</code> 指示行的选择状态
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-selected</code> indicates row selection state
+                        </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-rowcount</code> 用于总行数
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-rowcount</code> for total row count
+                        </AccessibilityItem>
+                    </text>
+                }
+                <AccessibilityItem>
+                    @L.T("可获得焦点的行，具有可见焦点指示器。", "Focusable rows with visible focus indicator")
+                </AccessibilityItem>
+            </AriaAttributes>
+            <KeyboardNavigation>
+                <KeyboardShortcutItem Description="@(L.T("导航到下一行", "Navigate to next row"))">
+                    <Kbd>ArrowDown</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("导航到上一行", "Navigate to previous row"))">
+                    <Kbd>ArrowUp</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("切换行的选择状态", "Toggle row selection"))">
+                    <Kbd>Enter / Space</Kbd>
+                </KeyboardShortcutItem>
+            </KeyboardNavigation>
+        </AccessibilityList>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("组件属性与参数。", "Component properties and parameters.")
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <ApiReference ComponentName="Table&lt;TData&gt;">
+                    <ApiParameter Name="Data" Type="IEnumerable&lt;TData&gt;">
+                        @L.T("表格的数据源。", "The data source for the table.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="State" Type="TableState&lt;TData&gt;?">
+                                用于受控模式的表格状态。与 <code>@@bind-State</code> 搭配可实现双向绑定。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="State" Type="TableState&lt;TData&gt;?">
+                                The table state for controlled mode. Use with <code>@@bind-State</code> for two-way binding.
+                            </ApiParameter>
+                        </text>
+                    }
+                    <ApiParameter Name="SelectionMode" Type="SelectionMode" Default="None">
+                        @L.T("选择模式：None、Single 或 Multiple。", "The selection mode: None, Single, or Multiple.")
+                    </ApiParameter>
+                    <ApiParameter Name="EnableKeyboardNavigation" Type="bool" Default="true">
+                        @L.T("为表格行启用键盘导航（使用方向键移动，按 Enter/空格进行选择）。", "Enables keyboard navigation for table rows (arrow keys to navigate, Enter/Space to select).")
+                    </ApiParameter>
+                    <ApiParameter Name="ManualPagination" Type="bool" Default="false">
+                        @L.T("为 true 时，表格不会自动设置 TotalItems。", "When true, the table will not automatically set TotalItems.")
+                    </ApiParameter>
+                    <ApiParameter Name="OnSelectionChange" Type="EventCallback&lt;IReadOnlyCollection&lt;TData&gt;&gt;">
+                        @L.T("选择发生变化时调用的回调。", "Callback invoked when the selection changes.")
+                    </ApiParameter>
+                    <ApiParameter Name="OnSortChange" Type="EventCallback&lt;(string, SortDirection)&gt;">
+                        @L.T("排序发生变化时调用的回调。", "Callback invoked when sorting changes.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("表格内容（TableHeader、TableBody）。", "The table content (TableHeader, TableBody).")
+                    </ApiParameter>
+                    <ApiParameter Name="Class" Type="string?">
+                        @L.T("应用到表格元素的附加 CSS 类。", "Additional CSS classes for the table element.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到表格元素的附加 HTML 属性。", "Additional HTML attributes applied to the table element.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="TableRow&lt;TData&gt;">
+                    <ApiParameter Name="Item" Type="TData?">
+                        @L.T("此行的数据项。选择功能需要它。", "The data item for this row. Required for selection to work.")
+                    </ApiParameter>
+                    <ApiParameter Name="Class" Type="string?">
+                        @L.T("应用到该行的附加 CSS 类。", "Additional CSS classes to apply to the row.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("行内容（TableCell 或 TableHeaderCell 元素）。", "The row content (TableCell or TableHeaderCell elements).")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到行元素的附加 HTML 属性。", "Additional HTML attributes applied to the row element.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="TableHeaderCell&lt;TData&gt;">
+                    <ApiParameter Name="ColumnId" Type="string?">
+                        @L.T("列标识符。提供后，点击表头即可切换排序。", "The column identifier. When provided, clicking the header toggles sorting.")
+                    </ApiParameter>
+                    <ApiParameter Name="Class" Type="string?">
+                        @L.T("应用到表头单元格的附加 CSS 类。", "Additional CSS classes for the header cell.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("表头单元格的内容。", "The header cell content.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到表头单元格元素的附加 HTML 属性。", "Additional HTML attributes applied to the header cell element.")
+                    </ApiParameter>
+                </ApiReference>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+#pragma warning disable BL0012 // （.NET 11 Razor 分析器）照语句本体保留显式 StateHasChanged（本块报点 6 处：网格/表格回调亦可经 JS interop 等非事件路径触发，分析器仅见事件处理器静态形态而判冗余）；禁止为消诊断删本体，采文件级定点抑制
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private List<Person> people = new();
+    private List<Person> largePeopleDataset = new();
+
+    private TableState<Person> sortableTableState = new();
+    private TableState<Person> paginatedTableState = new() { Pagination = { PageSize = 5 } };
+    private TableState<Person> selectableTableState = new();
+    private TableState<Person> combinedTableState = new() { Pagination = { PageSize = 5 } };
+    private TableState<Person> filteredTableState = new();
+    private TableState<Person> globalSearchTableState = new();
+
+    private bool selectAllChecked = false;
+    private bool combinedSelectAllChecked = false;
+    private string actionMessage = "";
+    private bool enableKeyboardNavigation = true;
+
+    // Row action handlers
+    private void HandleViewDetails(Person person)
+    {
+        actionMessage = L.IsChinese ? $"正在查看 {person.Name} 的详情" : $"Viewing details for {person.Name}";
+    }
+
+    private void HandleEdit(Person person)
+    {
+        actionMessage = L.IsChinese ? $"正在编辑 {person.Name}" : $"Editing {person.Name}";
+    }
+
+    private void HandleDuplicate(Person person)
+    {
+        actionMessage = L.IsChinese ? $"正在复制 {person.Name}" : $"Duplicating {person.Name}";
+    }
+
+    private void HandleDelete(Person person)
+    {
+        actionMessage = L.IsChinese ? $"正在删除 {person.Name}" : $"Deleting {person.Name}";
+    }
+
+    // Filter input values
+    private string nameFilter = "";
+    private string emailFilter = "";
+    private string departmentFilter = "";
+
+    // Combined table filter values
+    private string combinedNameFilter = "";
+    private string combinedEmailFilter = "";
+    private string combinedAgeFilter = "";
+    private string combinedDepartmentFilter = "";
+
+    // Global search value
+    private string globalSearchFilter = "";
+
+    protected override void OnInitialized()
+    {
+        // Set selection modes on the selection state
+        selectableTableState.Selection.Mode = SelectionMode.Multiple;
+        combinedTableState.Selection.Mode = SelectionMode.Multiple;
+
+        // Generate sample data - small dataset
+        people = new List<Person>
+        {
+            new Person { Id = 1, Name = "John Doe", Email = "john@example.com", Age = 32, Department = "Engineering" },
+            new Person { Id = 2, Name = "Jane Smith", Email = "jane@example.com", Age = 28, Department = "Design" },
+            new Person { Id = 3, Name = "Bob Johnson", Email = "bob@example.com", Age = 45, Department = "Sales" },
+            new Person { Id = 4, Name = "Alice Williams", Email = "alice@example.com", Age = 35, Department = "Engineering" },
+            new Person { Id = 5, Name = "Charlie Brown", Email = "charlie@example.com", Age = 29, Department = "Marketing" },
+            new Person { Id = 6, Name = "Diana Prince", Email = "diana@example.com", Age = 31, Department = "Design" },
+            new Person { Id = 7, Name = "Eve Davis", Email = "eve@example.com", Age = 27, Department = "Sales" },
+            new Person { Id = 8, Name = "Frank Miller", Email = "frank@example.com", Age = 38, Department = "Engineering" },
+        };
+
+        // Generate larger dataset for pagination demo
+        largePeopleDataset = new List<Person>();
+        var firstNames = new[] { "Mathew", "John", "Jane", "Bob", "Alice", "Charlie", "Diana", "Eve", "Frank", "Grace", "Henry", "Ivy", "Jack", "Kate", "Leo", "Mary", "Nathan", "Olivia", "Paul", "Quinn", "Rachel", "Samuel", "Tina", "Uma", "Victor", "Wendy", "Xavier", "Yolanda", "Zachary", "Aria", "Blake", "Noah", "Liam", "Sophia", "Emma", "Mason", "Lucas", "Chloe", "Lily", "Owen", "Zoey" };
+        var lastNames = new[] { "Taylor", "Doe", "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Moore", "Jackson", "Martin", "Lee", "Perez", "Thompson", "White", "Harris", "Sanchez", "Clark", "Ramirez", "Lewis", "Robinson", "Bennett", "Graham", "Foster", "Coleman", "Hughes", "Cruz", "Reed", "Cook", "Morgan", "Bell" };
+        var departments = new[] { "Engineering", "Design", "Sales", "Marketing", "HR", "Finance", "Operations", "Support" };
+
+        for (int i = 0; i < 500; i++)
+        {
+            var firstNameIndex = i % firstNames.Length;
+            var lastNameIndex = (i / firstNames.Length + i) % lastNames.Length;
+            var firstName = firstNames[firstNameIndex];
+            var lastName = lastNames[lastNameIndex];
+
+            largePeopleDataset.Add(new Person
+            {
+                Id = i + 1,
+                Name = $"{firstName} {lastName}",
+                Email = $"{firstName.ToLower()}.{lastName.ToLower()}@example.com",
+                Age = 22 + (i % 40),
+                Department = departments[i % departments.Length]
+            });
+        }
+
+        // Explicitly set TotalItems for pagination to work correctly
+        paginatedTableState.Pagination.TotalItems = largePeopleDataset.Count;
+        combinedTableState.Pagination.TotalItems = largePeopleDataset.Count;
+    }
+
+    // Pagination change handlers
+    private void HandlePaginationChange(int page)
+    {
+        // Trigger re-render of the demo page so GetPaginatedData() is called again
+        StateHasChanged();
+    }
+
+    private void HandleCombinedPaginationChange(int page)
+    {
+        // Trigger re-render of the demo page
+        StateHasChanged();
+    }
+
+    // Selection change handlers
+    private void HandleSelectionChange(IReadOnlyCollection<Person> selectedItems)
+    {
+        UpdateSelectAllCheckbox();
+        StateHasChanged();
+    }
+
+    private void HandleCombinedSelectionChange(IReadOnlyCollection<Person> selectedItems)
+    {
+        UpdateCombinedSelectAllCheckbox();
+        StateHasChanged();
+    }
+
+    // Manual sorting for sortable table
+    private IEnumerable<Person> GetSortedPeople()
+    {
+        var data = people.AsEnumerable();
+        var sorting = sortableTableState.Sorting;
+
+        if (sorting.SortedColumn == null || sorting.Direction == SortDirection.None)
+            return data;
+
+        return sorting.SortedColumn switch
+        {
+            "name" => sorting.Direction == SortDirection.Ascending
+                ? data.OrderBy(p => p.Name)
+                : data.OrderByDescending(p => p.Name),
+            "email" => sorting.Direction == SortDirection.Ascending
+                ? data.OrderBy(p => p.Email)
+                : data.OrderByDescending(p => p.Email),
+            "age" => sorting.Direction == SortDirection.Ascending
+                ? data.OrderBy(p => p.Age)
+                : data.OrderByDescending(p => p.Age),
+            "department" => sorting.Direction == SortDirection.Ascending
+                ? data.OrderBy(p => p.Department)
+                : data.OrderByDescending(p => p.Department),
+            _ => data
+        };
+    }
+
+    // Manual pagination for paginated table
+    private IEnumerable<Person> GetPaginatedData()
+    {
+        var pagination = paginatedTableState.Pagination;
+        var skip = (pagination.CurrentPage - 1) * pagination.PageSize;
+        return largePeopleDataset.Skip(skip).Take(pagination.PageSize);
+    }
+
+    // Manual filtering and sorting for combined table
+    private IEnumerable<Person> GetSortedCombinedData()
+    {
+        var data = largePeopleDataset.AsEnumerable();
+
+        // Apply filters first
+        if (!string.IsNullOrWhiteSpace(combinedNameFilter))
+        {
+            data = data.Where(p => p.Name.Contains(combinedNameFilter, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(combinedEmailFilter))
+        {
+            data = data.Where(p => p.Email.Contains(combinedEmailFilter, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(combinedAgeFilter))
+        {
+            data = data.Where(p => p.Age.ToString().Contains(combinedAgeFilter, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(combinedDepartmentFilter))
+        {
+            data = data.Where(p => p.Department.Contains(combinedDepartmentFilter, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Then apply sorting
+        var sorting = combinedTableState.Sorting;
+        if (sorting.SortedColumn == null || sorting.Direction == SortDirection.None)
+            return data;
+
+        return sorting.SortedColumn switch
+        {
+            "name" => sorting.Direction == SortDirection.Ascending
+                ? data.OrderBy(p => p.Name)
+                : data.OrderByDescending(p => p.Name),
+            "email" => sorting.Direction == SortDirection.Ascending
+                ? data.OrderBy(p => p.Email)
+                : data.OrderByDescending(p => p.Email),
+            "age" => sorting.Direction == SortDirection.Ascending
+                ? data.OrderBy(p => p.Age)
+                : data.OrderByDescending(p => p.Age),
+            "department" => sorting.Direction == SortDirection.Ascending
+                ? data.OrderBy(p => p.Department)
+                : data.OrderByDescending(p => p.Department),
+            _ => data
+        };
+    }
+
+    // Manual pagination for combined table
+    private IEnumerable<Person> GetCombinedPageData()
+    {
+        var sortedData = GetSortedCombinedData().ToList();
+        var pagination = combinedTableState.Pagination;
+
+        // Update total items based on filtered/sorted data
+        pagination.TotalItems = sortedData.Count;
+
+        var skip = (pagination.CurrentPage - 1) * pagination.PageSize;
+        return sortedData.Skip(skip).Take(pagination.PageSize);
+    }
+
+    // Selection handlers
+    private void ToggleRowSelection(Person person)
+    {
+        selectableTableState.Selection.Toggle(person);
+        UpdateSelectAllCheckbox();
+        StateHasChanged();
+    }
+
+    private void ToggleCombinedRowSelection(Person person)
+    {
+        combinedTableState.Selection.Toggle(person);
+        UpdateCombinedSelectAllCheckbox();
+        StateHasChanged();
+    }
+
+    private void HandleSelectAllChanged()
+    {
+        if (selectAllChecked)
+        {
+            selectableTableState.Selection.SelectAll(people);
+        }
+        else
+        {
+            selectableTableState.Selection.Clear();
+        }
+        StateHasChanged();
+    }
+
+    private void HandleCombinedSelectAllChanged()
+    {
+        var pageData = GetCombinedPageData().ToList();
+        if (combinedSelectAllChecked)
+        {
+            combinedTableState.Selection.SelectAll(pageData);
+        }
+        else
+        {
+            combinedTableState.Selection.DeselectAll(pageData);
+        }
+        StateHasChanged();
+    }
+
+    private void UpdateSelectAllCheckbox()
+    {
+        selectAllChecked = people.All(p => selectableTableState.Selection.IsSelected(p));
+    }
+
+    private void UpdateCombinedSelectAllCheckbox()
+    {
+        var pageData = GetCombinedPageData().ToList();
+        combinedSelectAllChecked = pageData.All(p => combinedTableState.Selection.IsSelected(p)) && pageData.Any();
+    }
+
+    // Column filtering
+    private IEnumerable<Person> GetFilteredPeople()
+    {
+        var data = largePeopleDataset.AsEnumerable();
+
+        // Apply column filters using AND logic
+        if (!string.IsNullOrWhiteSpace(nameFilter))
+        {
+            data = data.Where(p => p.Name.Contains(nameFilter, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(emailFilter))
+        {
+            data = data.Where(p => p.Email.Contains(emailFilter, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(departmentFilter))
+        {
+            data = data.Where(p => p.Department.Contains(departmentFilter, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return data;
+    }
+
+    // Manual pagination for filtered table
+    private IEnumerable<Person> GetFilteredPageData()
+    {
+        var filteredData = GetFilteredPeople().ToList();
+        var pagination = filteredTableState.Pagination;
+
+        // Update total items based on filtered data
+        pagination.TotalItems = filteredData.Count;
+
+        var skip = (pagination.CurrentPage - 1) * pagination.PageSize;
+        return filteredData.Skip(skip).Take(pagination.PageSize);
+    }
+
+    private void HandleFilteredPaginationChange()
+    {
+        StateHasChanged();
+    }
+
+    // Global search filtering
+    private IEnumerable<Person> GetGloballyFilteredPeople()
+    {
+        var data = largePeopleDataset.AsEnumerable();
+
+        if (string.IsNullOrWhiteSpace(globalSearchFilter))
+        {
+            return data;
+        }
+
+        // Search across all text columns
+        return data.Where(p =>
+            p.Name.Contains(globalSearchFilter, StringComparison.OrdinalIgnoreCase) ||
+            p.Email.Contains(globalSearchFilter, StringComparison.OrdinalIgnoreCase) ||
+            p.Department.Contains(globalSearchFilter, StringComparison.OrdinalIgnoreCase) ||
+            p.Age.ToString().Contains(globalSearchFilter, StringComparison.OrdinalIgnoreCase)
+        );
+    }
+
+    // Manual pagination for global search table
+    private IEnumerable<Person> GetGlobalSearchPageData()
+    {
+        var filteredData = GetGloballyFilteredPeople().ToList();
+        var pagination = globalSearchTableState.Pagination;
+
+        // Update total items based on filtered data
+        pagination.TotalItems = filteredData.Count;
+
+        var skip = (pagination.CurrentPage - 1) * pagination.PageSize;
+        return filteredData.Skip(skip).Take(pagination.PageSize);
+    }
+
+    private void HandleGlobalSearchPaginationChange()
+    {
+        StateHasChanged();
+    }
+
+    public class Person
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public int Age { get; set; }
+        public string Department { get; set; } = string.Empty;
+    }
+#pragma warning restore BL0012
+}

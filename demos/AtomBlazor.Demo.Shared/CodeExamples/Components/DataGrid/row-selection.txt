@@ -1,0 +1,18 @@
+<DataGrid TData="Person" Items="@people" InitialPageSize="5"
+           SelectionMode="DataTableSelectionMode.Multiple"
+           SelectedItemsChanged="HandleSelectionChanged">
+    <Columns>
+        <DataGridSelectColumn TData="Person" />
+        <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+        <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" />
+        <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+        <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable />
+    </Columns>
+</DataGrid>
+
+@code {
+    private void HandleSelectionChanged(IReadOnlyCollection<Person> selected)
+    {
+        _selectedPeople = selected;
+    }
+}

@@ -1,0 +1,51 @@
+@namespace AtomBlazor.Primitives
+
+@*
+    SheetTitle 为 Sheet 提供标题元素。
+    用于无障碍访问（aria-labelledby）。
+*@
+
+@HeadingFragment
+
+@code {
+    [CascadingParameter]
+    private SheetContext Context { get; set; } = null!;
+
+    /// <summary>
+    /// 标题文本或内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用到标题元素的附加特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 用于标题的 HTML 元素标签。
+    /// 默认值为 "h2"。
+    /// </summary>
+    [Parameter]
+    public string As { get; set; } = "h2";
+
+    private RenderFragment HeadingFragment => builder =>
+    {
+        builder.OpenElement(0, As);
+        builder.AddAttribute(1, "id", Context.TitleId);
+        builder.AddMultipleAttributes(2, AdditionalAttributes);
+        builder.AddContent(3, ChildContent);
+        builder.CloseElement();
+    };
+
+    protected override void OnInitialized()
+    {
+        if (Context == null)
+        {
+            throw new InvalidOperationException(
+                "SheetTitle must be used within a Sheet component. " +
+                "Ensure SheetTitle is a child of a Sheet component.");
+        }
+    }
+}

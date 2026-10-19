@@ -1,0 +1,24 @@
+@namespace AtomBlazor.Primitives
+@using AtomBlazor.Primitives.Utilities
+
+@if (AsChild)
+{
+    @* AsChild 为 true 时把触发器上下文级联给子组件，由子组件自行消费并挂载点击行为。 *@
+    <CascadingValue Value="TriggerContext" Name="TriggerContext">
+        @ChildContent
+    </CascadingValue>
+}
+else
+{
+    @* 原生 <button> 在按下空格/回车时本身就会触发 click，因此触发器通过 @onclick 切换状态。
+       这里有意不再额外处理 keydown——此前同时处理导致每次按键切换两次（keydown + 原生 click），
+       表现为一次按键同时打开又关闭。 *@
+    <button type="button"
+            data-state="@(Context?.Open ?? false ? "open" : "closed")"
+            aria-expanded="@((Context?.Open ?? false) ? "true" : "false")"
+            disabled="@(Context?.Disabled ?? false)"
+            @onclick="HandleClick"
+            @attributes="AdditionalAttributes">
+        @ChildContent
+    </button>
+}

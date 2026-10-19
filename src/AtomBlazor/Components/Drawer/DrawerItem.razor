@@ -1,0 +1,60 @@
+@namespace AtomBlazor
+
+<button type="button"
+        class="@CssClass"
+        disabled="@Disabled"
+        @onclick="HandleClick"
+        @attributes="AdditionalAttributes">
+    @if (Icon != null)
+    {
+        <span class="atom:me-3 atom:h-5 atom:w-5 atom:shrink-0">
+            @Icon
+        </span>
+    }
+    @ChildContent
+</button>
+
+@code {
+    [CascadingParameter]
+    public Drawer? DrawerContext { get; set; }
+
+    [Parameter]
+    public RenderFragment? Icon { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    [Parameter]
+    public bool CloseOnClick { get; set; } = true;
+
+    private string CssClass => ClassNames.cn(
+        "atom:flex atom:w-full atom:items-center atom:rounded-md atom:px-4 atom:py-3 atom:text-sm atom:font-medium atom:transition-colors",
+        "atom:hover:bg-accent atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2",
+        "atom:disabled:pointer-events-none atom:disabled:opacity-50",
+        Class
+    );
+
+    private async Task HandleClick()
+    {
+        await OnClick.InvokeAsync();
+        if (CloseOnClick && DrawerContext != null)
+        {
+            await DrawerContext.SetOpen(false);
+        }
+    }
+}

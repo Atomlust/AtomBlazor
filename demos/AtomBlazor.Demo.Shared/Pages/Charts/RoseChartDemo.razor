@@ -1,0 +1,251 @@
+@page "/charts/rose"
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("玫瑰图 - Atom BlazorUI", "Rose Chart - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-6xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("玫瑰图", "Rose Chart")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("扇区的角度与长度同时变化的饼图，一眼就能为类别排出名次。", "A pie whose sectors vary in length as well as angle, so categories rank by eye.")
+            </p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("玫瑰图", "Rose Chart")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("按浏览器统计的访客", "Visitors by browser")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <RoseChart Data="@_browserData" Height="250px">
+                        <ChartTooltip />
+                        <Rose DataKey="visitors" NameKey="browser" />
+                    </RoseChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("默认的 Radius 模式", "Radius mode, the default")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("角度表示占比，长度表示数值", "Angle shows the share, length shows the value")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/RoseChart/default.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("面积", "Area")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("等角度", "Equal angles")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <RoseChart Data="@_browserData" Height="250px">
+                        <ChartTooltip />
+                        <Rose DataKey="visitors" NameKey="browser" Mode="RoseMode.Area" />
+                    </RoseChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        RoseMode.Area
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("每个扇区占相同的角度，因此只有长度在承载数值", "Every sector takes the same angle, so only length carries the value")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/RoseChart/area.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("环形", "Donut")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("带内半径", "With an inner radius")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <RoseChart Data="@_browserData" Height="250px">
+                        <ChartTooltip />
+                        <Rose DataKey="visitors" NameKey="browser" InnerRadius="25" OuterRadius="85" />
+                    </RoseChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("InnerRadius 把中心让了出来", "InnerRadius opens the centre")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("用的是饼图那同一批参数", "The same parameters a pie takes")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/RoseChart/donut.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("带标签", "With Labels")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("每个扇区一个名称", "A name per sector")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <RoseChart Data="@_browserData" Height="250px">
+                        <ChartTooltip />
+                        <Rose DataKey="visitors" NameKey="browser" OuterRadius="50"
+                                ShowLabels="true" LabelFormatter="{b}" LabelFontSize="11" />
+                    </RoseChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("带引导线的格式化标签", "Formatted labels with leader lines")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("{b} 是名称，{c} 是数值，{d} 是占比", "{b} for the name, {c} for the value, {d} for the share")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/RoseChart/labels.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("带图例", "With Legend")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("按浏览器统计的访客", "Visitors by browser")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <RoseChart Data="@_browserData" Height="250px">
+                        <ChartTooltip />
+                        <ChartLegend />
+                        <Rose DataKey="visitors" NameKey="browser" />
+                    </RoseChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("内置了图例组件", "Legend component included")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("图表整体上移，为它让出位置", "The chart shifts up to clear it")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/RoseChart/legend.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("中心标签", "Center Label")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("圆心里显示总量", "Total in the hole")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <RoseChart Data="@_browserData" Height="250px">
+                        <ChartTooltip />
+                        <Rose DataKey="visitors" NameKey="browser" InnerRadius="30" OuterRadius="85">
+                            <CenterLabel Title="@(L.T("访客", "Visitors"))" Value="@_totalVisitors" />
+                        </Rose>
+                    </RoseChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("CenterLabel 在这里同样可用", "CenterLabel works here too")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("需要把 InnerRadius 设为大于 0", "Needs an InnerRadius greater than 0")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/RoseChart/center-label.txt" />
+        </div>
+    </div>
+
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Rose</code> 自
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Pie</code>，因此 Pie 的每个参数——
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">NameKey</code>、
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">InnerRadius</code>、
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">OuterRadius</code>、
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowLabels</code> 以及其余参数——在这里同样适用。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Rose</code> derives from
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Pie</code>, so every Pie parameter —
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">NameKey</code>,
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">InnerRadius</code>,
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">OuterRadius</code>,
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowLabels</code> and the rest — applies here.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="border rounded-lg p-6 space-y-4">
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Rose.Mode</h3>
+                <p class="text-sm text-muted-foreground mb-2">
+                    @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">RoseMode</code> (@L.T("默认值：", "default:") <code class="text-xs bg-muted px-1 py-0.5 rounded">Radius</code>)
+                </p>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        数值如何映射到扇区。<code class="text-xs bg-muted px-1 py-0.5 rounded">Radius</code>
+                        保留饼图原有的角度占比，再额外叠加半径，于是同一个数值被表达了两次。
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Area</code> 让每个扇区占相同的角度，只改变半径，
+                        对于一组固定类别（而不是整体的若干部分）来说这是更诚实的选择。
+                        对应 ECharts 的 <code class="text-xs bg-muted px-1 py-0.5 rounded">roseType</code> 选项。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        How a value maps onto a sector. <code class="text-xs bg-muted px-1 py-0.5 rounded">Radius</code>
+                        keeps the pie's proportional angles and adds radius on top, so the sector carries the value twice.
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Area</code> gives every sector the same angle
+                        and varies the radius alone, which is the honest choice for a fixed set of categories rather than
+                        parts of a whole. Maps to the ECharts <code class="text-xs bg-muted px-1 py-0.5 rounded">roseType</code> option.
+                    </p>
+                                </text>
+}
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    public class BrowserData
+    {
+        public string Browser { get; set; } = "";
+        public int Visitors { get; set; }
+    }
+
+    private readonly List<BrowserData> _browserData =
+    [
+        new() { Browser = "Chrome", Visitors = 1120 },
+        new() { Browser = "Safari", Visitors = 780 },
+        new() { Browser = "Firefox", Visitors = 520 },
+        new() { Browser = "Edge", Visitors = 380 },
+        new() { Browser = "Other", Visitors = 240 }
+    ];
+
+    private string _totalVisitors => _browserData.Sum(b => b.Visitors).ToString("N0");
+}

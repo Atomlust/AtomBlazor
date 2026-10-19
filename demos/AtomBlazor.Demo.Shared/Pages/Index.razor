@@ -1,0 +1,237 @@
+@page "/"
+@inject ThemeService Theme
+@implements IDisposable
+
+@* 首页（自源 Pages/Index.razor）。偏差记录： - 实时主题控制条依赖的 ThemeService 已随 交付、原样保留；控制条的 Input/Switch/Slider、 Actions 行的 Badge 与 Audience 的 ToggleGroup 均已按源组件树 恢复（-h）； - 源 hero 中指向 example.com 的外部品牌按钮不适用于本克隆，移除并 TODO(品牌)。 *@
+<div class="max-w-5xl space-y-14">
+
+    @* ── Hero ── *@
+    <header class="space-y-5">
+        <div class="flex items-baseline gap-3">
+            <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">Atom BlazorUI</h1>
+        </div>
+        <p class="max-w-[62ch] text-xl leading-relaxed text-muted-foreground">
+            @L.F("为 Blazor 打造的 shadcn/ui 设计体系。{0} 个组件构建于无样式基础构件层之上，基于 .NET 11，支持 Server、WebAssembly 与 Auto 三种运行方式。",
+                 "The shadcn/ui design system, built for Blazor. {0} components on a headless primitive layer, running on .NET 11 across Server, WebAssembly and Auto.",
+                 ComponentCatalog.Items.Count)
+        </p>
+        <div class="flex flex-wrap gap-3 pt-1">
+            @* TODO(品牌)：源此处为 example.com 外链按钮（Ghost 变体），克隆站待自有站点地址确定后恢复。 *@
+            <Button Variant="ButtonVariant.Default" Href="/components">@L.T("浏览组件", "Explore components")</Button>
+            <Button Variant="ButtonVariant.Outline" Href="/primitives">@L.T("浏览基础构件", "Explore primitives")</Button>
+        </div>
+    </header>
+
+    @* ── The live board ─────────────────────────────────────────────────── 页面上唯一张扬的部分。控制条里的每个控件都写回真实的 ThemeService，从而同时刷新 看板、侧栏与页面主题——这是展示 v4 主题系统能力最快且诚实的方式。 ── *@
+    <section class="space-y-3">
+        <div class="overflow-hidden rounded-xl border bg-card shadow-sm">
+
+            <div class="space-y-3 border-b bg-muted/40 px-5 py-4">
+                <p class="text-sm font-medium">@L.T("在这里改主题，整页随之更新。", "Change the theme here. The whole page follows.")</p>
+
+                @* 每组控件自带标签，行可在任意宽度处换行并仍然说明用途。 *@
+                <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-muted-foreground">@L.T("强调色", "Accent")</span>
+                        <div class="flex items-center gap-1.5">
+                            @foreach (var (label, labelZh, swatch, color) in accents)
+                            {
+                                <button type="button"
+                                        title="@L.T(labelZh, label)"
+                                        aria-label="@L.T(labelZh, label)"
+                                        aria-pressed="@((Theme.PrimaryColor == color).ToString().ToLowerInvariant())"
+                                        class="@SwatchClass(Theme.PrimaryColor == color)"
+                                        style="background-color: @swatch;"
+                                        @onclick="@(() => Theme.SetPrimaryColorAsync(color))"></button>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2" role="group" aria-label="@L.T("圆角", "Corners")">
+                        <span class="text-xs text-muted-foreground">@L.T("圆角", "Corners")</span>
+                        <div class="flex items-center gap-1">
+                            @foreach (var (label, labelZh, value) in radii)
+                            {
+                                <button type="button"
+                                        class="@ChoiceClass(Math.Abs(Theme.Radius - value) < 0.001)"
+                                        aria-pressed="@((Math.Abs(Theme.Radius - value) < 0.001).ToString().ToLowerInvariant())"
+                                        @onclick="@(() => Theme.SetRadiusAsync(value))">@L.T(labelZh, label)</button>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2" role="group" aria-label="@L.T("密度", "Density")">
+                        <span class="text-xs text-muted-foreground">@L.T("密度", "Density")</span>
+                        <div class="flex items-center gap-1">
+                            @foreach (var (label, labelZh, value) in densities)
+                            {
+                                <button type="button"
+                                        class="@ChoiceClass(Theme.Preset.Design.Density == value)"
+                                        aria-pressed="@((Theme.Preset.Design.Density == value).ToString().ToLowerInvariant())"
+                                        @onclick="@(() => Theme.SetDesignAsync(Theme.Preset.Design with { Density = value }))">@L.T(labelZh, label)</button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid gap-x-10 gap-y-7 p-5 sm:p-6 md:grid-cols-2">
+                <div class="space-y-3">
+                    <p class="text-sm font-medium">@L.T("操作", "Actions")</p>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <Button Variant="ButtonVariant.Default" Size="ButtonSize.Small">@L.T("发布", "Publish")</Button>
+                        <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small">@L.T("预览", "Preview")</Button>
+                        <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Small">@L.T("丢弃", "Discard")</Button>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 pt-1">
+                        <Badge Variant="BadgeVariant.Default">@L.T("已上线", "Live")</Badge>
+                        <Badge Variant="BadgeVariant.Secondary">@L.T("草稿", "Draft")</Badge>
+                        <Badge Variant="BadgeVariant.Outline">@L.T("已归档", "Archived")</Badge>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <p class="text-sm font-medium">@L.T("版本名称", "Release name")</p>
+                    <Input Value="@releaseName" ValueChanged="@(v => releaseName = v)" Placeholder="@L.T("为该版本命名", "Name this release")" />
+                    <div class="flex items-center gap-3">
+                        <Switch Id="board-notify" Checked="@notify" CheckedChanged="@(v => notify = v)" />
+                        <label for="board-notify" class="text-sm text-muted-foreground">@L.T("发布时通知团队", "Notify the team on publish")</label>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <p class="text-sm font-medium">@L.T("受众", "Audience")</p>
+                    <AtomBlazor.ToggleGroup TValue="string" Value="@audience" ValueChanged="@(v => audience = v ?? audience)" Required="true" Class="justify-start">
+                        <AtomBlazor.ToggleGroupItem TValue="string" Value="@("everyone")">@L.T("所有人", "Everyone")</AtomBlazor.ToggleGroupItem>
+                        <AtomBlazor.ToggleGroupItem TValue="string" Value="@("beta")">Beta</AtomBlazor.ToggleGroupItem>
+                        <AtomBlazor.ToggleGroupItem TValue="string" Value="@("internal")">@L.T("内部", "Internal")</AtomBlazor.ToggleGroupItem>
+                    </AtomBlazor.ToggleGroup>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="flex items-baseline justify-between">
+                        <p class="text-sm font-medium">@L.T("灰度发布", "Rollout")</p>
+                        <span class="text-sm tabular-nums text-muted-foreground">@rollout%</span>
+                    </div>
+                    <Slider Value="@rollout" ValueChanged="@(v => rollout = v)" Min="0" Max="100" Step="5" />
+                </div>
+            </div>
+        </div>
+
+        <p class="text-sm text-muted-foreground">
+            @L.T("底色、强调色、圆角、密度、字体、表面与菜单样式都按访客持久保存。页头的",
+                 "Base colour, accent, radius, density, font, surface and menu styling all persist per visitor. The header's ")<a href="/components/theme" class="underline underline-offset-4 hover:text-foreground">@L.T("主题切换器", "theme switcher")</a>@L.T("暴露了其余选项。", " exposes the rest.")
+        </p>
+    </section>
+
+    @* ── Two layers ── *@
+    <section class="space-y-5">
+        <h2 class="text-2xl font-semibold tracking-tight">@L.T("两层结构，一套设计体系", "Two layers, one design system")</h2>
+        <div class="grid gap-6 md:grid-cols-2">
+            <div class="space-y-2">
+                <h3 class="font-semibold">@L.T("基础构件", "Primitives")</h3>
+                <p class="text-sm leading-relaxed text-muted-foreground">
+                    @L.T("行为、键盘处理、焦点管理与 ARIA，完全不带样式。在其之上搭建你自己的设计体系，并保留对标记的完全控制。",
+                         "Behaviour, keyboard handling, focus management and ARIA, with no styling at all. Build your own design system on top and keep full control of the markup.")
+                </p>
+                <a href="/primitives" class="inline-block text-sm text-primary hover:underline">@L.T("浏览基础构件", "Explore primitives")</a>
+            </div>
+            <div class="space-y-2">
+                <h3 class="font-semibold">@L.T("组件", "Components")</h3>
+                <p class="text-sm leading-relaxed text-muted-foreground">
+                    @L.T("同一批基础构件穿上 shadcn/ui 的外观——设计令牌、CSS 变量与 React 生态已在使用的视觉语言。拿来即用，直接上线。",
+                         "The same primitives wearing the shadcn/ui look — the design tokens, CSS variables and visual language the React ecosystem already uses. Drop them in and ship.")
+                </p>
+                <a href="/components" class="inline-block text-sm text-primary hover:underline">@L.T("浏览组件", "Explore components")</a>
+            </div>
+        </div>
+        <p class="max-w-[68ch] text-sm leading-relaxed text-muted-foreground">
+            @L.T("在追平 shadcn/ui 之后，还有面向业务系统的第二梯队：", "Past shadcn/ui parity there is a second tier built for line-of-business work: ")
+            <a href="/components/datagrid" class="underline underline-offset-4 hover:text-foreground">Data Grid</a>@L.T("、", ", ")<a href="/components/scheduler" class="underline underline-offset-4 hover:text-foreground">Scheduler</a>@L.T("、", ", ")<a href="/components/dashboard-grid" class="underline underline-offset-4 hover:text-foreground">Dashboard Grid</a>@L.T("、", ", ")<a href="/components/dynamic-form" class="underline underline-offset-4 hover:text-foreground">Dynamic Form Builder</a>@L.T("、", ", ")<a href="/components/filterbuilder" class="underline underline-offset-4 hover:text-foreground">Filter Builder</a> @L.T("和", "and")
+            <a href="/components/currency-input" class="underline underline-offset-4 hover:text-foreground">Currency Input</a>@L.T("。", ".")
+        </p>
+    </section>
+
+    @* ── Start here ── *@
+    <section class="space-y-4 border-t pt-8">
+        <h2 class="text-2xl font-semibold tracking-tight">@L.T("从这里开始", "Start here")</h2>
+        <p class="max-w-[62ch] leading-relaxed text-muted-foreground">
+            @L.T("每个演示页都带有可交互示例、可复制片段、键盘与 ARIA 行为说明，以及完整的 API 参考。侧栏收录了全部页面；按",
+                 "Every demo page carries live examples, a copyable snippet, the keyboard and ARIA behaviour, and a full API reference. The sidebar has all of them; press")
+            <Kbd>@("Ctrl")</Kbd> <Kbd>@("K")</Kbd> @L.T("即可直达任意一页。", " to jump straight to one.")
+        </p>
+        <div class="flex flex-wrap gap-3">
+            <Button Variant="ButtonVariant.Default" Href="/getting-started">@L.T("快速上手", "Get started")</Button>
+            <Button Variant="ButtonVariant.Outline" Href="/architecture">@L.T("架构总览", "How it fits together")</Button>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string releaseName = "Aurora";
+    private bool notify = true;
+    private string audience = "beta";
+    private double rollout = 45;
+
+    private static readonly (string Label, string LabelZh, string Swatch, PrimaryColor Color)[] accents =
+    [
+        ("Default", "默认", "oklch(0.552 0.016 285.94)", PrimaryColor.Default),
+        ("Blue", "蓝色", "oklch(0.546 0.245 262.88)", PrimaryColor.Blue),
+        ("Violet", "紫色", "oklch(0.541 0.281 293.01)", PrimaryColor.Violet),
+        ("Emerald", "翠绿", "oklch(0.596 0.145 163.23)", PrimaryColor.Emerald),
+        ("Amber", "琥珀", "oklch(0.769 0.188 70.08)", PrimaryColor.Amber),
+        ("Rose", "玫红", "oklch(0.585 0.22 3.96)", PrimaryColor.Rose),
+    ];
+
+    private static readonly (string Label, string LabelZh, double Value)[] radii =
+    [
+        ("Square", "直角", 0),
+        ("Soft", "柔和", 0.5),
+        ("Round", "圆润", 1.0),
+    ];
+
+    private static readonly (string Label, string LabelZh, ThemeDensity Value)[] densities =
+    [
+        ("Compact", "紧凑", ThemeDensity.Compact),
+        ("Standard", "标准", ThemeDensity.Standard),
+        ("Spacious", "宽松", ThemeDensity.Spacious),
+    ];
+
+    private static readonly (string Title, string Summary, string SummaryZh, string Url)[] whatsNew =
+    [
+        ("Scheduler", "Day, week and work-week views with resource lanes, drag and resize, recurrence, and independent event and display time zones.", "日、周与工作周视图，支持资源泳道、拖拽缩放、重复规则，以及独立的事件时区与显示时区。", "/components/scheduler"),
+        ("Grid editing", "Edit a cell at a time or stage a whole batch. Drafts are isolated, validated before saving, and kept when persistence rejects them.", "可逐格编辑，也可整批暂存。草稿彼此隔离、保存前校验，持久层拒绝时仍然保留。", "/components/datagrid-editing"),
+        ("Theme presets", "Density, font, surface and menu styling alongside colour and radius — the controls you just used, saved per visitor.", "密度、字体、表面与菜单样式，连同颜色与圆角——正是你刚用过的控制项，按访客保存。", "/components/theme"),
+        ("Hierarchy pickers", "Tree Select and Cascader: searchable hierarchies with stable keys, cascading checkboxes and full-path search.", "层级选择器 Tree Select 与 Cascader：可搜索的层级树，稳定键、级联勾选与全路径搜索。", "/components/tree-select"),
+        ("Mobile components", "App Bar, Bottom Navigation, Quantity Stepper, Notification Badge, and Drawer snap points with pointer and keyboard resizing.", "移动端组件：App Bar、底部导航、数量步进器、通知徽标，以及支持指针与键盘调宽的抽屉吸附点。", "/components/app-bar"),
+        ("Motion", "Presets and custom keyframes, height animation, page and screen transitions. Reduced motion is honoured throughout.", "动效预设与自定义关键帧、高度动画、页面与屏幕转场，全程尊重「减弱动态效果」偏好。", "/components/motion"),
+        ("File upload lifecycle", "Stream to your own destination with progress, cancellation and retry, from a size-limited browser stream.", "文件上传全生命周期：在大小受限的浏览器流上向自有目标流式上传，带进度、取消与重试。", "/components/file-upload"),
+        ("Keyboard sortables", "Pick up, reorder, transfer between connected lists and cancel — all without a pointer.", "键盘可排序：拿起、重排、在互联列表之间转移并取消——全程无需指针。", "/components/sortable"),
+    ];
+
+    /// <summary>
+    /// 强调色样片同时充当选中状态指示，所以选中描边必须在亮色填充上、且在明暗两种模式下都可读。
+    /// </summary>
+    private static string SwatchClass(bool selected) => string.Join(' ',
+        "h-6 w-6 rounded-full border transition-[box-shadow,transform] motion-reduce:transition-none",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        selected
+            ? "border-foreground ring-2 ring-foreground ring-offset-2 ring-offset-background"
+            : "border-black/10 hover:scale-110 dark:border-white/20");
+
+    private static string ChoiceClass(bool selected) => string.Join(' ',
+        "rounded-md border px-2.5 py-1 text-xs font-medium transition-colors motion-reduce:transition-none",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        selected
+            ? "border-foreground bg-accent text-accent-foreground"
+            : "border-input text-muted-foreground hover:bg-accent/50 hover:text-foreground");
+
+    protected override void OnInitialized() => Theme.OnThemeChanged += HandleThemeChanged;
+
+    private void HandleThemeChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Theme.OnThemeChanged -= HandleThemeChanged;
+}

@@ -1,0 +1,47 @@
+@namespace AtomBlazor
+@typeparam TValue
+@inherits FormFieldBase
+
+<Field Orientation="@Orientation" IsInvalid="@IsInvalid" Class="@Class">
+    @if (Label is not null)
+    {
+        <FieldLabel>@Label</FieldLabel>
+    }
+    <FieldContent>
+        <Combobox AriaLabel="@AriaLabel" TValue="TValue"
+                  Options="@Options"
+                  Value="@Value"
+                  ValueChanged="HandleValueChanged"
+                  ValueExpression="@ValueExpression"
+                  Placeholder="@Placeholder"
+                  SearchPlaceholder="@SearchPlaceholder"
+                  EmptyMessage="@EmptyMessage"
+                  SearchQuery="@InnerSearchQuery"
+                  SearchQueryChanged="@InnerSearchQueryChanged"
+                  OnLoadMore="@OnLoadMore"
+                  IsLoading="@IsLoading"
+                  EndOfListMessage="@EndOfListMessage"
+                  Disabled="@Disabled"
+                  Required="@Required"
+                  AriaDescribedBy="@DescribedById"
+                  PopoverWidth="@PopoverWidth"
+                  MatchTriggerWidth="@MatchTriggerWidth"
+                  ActiveClass="@ActiveClass"
+                  Class="@InputClass"
+                  @attributes="AdditionalAttributes">
+            @ChildContent
+        </Combobox>
+        @if (!string.IsNullOrEmpty(HelperText) && !IsInvalid)
+        {
+            <FieldDescription Id="@DescriptionId">@HelperText</FieldDescription>
+        }
+        @if (IsInvalid && !string.IsNullOrEmpty(ErrorText))
+        {
+            <FieldError Id="@ErrorId">@ErrorText</FieldError>
+        }
+        else if (HasEditContextErrors)
+        {
+            <FieldError Id="@ErrorId" Errors="@EditContextErrors" />
+        }
+    </FieldContent>
+</Field>

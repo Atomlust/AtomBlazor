@@ -1,0 +1,430 @@
+@page "/components/calendar"
+<PageTitle>@L.T("日历组件 - Atom BlazorUI", "Calendar Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("日历组件", "Calendar Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("日期字段组件，让用户在日历视图中挑选日期。", "A date field component that allows users to select a date from a calendar view.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本示例", "Basic Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个简单的日期选择日历，支持键盘操作。", "A simple calendar for date selection. Supports keyboard interaction.")
+            </p>
+        </div>
+        <div class="border rounded-lg w-fit">
+            <Calendar @bind-Selected="_selectedDate" />
+        </div>
+        <p class="text-sm text-muted-foreground">
+            @L.T("已选择：", "Selected:") @(_selectedDate?.ToString("MMMM d, yyyy") ?? L.T("未选择", "None"))
+        </p>
+        <CodeBlock Source="Components/Calendar/basic.txt" />
+    </div>
+
+    <!-- With Preselected Date -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("预选日期", "Preselected Date")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("Calendar 可以带一个预选日期启动。", "Calendar can start with a preselected date.")
+            </p>
+        </div>
+        <div class="border rounded-lg w-fit">
+            <Calendar @bind-Selected="_preselectedDate" />
+        </div>
+        <p class="text-sm text-muted-foreground">
+            @L.T("已选择：", "Selected:") @(_preselectedDate?.ToString("MMMM d, yyyy") ?? L.T("未选择", "None"))
+        </p>
+        <CodeBlock Source="Components/Calendar/preselected.txt" />
+    </div>
+
+    <!-- Simple Header -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("简洁页眉", "Simple Header")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("隐藏月份/年份下拉框，界面更清爽。翻页仍可用箭头按钮与键盘完成。", "Hide the month/year dropdowns for a cleaner look. Navigation still works via arrow buttons and keyboard.")
+            </p>
+        </div>
+        <div class="border rounded-lg w-fit">
+            <Calendar @bind-Selected="_simpleHeaderDate" ShowMonthYearDropdowns="false" />
+        </div>
+        <p class="text-sm text-muted-foreground">
+            @L.T("已选择：", "Selected:") @(_simpleHeaderDate?.ToString("MMMM d, yyyy") ?? L.T("未选择", "None"))
+        </p>
+        <CodeBlock Source="Components/Calendar/simple-header.txt" />
+    </div>
+
+    <!-- Date Constraints -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("日期范围限制", "Date Constraints")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("用 MinDate 和 MaxDate 限定可选日期。", "Limit selectable dates with MinDate and MaxDate.")
+            </p>
+        </div>
+        <div class="border rounded-lg w-fit">
+            <Calendar @bind-Selected="_constrainedDate"
+                      MinDate="@_minDate"
+                      MaxDate="@_maxDate" />
+        </div>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                只有 @_minDate.ToString("MMM d") 至 @_maxDate.ToString("MMM d, yyyy") 之间的日期可以被选中。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Only dates between @_minDate.ToString("MMM d") and @_maxDate.ToString("MMM d, yyyy") are selectable.
+            </p>
+                </text>
+}
+        <CodeBlock Source="Components/Calendar/constraints.txt" />
+    </div>
+
+    <!-- Disabled Dates -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用日期", "Disabled Dates")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("用自定义函数禁用指定日期（例如周末）。", "Disable specific dates using a custom function (e.g., weekends).")
+            </p>
+        </div>
+        <div class="border rounded-lg w-fit">
+            <Calendar @bind-Selected="_noWeekendsDate"
+                      DisabledDates="@IsWeekend" />
+        </div>
+        <p class="text-sm text-muted-foreground">
+            @L.T("周末已禁用。已选择：", "Weekends are disabled. Selected:") @(_noWeekendsDate?.ToString("MMMM d, yyyy") ?? L.T("未选择", "None"))
+        </p>
+        <CodeBlock Source="Components/Calendar/disabled-dates.txt" />
+    </div>
+
+    <!-- First Day of Week -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("每周起始日", "Week Start Day")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("设置一周从哪天开始。", "Configure which day the week starts on.")
+            </p>
+        </div>
+        <div class="flex gap-8">
+            <div>
+                <p class="text-sm font-medium mb-2">@L.T("周日（默认）", "Sunday (default)")</p>
+                <div class="border rounded-lg w-fit">
+                    <Calendar @bind-Selected="_sundayStart" FirstDayOfWeek="DayOfWeek.Sunday" />
+                </div>
+            </div>
+            <div>
+                <p class="text-sm font-medium mb-2">@L.T("周一", "Monday")</p>
+                <div class="border rounded-lg w-fit">
+                    <Calendar @bind-Selected="_mondayStart" FirstDayOfWeek="DayOfWeek.Monday" />
+                </div>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Calendar/week-start.txt" />
+    </div>
+
+    <!-- Auto Focus -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自动聚焦", "Auto Focus")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    设置 <code>AutoFocus</code> 后，日历一渲染就会把键盘焦点移到活动日期上，
+                    方向键无需先点击即可直接使用。适合日历出现在气泡卡片或对话框里的场景
+                    （日期选择器内部就是这么用的）。始终内联展示的日历建议保持关闭，
+                    以免页面加载时抢走焦点。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Set <code>AutoFocus</code> to move keyboard focus to the active day as soon as the calendar
+                    renders, so arrow keys work immediately without clicking first. Ideal when the calendar
+                    appears in a popover or dialog (the date picker uses this internally). Leave it off for
+                    always-visible inline calendars to avoid stealing focus on page load.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-3">
+            <Button Variant="ButtonVariant.Outline" OnClick="@(() => _showAutoFocusCalendar = !_showAutoFocusCalendar)">
+                @(_showAutoFocusCalendar ? L.T("隐藏日历", "Hide calendar") : L.T("显示日历", "Show calendar"))
+            </Button>
+            @if (_showAutoFocusCalendar)
+            {
+                <div class="border rounded-lg w-fit">
+                    <Calendar @bind-Selected="_autoFocusDate" AutoFocus="true" />
+                </div>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        焦点直接落在活动日期上 &mdash; 可以立刻用方向键操作。已选择：
+                        @(_autoFocusDate?.ToString("MMMM d, yyyy") ?? "未选择")
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        Focus lands on the active day &mdash; use the arrow keys straight away. Selected:
+                        @(_autoFocusDate?.ToString("MMMM d, yyyy") ?? "None")
+                    </p>
+                                </text>
+}
+            }
+        </div>
+        <CodeBlock Source="Components/Calendar/auto-focus.txt" />
+    </div>
+
+    <!-- Custom Day Content -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义日期内容", "Custom Day Content")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code>DayTemplate</code> 在每个日期单元格里渲染自定义内容。模板上下文提供
+                    <code>Date</code>、<code>IsSelected</code>、<code>IsDisabled</code>、
+                    <code>IsOutsideMonth</code> 与 <code>IsToday</code>。这里的示例为有事件的日期加了一个圆点标记。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code>DayTemplate</code> to render custom content inside each day cell. The template
+                    context exposes <code>Date</code>, <code>IsSelected</code>, <code>IsDisabled</code>,
+                    <code>IsOutsideMonth</code> and <code>IsToday</code>. Here, days with events get a dot marker.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="border rounded-lg w-fit">
+            <Calendar @bind-Selected="_dayTemplateDate">
+                <DayTemplate>
+                    <div class="relative flex h-full w-full items-center justify-center">
+                        @context.Date.Day
+                        @if (HasEvent(context.Date))
+                        {
+                            <span class="absolute bottom-1 h-1 w-1 rounded-full @(context.IsSelected ? "bg-primary-foreground" : "bg-primary")"></span>
+                        }
+                    </div>
+                </DayTemplate>
+            </Calendar>
+        </div>
+        <p class="text-sm text-muted-foreground">
+            @L.T("已选择：", "Selected:") @(_dayTemplateDate?.ToString("MMMM d, yyyy") ?? L.T("未选择", "None"))
+        </p>
+        <CodeBlock Source="Components/Calendar/day-template.txt" />
+    </div>
+
+    <!-- Per-Day Styling -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("按日期设置样式", "Per-Day Styling")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code>DayClassFunc</code> 为单个日期按钮追加额外的 CSS 类。
+                    这里把周末染成了 destructive 颜色。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code>DayClassFunc</code> to apply additional CSS classes to individual day buttons.
+                    Here, weekends are tinted with the destructive color.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="border rounded-lg w-fit">
+            <Calendar @bind-Selected="_dayClassDate" DayClassFunc="@GetWeekendDayClass" />
+        </div>
+        <CodeBlock Source="Components/Calendar/day-class-func.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>日历表格使用 role="grid"</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Uses role="grid" for the calendar table</AccessibilityItem>
+                        </text>
+}
+            <AccessibilityItem>@L.T("日期单元格用 aria-selected 标记当前选中项", "Day cells use aria-selected for the current selection")</AccessibilityItem>
+            <AccessibilityItem>@L.T("被禁用的日期带有 aria-disabled", "Disabled dates are marked with aria-disabled")</AccessibilityItem>
+            <AccessibilityItem>@L.T("翻页按钮带有描述性的 aria-label 属性", "Navigation buttons have descriptive aria-label attributes")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在日期之间移动", "Navigate days"))">
+                <Kbd>Arrow Keys</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("选择日期", "Select date"))">
+                <Kbd>Enter</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("跳到当月第一天", "First day of month"))">
+                <Kbd>Home</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("跳到当月最后一天", "Last day of month"))">
+                <Kbd>End</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("上一个月 / 下一个月", "Previous / Next month"))">
+                <Kbd>Page Up</Kbd> / <Kbd>Page Down</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("上一年 / 下一年", "Previous / Next year"))">
+                <Kbd>Shift+Page Up</Kbd> / <Kbd>Shift+Page Down</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="Calendar">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Selected" Type="DateTime?" Default="null">
+                        当前选中的日期。请用 @@bind-Selected 实现双向绑定。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Selected" Type="DateTime?" Default="null">
+                        The currently selected date. Use @@bind-Selected for two-way binding.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="MinDate" Type="DateTime?" Default="null">
+                    @L.T("可选日期的下限，早于该日期的单元格被禁用。", "The minimum selectable date. Dates before this are disabled.")
+                </ApiParameter>
+                <ApiParameter Name="MaxDate" Type="DateTime?" Default="null">
+                    @L.T("可选日期的上限，晚于该日期的单元格被禁用。", "The maximum selectable date. Dates after this are disabled.")
+                </ApiParameter>
+                <ApiParameter Name="DisabledDates" Type="Func&lt;DateTime, bool&gt;?" Default="null">
+                    @L.T("用于判断某个日期是否应当禁用的函数。", "Function to determine if a date should be disabled.")
+                </ApiParameter>
+                <ApiParameter Name="FirstDayOfWeek" Type="DayOfWeek" Default="DayOfWeek.Sunday">
+                    @L.T("设定一周从哪天开始。", "Which day the week starts on.")
+                </ApiParameter>
+                <ApiParameter Name="ShowMonthYearDropdowns" Type="bool" Default="true">
+                    @L.T("是否显示月份/年份下拉选择器。为 false 时改为显示简洁的文本页眉。", "Whether to show month/year dropdown selectors. When false, displays a simple text header.")
+                </ApiParameter>
+                <ApiParameter Name="AutoFocus" Type="bool" Default="false">
+                    @L.T("日历首次渲染时是否把键盘焦点移到活动日期，让方向键立即可用。适合在气泡卡片或对话框中展示的日历。", "Whether to move keyboard focus to the active day when the calendar first renders, so arrow-key navigation works immediately. Useful for calendars shown in a popover or dialog.")
+                </ApiParameter>
+                <ApiParameter Name="DayTemplate" Type="RenderFragment&lt;CalendarDayContext&gt;?" Default="null">
+                    @L.T("用于在每个日期按钮内渲染自定义内容的模板。上下文提供 Date、IsSelected、IsDisabled、IsOutsideMonth、IsToday 与 IsInRange。为 null 时渲染日期数字。", "Template for rendering custom content inside each day button. The context exposes Date, IsSelected, IsDisabled, IsOutsideMonth, IsToday and IsInRange. When null, the day number is rendered.")
+                </ApiParameter>
+                <ApiParameter Name="DayClassFunc" Type="Func&lt;DateTime, string?&gt;?" Default="null">
+                    @L.T("为指定日期按钮返回额外 CSS 类的函数，会与内置日期样式及 DayClass 组合。", "Function returning additional CSS classes for a specific day button, composed with the built-in day classes and DayClass.")
+                </ApiParameter>
+                <ApiParameter Name="OnSelect" Type="EventCallback&lt;DateTime&gt;">
+                    @L.T("选中某个日期时触发的回调。", "Callback when a date is selected.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+
+    <LocalizationSection
+        Description="@(L.T("Calendar 的翻页标签与随语言变化的月份/星期名称都可以配置。", "Calendar navigation labels and culture-aware month/day names are configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("GoToPreviousMonth", "Go to previous month", L.T("上一页按钮的无障碍标签。", "Aria label for the previous month button")),
+            new("GoToNextMonth", "Go to next month", L.T("下一页按钮的无障碍标签。", "Aria label for the next month button")),
+        })"
+        CultureAware="true"
+        CultureDescription="@(L.T("月份名称、星期名称以及每周起始日都会自动取自 CultureInfo.CurrentCulture，也可用 MonthNames、DayNames 与 FirstDayOfWeek 参数覆盖。", "Month names, day names, and the first day of the week are automatically derived from CultureInfo.CurrentCulture. Override with the MonthNames, DayNames, and FirstDayOfWeek parameters."))"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""Calendar.GoToPreviousMonth"", ""Vorheriger Monat"");
+    localizer.Set(""Calendar.GoToNextMonth"", ""Nächster Monat"");
+});")" />
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private DateTime? _selectedDate;
+    private DateTime? _preselectedDate = DateTime.Today;
+    private DateTime? _simpleHeaderDate;
+    private DateTime? _constrainedDate;
+    private DateTime? _noWeekendsDate;
+    private DateTime? _sundayStart;
+    private DateTime? _mondayStart;
+    private DateTime? _autoFocusDate;
+    private bool _showAutoFocusCalendar;
+    private DateTime? _dayTemplateDate;
+    private DateTime? _dayClassDate;
+
+    private static readonly HashSet<int> eventDays = new() { 3, 8, 12, 17, 21, 26 };
+
+    private bool HasEvent(DateTime date) =>
+        date.Month == DateTime.Today.Month && date.Year == DateTime.Today.Year && eventDays.Contains(date.Day);
+
+    private string? GetWeekendDayClass(DateTime date) =>
+        date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday ? "text-destructive" : null;
+
+    private DateTime _minDate = DateTime.Today;
+    private DateTime _maxDate = DateTime.Today.AddDays(30);
+
+    private bool IsWeekend(DateTime date)
+    {
+        return date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
+    }
+}

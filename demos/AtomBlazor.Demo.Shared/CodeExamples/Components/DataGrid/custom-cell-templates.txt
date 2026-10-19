@@ -1,0 +1,27 @@
+<DataGrid TData="Person" Items="@people" InitialPageSize="5">
+    <Columns>
+        <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable>
+            <CellTemplate Context="person">
+                <div class="flex items-center gap-2">
+                    <Avatar Class="h-8 w-8">
+                        <AvatarFallback Class="text-xs">@GetInitials(person.Name)</AvatarFallback>
+                    </Avatar>
+                    <span class="font-medium">@person.Name</span>
+                </div>
+            </CellTemplate>
+        </DataGridPropertyColumn>
+        <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" Sortable />
+        <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Status)" Sortable>
+            <CellTemplate Context="person">
+                <Badge Variant="@GetStatusVariant(person.Status)">
+                    @person.Status
+                </Badge>
+            </CellTemplate>
+        </DataGridPropertyColumn>
+        <DataGridTemplateColumn TData="Person" Title="Actions">
+            <ChildContent Context="person">
+                <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Small">Edit</Button>
+            </ChildContent>
+        </DataGridTemplateColumn>
+    </Columns>
+</DataGrid>

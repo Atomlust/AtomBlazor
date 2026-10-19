@@ -1,0 +1,87 @@
+@namespace AtomBlazor.Demo
+
+<section class="space-y-4">
+    <h2 class="text-2xl font-semibold tracking-tight">@L.T("本地化", "Localization")</h2>
+    <p class="text-muted-foreground leading-relaxed">
+        @(Description == "All component chrome strings are configurable via ILocalizer." ? L.T("所有组件外壳文案均可通过 ILocalizer 配置。", Description) : Description)
+    </p>
+
+    @if (Labels.Length > 0)
+    {
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm border-collapse">
+                <thead>
+                    <tr class="border-b">
+                        <th class="text-left py-2 px-3 font-medium">@L.T("属性", "Property")</th>
+                        <th class="text-left py-2 px-3 font-medium">@L.T("默认值", "Default")</th>
+                        <th class="text-left py-2 px-3 font-medium">@L.T("说明", "Description")</th>
+                    </tr>
+                </thead>
+                <tbody class="text-muted-foreground">
+                    @foreach (var label in Labels)
+                    {
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">@label.Property</code></td>
+                            <td class="py-2 px-3">@label.Default</td>
+                            <td class="py-2 px-3">@label.Description</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @if (CultureAware)
+    {
+        <div class="p-4 border-l-4 border-primary bg-primary/5 rounded-r-lg">
+            <p class="text-sm text-muted-foreground">
+                <strong>@L.T("文化感知：", "Culture-aware:")</strong> @CultureDescription
+            </p>
+        </div>
+    }
+
+    <div class="rounded-lg border bg-muted/50 p-4">
+        <pre class="text-sm overflow-x-auto"><code>@CodeExample</code></pre>
+    </div>
+
+    @if (L.IsChinese)
+    {
+        <text>
+            <p class="text-sm text-muted-foreground">
+            完整配置选项（含 IStringLocalizer 与 JSON 集成）请参见 <a href="guides/localization" class="text-primary underline hover:no-underline">本地化指南</a>。
+        </p>
+        </text>
+}
+    else
+    {
+        <text>
+            <p class="text-sm text-muted-foreground">
+            See the <a href="guides/localization" class="text-primary underline hover:no-underline">Localization Guide</a>
+            for full configuration options including IStringLocalizer and JSON integration.
+        </p>
+        </text>
+}
+</section>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    /// <summary>表格上方说明段；当取值仍为下方英文字面量缺省值时按级联语言二选一渲染（见标记中的哨兵判断）。</summary>
+    [Parameter]
+    public string Description { get; set; } = "All component chrome strings are configurable via ILocalizer.";
+
+    [Parameter]
+    public LabelInfo[] Labels { get; set; } = [];
+
+    [Parameter]
+    public bool CultureAware { get; set; }
+
+    [Parameter]
+    public string? CultureDescription { get; set; }
+
+    [Parameter, EditorRequired]
+    public string CodeExample { get; set; } = "";
+
+    public record LabelInfo(string Property, string Default, string Description);
+}

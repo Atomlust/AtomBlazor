@@ -1,0 +1,37 @@
+<DataGrid TData="Person" Items="@people" InitialPageSize="5">
+    <Columns>
+        <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable>
+            <HeaderTemplate>
+                <div class="flex items-center gap-1.5">
+                    <LucideIcon Name="user" Class="h-4 w-4 text-muted-foreground" />
+                    <span>Name</span>
+                </div>
+            </HeaderTemplate>
+        </DataGridPropertyColumn>
+        @* Sorting and the Groupable ellipsis menu are still rendered by the grid *@
+        <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable Groupable>
+            <HeaderTemplate>
+                <div class="flex items-center gap-1.5">
+                    <LucideIcon Name="building-2" Class="h-4 w-4 text-muted-foreground" />
+                    <span>Department</span>
+                </div>
+            </HeaderTemplate>
+        </DataGridPropertyColumn>
+        @* Icon-only header — Title feeds the column chooser and the header's own aria-label,
+           so this column is announced as "Email" with no sr-only markup of your own *@
+        <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" Title="Email" Width="220px">
+            <HeaderTemplate>
+                <LucideIcon Name="mail" Class="h-4 w-4 text-muted-foreground" />
+            </HeaderTemplate>
+        </DataGridPropertyColumn>
+        <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable
+            CellClass="font-mono tabular-nums">
+            <HeaderTemplate>
+                <div class="flex items-center gap-1.5">
+                    <LucideIcon Name="banknote" Class="h-4 w-4 text-muted-foreground" />
+                    <span>Salary</span>
+                </div>
+            </HeaderTemplate>
+        </DataGridPropertyColumn>
+    </Columns>
+</DataGrid>

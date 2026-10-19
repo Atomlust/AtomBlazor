@@ -1,0 +1,139 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@inject ThemeService ThemeService
+@inject ILocalizer Localizer
+@implements IDisposable
+
+<Button Variant="@Variant"
+          Size="@Size"
+          Class="@Class"
+          OnClick="@OnClick"
+          aria-label="@AriaLabel"
+          @attributes="AdditionalAttributes">
+    @if (ShowIcon)
+    {
+        @if (ThemeService.IsDarkMode)
+        {
+            @if (DarkIcon is not null)
+            {
+                @DarkIcon
+            }
+            else
+            {
+                <LucideIcon Name="moon" Class="atom:h-4 atom:w-4" />
+            }
+        }
+        else
+        {
+            @if (LightIcon is not null)
+            {
+                @LightIcon
+            }
+            else
+            {
+                <LucideIcon Name="sun" Class="atom:h-4 atom:w-4" />
+            }
+        }
+    }
+    @if (ShowLabel)
+    {
+        <span>@CurrentLabel</span>
+    }
+</Button>
+
+@code {
+    /// <summary>
+    /// 获取或设置亮色模式激活时显示的自定义图标。默认为太阳图标。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? LightIcon { get; set; }
+
+    /// <summary>
+    /// 获取或设置暗色模式激活时显示的自定义图标。默认为月亮图标。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? DarkIcon { get; set; }
+
+    /// <summary>
+    /// 获取或设置是否显示模式图标。默认为 <c>true</c>。
+    /// </summary>
+    [Parameter]
+    public bool ShowIcon { get; set; } = true;
+
+    /// <summary>
+    /// 获取或设置是否显示指示当前模式的文本标签。默认为 <c>false</c>。
+    /// </summary>
+    [Parameter]
+    public bool ShowLabel { get; set; }
+
+    /// <summary>
+    /// 获取或设置亮色模式的自定义标签。默认取本地化的 "Light" 文案。
+    /// </summary>
+    [Parameter]
+    public string? LightLabel { get; set; }
+
+    /// <summary>
+    /// 获取或设置暗色模式的自定义标签。默认取本地化的 "Dark" 文案。
+    /// </summary>
+    [Parameter]
+    public string? DarkLabel { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到按钮上的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取或设置按钮的视觉变体样式。默认为 <see cref="ButtonVariant.Outline"/>。
+    /// </summary>
+    [Parameter]
+    public ButtonVariant Variant { get; set; } = ButtonVariant.Outline;
+
+    /// <summary>
+    /// 获取或设置按钮尺寸。默认为 <see cref="ButtonSize.Icon"/>。
+    /// </summary>
+    [Parameter]
+    public ButtonSize Size { get; set; } = ButtonSize.Icon;
+
+    private string CurrentLabel => ThemeService.IsDarkMode
+        ? (DarkLabel ?? Localizer["Theme.Dark"])
+        : (LightLabel ?? Localizer["Theme.Light"]);
+
+    private string AriaLabel => ThemeService.IsDarkMode
+        ? Localizer["Theme.SwitchToLight"]
+        : Localizer["Theme.SwitchToDark"];
+
+    /// <inheritdoc />
+    protected override void OnInitialized() =>
+        ThemeService.OnThemeChanged += HandleThemeChanged;
+
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !ThemeService.IsInitialized)
+        {
+            await ThemeService.InitializeAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnClick() =>
+        await ThemeService.ToggleDarkModeAsync();
+
+    private void HandleThemeChanged() =>
+        InvokeAsync(StateHasChanged);
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        ThemeService.OnThemeChanged -= HandleThemeChanged;
+        GC.SuppressFinalize(this);
+    }
+}

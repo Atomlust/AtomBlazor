@@ -1,0 +1,24 @@
+@using System.ComponentModel.DataAnnotations
+
+<EditForm Model="validationModel" FormName="FormFieldFileUploadValidation">
+    <DataAnnotationsValidator />
+    <FormFieldFileUpload @bind-Files="validationModel.Files" Label="Supporting files" AriaLabel="Supporting files" />
+    <Button Type="ButtonType.Submit" Class="mt-3">Validate selection</Button>
+</EditForm>
+
+@code {
+    private readonly ValidationModel validationModel = new();
+
+    private sealed class ValidationModel : IValidatableObject
+    {
+        public IReadOnlyList<FileUploadItem>? Files { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (Files is null || Files.Count == 0)
+            {
+                yield return new ValidationResult("Please make a selection.", [nameof(Files)]);
+            }
+        }
+    }
+}

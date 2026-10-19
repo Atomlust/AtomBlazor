@@ -1,0 +1,307 @@
+@page "/primitives/switch"
+<PageTitle>@L.T("Switch 开关原语 - Atom BlazorUI", "Switch Primitive - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Switch 开关原语", "Switch Primitive")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("无头、无样式的开关原语，具备完整的无障碍支持。", "Headless, unstyled switch primitive with full accessibility support.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基础无头原语", "Basic Headless Primitive")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("该原语提供行为与无障碍能力但不带样式，只需添加最小的结构性样式。", "The primitive provides behavior and accessibility without styling. Add minimal structural styling.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 max-w-md">
+                <div class="flex items-center gap-3">
+                    <AtomBlazor.Primitives.SwitchPrimitive @bind-Checked="basicChecked"
+                                     Id="basic"
+                                     class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-input transition-colors data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted">
+                        <AtomBlazor.Primitives.SwitchThumb
+                            class="pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0" />
+                    </AtomBlazor.Primitives.SwitchPrimitive>
+                    <label for="basic" class="cursor-pointer">@L.T("基础无头开关", "Basic primitive switch")</label>
+                </div>
+                <p class="text-sm text-muted-foreground mt-2">@L.F("状态：{0}", "State: {0}", basicChecked ? L.T("开启", "On") : L.T("关闭", "Off"))</p>
+            </div>
+
+            <CodeBlock Source="Primitives/Switch/basic.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("受控状态", "Controlled State")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("通过按钮从外部控制原语的状态。", "Control the primitive state externally with buttons.")
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex gap-2">
+                    <button @onclick="@(() => controlledChecked = true)"
+                            class="px-3 py-2 border rounded text-sm">
+                        @L.T("打开", "Turn On")
+                    </button>
+                    <button @onclick="@(() => controlledChecked = false)"
+                            class="px-3 py-2 border rounded text-sm">
+                        @L.T("关闭", "Turn Off")
+                    </button>
+                </div>
+
+                <div class="rounded-lg border bg-card p-6 max-w-md">
+                    <div class="flex items-center gap-3">
+                        <AtomBlazor.Primitives.SwitchPrimitive @bind-Checked="controlledChecked" Id="controlled"
+                                         class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-input transition-colors data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted">
+                            <AtomBlazor.Primitives.SwitchThumb
+                                class="pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0" />
+                        </AtomBlazor.Primitives.SwitchPrimitive>
+                        <label for="controlled" class="cursor-pointer">
+                            @if (L.IsChinese)
+                            {
+                                <text>
+                                    受控开关（状态：@(controlledChecked ? L.T("开启", "On") : L.T("关闭", "Off"))）
+                                </text>
+                            }
+                            else
+                            {
+                                <text>
+                                    Controlled Switch (State: @(controlledChecked ? "On" : "Off"))
+                                </text>
+                            }
+                        </label>
+                    </div>
+                </div>
+
+                <CodeBlock Source="Primitives/Switch/controlled.txt" />
+            </div>
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("禁用状态", "Disabled State")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("开关可被禁用，以防止交互。", "Switches can be disabled to prevent interaction.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 max-w-md space-y-3">
+                <div class="flex items-center gap-3">
+                    <AtomBlazor.Primitives.SwitchPrimitive Checked="true" Disabled="true" Id="disabled-on"
+                                     class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border-2 border-input transition-colors data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted disabled:opacity-50 disabled:cursor-not-allowed">
+                        <AtomBlazor.Primitives.SwitchThumb
+                            class="pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0" />
+                    </AtomBlazor.Primitives.SwitchPrimitive>
+                    <label for="disabled-on" class="opacity-50">@L.T("禁用（开启）", "Disabled (On)")</label>
+                </div>
+                <div class="flex items-center gap-3">
+                    <AtomBlazor.Primitives.SwitchPrimitive Checked="false" Disabled="true" Id="disabled-off"
+                                     class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border-2 border-input transition-colors data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted disabled:opacity-50 disabled:cursor-not-allowed">
+                        <AtomBlazor.Primitives.SwitchThumb
+                            class="pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0" />
+                    </AtomBlazor.Primitives.SwitchPrimitive>
+                    <label for="disabled-off" class="opacity-50">@L.T("禁用（关闭）", "Disabled (Off)")</label>
+                </div>
+            </div>
+
+            <CodeBlock Source="Primitives/Switch/disabled.txt" />
+        </section>
+
+        <AccessibilityList>
+            <AriaAttributes>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            为屏幕阅读器提供 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="switch"</code>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="switch"</code> for screen readers
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-checked</code> 表示选中状态（true/false）
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-checked</code> indicates checked state (true/false)
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled</code> 表示禁用状态
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled</code> indicates disabled state
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">data-state</code> 属性用于 CSS 样式（checked|unchecked）
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">data-state</code> attribute for CSS styling (checked|unchecked)
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code> 属性表示禁用状态
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code> attribute for disabled state
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @L.T("焦点管理，并提供可见的焦点指示。", "Focus management with visible focus indicators")
+                </AccessibilityItem>
+            </AriaAttributes>
+            <KeyboardNavigation>
+                <KeyboardShortcutItem Description="@(L.T("定位到开关", "Navigate to switch"))">
+                    <Kbd>Tab</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("切换开关", "Toggle switch"))">
+                    <Kbd>Space</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("切换开关", "Toggle switch"))">
+                    <Kbd>Enter</Kbd>
+                </KeyboardShortcutItem>
+            </KeyboardNavigation>
+        </AccessibilityList>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("组件的属性与参数。", "Component properties and parameters.")
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <ApiReference ComponentName="Switch">
+                    <ApiParameter Name="Checked" Type="bool" Default="false">
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                控制开关是否处于开启（选中）状态。支持与 <code>@@bind-Checked</code> 双向绑定。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Controls whether the switch is on (checked). Supports two-way binding with <code>@@bind-Checked</code>.
+                            </text>
+                        }
+                    </ApiParameter>
+                    <ApiParameter Name="CheckedChanged" Type="EventCallback&lt;bool&gt;">
+                        @L.T("选中状态改变时触发的回调。", "Callback invoked when the checked state changes.")
+                    </ApiParameter>
+                    <ApiParameter Name="Disabled" Type="bool" Default="false">
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                为 true 时阻止切换。会设置 <code>aria-disabled</code> 与 <code>disabled</code> 属性。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Prevents toggling when true. Sets <code>aria-disabled</code> and <code>disabled</code> attributes.
+                            </text>
+                        }
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                在开关内部渲染的内容（通常是一个 <code>SwitchThumb</code>）。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Content rendered inside the switch (typically a <code>SwitchThumb</code>).
+                            </text>
+                        }
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                应用到根 button 元素上的额外 HTML 属性（例如 <code>class</code>、<code>style</code>、<code>Id</code>）。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Additional HTML attributes applied to the root button element (e.g. <code>class</code>, <code>style</code>, <code>Id</code>).
+                            </text>
+                        }
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="SwitchThumb">
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在滑块内部渲染的可选内容。", "Optional content to render inside the thumb.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                应用到 span 元素上的额外 HTML 属性（例如 <code>class</code>、<code>style</code>）。会自动应用与父级 Switch 同步的 <code>data-state</code>。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Additional HTML attributes applied to the span element (e.g. <code>class</code>, <code>style</code>). Auto-applies <code>data-state</code> synced from parent Switch.
+                            </text>
+                        }
+                    </ApiParameter>
+                </ApiReference>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private bool basicChecked = false;
+    private bool controlledChecked = false;
+}

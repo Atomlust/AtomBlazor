@@ -1,0 +1,495 @@
+@page "/components/split-button"
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("Split Button 分体按钮 - Atom BlazorUI", "Split Button - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-10 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Split Button 分体按钮", "Split Button")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("带一个主操作按钮、并以带下拉菜单承载次级操作的按钮。", "A button with a primary action and a dropdown menu for secondary actions.")
+        </p>
+    </div>
+
+    <!-- Default -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("默认", "Default")</h2>
+            <p class="text-muted-foreground">
+                @L.T("点击主按钮执行主操作，点击下拉箭头查看更多选项。", "Click the main button for the primary action, or the chevron for more options.")
+            </p>
+        </div>
+
+        <div class="flex flex-wrap gap-4">
+            <SplitButton OnClick="HandleSave">
+                <ChildContent>@L.T("保存", "Save")</ChildContent>
+                <DropdownContent>
+                    <SplitButtonItem OnClick="HandleSaveAs">@L.T("另存为...", "Save As...")</SplitButtonItem>
+                    <SplitButtonItem OnClick="HandleSaveDraft">@L.T("保存草稿", "Save Draft")</SplitButtonItem>
+                    <SplitButtonSeparator />
+                    <SplitButtonItem OnClick="HandleExport">@L.T("导出", "Export")</SplitButtonItem>
+                </DropdownContent>
+            </SplitButton>
+        </div>
+
+        @if (!string.IsNullOrEmpty(_lastAction))
+        {
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">上次操作：@_lastAction</p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">Last action: @_lastAction</p>
+                </text>
+            }
+        }
+        <CodeBlock Source="Components/SplitButton/default.txt" />
+    </section>
+
+    <!-- Variants -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("变体", "Variants")</h2>
+            <p class="text-muted-foreground">
+                @L.T("SplitButton 支持全部按钮变体。", "SplitButton supports all button variants.")
+            </p>
+        </div>
+
+        <div class="flex flex-wrap gap-4">
+            <SplitButton Variant="ButtonVariant.Default" OnClick="HandleSave">
+                <ChildContent>Default</ChildContent>
+                <DropdownContent>
+                    <SplitButtonItem>@L.T("选项 1", "Option 1")</SplitButtonItem>
+                    <SplitButtonItem>@L.T("选项 2", "Option 2")</SplitButtonItem>
+                </DropdownContent>
+            </SplitButton>
+
+            <SplitButton Variant="ButtonVariant.Secondary" OnClick="HandleSave">
+                <ChildContent>Secondary</ChildContent>
+                <DropdownContent>
+                    <SplitButtonItem>@L.T("选项 1", "Option 1")</SplitButtonItem>
+                    <SplitButtonItem>@L.T("选项 2", "Option 2")</SplitButtonItem>
+                </DropdownContent>
+            </SplitButton>
+
+            <SplitButton Variant="ButtonVariant.Outline" OnClick="HandleSave">
+                <ChildContent>Outline</ChildContent>
+                <DropdownContent>
+                    <SplitButtonItem>@L.T("选项 1", "Option 1")</SplitButtonItem>
+                    <SplitButtonItem>@L.T("选项 2", "Option 2")</SplitButtonItem>
+                </DropdownContent>
+            </SplitButton>
+
+            <SplitButton Variant="ButtonVariant.Destructive" OnClick="HandleSave">
+                <ChildContent>Destructive</ChildContent>
+                <DropdownContent>
+                    <SplitButtonItem>@L.T("选项 1", "Option 1")</SplitButtonItem>
+                    <SplitButtonItem>@L.T("选项 2", "Option 2")</SplitButtonItem>
+                </DropdownContent>
+            </SplitButton>
+        </div>
+        <CodeBlock Source="Components/SplitButton/variants.txt" />
+    </section>
+
+    <!-- Sizes -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("尺寸", "Sizes")</h2>
+            <p class="text-muted-foreground">
+                @L.T("提供小、默认、大三种尺寸。", "Available in small, default, and large sizes.")
+            </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-4">
+            <SplitButton Size="ButtonSize.Small" Variant="ButtonVariant.Outline" OnClick="HandleSave">
+                <ChildContent>Small</ChildContent>
+                <DropdownContent>
+                    <SplitButtonItem>@L.T("选项 1", "Option 1")</SplitButtonItem>
+                    <SplitButtonItem>@L.T("选项 2", "Option 2")</SplitButtonItem>
+                </DropdownContent>
+            </SplitButton>
+
+            <SplitButton Size="ButtonSize.Default" Variant="ButtonVariant.Outline" OnClick="HandleSave">
+                <ChildContent>Default</ChildContent>
+                <DropdownContent>
+                    <SplitButtonItem>@L.T("选项 1", "Option 1")</SplitButtonItem>
+                    <SplitButtonItem>@L.T("选项 2", "Option 2")</SplitButtonItem>
+                </DropdownContent>
+            </SplitButton>
+
+            <SplitButton Size="ButtonSize.Large" Variant="ButtonVariant.Outline" OnClick="HandleSave">
+                <ChildContent>Large</ChildContent>
+                <DropdownContent>
+                    <SplitButtonItem>@L.T("选项 1", "Option 1")</SplitButtonItem>
+                    <SplitButtonItem>@L.T("选项 2", "Option 2")</SplitButtonItem>
+                </DropdownContent>
+            </SplitButton>
+        </div>
+        <CodeBlock Source="Components/SplitButton/sizes.txt" />
+    </section>
+
+    <!-- With Icon -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带图标", "With Icon")</h2>
+            <p class="text-muted-foreground">
+                @L.T("在主按钮上添加图标以提供视觉语境。", "Add an icon to the primary button for visual context.")
+            </p>
+        </div>
+
+        <div class="flex flex-wrap gap-4">
+            <SplitButton OnClick="HandleSave">
+                <ChildContent>
+                    <LucideIcon Name="save" Size="16" Class="mr-2" />
+                    @L.T("保存", "Save")
+                </ChildContent>
+                <DropdownContent>
+                    <SplitButtonItem OnClick="HandleSaveAs">
+                        <LucideIcon Name="file-plus" Size="16" Class="mr-2" />
+                        @L.T("另存为...", "Save As...")
+                    </SplitButtonItem>
+                    <SplitButtonItem OnClick="HandleSaveDraft">
+                        <LucideIcon Name="file-edit" Size="16" Class="mr-2" />
+                        @L.T("保存草稿", "Save Draft")
+                    </SplitButtonItem>
+                    <SplitButtonSeparator />
+                    <SplitButtonItem OnClick="HandleExport">
+                        <LucideIcon Name="download" Size="16" Class="mr-2" />
+                        @L.T("导出", "Export")
+                    </SplitButtonItem>
+                </DropdownContent>
+            </SplitButton>
+
+            <SplitButton Variant="ButtonVariant.Outline" OnClick="HandlePublish">
+                <ChildContent>
+                    <LucideIcon Name="send" Size="16" Class="mr-2" />
+                    @L.T("发布", "Publish")
+                </ChildContent>
+                <DropdownContent>
+                    <SplitButtonItem>
+                        <LucideIcon Name="eye" Size="16" Class="mr-2" />
+                        @L.T("预览", "Preview")
+                    </SplitButtonItem>
+                    <SplitButtonItem>
+                        <LucideIcon Name="clock" Size="16" Class="mr-2" />
+                        @L.T("定时发布", "Schedule")
+                    </SplitButtonItem>
+                </DropdownContent>
+            </SplitButton>
+        </div>
+        <CodeBlock Source="Components/SplitButton/with-icon.txt" />
+    </section>
+
+    <!-- Disabled -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-muted-foreground">
+                @L.T("主按钮与下拉触发器都会被禁用。", "Both the primary button and dropdown trigger are disabled.")
+            </p>
+        </div>
+
+        <div class="flex flex-wrap gap-4">
+            <SplitButton Disabled="true" OnClick="HandleSave">
+                <ChildContent>@L.T("保存", "Save")</ChildContent>
+                <DropdownContent>
+                    <SplitButtonItem>@L.T("另存为...", "Save As...")</SplitButtonItem>
+                    <SplitButtonItem>@L.T("保存草稿", "Save Draft")</SplitButtonItem>
+                </DropdownContent>
+            </SplitButton>
+
+            <SplitButton Disabled="true" Variant="ButtonVariant.Outline" OnClick="HandleSave">
+                <ChildContent>@L.T("禁用的描边按钮", "Outline Disabled")</ChildContent>
+                <DropdownContent>
+                    <SplitButtonItem>@L.T("选项 1", "Option 1")</SplitButtonItem>
+                </DropdownContent>
+            </SplitButton>
+        </div>
+        <CodeBlock Source="Components/SplitButton/disabled.txt" />
+    </section>
+
+    <!-- Practical Example -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("实用示例", "Practical Example")</h2>
+            <p class="text-muted-foreground">
+                @L.T("版本控制界面里常见的合并按钮。", "A merge button commonly seen in version control interfaces.")
+            </p>
+        </div>
+
+        <div class="flex flex-wrap gap-4">
+            <SplitButton OnClick="HandleMerge">
+                <ChildContent>
+                    <LucideIcon Name="git-merge" Size="16" Class="mr-2" />
+                    @L.T("合并拉取请求", "Merge pull request")
+                </ChildContent>
+                <DropdownContent>
+                    <SplitButtonItem>
+                        <div class="flex flex-col">
+                            <span class="font-medium">@L.T("创建合并提交", "Create a merge commit")</span>
+                            <span class="text-xs text-muted-foreground">@L.T("所有提交都会追加到基础分支。", "All commits will be added to the base branch.")</span>
+                        </div>
+                    </SplitButtonItem>
+                    <SplitButtonItem>
+                        <div class="flex flex-col">
+                            <span class="font-medium">@L.T("压缩并合并", "Squash and merge")</span>
+                            <span class="text-xs text-muted-foreground">@L.T("提交会被合并为一个提交。", "Commits will be combined into one commit.")</span>
+                        </div>
+                    </SplitButtonItem>
+                    <SplitButtonItem>
+                        <div class="flex flex-col">
+                            <span class="font-medium">@L.T("变基并合并", "Rebase and merge")</span>
+                            <span class="text-xs text-muted-foreground">@L.T("提交会被变基到基础分支上。", "Commits will be rebased onto the base branch.")</span>
+                        </div>
+                    </SplitButtonItem>
+                </DropdownContent>
+            </SplitButton>
+        </div>
+        <CodeBlock Source="Components/SplitButton/practical.txt" />
+    </section>
+
+    <!-- Usage Notes -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("使用说明", "Usage Notes")</h2>
+        </div>
+
+        <div class="rounded-lg border p-6 space-y-4">
+            <div class="space-y-3">
+                <h3 class="font-semibold">@L.T("核心特性", "Key Features")</h3>
+                <ul class="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+                    <li>@L.T("主操作按钮搭配承载次级操作的下拉菜单", "Primary action button with a dropdown for secondary actions")</li>
+                    <li>@L.T("支持全部按钮变体（Default、Secondary、Outline、Destructive）", "Supports all button variants (Default, Secondary, Outline, Destructive)")</li>
+                    <li>@L.T("提供 Small、Default、Large 三种尺寸", "Available in Small, Default, and Large sizes")</li>
+                    <li>@L.T("禁用状态同时作用于两个按钮", "Disabled state applies to both buttons")</li>
+                    <li>@L.T("内部组合 Button 与 DropdownMenu 组件实现", "Composes Button and DropdownMenu components internally")</li>
+                </ul>
+            </div>
+
+            <div class="space-y-3">
+                <h3 class="font-semibold">@L.T("无障碍", "Accessibility")</h3>
+                <ul class="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <li>容器上使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="group"</code></li>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <li>Uses <code class="text-xs bg-muted px-1 py-0.5 rounded">role="group"</code> on the container</li>
+                        </text>
+                    }
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <li>下拉触发器带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code>，供读屏软件使用</li>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <li>Dropdown trigger has <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> for screen readers</li>
+                        </text>
+                    }
+                    <li>@L.T("通过 DropdownMenu 基元支持键盘导航", "Keyboard navigation supported via DropdownMenu primitive")</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        容器上的 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="group"</code> 将主按钮与下拉按钮归为一组
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">role="group"</code> on the container groups primary and dropdown buttons
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        主按钮支持通过 AriaLabel 参数自定义 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Primary button supports custom <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> via the AriaLabel parameter
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        下拉触发器带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-haspopup="menu"</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code>，用以指示菜单状态
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Dropdown trigger has <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-haspopup="menu"</code> and <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> indicating menu state
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        未设置 DropdownAriaLabel 时，下拉触发器默认使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label="More options"</code>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Dropdown trigger defaults to <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label="More options"</code> when DropdownAriaLabel is not set
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        菜单项在 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menu"</code> 容器内使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menuitem"</code>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Menu items use <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menuitem"</code> within a <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menu"</code> container
+                    </text>
+                }
+            </AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("打开下拉菜单", "Open the dropdown menu"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("打开下拉菜单并聚焦第一个条目", "Open dropdown and focus first item"))">
+                <Kbd>ArrowDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在菜单项之间导航", "Navigate menu items"))">
+                <Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("激活当前聚焦的菜单项", "Activate the focused menu item"))">
+                <Kbd>Enter</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭下拉菜单", "Close the dropdown menu"))">
+                <Kbd>Escape</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="SplitButton">
+                <ApiParameter Name="Variant" Type="ButtonVariant" Default="ButtonVariant.Default">
+                    @L.T("应用到两个按钮上的视觉样式变体。", "Visual style variant applied to both buttons.")
+                </ApiParameter>
+                <ApiParameter Name="Size" Type="ButtonSize" Default="ButtonSize.Default">
+                    @L.T("主按钮与下拉触发器的尺寸。", "Size of both the primary button and dropdown trigger.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("同时禁用主按钮与下拉触发器。", "Disables both the primary button and dropdown trigger.")
+                </ApiParameter>
+                <ApiParameter Name="OnClick" Type="EventCallback&lt;MouseEventArgs&gt;">
+                    @L.T("主操作按钮的点击处理程序。", "Click handler for the primary action button.")
+                </ApiParameter>
+                <ApiParameter Name="Icon" Type="RenderFragment?" Default="null">
+                    @L.T("渲染在主按钮内部的图标。", "Icon rendered inside the primary button.")
+                </ApiParameter>
+                <ApiParameter Name="IconPosition" Type="IconPosition" Default="IconPosition.Start">
+                    @L.T("图标相对于文本的位置。", "Position of the icon relative to text.")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                    @L.T("主操作按钮的 ARIA 标签。", "ARIA label for the primary action button.")
+                </ApiParameter>
+                <ApiParameter Name="DropdownAriaLabel" Type="string?" Default="&quot;More options&quot;">
+                    @L.T("下拉触发按钮的 ARIA 标签。", "ARIA label for the dropdown trigger button.")
+                </ApiParameter>
+                <ApiParameter Name="DropdownContent" Type="RenderFragment?" Default="null">
+                    @L.T("下拉菜单的内容，应包含 SplitButtonItem 组件。", "Content for the dropdown menu. Should contain SplitButtonItem components.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到根 <code>&lt;div&gt;</code> 元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </ApiParameter>
+                    </text>
+                }
+            </ApiReference>
+
+            <ApiReference ComponentName="SplitButtonItem">
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("菜单项是否禁用。", "Whether the menu item is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="OnClick" Type="EventCallback&lt;MouseEventArgs&gt;">
+                    @L.T("该菜单项的点击处理程序。", "Click handler for this menu item.")
+                </ApiParameter>
+                <ApiParameter Name="CloseOnSelect" Type="bool" Default="true">
+                    @L.T("点击该条目后是否关闭下拉菜单。", "Whether clicking this item closes the dropdown.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到组件根元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </ApiParameter>
+                    </text>
+                }
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string? _lastAction;
+
+    private void HandleSave() => _lastAction = L.T("已点击保存", "Save clicked");
+    private void HandleSaveAs() => _lastAction = L.T("已点击另存为", "Save As clicked");
+    private void HandleSaveDraft() => _lastAction = L.T("已点击保存草稿", "Save Draft clicked");
+    private void HandleExport() => _lastAction = L.T("已点击导出", "Export clicked");
+    private void HandlePublish() => _lastAction = L.T("已点击发布", "Publish clicked");
+    private void HandleMerge() => _lastAction = L.T("已点击合并拉取请求", "Merge pull request clicked");
+}

@@ -1,0 +1,490 @@
+@namespace AtomBlazor
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Linq.Expressions
+@using System.Globalization
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<Popover @bind-Open="_isOpen">
+    <AtomBlazor.PopoverTrigger AsChild="true">
+        <Button Variant="ButtonVariant.Outline"
+                Class="@ButtonClass"
+                Disabled="@Disabled"
+                aria-required="@(Required ? "true" : null)"
+                @attributes="ButtonFilteredAttributes">
+            <div class="atom:h-5 atom:w-5 atom:rounded atom:border atom:border-input atom:me-2"
+                 style="background-color: @Value;">
+            </div>
+            <span class="atom:font-mono atom:text-sm">@DisplayValue</span>
+        </Button>
+    </AtomBlazor.PopoverTrigger>
+    <AtomBlazor.PopoverContent Class="atom:w-[280px] atom:p-4" Align="@PopoverAlign.Start">
+        <div class="atom:space-y-4" data-atom-color-picker data-disabled="@(Disabled ? "true" : null)">
+            @* 颜色区域（饱和度/明度） *@
+            <div @ref="_areaRef"
+                 class="atom:relative atom:h-[150px] atom:w-full atom:rounded-md atom:cursor-crosshair atom:overflow-hidden atom:touch-none"
+                 style="background: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(var(--atom-color-hue, @_hue.ToString("0.##", CultureInfo.InvariantCulture)), 100%, 50%));">
+                <div class="atom:absolute atom:h-4 atom:w-4 atom:border-2 atom:border-white atom:rounded-full atom:shadow-md atom:-translate-x-1/2 atom:-translate-y-1/2 atom:pointer-events-none"
+                     style="left: var(--atom-color-saturation, @((_saturation * 100).ToString("0.##", CultureInfo.InvariantCulture))%); top: var(--atom-color-brightness, @(((1 - _brightness) * 100).ToString("0.##", CultureInfo.InvariantCulture))%);">
+                </div>
+            </div>
+
+            @* 色相滑杆 *@
+            <div class="atom:space-y-2">
+                <div @ref="_hueRef"
+                     class="atom:relative atom:h-3 atom:w-full atom:rounded-md atom:cursor-pointer atom:touch-none"
+                     style="background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);">
+                    <div class="atom:absolute atom:top-1/2 atom:h-5 atom:w-2 atom:bg-white atom:border atom:border-input atom:rounded atom:shadow-sm atom:-translate-x-1/2 atom:-translate-y-1/2 atom:pointer-events-none"
+                         style="left: var(--atom-color-hue-position, @((_hue / 360 * 100).ToString("0.##", CultureInfo.InvariantCulture))%);">
+                    </div>
+                </div>
+            </div>
+
+            @* 透明度滑杆 *@
+            @if (ShowAlpha)
+            {
+                <div class="atom:space-y-2">
+                    <div @ref="_alphaRef"
+                         class="atom:relative atom:h-3 atom:w-full atom:rounded-md atom:cursor-pointer atom:touch-none"
+                         style="background: linear-gradient(to right, transparent, @CurrentColorWithoutAlpha), url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 fill-opacity=%22.1%22><rect x=%220%22 y=%220%22 width=%228%22 height=%228%22 fill=%22%23000%22/><rect x=%228%22 y=%228%22 width=%228%22 height=%228%22 fill=%22%23000%22/></svg>');">
+                        <div class="atom:absolute atom:top-1/2 atom:h-5 atom:w-2 atom:bg-white atom:border atom:border-input atom:rounded atom:shadow-sm atom:-translate-x-1/2 atom:-translate-y-1/2 atom:pointer-events-none"
+                             style="left: var(--atom-color-alpha-position, @((_alpha * 100).ToString("0.##", CultureInfo.InvariantCulture))%);">
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @* 颜色预览与输入框 *@
+            @if (ShowInputs)
+            {
+                <div class="atom:flex atom:gap-2">
+                    <div class="atom:h-10 atom:w-10 atom:rounded-md atom:border atom:border-input atom:flex-shrink-0"
+                         style="background-color: @Value;">
+                    </div>
+                    <div class="atom:flex-1">
+                        <Input Value="@_hexInput"
+                               ValueChanged="HandleHexInput"
+                               Class="atom:font-mono atom:text-sm"
+                               Placeholder="#000000" />
+                    </div>
+                </div>
+
+                @* RGB 输入框 *@
+                <div class="atom:grid @(ShowAlpha ? "atom:grid-cols-4" : "atom:grid-cols-3") atom:gap-2">
+                    <div>
+                        <label class="atom:text-xs atom:text-muted-foreground">R</label>
+                        <Input Value="@_r.ToString()"
+                               ValueChanged="@(v => HandleRgbInput(v, 'r'))"
+                               Class="atom:text-sm atom:text-center" />
+                    </div>
+                    <div>
+                        <label class="atom:text-xs atom:text-muted-foreground">G</label>
+                        <Input Value="@_g.ToString()"
+                               ValueChanged="@(v => HandleRgbInput(v, 'g'))"
+                               Class="atom:text-sm atom:text-center" />
+                    </div>
+                    <div>
+                        <label class="atom:text-xs atom:text-muted-foreground">B</label>
+                        <Input Value="@_b.ToString()"
+                               ValueChanged="@(v => HandleRgbInput(v, 'b'))"
+                               Class="atom:text-sm atom:text-center" />
+                    </div>
+                    @if (ShowAlpha)
+                    {
+                        <div>
+                            <label class="atom:text-xs atom:text-muted-foreground">A</label>
+                            <Input Value="@($"{(int)Math.Round(_alpha * 100)}%")"
+                                   ValueChanged="HandleAlphaInput"
+                                   Class="atom:text-sm atom:text-center" />
+                        </div>
+                    }
+                </div>
+            }
+
+            @* 预设颜色 *@
+            @if (ShowPresets)
+            {
+                <div class="atom:space-y-2">
+                    <span class="atom:text-xs atom:text-muted-foreground">Presets</span>
+                    <div class="atom:flex atom:flex-wrap atom:gap-1">
+                        @foreach (var preset in EffectivePresets)
+                        {
+                            <button type="button"
+                                    class="atom:h-6 atom:w-6 atom:rounded atom:border atom:border-input atom:cursor-pointer atom:hover:scale-110 atom:transition-transform atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring"
+                                    style="background-color: @preset;"
+                                    @onclick="() => SelectPreset(preset)"
+                                    title="@preset">
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </AtomBlazor.PopoverContent>
+</Popover>
+
+@code {
+    private bool _isOpen;
+    private double _hue;
+    private double _saturation;
+    private double _brightness;
+    private double _alpha = 1;
+    private int _r, _g, _b;
+    private string _hexInput = "#000000";
+    private string? _previousValue;
+    private FieldIdentifier _fieldIdentifier;
+    private EditContext? _editContext;
+
+    private ElementReference _areaRef;
+    private ElementReference _hueRef;
+    private ElementReference _alphaRef;
+    private IJSObjectReference? _jsModule;
+    private DotNetObjectReference<ColorPicker>? _dotNetRef;
+    private string _pickerId = Guid.NewGuid().ToString("N");
+    private bool _jsInitialized;
+    private bool _disposed;
+    private bool _wasOpen;
+
+    [CascadingParameter]
+    private EditContext? CascadedEditContext { get; set; }
+
+    private static readonly string[] defaultPresets = {
+        "#000000", "#FFFFFF", "#FF0000", "#00FF00", "#0000FF",
+        "#FFFF00", "#FF00FF", "#00FFFF", "#FF6600", "#6600FF",
+        "#808080", "#C0C0C0", "#800000", "#008000", "#000080"
+    };
+
+    /// <summary>
+    /// 获取或设置十六进制格式的颜色值。
+    /// </summary>
+    [Parameter]
+    public string Value { get; set; } = "#000000";
+
+    /// <summary>
+    /// 颜色变化时的回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+
+    /// <summary>
+    /// 获取或设置非受控用法下的初始颜色值。
+    /// 设置后首次渲染以该值作为起始颜色。
+    /// </summary>
+    [Parameter]
+    public string? DefaultValue { get; set; }
+
+    /// <summary>
+    /// 获取或设置输出使用的颜色格式。
+    /// </summary>
+    [Parameter]
+    public ColorFormat Format { get; set; } = ColorFormat.Hex;
+
+    /// <summary>
+    /// 获取或设置是否显示透明度滑杆。
+    /// </summary>
+    [Parameter]
+    public bool ShowAlpha { get; set; }
+
+    /// <summary>
+    /// 获取或设置是否显示预设颜色。
+    /// </summary>
+    [Parameter]
+    public bool ShowPresets { get; set; } = true;
+
+    /// <summary>
+    /// 获取或设置自定义预设颜色。
+    /// </summary>
+    [Parameter]
+    public string[]? PresetColors { get; set; }
+
+    /// <summary>
+    /// 获取或设置是否显示颜色输入框。
+    /// </summary>
+    [Parameter]
+    public bool ShowInputs { get; set; } = true;
+
+    /// <summary>
+    /// 获取或设置选择器是否禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 获取或设置颜色选择器是否必填。
+    /// </summary>
+    [Parameter]
+    public bool Required { get; set; }
+
+    /// <summary>
+    /// 获取或设置触发按钮的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 返回移除了已显式处理参数（class, disabled）的 AdditionalAttributes，用于传递给 Button。
+    /// </summary>
+    private Dictionary<string, object>? ButtonFilteredAttributes
+    {
+        get
+        {
+            if (AdditionalAttributes == null) return null;
+            
+            var filtered = new Dictionary<string, object>();
+            foreach (var kvp in AdditionalAttributes)
+            {
+                var key = kvp.Key.ToLowerInvariant();
+                if (key != "class" && key != "disabled")
+                {
+                    filtered[kvp.Key] = kvp.Value;
+                }
+            }
+            
+            return filtered.Count > 0 ? filtered : null;
+        }
+    }
+
+    /// <summary>
+    /// 获取或设置标识绑定值的表达式。
+    /// </summary>
+    [Parameter]
+    public Expression<Func<string>>? ValueExpression { get; set; }
+
+    private string[] EffectivePresets => PresetColors ?? defaultPresets;
+
+    private string CurrentColorWithoutAlpha => ColorUtils.ToHex(_r, _g, _b);
+
+    private string DisplayValue
+    {
+        get
+        {
+            if (!ShowAlpha) return Value;
+            var hex = ColorUtils.ToHex(_r, _g, _b);
+            return _alpha < 1 ? $"{hex} {(int)Math.Round(_alpha * 100)}%" : hex;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        if (DefaultValue != null && ColorUtils.IsValidHex(DefaultValue))
+        {
+            Value = DefaultValue;
+        }
+
+        ParseValue(Value);
+        _previousValue = Value;
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (Value != _previousValue && ColorUtils.IsValidHex(Value))
+        {
+            ParseValue(Value);
+            _previousValue = Value;
+        }
+
+        if (CascadedEditContext != null && ValueExpression != null)
+        {
+            _editContext = CascadedEditContext;
+            _fieldIdentifier = FieldIdentifier.Create(ValueExpression);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_isOpen && !_wasOpen)
+        {
+            await InitializeJsAsync();
+        }
+
+        _wasOpen = _isOpen;
+    }
+
+    private async Task InitializeJsAsync()
+    {
+        if (_disposed) return;
+
+        try
+        {
+            // 弹层重挂载时重新初始化前先释放上一次的状态
+            if (_jsModule != null && _jsInitialized)
+            {
+                await _jsModule.InvokeVoidAsync("colorPicker.dispose", _pickerId);
+                _jsInitialized = false;
+            }
+
+            // 有意偏差（记录在案）：按实例直连 color-picker.js 模块路径
+            // 本仓库统一改走共享 components-core.js barrel（camelCase 点分标识符）
+            // 规则见 PrimitiveJsModuleTests。
+            _jsModule ??= await ComponentModules.GetCoreAsync(JS);
+            _dotNetRef ??= DotNetObjectReference.Create(this);
+
+            await _jsModule.InvokeVoidAsync("colorPicker.initializeArea", _areaRef, _dotNetRef, _pickerId);
+            await _jsModule.InvokeVoidAsync("colorPicker.initializeSlider", _hueRef, _dotNetRef, _pickerId, "hue");
+
+            if (ShowAlpha)
+            {
+                await _jsModule.InvokeVoidAsync("colorPicker.initializeSlider", _alphaRef, _dotNetRef, _pickerId, "alpha");
+            }
+
+            _jsInitialized = true;
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+        {
+            // Blazor Server 电路断开时属于预期情况
+        }
+        catch (InvalidOperationException)
+        {
+            // 预渲染阶段 JS interop 不可用
+        }
+    }
+
+    [JSInvokable]
+    public async Task UpdateAreaFromJs(double satPct, double brightPct)
+    {
+        if (_disposed || Disabled) return;
+
+        _saturation = Math.Max(0, Math.Min(1, satPct));
+        _brightness = Math.Max(0, Math.Min(1, brightPct));
+        await UpdateColor();
+    }
+
+    [JSInvokable]
+    public async Task UpdateSliderFromJs(string type, double pct)
+    {
+        if (_disposed || Disabled) return;
+
+        pct = Math.Max(0, Math.Min(1, pct));
+
+        if (type == "hue")
+        {
+            _hue = pct * 360;
+        }
+        else if (type == "alpha")
+        {
+            _alpha = pct;
+        }
+
+        await UpdateColor();
+    }
+
+    private void ParseValue(string hex)
+    {
+        if (!ColorUtils.IsValidHex(hex)) return;
+
+        var (r, g, b, a) = ColorUtils.ParseHex(hex);
+        _r = r;
+        _g = g;
+        _b = b;
+        _alpha = a.HasValue ? a.Value / 255.0 : 1;
+
+        var (h, s, v) = ColorUtils.RgbToHsv(r, g, b);
+        _hue = h;
+        _saturation = s;
+        _brightness = v;
+
+        _hexInput = ColorUtils.ToHex(_r, _g, _b);
+    }
+
+    private async Task UpdateColor()
+    {
+        var (r, g, b) = ColorUtils.HsvToRgb(_hue, _saturation, _brightness);
+        _r = r;
+        _g = g;
+        _b = b;
+
+        var alphaInt = ShowAlpha ? (int)Math.Round(_alpha * 255) : (int?)null;
+
+        var newValue = Format switch
+        {
+            ColorFormat.RGB => ColorUtils.ToRgbString(r, g, b, alphaInt),
+            ColorFormat.HSL => ColorUtils.ToHslString(_hue, _saturation, _brightness * (1 - _saturation / 2), alphaInt),
+            _ => ColorUtils.ToHex(r, g, b, alphaInt)
+        };
+
+        _hexInput = ColorUtils.ToHex(r, g, b);
+
+        _previousValue = newValue;
+        Value = newValue;
+        await ValueChanged.InvokeAsync(newValue);
+
+        if (_editContext != null && ValueExpression != null && _fieldIdentifier.FieldName != null)
+        {
+            _editContext.NotifyFieldChanged(_fieldIdentifier);
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task HandleHexInput(string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return;
+
+        var hex = value.StartsWith("#") ? value : $"#{value}";
+        if (!ColorUtils.IsValidHex(hex)) return;
+
+        ParseValue(hex);
+        await UpdateColor();
+    }
+
+    private async Task HandleRgbInput(string? value, char component)
+    {
+        if (!int.TryParse(value, out var v)) return;
+        v = Math.Max(0, Math.Min(255, v));
+
+        switch (component)
+        {
+            case 'r': _r = v; break;
+            case 'g': _g = v; break;
+            case 'b': _b = v; break;
+        }
+
+        var (h, s, bv) = ColorUtils.RgbToHsv(_r, _g, _b);
+        _hue = h;
+        _saturation = s;
+        _brightness = bv;
+
+        await UpdateColor();
+    }
+
+    private async Task SelectPreset(string color)
+    {
+        ParseValue(color);
+        await UpdateColor();
+    }
+
+    private async Task HandleAlphaInput(string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return;
+        value = value.TrimEnd('%');
+        if (!int.TryParse(value, out var v)) return;
+        _alpha = Math.Max(0, Math.Min(1, v / 100.0));
+        await UpdateColor();
+    }
+
+    private string ButtonClass => ClassNames.cn(
+        "atom:w-[180px] atom:justify-start",
+        Disabled ? "atom:opacity-50 atom:pointer-events-none" : null,
+        Class
+    );
+
+    public async ValueTask DisposeAsync()
+    {
+        _disposed = true;
+        if (_jsModule != null && _jsInitialized)
+        {
+            try
+            {
+                await _jsModule.InvokeVoidAsync("colorPicker.dispose", _pickerId);
+            }
+            catch { }
+        }
+        _dotNetRef?.Dispose();
+    }
+}

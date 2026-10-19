@@ -1,0 +1,326 @@
+@page "/recipes/filterable-datagrid"
+@using System.Globalization
+
+<PageTitle>@L.T("可筛选数据网格 - 配方 - Atom BlazorUI", "Filterable Data Grid - Recipes - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-6 max-w-[90rem]">
+    <div>
+        <div class="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+            <a href="recipes" class="hover:text-foreground transition-colors">@L.T("配方", "Recipes")</a>
+            <span>/</span>
+            <span>@L.T("可筛选数据网格", "Filterable Data Grid")</span>
+        </div>
+        <h1 class="text-4xl font-bold">@L.T("可筛选数据网格", "Filterable Data Grid")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("将筛选构建器与数据网格结合，打造强大、可交互的数据探索体验。本配方使用 1,000 条跨多种字段类型的员工记录，来演示真实场景下的筛选。", "Combine the Filter Builder with a Data Grid to create a powerful, interactive data exploration experience. This recipe uses 1,000 employee records across multiple field types to demonstrate real-world filtering.")
+        </p>
+    </div>
+
+    <div class="space-y-2">
+        <h2 class="text-2xl font-semibold">@L.T("概览", "Overview")</h2>
+        <p class="text-sm text-muted-foreground">
+            @if (L.IsChinese)
+            {
+                <text>
+                    本配方演示如何把一个 <code>FilterBuilder</code> 接到 <code>DataGrid</code> 上进行客户端筛选。
+                    筛选定义会经由 <code>ToFunc&lt;T&gt;()</code> 编译成 <code>Func&lt;T, bool&gt;</code> 谓词，并在内存中应用。
+                    试着在全部可用字段类型上，用嵌套的 AND/OR 分组构建复杂的筛选条件。
+                </text>
+            }
+            else
+            {
+                <text>
+                    This recipe demonstrates how to wire a <code>FilterBuilder</code> to a <code>DataGrid</code>
+                    for client-side filtering. The filter definition is compiled to a <code>Func&lt;T, bool&gt;</code>
+                    predicate via <code>ToFunc&lt;T&gt;()</code> and applied in-memory. Try building complex filters with
+                    nested AND/OR groups across all the available field types.
+                </text>
+            }
+        </p>
+    </div>
+
+    <div class="space-y-2">
+        <h3 class="text-lg font-semibold">@L.T("可用字段", "Available Fields")</h3>
+        <div class="flex flex-wrap gap-2">
+            <Badge Variant="BadgeVariant.Outline">Name (Text)</Badge>
+            <Badge Variant="BadgeVariant.Outline">Email (Text)</Badge>
+            <Badge Variant="BadgeVariant.Outline">Age (Number)</Badge>
+            <Badge Variant="BadgeVariant.Outline">Salary (Number)</Badge>
+            <Badge Variant="BadgeVariant.Outline">Department (Enum)</Badge>
+            <Badge Variant="BadgeVariant.Outline">Role (Enum)</Badge>
+            <Badge Variant="BadgeVariant.Outline">Status (Enum)</Badge>
+            <Badge Variant="BadgeVariant.Outline">Join Date (Date)</Badge>
+            <Badge Variant="BadgeVariant.Outline">Last Activity (DateTime)</Badge>
+            <Badge Variant="BadgeVariant.Outline">Last Promotion (Date)</Badge>
+            <Badge Variant="BadgeVariant.Outline">Active (Boolean)</Badge>
+        </div>
+    </div>
+
+    <!-- Filter Builder -->
+    <div class="space-y-3">
+        <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold">@L.T("筛选器", "Filters")</h3>
+            @if (!filter.IsEmpty)
+            {
+                <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Small" OnClick="ClearFilters">
+                    @L.T("清除所有筛选器", "Clear all filters")
+                </Button>
+            }
+        </div>
+        <FilterBuilder @bind-Filter="filter"
+                         Fields="@employeeFields"
+                         OnFilterChanged="HandleFilterChanged"
+                         MaxDepth="3" />
+    </div>
+
+    <!-- Results summary -->
+    <div class="flex items-center gap-3">
+        <Badge Variant="BadgeVariant.Secondary">
+            @filteredEmployees.Count.ToString("N0") @L.T("名，共", "of") @allEmployees.Count.ToString("N0") @L.T("名员工", "employees")
+        </Badge>
+        @if (!filter.IsEmpty)
+        {
+            <span class="text-sm text-muted-foreground">
+                @if (L.IsChinese)
+                {
+                    <text>@filter.TotalConditionCount 条生效的筛选条件</text>
+                }
+                else
+                {
+                    <text>@filter.TotalConditionCount active condition@(filter.TotalConditionCount != 1 ? "s" : "")</text>
+                }
+            </span>
+        }
+    </div>
+
+    <!-- Data Grid -->
+    <DataGrid TData="Employee" Items="@filteredEmployees" ShowPagination="true"
+                InitialPageSize="20" PageSizes="@(new[] { 10, 20, 50, 100 })"
+                Resizable="true" StickyHeader="true" Class="max-h-[700px]">
+        <Columns>
+            <DataGridPropertyColumn Property="@(e => e.Id)" Title="ID" Sortable="true" Width="80px" />
+            <DataGridPropertyColumn Property="@(e => e.Name)" Title="Name" Sortable="true" Width="180px" />
+            <DataGridPropertyColumn Property="@(e => e.Email)" Title="Email" Sortable="true" Width="240px" NoWrap="true" />
+            <DataGridPropertyColumn Property="@(e => e.Department)" Title="Department" Sortable="true" Width="140px" />
+            <DataGridPropertyColumn Property="@(e => e.Role)" Title="Role" Sortable="true" Width="130px" />
+            <DataGridTemplateColumn Title="Status" Sortable="true" SortBy="@(e => e.Status)" Width="120px">
+                @{
+                    var employee = context;
+                    var variant = employee.Status switch
+                    {
+                        "Active" => BadgeVariant.Default,
+                        "Inactive" => BadgeVariant.Secondary,
+                        "Pending" => BadgeVariant.Outline,
+                        _ => BadgeVariant.Destructive
+                    };
+                }
+                <Badge Variant="@variant">@employee.Status</Badge>
+            </DataGridTemplateColumn>
+            <DataGridPropertyColumn Property="@(e => e.Age)" Title="Age" Sortable="true" Width="80px" />
+            <DataGridPropertyColumn Property="@(e => e.Salary)" Title="Salary" Sortable="true" Format="C0" Width="120px" />
+            <DataGridPropertyColumn Property="@(e => e.JoinDate)" Title="Join Date" Sortable="true" Format="d" Width="130px" />
+            <DataGridPropertyColumn Property="@(e => e.LastActivity)" Title="Last Activity" Sortable="true" Format="g" Width="170px" />
+            <DataGridTemplateColumn Title="Last Promotion" Sortable="true" SortBy="@(e => e.LastPromotionDate)" Width="150px">
+                @{
+                    var emp = context;
+                }
+                @if (emp.LastPromotionDate.HasValue)
+                {
+                    @emp.LastPromotionDate.Value.ToString("d")
+                }
+                else
+                {
+                    <span class="text-muted-foreground">—</span>
+                }
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Title="Active" Sortable="true" SortBy="@(e => e.IsActive)" Width="90px">
+                @{
+                    var activeEmp = context;
+                }
+                @if (activeEmp.IsActive)
+                {
+                    <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                        Yes
+                    </span>
+                }
+                else
+                {
+                    <span class="text-muted-foreground">No</span>
+                }
+            </DataGridTemplateColumn>
+        </Columns>
+    </DataGrid>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private List<Employee> allEmployees = new();
+    private List<Employee> filteredEmployees = new();
+    private FilterDefinition filter = new();
+
+    private static readonly string[] departments =
+        { "Engineering", "Sales", "Marketing", "Support", "HR", "Finance", "Operations", "Product", "Legal", "Design" };
+
+    private static readonly string[] roles =
+        { "Junior", "Mid-Level", "Senior", "Lead", "Manager", "Director", "VP", "Intern" };
+
+    private static readonly string[] statuses =
+        { "Active", "Inactive", "Pending", "Suspended" };
+
+    private readonly FilterField[] employeeFields = new[]
+    {
+        new FilterField { Name = "Name", Label = "Name", Type = FilterFieldType.Text, Placeholder = "e.g. John" },
+        new FilterField { Name = "Email", Label = "Email", Type = FilterFieldType.Text, Placeholder = "e.g. @company.com" },
+        new FilterField { Name = "Age", Label = "Age", Type = FilterFieldType.Number, Placeholder = "e.g. 30" },
+        new FilterField { Name = "Salary", Label = "Salary", Type = FilterFieldType.Number, Placeholder = "e.g. 75000" },
+        new FilterField
+        {
+            Name = "Department", Label = "Department", Type = FilterFieldType.Enum,
+            Options = departments.Select(d => new SelectOption<string>(d, d)).ToArray()
+        },
+        new FilterField
+        {
+            Name = "Role", Label = "Role", Type = FilterFieldType.Enum,
+            Options = roles.Select(r => new SelectOption<string>(r, r)).ToArray()
+        },
+        new FilterField
+        {
+            Name = "Status", Label = "Status", Type = FilterFieldType.Enum,
+            Options = statuses.Select(s => new SelectOption<string>(s, s)).ToArray()
+        },
+        new FilterField { Name = "JoinDate", Label = "Join Date", Type = FilterFieldType.Date },
+        new FilterField { Name = "LastActivity", Label = "Last Activity", Type = FilterFieldType.DateTime },
+        new FilterField { Name = "LastPromotionDate", Label = "Last Promotion", Type = FilterFieldType.Date },
+        new FilterField { Name = "IsActive", Label = "Active", Type = FilterFieldType.Boolean }
+    };
+
+    protected override void OnInitialized()
+    {
+        allEmployees = GenerateEmployees(1000);
+        filteredEmployees = new List<Employee>(allEmployees);
+    }
+
+    private void HandleFilterChanged(FilterDefinition newFilter)
+    {
+        if (newFilter.IsEmpty)
+        {
+            filteredEmployees = new List<Employee>(allEmployees);
+        }
+        else
+        {
+            var predicate = newFilter.ToFunc<Employee>(employeeFields);
+            filteredEmployees = allEmployees.Where(predicate).ToList();
+        }
+    }
+
+    private void ClearFilters()
+    {
+        filter = new FilterDefinition();
+        filteredEmployees = new List<Employee>(allEmployees);
+    }
+
+    // --- Data Generation ---
+
+    private static readonly Random rng = new(42); // Fixed seed for consistent demo data
+
+    private static readonly string[] firstNames =
+    {
+        "James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda",
+        "William", "Barbara", "David", "Elizabeth", "Richard", "Susan", "Joseph", "Jessica",
+        "Thomas", "Sarah", "Charles", "Karen", "Christopher", "Nancy", "Daniel", "Lisa",
+        "Matthew", "Betty", "Anthony", "Margaret", "Mark", "Sandra", "Donald", "Ashley",
+        "Steven", "Kimberly", "Paul", "Emily", "Andrew", "Donna", "Joshua", "Michelle",
+        "Kenneth", "Dorothy", "Kevin", "Carol", "Brian", "Amanda", "George", "Melissa",
+        "Edward", "Deborah", "Ronald", "Stephanie", "Timothy", "Rebecca", "Jason", "Sharon",
+        "Jeffrey", "Laura", "Ryan", "Cynthia", "Jacob", "Kathleen", "Gary", "Amy",
+        "Nicholas", "Shirley", "Eric", "Angela", "Jonathan", "Helen", "Stephen", "Anna",
+        "Larry", "Brenda", "Justin", "Pamela", "Scott", "Nicole", "Brandon", "Emma",
+        "Benjamin", "Samantha", "Samuel", "Katherine", "Raymond", "Christine", "Gregory", "Debra"
+    };
+
+    private static readonly string[] lastNames =
+    {
+        "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis",
+        "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas",
+        "Taylor", "Moore", "Jackson", "Martin", "Lee", "Perez", "Thompson", "White",
+        "Harris", "Sanchez", "Clark", "Ramirez", "Lewis", "Robinson", "Walker", "Young",
+        "Allen", "King", "Wright", "Scott", "Torres", "Nguyen", "Hill", "Flores",
+        "Green", "Adams", "Nelson", "Baker", "Hall", "Rivera", "Campbell", "Mitchell",
+        "Carter", "Roberts", "Gomez", "Phillips", "Evans", "Turner", "Diaz", "Parker",
+        "Cruz", "Edwards", "Collins", "Reyes", "Stewart", "Morris", "Morales", "Murphy"
+    };
+
+    private static readonly string[] emailDomains =
+        { "acme.com", "globex.com", "initech.com", "hooli.com", "piedpiper.com", "waynetech.com", "starkindustries.com", "umbrellacorp.com" };
+
+    private static List<Employee> GenerateEmployees(int count)
+    {
+        var employees = new List<Employee>(count);
+
+        for (var i = 0; i < count; i++)
+        {
+            var firstName = firstNames[rng.Next(firstNames.Length)];
+            var lastName = lastNames[rng.Next(lastNames.Length)];
+            var domain = emailDomains[rng.Next(emailDomains.Length)];
+            var suffix = rng.Next(100) > 60 ? rng.Next(1, 999).ToString(CultureInfo.InvariantCulture) : "";
+            var department = departments[rng.Next(departments.Length)];
+            var role = roles[rng.Next(roles.Length)];
+            var joinDate = DateTime.Today.AddDays(-rng.Next(30, 3650));
+            var hasPromotion = rng.Next(100) > 30;
+
+            employees.Add(new Employee
+            {
+                Id = i + 1,
+                Name = $"{firstName} {lastName}",
+                Email = $"{firstName.ToLower(CultureInfo.InvariantCulture)}.{lastName.ToLower(CultureInfo.InvariantCulture)}{suffix}@{domain}",
+                Age = rng.Next(21, 65),
+                Department = department,
+                Role = role,
+                Status = statuses[rng.Next(statuses.Length)],
+                Salary = RoundToNearest500(rng.Next(35000, 200000)),
+                JoinDate = joinDate,
+                LastActivity = GenerateLastActivity(i, count),
+                LastPromotionDate = hasPromotion ? joinDate.AddDays(rng.Next(90, 1500)) : null,
+                IsActive = rng.Next(100) > 15
+            });
+        }
+
+        return employees;
+    }
+
+    private static int RoundToNearest500(int value) => (int)(Math.Round(value / 500.0) * 500);
+
+    private static DateTime GenerateLastActivity(int index, int count)
+    {
+        var now = DateTime.Now;
+        var bucket = (index * 6) / count;
+        return bucket switch
+        {
+            0 => now.AddSeconds(-rng.Next(1, 60)),
+            1 => now.AddMinutes(-rng.Next(1, 60)),
+            2 => now.AddHours(-rng.Next(1, 24)),
+            3 => now.AddDays(-rng.Next(1, 7)),
+            4 => now.AddDays(-rng.Next(7, 28)),
+            _ => now.AddDays(-rng.Next(28, 365))
+        };
+    }
+
+    public class Employee
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public int Age { get; set; }
+        public string Department { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public int Salary { get; set; }
+        public DateTime JoinDate { get; set; }
+        public DateTime LastActivity { get; set; }
+        public DateTime? LastPromotionDate { get; set; }
+        public bool IsActive { get; set; }
+    }
+}

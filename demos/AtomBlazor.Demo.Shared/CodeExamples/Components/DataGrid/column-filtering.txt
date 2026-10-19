@@ -1,0 +1,34 @@
+<DataGrid TData="Person" Items="@people" InitialPageSize="5"
+           @bind-State="_gridState" Resizable="true">
+    <Columns>
+        @* Text filtering — auto-inferred from string property *@
+        <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable Filterable />
+        <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" Sortable Filterable />
+
+        @* Enum filtering via override — for string properties with known values *@
+        <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable Filterable
+            FilterType="FilterFieldType.Enum"
+            FilterOptions="@(new[] { "Engineering", "Sales", "Marketing" }.Select(d => new SelectOption<string>(d, d)))" />
+
+        @* Number filtering — auto-inferred from int/double property *@
+        <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Age)" Sortable Filterable />
+        <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable Filterable />
+
+        @* Enum filtering — auto-inferred from enum property, options generated from type *@
+        <DataGridPropertyColumn TData="Person" TProp="PersonStatus" Property="@(p => p.StatusEnum)" Sortable Filterable />
+
+        @* Nullable enum — auto-inferred, includes "is empty" operator for null values *@
+        <DataGridPropertyColumn TData="Person" TProp="SeniorityLevel?" Property="@(p => p.Seniority)" Sortable Filterable />
+
+        @* Nullable DateTimeOffset — auto-inferred as DateTime filter *@
+        <DataGridPropertyColumn TData="Person" TProp="DateTimeOffset?" Property="@(p => p.LastPromotionDate)"
+            Title="Last Promotion" Format="d" Sortable Filterable />
+
+        @* Boolean filtering — auto-inferred from bool property *@
+        <DataGridPropertyColumn TData="Person" TProp="bool" Property="@(p => p.IsActive)" Title="Active" Sortable Filterable />
+    </Columns>
+</DataGrid>
+
+@code {
+    private DataGridState<Person> _gridState = new();
+}

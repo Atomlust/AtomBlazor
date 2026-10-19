@@ -1,0 +1,40 @@
+@namespace AtomBlazor
+@using System.Globalization
+@using AtomBlazor.Icons.Lucide
+
+@* DateInput：格里历日期的分段输入，段序随文化。 *@
+<div @ref="root" class="@CssClass" role="group" aria-label="@(AriaLabel ?? Localizer["DateInput.Label"])"
+     aria-describedby="@AriaDescribedBy" aria-invalid="@(validation.IsInvalid ? "true" : null)" @attributes="AdditionalAttributes">
+    @foreach (var segment in DateTimeSegments.DateOrder(EffectiveCulture))
+    {
+        var digits = segment == "Year" ? 4 : 2;
+        <input @key="segment" id="@(Id == null ? null : segment == FirstSegment ? Id : $"{Id}-{segment.ToLowerInvariant()}")"
+               type="text" inputmode="numeric" autocomplete="off" role="spinbutton" data-atom-segment="@segment"
+               data-min="1" data-max="@(segment == "Year" ? 9999 : segment == "Month" ? 12 : MaxDay)" data-digits="@digits"
+               maxlength="@digits" size="@digits" placeholder="@(segment == "Year" ? "yyyy" : segment == "Month" ? "mm" : "dd")"
+               aria-label="@Localizer[$"DateInput.{segment}"]" aria-valuemin="1"
+               aria-valuemax="@(segment == "Year" ? 9999 : segment == "Month" ? 12 : MaxDay)" aria-valuenow="@DateTimeSegments.Number(parts[segment])"
+               aria-describedby="@AriaDescribedBy" aria-invalid="@(validation.IsInvalid ? "true" : null)"
+               disabled="@Disabled" readonly="@ReadOnly" required="@Required"
+               class="atom:min-w-0 atom:rounded-sm atom:bg-transparent atom:text-center atom:tabular-nums atom:placeholder:text-muted-foreground atom:focus:outline-none atom:focus:bg-accent atom:focus:text-accent-foreground"
+               @bind:get="parts[segment]" @bind:set="@(text => EditAsync(segment, text))" @bind:event="oninput" />
+        @if (segment != LastSegment)
+        {
+            <span aria-hidden="true" class="atom:text-muted-foreground">@EffectiveCulture.DateTimeFormat.DateSeparator</span>
+        }
+    }
+    @if (ShowCalendar)
+    {
+        <Popover @bind-Open="open">
+            <AtomBlazor.PopoverTrigger AsChild="true">
+                <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Icon" Class="atom:ms-auto atom:h-7 atom:w-7" Disabled="@(Disabled || ReadOnly)" aria-label="@Localizer["DatePicker.OpenCalendar"]">
+                    <LucideIcon Name="calendar" Size="16" />
+                </Button>
+            </AtomBlazor.PopoverTrigger>
+            <AtomBlazor.PopoverContent Class="atom:w-auto atom:p-0">
+                <Calendar Selected="@Value" SelectedChanged="SelectAsync" MinDate="@MinDate" MaxDate="@MaxDate" />
+            </AtomBlazor.PopoverContent>
+        </Popover>
+    }
+    <input type="hidden" name="@validation.GetName(Name)" value="@Value?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" disabled="@Disabled" />
+</div>

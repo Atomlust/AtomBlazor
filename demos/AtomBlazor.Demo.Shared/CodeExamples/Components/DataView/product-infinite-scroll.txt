@@ -1,0 +1,45 @@
+@* Only GridTemplate is set — the view locks into grid mode with no toggle.
+   EnableInfiniteScroll + ScrollHeight auto-loads more cards as the user scrolls.
+   InitialPageSize=6 is a multiple of LCM(2,3)=6, keeping every row complete
+   at both the sm:grid-cols-2 and lg:grid-cols-3 breakpoints. *@
+<DataView TItem="Product" Data="@products"
+            EnableInfiniteScroll="true" ScrollHeight="600px" InitialPageSize="6">
+    <GridTemplate Context="product">
+        <Card Class="overflow-hidden flex flex-col hover:shadow-md transition-shadow">
+            <div class="relative aspect-square overflow-hidden bg-muted">
+                <img src="@product.ImageUrl" alt="@product.Name"
+                     class="object-cover w-full h-full" loading="lazy" />
+                @if (product.Stock == 0)
+                {
+                    <div class="absolute inset-0 bg-background/70 flex items-center justify-center">
+                        <TypographyMuted>Out of Stock</TypographyMuted>
+                    </div>
+                }
+            </div>
+            <CardHeader>
+                <div class="flex items-start justify-between gap-2">
+                    <CardTitle Class="text-base line-clamp-2 leading-snug">@product.Name</CardTitle>
+                    <Badge Variant="BadgeVariant.Outline" Class="shrink-0 text-xs mt-0.5">@product.Category</Badge>
+                </div>
+                <CardDescription Class="line-clamp-2">@product.Description</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Rating Value="@product.Rating" ReadOnly="true" Size="RatingSize.Small" />
+            </CardContent>
+            <CardFooter Class="justify-between">
+                <span class="text-base font-bold">$@product.Price.ToString("F2")</span>
+                <Button Size="ButtonSize.Small"
+                          Variant="@(product.Stock > 0 ? ButtonVariant.Default : ButtonVariant.Outline)"
+                          Disabled="@(product.Stock == 0)">
+                    @(product.Stock > 0 ? "Add to Cart" : "Notify Me")
+                </Button>
+            </CardFooter>
+        </Card>
+    </GridTemplate>
+    <Fields>
+        <DataViewColumn TItem="Product" TValue="string"  Property="@(p => p.Name)"     Header="Name"     Sortable Filterable />
+        <DataViewColumn TItem="Product" TValue="string"  Property="@(p => p.Category)" Header="Category" Sortable Filterable />
+        <DataViewColumn TItem="Product" TValue="decimal" Property="@(p => p.Price)"    Header="Price"    Sortable />
+        <DataViewColumn TItem="Product" TValue="double"  Property="@(p => p.Rating)"   Header="Rating"   Sortable />
+    </Fields>
+</DataView>

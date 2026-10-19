@@ -1,0 +1,113 @@
+@namespace AtomBlazor
+
+@*
+    Slider 组件——包装 Slider 基元，提供拖拽、键盘与 ARIA 支持。
+*@
+
+<AtomBlazor.Primitives.SliderPrimitive
+    Value="@Value"
+    ValueChanged="@ValueChanged"
+    DefaultValue="@DefaultValue"
+    Min="@Min"
+    Max="@Max"
+    Step="@Step"
+    Disabled="@Disabled"
+    Orientation="@MappedOrientation"
+    class="@CssClass"
+    @attributes="AdditionalAttributes">
+    <AtomBlazor.Primitives.SliderTrack class="@ComputedTrackClass">
+        <AtomBlazor.Primitives.SliderRange class="@ComputedIndicatorClass" />
+    </AtomBlazor.Primitives.SliderTrack>
+    <AtomBlazor.Primitives.SliderThumb class="@ComputedThumbClass" />
+</AtomBlazor.Primitives.SliderPrimitive>
+
+@code {
+    [Parameter]
+    public double Value { get; set; }
+
+    [Parameter]
+    public EventCallback<double> ValueChanged { get; set; }
+
+    [Parameter]
+    public double DefaultValue { get; set; }
+
+    [Parameter]
+    public double Min { get; set; } = 0;
+
+    [Parameter]
+    public double Max { get; set; } = 100;
+
+    [Parameter]
+    public double Step { get; set; } = 1;
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public SliderOrientation Orientation { get; set; } = SliderOrientation.Horizontal;
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 应用到滑块轨道的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? TrackClass { get; set; }
+
+    /// <summary>
+    /// 应用到滑块手柄的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? ThumbClass { get; set; }
+
+    private AtomBlazor.Primitives.SliderOrientation MappedOrientation =>
+        Orientation == SliderOrientation.Vertical
+            ? AtomBlazor.Primitives.SliderOrientation.Vertical
+            : AtomBlazor.Primitives.SliderOrientation.Horizontal;
+
+    /// <summary>
+    /// 滑块是否自下而上而非自左向右运行。
+    /// </summary>
+    private bool IsVertical => Orientation == SliderOrientation.Vertical;
+
+    // 垂直滑块必须堆叠在交叉轴上：轨道带有 `grow`，它跟随 flex 主轴，
+    // 因此行容器会把 8px 的轨道横向拉伸到整个容器宽度。
+    private string CssClass => ClassNames.cn(
+        IsVertical
+            ? "atom:relative atom:flex atom:flex-col atom:h-full atom:min-h-40 atom:w-5 atom:shrink-0 atom:touch-none atom:select-none atom:items-center"
+            : "atom:relative atom:flex atom:w-full atom:touch-none atom:select-none atom:items-center",
+        Disabled ? "atom:opacity-50 atom:cursor-not-allowed" : "atom:cursor-pointer",
+        Class
+    );
+
+    private string ComputedTrackClass => ClassNames.cn(
+        IsVertical
+            ? "atom:relative atom:w-2 atom:h-full atom:grow atom:overflow-hidden atom:rounded-full atom:bg-secondary"
+            : "atom:relative atom:h-2 atom:w-full atom:grow atom:overflow-hidden atom:rounded-full atom:bg-secondary",
+        TrackClass
+    );
+
+    // 基元只设置填充的长度（垂直时为 height，否则为 width），
+    // 所以样式层把填充钉在它生长的那条边上。
+    private string ComputedIndicatorClass => IsVertical
+        ? "atom:absolute atom:bottom-0 atom:w-full atom:bg-primary"
+        : "atom:absolute atom:start-0 atom:h-full atom:bg-primary";
+
+    private string ComputedThumbClass => ClassNames.cn(
+        "atom:absolute atom:block atom:h-5 atom:w-5 atom:rounded-full atom:border-2 atom:border-primary atom:bg-background atom:ring-offset-background atom:transition-colors",
+        "atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2",
+        "atom:disabled:pointer-events-none atom:disabled:opacity-50",
+        IsVertical
+            ? "atom:-translate-x-1/2 atom:left-1/2 atom:translate-y-1/2"
+            : "atom:-translate-x-1/2 atom:top-1/2 atom:-translate-y-1/2",
+        Disabled ? "" : "atom:cursor-grab atom:active:cursor-grabbing",
+        ThumbClass
+    );
+}

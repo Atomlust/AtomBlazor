@@ -1,0 +1,259 @@
+@page "/primitives/toggle"
+<PageTitle>@L.T("Toggle 切换按钮基础构件 - Atom BlazorUI", "Toggle Primitive - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Toggle 切换按钮基础构件", "Toggle Primitive")</h1>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-xl text-muted-foreground">
+                        无头、无样式的切换按钮基础构件，带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-pressed</code> 支持。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-xl text-muted-foreground">
+                        Headless, unstyled toggle button primitive with <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-pressed</code> support.
+                    </p>
+                </text>
+            }
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("非受控切换", "Uncontrolled Toggle")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("在内部自行管理按下状态。默认处于未按下的初始状态。", "Manages its own pressed state internally. Starts off by default.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <AtomBlazor.Primitives.TogglePrimitive
+                    class="px-4 py-2 border rounded text-sm cursor-pointer data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=off]:bg-background">
+                    @L.T("加粗", "Bold")
+                </AtomBlazor.Primitives.TogglePrimitive>
+            </div>
+
+            <CodeBlock Source="Primitives/Toggle/uncontrolled.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("受控切换", "Controlled Toggle")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("通过绑定从外部控制按下状态。", "Pressed state is controlled externally via binding.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <div class="flex gap-2">
+                    <button @onclick="@(() => controlledPressed = true)"
+                            class="px-3 py-2 border rounded text-sm">
+                        @L.T("设为按下", "Press On")
+                    </button>
+                    <button @onclick="@(() => controlledPressed = false)"
+                            class="px-3 py-2 border rounded text-sm">
+                        @L.T("设为未按下", "Press Off")
+                    </button>
+                </div>
+
+                <AtomBlazor.Primitives.TogglePrimitive
+                    Pressed="controlledPressed"
+                    PressedChanged="@((v) => controlledPressed = v)"
+                    class="px-4 py-2 border rounded text-sm cursor-pointer data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=off]:bg-background">
+                    @L.T("斜体", "Italic")
+                </AtomBlazor.Primitives.TogglePrimitive>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">状态：@(controlledPressed ? "已按下" : "未按下")</p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">State: @(controlledPressed ? "Pressed" : "Not pressed")</p>
+                    </text>
+                }
+            </div>
+
+            <CodeBlock Source="Primitives/Toggle/controlled.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("默认按下", "Default Pressed")</h2>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">DefaultPressed</code> 使其初始处于按下状态。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            Starts in pressed state using <code class="text-xs bg-muted px-1 py-0.5 rounded">DefaultPressed</code>.
+                        </p>
+                    </text>
+                }
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <AtomBlazor.Primitives.TogglePrimitive
+                    DefaultPressed="true"
+                    class="px-4 py-2 border rounded text-sm cursor-pointer data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=off]:bg-background">
+                    @L.T("下划线（初始为开）", "Underline (starts on)")
+                </AtomBlazor.Primitives.TogglePrimitive>
+            </div>
+
+            <CodeBlock Source="Primitives/Toggle/default-pressed.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("禁用切换", "Disabled Toggle")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("一个无法与之交互的禁用切换按钮。", "A disabled toggle that cannot be interacted with.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <AtomBlazor.Primitives.TogglePrimitive
+                    Disabled="true"
+                    class="px-4 py-2 border rounded text-sm opacity-50 cursor-not-allowed">
+                    @L.T("禁用", "Disabled")
+                </AtomBlazor.Primitives.TogglePrimitive>
+            </div>
+
+            <CodeBlock Source="Primitives/Toggle/disabled.txt" />
+        </section>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-pressed</code> 按下时设为 "true"，未按下时设为 "false"
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-pressed</code> set to "true" when pressed, "false" when not pressed
+                    </AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">data-state</code> 设为 "on" 或 "off"，用于 CSS 样式钩子
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">data-state</code> set to "on" or "off" for CSS styling hooks
+                    </AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code> 原生 HTML 特性，一旦设置即可阻止交互
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code> native HTML attribute prevents interaction when set
+                    </AccessibilityItem>
+                </text>
+            }
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("切换按下状态", "Toggle the pressed state"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="Toggle">
+                <ApiParameter Name="Pressed" Type="bool?" Default="null">
+                    @L.T("控制按下状态（受控模式）。为 null 时组件自行管理状态。", "Controls the pressed state (controlled mode). When null, the component manages its own state.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="PressedChanged" Type="EventCallback&lt;bool&gt;">
+                            按下状态发生变化时调用的回调。配合 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Pressed</code> 使用。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="PressedChanged" Type="EventCallback&lt;bool&gt;">
+                            Callback invoked when the pressed state changes. Use with <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Pressed</code>.
+                        </ApiParameter>
+                    </text>
+                }
+                <ApiParameter Name="DefaultPressed" Type="bool" Default="false">
+                    @L.T("非受控模式下的默认按下状态。", "Default pressed state for uncontrolled mode.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("切换按钮是否被禁用。", "Whether the toggle is disabled.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到根 <code>&lt;button&gt;</code> 元素上的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            Additional HTML attributes applied to the root <code>&lt;button&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </ApiParameter>
+                    </text>
+                }
+            </ApiReference>
+        </div>
+    </section>
+    </div>
+</div>
+
+@code {
+    private bool controlledPressed;
+
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

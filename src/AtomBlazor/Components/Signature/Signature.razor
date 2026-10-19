@@ -1,0 +1,402 @@
+@namespace AtomBlazor
+@using System.Globalization
+@using System.Net
+@inject ILocalizer Localizer
+@implements IDisposable
+
+@*
+    Signature——带手绘与键盘输入两条路径的签名域。
+
+    手绘签名对键盘和读屏软件都不可达，所以输入路径默认开启。关掉它，有些人就完全无法签名了。
+*@
+
+<div class="@RootClass" data-slot="signature" @attributes="AdditionalAttributes">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <Label For="@fieldId" Class="atom:mb-2 atom:block">@Label</Label>
+    }
+
+    @if (AllowTyped)
+    {
+        <AtomBlazor.ToggleGroup TValue="SignatureKind"
+                     Value="@mode"
+                     ValueChanged="@OnModeChangedAsync"
+                     Disabled="@Disabled"
+                     aria-label="@Localizer["Signature.MethodLabel"]">
+            <AtomBlazor.ToggleGroupItem TValue="SignatureKind" Value="SignatureKind.Drawn">
+                @Localizer["Signature.Draw"]
+            </AtomBlazor.ToggleGroupItem>
+            <AtomBlazor.ToggleGroupItem TValue="SignatureKind" Value="SignatureKind.Typed">
+                @Localizer["Signature.Type"]
+            </AtomBlazor.ToggleGroupItem>
+        </AtomBlazor.ToggleGroup>
+    }
+
+    <div class="atom:relative atom:rounded-md atom:border atom:border-input atom:bg-background atom:overflow-hidden"
+         style="height: @Height">
+
+        @* 基线在两条路径之下都铺着，输入的姓名会落在手绘签名本该在的位置。 *@
+        <div class="atom:pointer-events-none atom:absolute atom:inset-x-6 atom:bottom-8 atom:border-b atom:border-muted-foreground/30"></div>
+        <span class="atom:pointer-events-none atom:absolute atom:start-6 atom:bottom-8 atom:-translate-y-1 atom:text-muted-foreground/60 atom:text-lg atom:leading-none">&times;</span>
+
+        @if (mode == SignatureKind.Typed)
+        {
+            <div class="atom:absolute atom:inset-0 atom:flex atom:items-center atom:justify-center atom:px-6 atom:pb-8">
+                <span class="atom:text-3xl atom:truncate @(string.IsNullOrWhiteSpace(typedText) ? "atom:text-muted-foreground/50" : "atom:text-foreground")"
+                      style="font-family: @TypedFontFamily">
+                    @(string.IsNullOrWhiteSpace(typedText) ? Localizer["Signature.TypeHint"] : typedText)
+                </span>
+            </div>
+        }
+        else
+        {
+            @if (isEmpty)
+            {
+                <div class="atom:pointer-events-none atom:absolute atom:inset-0 atom:flex atom:items-center atom:justify-center">
+                    <span class="atom:text-sm atom:text-muted-foreground/60">@Localizer["Signature.DrawHint"]</span>
+                </div>
+            }
+            <AtomBlazor.Primitives.SignaturePadPrimitive @ref="pad"
+                            OnChange="OnPadChangedAsync"
+                            StrokeColor="@StrokeColor"
+                            MinWidth="@MinWidth"
+                            MaxWidth="@MaxWidth"
+                            Disabled="@Disabled"
+                            class="atom:absolute atom:inset-0 atom:h-full atom:w-full atom:cursor-crosshair atom:text-foreground"
+                            role="img"
+                            aria-label="@Localizer["Signature.Canvas"]" />
+        }
+    </div>
+
+    <div class="atom:mt-2 atom:flex atom:items-center atom:gap-2">
+        @if (mode == SignatureKind.Typed)
+        {
+            <Input id="@fieldId"
+                     Value="@typedText"
+                     ValueChanged="@OnTypedTextChangedAsync"
+                     Placeholder="@Localizer["Signature.TypeHint"]"
+                     Disabled="@Disabled"
+                     Class="atom:flex-1" />
+        }
+        else if (ShowUndo)
+        {
+            <Button Variant="ButtonVariant.Outline"
+                      Size="ButtonSize.Small"
+                      Disabled="@(Disabled || isEmpty)"
+                      OnClick="UndoAsync">
+                @Localizer["Signature.Undo"]
+            </Button>
+        }
+
+        <Button Variant="ButtonVariant.Ghost"
+                  Size="ButtonSize.Small"
+                  Disabled="@(Disabled || IsCurrentRouteEmpty)"
+                  OnClick="ClearAsync"
+                  Class="atom:ms-auto">
+            @Localizer["Signature.Clear"]
+        </Button>
+    </div>
+</div>
+
+@code {
+    private AtomBlazor.Primitives.SignaturePadPrimitive? pad;
+    private TaskCompletionSource<AtomBlazor.Primitives.SignaturePadPrimitive>? padReady;
+    private bool disposed;
+    private bool initialTypedValueApplied;
+    private readonly string fieldId = $"atom-signature-{Guid.NewGuid():N}";
+    private SignatureKind mode = SignatureKind.Drawn;
+    private string typedText = string.Empty;
+    private bool isEmpty = true;
+
+    /// <summary>
+    /// 获取或设置已捕获的签名。
+    /// </summary>
+    [Parameter]
+    public SignatureValue? Value { get; set; }
+
+    /// <summary>
+    /// 获取或设置签名变化时调用的回调。与 <c>@@bind-Value</c> 搭配使用。
+    /// </summary>
+    [Parameter]
+    public EventCallback<SignatureValue?> ValueChanged { get; set; }
+
+    /// <summary>
+    /// 获取或设置显示在域上方的标签。
+    /// </summary>
+    [Parameter]
+    public string? Label { get; set; }
+
+    /// <summary>
+    /// 获取或设置是否提供输入路径。默认为 <c>true</c>。
+    /// </summary>
+    /// <remarks>
+    /// 手绘签名无法用键盘、开关设备或读屏软件完成。关掉本项会让这些人完全无法签名，
+    /// 所以仅在必须手绘才具法律效力、且另有本域之外的路径的场合才这么做。
+    /// </remarks>
+    [Parameter]
+    public bool AllowTyped { get; set; } = true;
+
+    /// <summary>
+    /// 获取或设置签名区域的高度，取 CSS 长度值。默认为 <c>10rem</c>。
+    /// </summary>
+    [Parameter]
+    public string Height { get; set; } = "10rem";
+
+    /// <summary>
+    /// 获取或设置输入式签名所用的 CSS 字体栈。
+    /// </summary>
+    /// <remarks>
+    /// 默认取常见桌面与移动系统随装的手写字体族，以通用族 <c>cursive</c> 收尾。
+    /// 不捆绑任何字体，因此没有下载。
+    /// </remarks>
+    [Parameter]
+    public string TypedFontFamily { get; set; } = "'Segoe Script', 'Bradley Hand', 'Snell Roundhand', 'Apple Chancery', cursive";
+
+    /// <summary>
+    /// 获取或设置墨迹颜色，取 CSS 颜色值。未设置时，签名以主题的前景色绘制，
+    /// 并随主题切换而变。
+    /// </summary>
+    [Parameter]
+    public string? StrokeColor { get; set; }
+
+    /// <summary>
+    /// 获取或设置手绘线条最细可到多少，以 CSS 像素计。默认为 0.7。
+    /// </summary>
+    [Parameter]
+    public double MinWidth { get; set; } = 0.7;
+
+    /// <summary>
+    /// 获取或设置手绘线条最粗可到多少，以 CSS 像素计。默认为 2.5。
+    /// </summary>
+    [Parameter]
+    public double MaxWidth { get; set; } = 2.5;
+
+    /// <summary>
+    /// 获取或设置是否在绘制区旁显示撤销按钮。默认为 <c>true</c>。
+    /// </summary>
+    [Parameter]
+    public bool ShowUndo { get; set; } = true;
+
+    /// <summary>
+    /// 获取或设置域是否禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 获取或设置根元素的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string RootClass => ClassNames.cn(
+        "atom:w-full",
+        Disabled ? "atom:opacity-60" : null,
+        Class);
+
+    private bool IsCurrentRouteEmpty => mode == SignatureKind.Typed
+        ? string.IsNullOrWhiteSpace(typedText)
+        : isEmpty;
+
+    protected override void OnParametersSet()
+    {
+        // 外部传入的值只采纳一次，让加载已存签名的表单开在其被赋予的那条路径上。
+        // 后续编辑由内部驱动。
+        if (!initialTypedValueApplied && Value is { Kind: SignatureKind.Typed } typed)
+        {
+            initialTypedValueApplied = true;
+            mode = SignatureKind.Typed;
+            typedText = typed.Text ?? string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// 手绘签名的 PNG data URL，当其为空或来自输入时为 <c>null</c>。
+    /// </summary>
+    /// <param name="background">
+    /// 垫在墨迹之后的 CSS 颜色，透明背景传 <c>null</c>。
+    /// </param>
+    /// <param name="ink">
+    /// 笔画的 CSS 颜色。默认取黑色而非主题的墨色——深色主题下画出的签名近乎白色，
+    /// 落在白纸上会消失。
+    /// </param>
+    public Task<string?> GetPngAsync(string? background = null, string ink = "#000000")
+        => pad is null ? Task.FromResult<string?>(null) : pad.GetPngAsync(background, ink);
+
+    /// <summary>
+    /// 手绘签名的 PNG 字节，当其为空或来自输入时为 <c>null</c>。
+    /// </summary>
+    /// <param name="background">
+    /// 垫在墨迹之后的 CSS 颜色，透明背景传 <c>null</c>。
+    /// </param>
+    /// <param name="ink">笔画的 CSS 颜色。</param>
+    /// <remarks>
+    /// 图片是要保存或上传、而非显示时，请优先用本方法而非 <see cref="GetPngAsync"/>：
+    /// data URL 出了 <c>img</c> 标签就是白胖三分之一。
+    /// </remarks>
+    public Task<byte[]?> GetPngBytesAsync(string? background = null, string ink = "#000000")
+        => pad is null ? Task.FromResult<byte[]?>(null) : pad.GetPngBytesAsync(background, ink);
+
+    /// <summary>
+    /// 手绘签名背后的原始采样，用于存储一份可回放、可事后核查的签名。
+    /// 签名来自输入时为空。
+    /// </summary>
+    public Task<IReadOnlyList<SignatureStroke>> GetStrokesAsync()
+        => pad is null
+            ? Task.FromResult<IReadOnlyList<SignatureStroke>>(Array.Empty<SignatureStroke>())
+            : pad.GetStrokesAsync();
+
+    /// <summary>
+    /// 用先前捕获的采样替换当前绘制内容，并切换到手绘路径。
+    /// </summary>
+    /// <param name="strokes">要绘制的采样，坐标即捕获时所在坐标系。</param>
+    public async Task SetStrokesAsync(IReadOnlyList<SignatureStroke>? strokes)
+    {
+        if (disposed)
+        {
+            return;
+        }
+        if (mode != SignatureKind.Drawn || pad is null)
+        {
+            pad = null;
+            mode = SignatureKind.Drawn;
+            var ready = padReady ??= new(TaskCreationOptions.RunContinuationsAsynchronously);
+            StateHasChanged();
+            try
+            {
+                pad = await ready.Task;
+            }
+            catch (OperationCanceledException)
+            {
+                // 用户又切了模式，或签名域被移除了。
+                return;
+            }
+        }
+        await pad.SetStrokesAsync(strokes);
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (mode == SignatureKind.Drawn && pad is not null && padReady is { } ready)
+        {
+            padReady = null;
+            ready.TrySetResult(pad);
+        }
+    }
+
+    void IDisposable.Dispose()
+    {
+        disposed = true;
+        padReady?.TrySetCanceled();
+        padReady = null;
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// 清除当前显示路径上的签名。
+    /// </summary>
+    public async Task ClearAsync()
+    {
+        if (mode == SignatureKind.Typed)
+        {
+            typedText = string.Empty;
+            await EmitAsync(SignatureValue.Empty);
+            return;
+        }
+
+        if (pad is not null)
+        {
+            await pad.ClearAsync();
+        }
+    }
+
+    private async Task UndoAsync()
+    {
+        if (pad is not null)
+        {
+            await pad.UndoAsync();
+        }
+    }
+
+    private async Task OnModeChangedAsync(SignatureKind next)
+    {
+        // 切换组在二次点击时会取消选中。签名没有"两者都不要"，所以这种按压被忽略，
+        // 而不是让域处于没有路径显示的状态。
+        if (next == SignatureKind.None || next == mode)
+        {
+            return;
+        }
+
+        mode = next;
+        pad = null;
+        padReady?.TrySetCanceled();
+        padReady = null;
+        // 两条路径各自持有状态，所以切换时会丢弃另一条路径上的内容，
+        // 而不是在输入的姓名背后留下一幅过期的涂鸦。
+        typedText = string.Empty;
+        isEmpty = true;
+        await EmitAsync(SignatureValue.Empty);
+    }
+
+    private async Task OnPadChangedAsync(bool empty)
+    {
+        isEmpty = empty;
+        if (empty)
+        {
+            await EmitAsync(SignatureValue.Empty);
+            return;
+        }
+
+        var svg = pad is null ? null : await pad.GetSvgAsync();
+        await EmitAsync(new SignatureValue { Kind = SignatureKind.Drawn, Svg = svg });
+    }
+
+    private async Task OnTypedTextChangedAsync(string? text)
+    {
+        typedText = text ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(typedText))
+        {
+            await EmitAsync(SignatureValue.Empty);
+            return;
+        }
+
+        await EmitAsync(new SignatureValue
+        {
+            Kind = SignatureKind.Typed,
+            Text = typedText,
+            Svg = TypedSvg(typedText, TypedFontFamily)
+        });
+    }
+
+    /// <summary>
+    /// 把输入的姓名变成 SVG：一个用域自身所显示的字体栈绘制的 text 元素。
+    /// </summary>
+    /// <remarks>
+    /// 字形并未描成轮廓，所以它会以浏览机器上装配的手写字体渲染，而非签署者当时看到的那一款。
+    /// 换来的是保持在几百字节内、并随 <c>currentColor</c> 变色的标记——这笔交易是诚实的。
+    /// </remarks>
+    private static string TypedSvg(string text, string fontFamily)
+    {
+        var escapedText = WebUtility.HtmlEncode(text);
+        var escapedFont = WebUtility.HtmlEncode(fontFamily);
+        // 按字符数定宽，避免长姓名被视图框裁掉。
+        var width = Math.Max(240, text.Length * 22);
+        // 与手绘签名相同的固有尺寸与缩放样式，两种形态落进页面时表现一致，
+        // 而不是其中一个把容器撑爆。
+        return string.Create(CultureInfo.InvariantCulture,
+            $"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="80" viewBox="0 0 {width} 80" style="max-width:100%;height:auto"><text x="50%" y="52" text-anchor="middle" font-family="{escapedFont}" font-size="40" fill="currentColor">{escapedText}</text></svg>""");
+    }
+
+    private async Task EmitAsync(SignatureValue value)
+    {
+        Value = value;
+        await ValueChanged.InvokeAsync(value);
+        StateHasChanged();
+    }
+}

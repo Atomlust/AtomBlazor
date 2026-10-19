@@ -1,0 +1,439 @@
+@page "/components/copy-text"
+@inject ToastService ToastService
+
+<PageTitle>@L.T("Copy Text 复制文本 - Atom BlazorUI", "Copy Text Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Copy Text 复制文本", "Copy Text Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("显示一段行内文本，点击即可把文本复制到剪贴板。",
+                     "Displays inline text that copies text to the clipboard when clicked.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本示例", "Basic Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一段简单的行内文本，点击即可复制到剪贴板。",
+                     "A simple inline text that copies text to the clipboard when clicked.")
+            </p>
+        </div>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <div class="border rounded-lg p-4 text-sm">
+                使用优惠码 <CopyText Value="20OFF">20OFF</CopyText>，下单立减 20%。
+            </div>
+                </text>
+}
+        else
+        {
+                <text>
+                    <div class="border rounded-lg p-4 text-sm">
+                Use code <CopyText Value="20OFF">20OFF</CopyText> to receive a 20% discount on your next order.
+            </div>
+                </text>
+}
+        <CodeBlock Source="Components/CopyText/basic.txt" />
+    </div>
+
+    <!-- Custom Styling -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义样式", "Custom Styling")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一段自定义样式的文本。", "A custom-styled text.")
+            </p>
+        </div>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <div class="border rounded-lg p-4 text-sm">
+                使用优惠码 <CopyText Class="px-2 rounded-md bg-gradient-to-r from-purple-500 to-pink-500 text-white" Value="20OFF">20OFF</CopyText>，下单立减 20%。
+            </div>
+                </text>
+}
+        else
+        {
+                <text>
+                    <div class="border rounded-lg p-4 text-sm">
+                Use code <CopyText Class="px-2 rounded-md bg-gradient-to-r from-purple-500 to-pink-500 text-white" Value="20OFF">20OFF</CopyText>
+                to receive a 20% discount on your next order.
+            </div>
+                </text>
+}
+        <CodeBlock Source="Components/CopyText/custom-styling.txt" />
+    </div>
+
+    <!-- On Copy Trigger -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("事件回调", "Event Callback")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("复制文本时弹出一条 Toast 提示的示例。", "An example showing a toast when text is copied.")
+            </p>
+        </div>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <div class="border rounded-lg p-4 text-sm">
+                使用优惠码 <CopyText Value="20OFF" OnCopied='(promoCode)=> ToastService.Success($"已复制促销码 {promoCode}！")'>20OFF</CopyText>，下单立减 20%。
+            </div>
+                </text>
+}
+        else
+        {
+                <text>
+                    <div class="border rounded-lg p-4 text-sm">
+                Use code <CopyText Value="20OFF" OnCopied='(promoCode)=> ToastService.Success($"Copied promo code {promoCode} to clipboard!")'>20OFF</CopyText>
+                to receive a 20% discount on your next order.
+            </div>
+                </text>
+}
+        <CodeBlock Source="Components/CopyText/event-callback.txt" />
+    </div>
+
+    <!-- Inside a scrollable container -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("放在可滚动容器内", "Inside a Scrollable Container")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    提示浮层经由 portal 渲染，因此带 <code class="text-xs bg-muted px-1 py-0.5 rounded">overflow: auto</code> 或
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">overflow: hidden</code> 的祖先元素不会把它裁掉。把鼠标悬停在
+                    第一行上——浮层会跳出滚动框，而不是在边缘被切断。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    The tooltip renders through the portal, so an ancestor with
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">overflow: auto</code> or
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">overflow: hidden</code> does not clip it. Hover the
+                    first row — the tooltip escapes the scroll box rather than being cut off at its edge.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="border rounded-lg h-32 overflow-auto p-4 text-sm space-y-3">
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <div>订单 <CopyText Value="ORD-10432">ORD-10432</CopyText> 已于周二发货。</div>
+                <div>订单 <CopyText Value="ORD-10433">ORD-10433</CopyText> 等待付款。</div>
+                <div>订单 <CopyText Value="ORD-10434">ORD-10434</CopyText> 已退款。</div>
+                <div>订单 <CopyText Value="ORD-10435">ORD-10435</CopyText> 运输中。</div>
+                <div>订单 <CopyText Value="ORD-10436">ORD-10436</CopyText> 已送达。</div>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <div>Order <CopyText Value="ORD-10432">ORD-10432</CopyText> shipped on Tuesday.</div>
+                <div>Order <CopyText Value="ORD-10433">ORD-10433</CopyText> is awaiting payment.</div>
+                <div>Order <CopyText Value="ORD-10434">ORD-10434</CopyText> was refunded.</div>
+                <div>Order <CopyText Value="ORD-10435">ORD-10435</CopyText> is in transit.</div>
+                <div>Order <CopyText Value="ORD-10436">ORD-10436</CopyText> was delivered.</div>
+                        </text>
+}
+        </div>
+        <CodeBlock Source="Components/CopyText/scrollable-container.txt" />
+    </div>
+
+    <!-- Value from a function -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("由函数取值", "Value From a Function")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">ValueFunc</code> 只在用户执行复制时求值，而不是每次渲染——
+                    适合取自不断变化的状态、或计算代价高到不值得提前算好的文本。先复制下面的令牌，
+                    换一个环境，再复制一次。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">ValueFunc</code> is evaluated when the
+                    user copies, not on every render — for text derived from state that moves, or expensive
+                    enough that computing it up front would be wasted. Copy the token below, change the
+                    selection, and copy again.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="border rounded-lg p-4 text-sm space-y-3">
+            <div class="flex items-center gap-2">
+                <span class="text-muted-foreground">@L.T("环境：", "Environment:")</span>
+                <span class="font-mono">@_environment</span>
+                <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="CycleEnvironment">
+                    @L.T("更换", "Change")
+                </Button>
+            </div>
+            <div>
+                @L.T("连接令牌：", "Connection token:")
+                <CopyText ValueFunc="@(() => $"{_environment}-{DateTime.Now:HHmmss}")"
+                            OnCopied='(token) => ToastService.Success(L.IsChinese ? $"已复制 {token}" : $"Copied {token}")'>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            @_environment-&lt;复制时生成&gt;
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            @_environment-&lt;generated at copy time&gt;
+                                        </text>
+}
+                </CopyText>
+            </div>
+        </div>
+        <CodeBlock Source="Components/CopyText/value-func.txt" />
+    </div>
+
+    <!-- Async value -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("异步取值", "Asynchronous value") <span class="text-xs font-normal text-primary bg-primary/10 px-1.5 py-0.5 rounded">@L.T("新增", "New")</span></h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                <code class="bg-muted px-1 py-0.5 rounded">ValueFuncAsync</code> 用于需要拉取或计算的文本。下面这个按钮故意花 <strong>1.5 秒</strong>
+                才产出结果——足够长，长到如果在写入之前就把它解析完，写入会被拒绝。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                <code class="bg-muted px-1 py-0.5 rounded">ValueFuncAsync</code> is for text that has to be fetched or
+                computed. The button below deliberately takes <strong>1.5 seconds</strong> to produce its value — long
+                enough that resolving it before the write would get the write refused.
+            </p>
+                </text>
+}
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                它能成立，是因为这个函数是在 JavaScript <em>内部</em>、也就是
+                <code class="bg-muted px-1 py-0.5 rounded">ClipboardItem</code> 里被调用的，交给浏览器的是 promise 而不是结果，
+                于是用户激活状态得以保留。若某个浏览器在那里不接受 promise，则会先解析出值，
+                并通过 <code class="bg-muted px-1 py-0.5 rounded">OnCopyFailed</code> 上报拒绝，而不是静默放过。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                It works because the function is invoked from JavaScript <em>inside</em> the
+                <code class="bg-muted px-1 py-0.5 rounded">ClipboardItem</code>, handing the browser the promise rather
+                than the result, so the user activation stays alive. Where a browser cannot take a promise there, the value
+                is resolved first and a refusal is reported through
+                <code class="bg-muted px-1 py-0.5 rounded">OnCopyFailed</code> instead of passing silently.
+            </p>
+                </text>
+}
+
+        <div class="flex flex-wrap items-center gap-4">
+            <CopyText ValueFuncAsync="SlowValueAsync"
+                        OnCopied="HandleAsyncCopied"
+                        OnCopyFailed="HandleAsyncFailed">
+                @L.T("复制一个缓慢获取的令牌", "Copy a slowly-fetched token")
+            </CopyText>
+            <span class="text-sm" data-testid="async-copy-readout">@(_asyncReadout ?? L.T("尚未复制。", "Not copied yet"))</span>
+        </div>
+
+        <CodeBlock Source="Components/CopyText/async-value.txt" />
+    </div>
+
+    <!-- API Reference -->
+
+        <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>复制目标可获得焦点，并以 role="button" 暴露，AriaLabel 可配置。</AccessibilityItem>
+                <AccessibilityItem>可见的复制状态与提示浮层提供反馈；请选择能说明将要复制什么的标签。装饰性图标对辅助技术隐藏。</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>The copy target is focusable and exposes role="button" with a configurable AriaLabel.</AccessibilityItem>
+                <AccessibilityItem>The visible copy status and tooltip provide feedback; choose a label that describes what will be copied. Decorative icons are hidden from assistive technology.</AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("聚焦复制目标", "Focus the copy target"))"><Kbd>Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("复制该值", "Copy the value"))"><Kbd>Enter</Kbd> / <Kbd>Space</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数说明。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="CopyText">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Value" Type="string?" Default="null">
+                        点击时要复制到剪贴板的文本。非空时优先于
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">ValueFunc</code>。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Value" Type="string?" Default="null">
+                        The text to copy to clipboard when clicked. Takes precedence over
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">ValueFunc</code> when non-empty.
+                    </ApiParameter>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="ValueFunc" Type="Func<string?>?" Default="null">
+                        产出待复制文本的函数，在点击时求值而非每次渲染。当 <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code>
+                        为 null 或空字符串时使用——判空看的是空串而非 null，因此已绑定但未赋值的
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code> 会落到该函数，而不是复制出空内容。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="ValueFunc" Type="Func<string?>?" Default="null">
+                        A function producing the text to copy, evaluated at click time rather than on every
+                        render. Used when <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code> is
+                        null or empty — the test is emptiness, not null, so a bound-but-unset
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code> falls through to the
+                        function instead of copying nothing.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="ChildContent" Type="RenderFragment?" Default="null">
+                    @L.T("复制文本元素内部展示的内容。", "The content displayed inside the copy text element.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("追加到容器上的 CSS 类。", "Additional CSS classes to apply to the container.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                        复制按钮的 ARIA 标签。缺省为本地化后的“Click to copy”文案。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                        ARIA label for the copy button. Defaults to the localized "Click to copy" text.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="OnCopied" Type="EventCallback<string?>">
+                    @L.T("用户点击组件进行复制时调用的回调。", "Callback invoked when the user clicks the component to copy text.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary<string, object>?" Default="null">
+                    @L.T("应用到容器元素上的附加 HTML 特性。", "Additional HTML attributes applied to the container element.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Since="v4" Name="ValueFuncAsync" Type="Func&lt;Task&lt;string?&gt;&gt;?">
+                        产出该值的异步函数，在点击时求值。它是在剪贴板写入过程内部被调用的，因此缓慢的结果不会消耗掉用户激活状态。<code>Value</code> 非空时优先，其次是 <code>ValueFunc</code>，最后才是它。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Since="v4" Name="ValueFuncAsync" Type="Func&lt;Task&lt;string?&gt;&gt;?">
+                        An asynchronous function producing the value, evaluated at click time. Called from inside the clipboard write so a slow result does not spend the user activation. <code>Value</code> wins when non-empty, then <code>ValueFunc</code>, then this.
+                    </ApiParameter>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Since="v4" Name="OnCopyFailed" Type="EventCallback&lt;CopyTextFailure&gt;">
+                        复制没有发生时调用。<code>Refused</code> 表示浏览器拒绝了写入，多数情况是用户激活状态已过期；<code>NoValue</code> 表示没有可复制的内容。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Since="v4" Name="OnCopyFailed" Type="EventCallback&lt;CopyTextFailure&gt;">
+                        Invoked when a copy did not happen. <code>Refused</code> means the browser rejected the write, most often an expired user activation; <code>NoValue</code> means there was nothing to copy.
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+
+<LocalizationSection
+        Description="@(L.T("复制文本的提示浮层与 aria 标签文案均可配置。", "The copy text tooltip and aria label strings are configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("ClickToCopy", "Click to copy", L.T("提示用户点击复制的浮层与 aria 标签。", "Tooltip and aria label prompting the user to copy")),
+            new("Copied", "Copied!", L.T("值复制完成后显示的浮层文案。", "Tooltip shown after the value has been copied")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""CopyText.ClickToCopy"", ""Zum Kopieren klicken"");
+    localizer.Set(""CopyText.Copied"", ""Kopiert!"");
+});")" />
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string? _asyncReadout;
+
+    private async Task<string?> SlowValueAsync()
+    {
+        // Deliberately slow. An immediately-resolved task passes everywhere and proves nothing.
+        await Task.Delay(1500);
+        return $"token-{Guid.NewGuid():N}";
+    }
+
+    private void HandleAsyncCopied(string? value) => _asyncReadout = L.IsChinese ? $"已复制：{value}" : $"Copied: {value}";
+
+    private void HandleAsyncFailed(CopyTextFailure reason) => _asyncReadout = L.IsChinese ? $"复制失败：{reason}" : $"Failed: {reason}";
+
+    private static readonly string[] environments = ["dev", "staging", "prod"];
+
+    private string _environment = environments[0];
+
+    private void CycleEnvironment() =>
+        _environment = environments[(Array.IndexOf(environments, _environment) + 1) % environments.Length];
+}

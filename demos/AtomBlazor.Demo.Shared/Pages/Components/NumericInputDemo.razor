@@ -1,0 +1,570 @@
+@page "/components/numeric-input"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("NumericInput 数字输入框 - Atom BlazorUI", "NumericInput Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("NumericInput 数字输入框", "NumericInput Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("泛型数字输入组件，支持 int、double、decimal、float、long 与 short，并可设置最小/最大值与步长约束。", "A generic numeric input supporting int, double, decimal, float, long, and short with min/max/step constraints.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Integer Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基础整数", "Basic Integer")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("使用默认设置的简单整数输入框。", "A simple integer input with default settings.")
+            </p>
+        </div>
+        <div class="w-64">
+            <NumericInput TValue="int" @bind-Value="_intValue" Placeholder="@(L.T("请输入数字", "Enter a number"))" />
+        </div>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">值：@_intValue</p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">Value: @_intValue</p>
+                </text>
+}
+        <CodeBlock Source="Components/NumericInput/basic-integer.txt" />
+    </div>
+
+    <!-- Double with Decimal Places -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带小数位数的 double", "Double with Decimal Places")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("保留 2 位小数的 double 输入框。", "A double input with 2 decimal places.")
+            </p>
+        </div>
+        <div class="w-64">
+            <NumericInput TValue="double" @bind-Value="_doubleValue" DecimalPlaces="2" Placeholder="0.00" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.F("值：{0}", "Value: {0}", _doubleValue.ToString("F2"))</p>
+        <CodeBlock Source="Components/NumericInput/double-decimal.txt" />
+    </div>
+
+    <!-- With Min/Max Constraints -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带最小/最大值约束", "With Min/Max Constraints")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("数值被约束在 0 到 100 之间。", "Value is constrained between 0 and 100.")
+            </p>
+        </div>
+        <div class="w-64">
+            <NumericInput TValue="int" @bind-Value="_constrainedValue" Min="0" Max="100" Placeholder="0-100" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.F("值：{0}（最小 0，最大 100）", "Value: {0} (min: 0, max: 100)", _constrainedValue)</p>
+        <CodeBlock Source="Components/NumericInput/min-max.txt" />
+    </div>
+
+    <!-- With Step -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带步长", "With Step")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("使用方向键按步长（5）递增/递减。", "Use arrow keys to increment/decrement by step value (5).")
+            </p>
+        </div>
+        <div class="w-64">
+            <NumericInput TValue="int" @bind-Value="_steppedValue" Step="5" Min="0" Max="100" Placeholder="@(L.T("步长：5", "Step: 5"))" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.F("值：{0}（步长 5，使用方向键）", "Value: {0} (step: 5, use arrow keys)", _steppedValue)</p>
+        <CodeBlock Source="Components/NumericInput/step.txt" />
+    </div>
+
+    <!-- Mouse Wheel Stepping -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("鼠标滚轮步进", "Mouse Wheel Stepping")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    设置 <code class="text-xs bg-muted px-1 py-0.5 rounded">EnableWheelStep="true"</code> 后，在输入框获得焦点时
+                    滚动滚轮即可步进数值——向上递增、向下递减——与方向键走同一条路径，因此 <code class="text-xs bg-muted px-1 py-0.5 rounded">Min</code>、
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Max</code> 与
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Step</code> 全部照常生效。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Set <code class="text-xs bg-muted px-1 py-0.5 rounded">EnableWheelStep="true"</code> and scrolling the
+                    wheel over the input steps its value while the input is focused — up increments, down decrements —
+                    through the same path as the arrow keys, so <code class="text-xs bg-muted px-1 py-0.5 rounded">Min</code>,
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Max</code> and
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Step</code> all apply unchanged.
+                </p>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    它是<strong>显式开启、默认关闭</strong>的，因为步进意味着对 wheel 事件调用
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">preventDefault</code>——把滚动从页面手里夺走。在长表单里，
+                    这意味着每当指针划过获得焦点的输入框，页面就会悄无声息地停止滚动，数字反倒悄悄变化。
+                    不设置该参数时根本不会挂任何 wheel 监听器，滚动完全不受影响。只在划算的地方开启它，
+                    比如纯数字的紧凑编辑器。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    It is <strong>opt-in and off by default</strong>, because stepping means calling
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">preventDefault</code> on the wheel event — taking the
+                    scroll away from the page. On a long form that would mean the page silently stops scrolling, and a number
+                    quietly changes instead, every time the pointer crosses a focused input. With the parameter unset no wheel
+                    listener is attached at all, so scrolling is untouched. Turn it on where the trade is worth making, such as
+                    a compact numeric-only editor.
+                </p>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    滚轮距离是累积计算而非按事件计数的，所以鼠标的一格滚轮立即步进一次；
+                    而触控板轻扫——会产生几十个微小增量——只步进一两次而不是几十次。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Wheel distance is accumulated rather than counted per event, so one mouse detent steps once immediately
+                    while a trackpad flick — which emits dozens of small deltas — steps once or twice rather than dozens of times.
+                </p>
+                        </text>
+}
+        </div>
+
+        <div class="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
+            <span class="text-sm font-medium">EnableWheelStep:</span>
+            <div class="flex items-center gap-2">
+                <button type="button"
+                        @onclick="() => _wheelStepEnabled = true"
+                        class="@(_wheelStepEnabled ? "bg-primary text-primary-foreground" : "bg-background text-foreground") px-3 py-1.5 rounded-md text-sm font-medium transition-colors hover:opacity-90">
+                    true
+                </button>
+                <button type="button"
+                        @onclick="() => _wheelStepEnabled = false"
+                        class="@(!_wheelStepEnabled ? "bg-primary text-primary-foreground" : "bg-background text-foreground") px-3 py-1.5 rounded-md text-sm font-medium transition-colors hover:opacity-90">
+                    false
+                </button>
+            </div>
+            <span class="text-xs text-muted-foreground ml-auto">@L.T("该参数是响应式的——切换后，先在输入框上聚焦再滚动试试", "The parameter is reactive — toggle it, then scroll over the focused input")</span>
+        </div>
+
+        <div class="w-64">
+            <NumericInput TValue="int"
+                            @bind-Value="_wheelValue"
+                            EnableWheelStep="@_wheelStepEnabled"
+                            Min="0"
+                            Max="100"
+                            Step="5"
+                            Placeholder="@(L.T("先聚焦，再滚动", "Focus, then scroll"))" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.F("值：{0}（最小 0、最大 100、步长 5）", "Value: {0} (min: 0, max: 100, step: 5)", _wheelValue)</p>
+        <CodeBlock Source="Components/NumericInput/wheel-step.txt" />
+    </div>
+
+    <!-- With Buttons -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带加减按钮", "With Increment/Decrement Buttons")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("显示 +/- 按钮，方便调整数值。", "Shows +/- buttons for easy value adjustment.")
+            </p>
+        </div>
+        <div class="w-64">
+            <NumericInput TValue="int" @bind-Value="_buttonValue" ShowButtons="true" Min="0" Max="99" />
+        </div>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">值：@_buttonValue</p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">Value: @_buttonValue</p>
+                </text>
+}
+        <CodeBlock Source="Components/NumericInput/buttons.txt" />
+    </div>
+
+    <!-- Decimal Type -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("decimal 类型（货币）", "Decimal Type (Currency)")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("对货币金额使用 decimal 类型并保留 2 位小数。", "Using decimal type with 2 decimal places for currency values.")
+            </p>
+        </div>
+        <div class="w-64">
+            <NumericInput TValue="decimal" @bind-Value="_decimalValue" DecimalPlaces="2" Step="0.01m" Min="0m" />
+        </div>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">值：$@_decimalValue.ToString("F2")</p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">Value: $@_decimalValue.ToString("F2")</p>
+                </text>
+}
+    </div>
+
+    <!-- Positive Only -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("仅正数", "Positive Numbers Only")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("不允许负值。", "Negative values are not allowed.")
+            </p>
+        </div>
+        <div class="w-64">
+            <NumericInput TValue="int" @bind-Value="_positiveValue" AllowNegative="false" Placeholder="@(L.T("仅限正数", "Positive only"))" />
+        </div>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">值：@_positiveValue</p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">Value: @_positiveValue</p>
+                </text>
+}
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用状态", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个被禁用的数字输入框。", "A disabled numeric input.")
+            </p>
+        </div>
+        <div class="w-64">
+            <NumericInput TValue="int" Value="42" Disabled="true" />
+        </div>
+    </div>
+
+    <!-- Float Type -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("float 类型", "Float Type")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("使用 float 类型并配合自定义格式。", "Using float type with custom format.")
+            </p>
+        </div>
+        <div class="w-64">
+            <NumericInput TValue="float" @bind-Value="_floatValue" Format="F3" Step="0.1f" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.F("值：{0}", "Value: {0}", _floatValue.ToString("F3"))</p>
+    </div>
+
+    <!-- Long Type -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("long 类型", "Long Type")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("使用 long 类型处理大数字。", "Using long type for large numbers.")
+            </p>
+        </div>
+        <div class="w-64">
+            <NumericInput TValue="long" @bind-Value="_longValue" Step="1000" Placeholder="@(L.T("大数字", "Large number"))" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.F("值：{0}", "Value: {0}", _longValue.ToString("N0"))</p>
+    </div>
+
+    <!-- Debounce -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("防抖", "Debounce")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    默认情况下，输入过程中的 <code class="text-xs bg-muted px-1 py-0.5 rounded">ValueChanged</code> 会被防抖，以减少重渲染。
+                    方向键、按钮与失焦总是立即触发。设置
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">DisableDebounce="true"</code> 可让每次按键都立即触发。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    By default, <code class="text-xs bg-muted px-1 py-0.5 rounded">ValueChanged</code> is debounced during typing to reduce re-renders.
+                    Arrow keys, buttons, and blur always fire immediately. Set
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">DisableDebounce="true"</code> to fire on every keystroke.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="grid gap-6 md:grid-cols-2 max-w-2xl">
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("防抖（默认）", "Debounced (default)")</label>
+                <div class="w-64">
+                    <NumericInput TValue="int"
+                                  Value="@_debouncedInt"
+                                  ValueChanged="@((v) => _debouncedInt = v)"
+                                  Placeholder="@(L.T("输入以观察延迟", "Type to see delay"))" />
+                </div>
+                <div class="rounded-lg border p-3 bg-muted/50">
+                    <p class="text-xs text-muted-foreground mb-1">@L.T("值：", "Value:")</p>
+                    <p class="text-sm font-mono">@_debouncedInt</p>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("即时（DisableDebounce）", "Immediate (DisableDebounce)")</label>
+                <div class="w-64">
+                    <NumericInput TValue="int"
+                                  DisableDebounce="true"
+                                  Value="@_immediateInt"
+                                  ValueChanged="@((v) => _immediateInt = v)"
+                                  Placeholder="@(L.T("即时更新", "Updates instantly"))" />
+                </div>
+                <div class="rounded-lg border p-3 bg-muted/50">
+                    <p class="text-xs text-muted-foreground mb-1">@L.T("值：", "Value:")</p>
+                    <p class="text-sm font-mono">@_immediateInt</p>
+                </div>
+            </div>
+        </div>
+        <CodeBlock Source="Components/NumericInput/debounce.txt" />
+    </div>
+
+    <!-- Form Validation with EditForm -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表单校验", "Form Validation")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    NumericInput 与 Blazor 的 EditForm、EditContext 集成，支持模型校验。
+                    在 EditForm 内使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code>，
+                    校验错误会通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> 自动应用错误样式。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    NumericInput integrates with Blazor's EditForm and EditContext for model validation.
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code> within an EditForm and
+                    validation errors will automatically apply error styling via <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <EditForm Model="numericFormModel" OnValidSubmit="HandleNumericFormSubmit" class="max-w-md space-y-4">
+            <DataAnnotationsValidator />
+
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("年龄", "Age")</label>
+                <NumericInput TValue="int" @bind-Value="numericFormModel.Age" Placeholder="@(L.T("请输入你的年龄", "Enter your age"))" />
+                <ValidationMessage For="@(() => numericFormModel.Age)" class="text-sm text-destructive" />
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("数量", "Quantity")</label>
+                <NumericInput TValue="int" @bind-Value="numericFormModel.Quantity" Min="0" Max="999" ShowButtons="true" />
+                <ValidationMessage For="@(() => numericFormModel.Quantity)" class="text-sm text-destructive" />
+            </div>
+
+            <div class="flex gap-4">
+                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Default">@L.T("提交", "Submit")</Button>
+                <Button Type="ButtonType.Button" Variant="ButtonVariant.Outline" OnClick="ResetNumericForm">@L.T("重置", "Reset")</Button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(numericFormMessage))
+            {
+                <div class="p-4 bg-card rounded-lg border">
+                    <p class="text-sm">@numericFormMessage</p>
+                </div>
+            }
+        </EditForm>
+        <CodeBlock Source="Components/NumericInput/form-validation.txt" />
+    </div>
+
+    <!-- API Reference -->
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("将 Id 与可见标签配合使用，或提供 AriaLabel。AriaDescribedBy 用于关联帮助文本与校验消息。", "Use Id with a visible label or provide AriaLabel. AriaDescribedBy links help text and validation messages.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("输入框会暴露当前值与配置的上下界。启用 ShowButtons 后它带有 role=\"spinbutton\"，加减按钮也有本地化名称。", "The input exposes its current value and configured bounds. With ShowButtons enabled it has role=\"spinbutton\", and the increment/decrement buttons have localized names.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("无效状态由 EditContext 校验与 AriaInvalid 控制。禁用与只读控件会拒绝编辑。", "EditContext validation and AriaInvalid control the invalid state. Disabled and read-only controls reject edits.")</AccessibilityItem>
+        </AriaAttributes>
+            <KeyboardNavigation>
+                <KeyboardShortcutItem Description="@(L.T("按步长递增", "Increment by step"))">
+                    <Kbd>Arrow Up</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("按步长递减", "Decrement by step"))">
+                    <Kbd>Arrow Down</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("按 10 倍步长递增", "Increment by 10x step"))">
+                    <Kbd>Page Up</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("按 10 倍步长递减", "Decrement by 10x step"))">
+                    <Kbd>Page Down</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("跳至最小值", "Go to minimum value"))">
+                    <Kbd>Home</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("跳至最大值", "Go to maximum value"))">
+                    <Kbd>End</Kbd>
+                </KeyboardShortcutItem>
+            </KeyboardNavigation>
+        </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="NumericInput<TValue>">
+                <ApiParameter Name="TValue" Type="struct, INumber<TValue>">
+                    @L.T("数值类型（int、double、decimal、float、long、short）。", "The numeric type (int, double, decimal, float, long, short).")
+                </ApiParameter>
+                <ApiParameter Name="Value" Type="TValue">
+                    @L.T("当前值。", "Current value.")
+                </ApiParameter>
+                <ApiParameter Name="Min" Type="TValue?">
+                    @L.T("允许的最小值。", "Minimum allowed value.")
+                </ApiParameter>
+                <ApiParameter Name="Max" Type="TValue?">
+                    @L.T("允许的最大值。", "Maximum allowed value.")
+                </ApiParameter>
+                <ApiParameter Name="Step" Type="TValue?" Default="1">
+                    @L.T("方向键/按钮的步进增量。", "Step increment for arrow keys/buttons.")
+                </ApiParameter>
+                <ApiParameter Name="DecimalPlaces" Type="int?">
+                    @L.T("显示的小数位数。", "Number of decimal places to display.")
+                </ApiParameter>
+                <ApiParameter Name="AllowNegative" Type="bool" Default="true">
+                    @L.T("是否允许负值。", "Whether negative values are allowed.")
+                </ApiParameter>
+                <ApiParameter Name="ShowButtons" Type="bool" Default="false">
+                    @L.T("显示加/减按钮。", "Show increment/decrement buttons.")
+                </ApiParameter>
+                <ApiParameter Name="Format" Type="string?">
+                    @L.T("自定义格式字符串（例如 \"F2\"、\"N0\"）。", "Custom format string (e.g., \"F2\", \"N0\").")
+                </ApiParameter>
+                <ApiParameter Name="DisableDebounce" Type="bool" Default="false">
+                    @L.T("关闭防抖，使 ValueChanged 在每次按键时触发。", "Disable debounce to fire ValueChanged on every keystroke.")
+                </ApiParameter>
+                <ApiParameter Name="DebounceInterval" Type="int" Default="500">
+                    @L.T("防抖延迟（毫秒）。", "Debounce delay in milliseconds.")
+                </ApiParameter>
+                <ApiParameter Name="EnableWheelStep" Type="bool" Default="false">
+                    @L.T("在输入框获得焦点时滚动鼠标滚轮是否步进数值。需显式开启，因为步进会对 wheel 事件调用 preventDefault，把滚动从页面手里夺走。支持响应式更新。", "Whether scrolling the mouse wheel over the focused input steps the value. Opt-in, because stepping calls preventDefault on the wheel event and so takes the scroll away from the page. Reactive.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool">
+                    @L.T("禁用输入框。", "Disables the input.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+
+<LocalizationSection
+        Description="@(L.T("数字输入框步进按钮的 aria 标签可以配置。", "Numeric input stepper button aria labels are configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("IncreaseValue", "Increase value", L.T("加号按钮的 aria 标签。", "Aria label for the increment button")),
+            new("DecreaseValue", "Decrease value", L.T("减号按钮的 aria 标签。", "Aria label for the decrement button")),
+        })"
+        CultureAware="true"
+        CultureDescription="@(L.T("数字的格式化与解析遵循 CultureInfo.CurrentCulture，包括小数分隔符与千分位分组。", "Number formatting and parsing respect CultureInfo.CurrentCulture, including decimal separators and grouping."))"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""NumericInput.IncreaseValue"", ""Wert erhöhen"");
+    localizer.Set(""NumericInput.DecreaseValue"", ""Wert verringern"");
+});")" />
+</div>
+
+@code {
+    private int _intValue = 0;
+    private double _doubleValue = 0.0;
+    private int _constrainedValue = 50;
+    private int _steppedValue = 0;
+    private int _wheelValue = 25;
+    private bool _wheelStepEnabled = true;
+    private int _buttonValue = 1;
+    private decimal _decimalValue = 99.99m;
+    private int _positiveValue = 0;
+    private float _floatValue = 3.14f;
+    private long _longValue = 0;
+    private int _debouncedInt = 0;
+    private int _immediateInt = 0;
+    private NumericFormModel numericFormModel = new();
+    private string? numericFormMessage;
+
+    private void HandleNumericFormSubmit()
+    {
+        numericFormMessage = L.IsChinese
+            ? $"表单已提交！年龄：{numericFormModel.Age}，数量：{numericFormModel.Quantity}"
+            : $"Form submitted! Age: {numericFormModel.Age}, Quantity: {numericFormModel.Quantity}";
+    }
+
+    private void ResetNumericForm()
+    {
+        numericFormModel = new();
+        numericFormMessage = null;
+    }
+
+    private class NumericFormModel
+    {
+        [Range(1, 120, ErrorMessage = "Age must be between 1 and 120.")]
+        public int Age { get; set; }
+
+        [Range(1, 999, ErrorMessage = "Quantity must be between 1 and 999.")]
+        public int Quantity { get; set; }
+    }
+
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

@@ -1,0 +1,496 @@
+@page "/components/tag-input"
+<PageTitle>@L.T("Tag Input 标签输入 - Atom BlazorUI", "Tag Input Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <div class="flex items-center gap-3">
+                <h1 class="text-4xl font-bold tracking-tight">@L.T("Tag Input 标签输入", "Tag Input")</h1>
+                <span class="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20">@L.T("新增", "New")</span>
+            </div>
+            <p class="text-xl text-muted-foreground">
+                @L.T("一个内联的 chip/标签输入框，用于录入并管理自由格式的文本列表。", "An inline chip/tag input for entering and managing free-form lists of text values.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("输入标签后按回车或逗号即可添加。点击 x 按钮，或在输入框为空时按退格键移除。", "Type a tag and press Enter or comma to add it. Click the x button or press Backspace on an empty input to remove.")
+        </p>
+
+        <div class="flex flex-col gap-2">
+            <TagInput @bind-Tags="basicTags" />
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("标签：", "Tags:")</span> <span class="font-mono">@FormatTags(basicTags)</span></p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/TagInput/basic.txt" />
+    </section>
+
+    <!-- Custom Triggers -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("自定义触发键", "Custom Triggers")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("可配置哪些按键用于添加标签。本例使用 Enter、Comma 与 Space。", "Configure which keys add tags. This example uses Enter, Comma, and Space.")
+        </p>
+
+        <div class="flex flex-col gap-2">
+            <TagInput @bind-Tags="triggerTags"
+                      AddTrigger="TagInputTrigger.Enter | TagInputTrigger.Comma | TagInputTrigger.Space"
+                      Placeholder="@(L.T("输入后按回车、逗号或空格…", "Type and press Enter, comma, or space..."))" />
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("标签：", "Tags:")</span> <span class="font-mono">@FormatTags(triggerTags)</span></p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/TagInput/custom-triggers.txt" />
+    </section>
+
+    <!-- Commit on Blur -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("失焦时提交", "Commit on Blur")</h2>
+        @if (L.IsChinese)
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    <code class="bg-muted px-1 py-0.5 rounded">TagInputTrigger.Blur</code> 是唯一一个非按键的触发方式。
+                    加上它之后，尚未输完的半截文本会在用户点击别处或 Tab 走开时被提交，而不是被丢弃。提交的是
+                    用户实际输入的内容，而不是高亮中的建议项——点击建议项会添加该建议并取消本次失焦，
+                    因此标签绝不会被添加两次。被拒绝的文本仍留在输入框中，并通过
+                    <code class="bg-muted px-1 py-0.5 rounded">OnTagRejected</code> 上报，行为与按回车时完全一致。
+                </p>
+            </text>
+        }
+        else
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    <code class="bg-muted px-1 py-0.5 rounded">TagInputTrigger.Blur</code> is the only trigger that is not a key.
+                    Add it and half-typed text is committed when the user clicks or tabs away, rather than thrown away. It commits
+                    what was typed, not a highlighted suggestion — clicking a suggestion adds that suggestion and cancels the blur,
+                    so a tag is never added twice. Rejected text stays in the input and is reported through
+                    <code class="bg-muted px-1 py-0.5 rounded">OnTagRejected</code>, exactly as on Enter.
+                </p>
+            </text>
+        }
+
+        <div class="flex flex-col gap-2">
+            <TagInput @bind-Tags="blurTags"
+                      AddTrigger="TagInputTrigger.Enter | TagInputTrigger.Comma | TagInputTrigger.Blur"
+                      Placeholder="@(L.T("输入标签，然后点击页面其他位置…", "Type a tag, then click somewhere else..."))" />
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("标签：", "Tags:")</span> <span class="font-mono">@FormatTags(blurTags)</span></p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/TagInput/commit-on-blur.txt" />
+    </section>
+
+    <!-- Validation & Limits -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("数量与长度限制", "Validation &amp; Limits")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("限制标签数量、禁止重复并校验标签内容。本例最多 5 个标签，每个最长 20 个字符。", "Limit the number of tags, prevent duplicates, and validate tag content. This example limits to 5 tags with max 20 characters each.")
+        </p>
+
+        <div class="flex flex-col gap-2">
+            <TagInput @bind-Tags="limitedTags"
+                      MaxTags="5"
+                      MaxTagLength="20"
+                      Placeholder="@(L.T("最多 5 个标签，每个 20 字符…", "Max 5 tags, 20 chars each..."))"
+                      OnTagRejected="HandleRejected" />
+            @if (!string.IsNullOrEmpty(rejectedMessage))
+            {
+                <p class="text-sm text-destructive">@rejectedMessage</p>
+            }
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("标签：", "Tags:")</span> <span class="font-mono">@FormatTags(limitedTags)</span></p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/TagInput/validation.txt" />
+    </section>
+
+    <!-- Email Validation -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("自定义校验", "Custom Validation")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("使用自定义校验函数，只接受邮箱地址。", "Use a custom validation function to only accept email addresses.")
+        </p>
+
+        <div class="flex flex-col gap-2">
+            <TagInput @bind-Tags="emailTags"
+                      Placeholder="@(L.T("输入邮箱地址…", "Enter email addresses..."))"
+                      Validate="ValidateEmail"
+                      AddTrigger="TagInputTrigger.Enter | TagInputTrigger.Space" />
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("邮箱：", "Emails:")</span> <span class="font-mono">@FormatTags(emailTags)</span></p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/TagInput/custom-validation.txt" />
+    </section>
+
+    <!-- Clearable -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("一键清空", "Clearable")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("存在标签时显示清空全部按钮。", "Show a clear-all button when tags are present.")
+        </p>
+
+        <div class="flex flex-col gap-2">
+            <TagInput @bind-Tags="clearableTags" Clearable="true" Placeholder="@(L.T("添加标签…", "Add tags..."))" />
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("标签：", "Tags:")</span> <span class="font-mono">@FormatTags(clearableTags)</span></p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/TagInput/clearable.txt" />
+    </section>
+
+    <!-- Static Suggestions -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("建议项", "Suggestions")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("提供一组静态建议，随用户输入实时过滤。", "Provide a static list of suggestions that filter as the user types.")
+        </p>
+
+        <div class="flex flex-col gap-2">
+            <TagInput @bind-Tags="suggestedTags"
+                      Suggestions="availableFrameworks"
+                      Placeholder="@(L.T("搜索框架…", "Search frameworks..."))" />
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("标签：", "Tags:")</span> <span class="font-mono">@FormatTags(suggestedTags)</span></p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/TagInput/suggestions-static.txt" />
+    </section>
+
+    <!-- Async Suggestions -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("异步建议", "Async Suggestions")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("带防抖地异步加载建议，用 200ms 延迟模拟一次 API 调用。", "Load suggestions asynchronously with debouncing. Simulates an API call with a 200ms delay.")
+        </p>
+
+        <div class="flex flex-col gap-2">
+            <TagInput @bind-Tags="asyncTags"
+                      OnSearchSuggestions="SearchFrameworks"
+                      Placeholder="@(L.T("搜索框架…", "Search frameworks..."))" />
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("标签：", "Tags:")</span> <span class="font-mono">@FormatTags(asyncTags)</span></p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/TagInput/suggestions-async.txt" />
+    </section>
+
+    <!-- Variants -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("样式变体", "Variants")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("在不同的标签视觉样式之间做选择。", "Choose between different tag visual styles.")
+        </p>
+
+        <div class="flex flex-col gap-4">
+            <div class="space-y-1">
+                <p class="text-sm font-medium">@L.T("默认", "Default")</p>
+                <TagInput @bind-Tags="variantTags1" Variant="TagInputVariant.Default" Placeholder="@(L.T("默认样式…", "Default variant..."))" />
+            </div>
+            <div class="space-y-1">
+                <p class="text-sm font-medium">@L.T("描边", "Outline")</p>
+                <TagInput @bind-Tags="variantTags2" Variant="TagInputVariant.Outline" Placeholder="@(L.T("描边样式…", "Outline variant..."))" />
+            </div>
+            <div class="space-y-1">
+                <p class="text-sm font-medium">@L.T("次要", "Secondary")</p>
+                <TagInput @bind-Tags="variantTags3" Variant="TagInputVariant.Secondary" Placeholder="@(L.T("次要样式…", "Secondary variant..."))" />
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/TagInput/variants.txt" />
+    </section>
+
+    <!-- Disabled -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("禁用状态", "Disabled")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("一个禁用状态、已预置若干标签的标签输入框。", "A disabled tag input with pre-populated tags.")
+        </p>
+
+        <TagInput Tags="disabledTags" Disabled="true" />
+
+        <CodeBlock Source="Components/TagInput/disabled.txt" />
+    </section>
+
+    <!-- Custom Tag Template -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("自定义标签模板", "Custom Tag Template")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("用模板来自定义每个标签的渲染方式。", "Customize how each tag is rendered using a template.")
+        </p>
+
+        <div class="flex flex-col gap-2">
+            <TagInput @bind-Tags="templateTags" Placeholder="@(L.T("添加话题标签…", "Add hashtags..."))">
+                <TagTemplate Context="tag">
+                    <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 dark:bg-blue-900 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-200">
+                        #@tag
+                    </span>
+                </TagTemplate>
+            </TagInput>
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("标签：", "Tags:")</span> <span class="font-mono">@FormatTags(templateTags)</span></p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/TagInput/custom-template.txt" />
+    </section>
+
+    <!-- Accessibility -->
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>容器包含 <code>aria-label</code> 与 <code>aria-disabled</code> 属性</AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>Container includes <code>aria-label</code> and <code>aria-disabled</code> attributes</AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>每个移除按钮都带有 <code>aria-label</code>（内容为 Remove 加标签名）</AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>Each remove button includes <code>aria-label="Remove {tag}"</code></AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>显示建议项时，输入框使用 <code>aria-autocomplete="list"</code>、<code>aria-expanded</code> 与 <code>aria-activedescendant</code></AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>Input uses <code>aria-autocomplete="list"</code>, <code>aria-expanded</code>, and <code>aria-activedescendant</code> when suggestions are shown</AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>建议列表使用 <code>role="listbox"</code> 与 <code>role="option"</code>，并配合 <code>aria-selected</code></AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>Suggestions use <code>role="listbox"</code> and <code>role="option"</code> with <code>aria-selected</code></AccessibilityItem>
+                </text>
+            }
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("添加标签（可配置）", "Add tag (configurable)"))">
+                <Kbd>Enter</Kbd> / <Kbd>,</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("移除最后一个标签", "Remove last tag"))">
+                <Kbd>Backspace</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("浏览建议项", "Navigate suggestions"))">
+                <Kbd>Arrow Up</Kbd> / <Kbd>Arrow Down</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭建议列表", "Close suggestions"))">
+                <Kbd>Escape</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件的属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="TagInput">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="Tags" Type="IReadOnlyList&lt;string&gt;?" Default="null">
+                            标签列表。用 <code>@@bind-Tags</code> 实现双向绑定。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="Tags" Type="IReadOnlyList&lt;string&gt;?" Default="null">
+                            The list of tags. Use <code>@@bind-Tags</code> for two-way binding.
+                        </ApiParameter>
+                    </text>
+                }
+                <ApiParameter Name="Placeholder" Type="string" Default="&quot;Add tag...&quot;">
+                    @L.T("没有标签时显示的占位文本。", "Placeholder text shown when no tags are present.")
+                </ApiParameter>
+                <ApiParameter Name="MaxTags" Type="int" Default="int.MaxValue">
+                    @L.T("允许的最大标签数量。", "Maximum number of tags allowed.")
+                </ApiParameter>
+                <ApiParameter Name="MaxTagLength" Type="int" Default="50">
+                    @L.T("单个标签允许的最大字符长度。", "Maximum character length for a single tag.")
+                </ApiParameter>
+                <ApiParameter Name="AllowDuplicates" Type="bool" Default="false">
+                    @L.T("是否允许重复的标签值。", "Whether duplicate tag values are allowed.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AddTrigger" Type="TagInputTrigger" Default="Enter | Comma">
+                            决定输入的文本何时被提交为标签。用按位或组合标志：
+                            <code>Enter</code>、<code>Comma</code>、<code>Space</code>、<code>Tab</code>、<code>Semicolon</code>
+                            与 <code>Blur</code>。除 <code>Blur</code> 之外每个值都是一个按键；<code>Blur</code> 在用户点击别处或
+                            Tab 走开时提交，因此半截输入不会丢失。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AddTrigger" Type="TagInputTrigger" Default="Enter | Comma">
+                            What commits the typed text as a tag. Combine flags with bitwise OR:
+                            <code>Enter</code>, <code>Comma</code>, <code>Space</code>, <code>Tab</code>, <code>Semicolon</code>
+                            and <code>Blur</code>. Every value except <code>Blur</code> is a key; <code>Blur</code> commits when
+                            the user clicks or tabs away, so a half-typed entry is not lost.
+                        </ApiParameter>
+                    </text>
+                }
+                <ApiParameter Name="Validate" Type="Func&lt;string, bool&gt;?" Default="null">
+                    @L.T("可选的校验函数。返回 false 即拒绝该标签。", "Optional validation function. Return false to reject a tag.")
+                </ApiParameter>
+                <ApiParameter Name="OnTagRejected" Type="EventCallback&lt;string&gt;" Default="">
+                    @L.T("标签被拒绝时的回调。", "Callback when a tag is rejected.")
+                </ApiParameter>
+                <ApiParameter Name="Suggestions" Type="IEnumerable&lt;string&gt;?" Default="null">
+                    @L.T("随用户输入显示建议的静态列表。", "Static list of suggestions shown as the user types.")
+                </ApiParameter>
+                <ApiParameter Name="OnSearchSuggestions" Type="Func&lt;string, CancellationToken, Task&lt;IEnumerable&lt;string&gt;&gt;&gt;?" Default="null">
+                    @L.T("异步加载建议的函数。", "Async function to load suggestions.")
+                </ApiParameter>
+                <ApiParameter Name="SuggestionDebounceMs" Type="int" Default="300">
+                    @L.T("建议搜索的防抖间隔。", "Debounce interval for suggestion search.")
+                </ApiParameter>
+                <ApiParameter Name="Variant" Type="TagInputVariant" Default="Default">
+                    @L.T("已渲染标签的视觉样式。", "Visual variant for rendered tags.")
+                </ApiParameter>
+                <ApiParameter Name="Clearable" Type="bool" Default="false">
+                    @L.T("存在标签时显示清空全部按钮。", "Show a clear-all button when tags are present.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("组件是否处于禁用状态。", "Whether the component is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="TagTemplate" Type="RenderFragment&lt;string&gt;?" Default="null">
+                    @L.T("渲染每个标签的自定义模板。", "Custom template for rendering each tag.")
+                </ApiParameter>
+                <ApiParameter Name="TagsExpression" Type="Expression&lt;Func&lt;IReadOnlyList&lt;string&gt;?&gt;&gt;?" Default="null">
+                    @L.T("供 EditForm 校验使用的表达式。", "Expression for EditForm validation.")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                    @L.T("标签输入容器的可读名称。", "Accessible label for the tag input container.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("容器的附加 CSS 类。", "Additional CSS classes for the container.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到根 <code>&lt;div&gt;</code> 元素的附加 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </ApiParameter>
+                    </text>
+                }
+            </ApiReference>
+        </div>
+    </section>
+
+    <LocalizationSection
+        Description="@(L.T("标签输入框的占位符与操作按钮文案都可以配置。", "Tag input placeholder and action labels are configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("Placeholder", "Add tag...", L.T("输入框中的占位文本", "Placeholder text in the tag input")),
+            new("RemoveTag", "Remove {tag}", L.T("移除标签按钮的可读名称（Func<string, string>）", "Aria label for the remove tag button (Func<string, string>)")),
+            new("ClearAllTags", "Clear all tags", L.T("清空全部按钮的可读名称", "Aria label for the clear all button")),
+            new("TagSuggestions", "Tag suggestions", L.T("建议列表的可读名称", "Aria label for the suggestions list")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""TagInput.Placeholder"", ""Tag hinzufügen..."");
+    localizer.Set(""TagInput.ClearAllTags"", ""Alle Tags löschen"");
+});")" />
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private IReadOnlyList<string>? basicTags;
+    private IReadOnlyList<string>? triggerTags;
+    private IReadOnlyList<string>? blurTags;
+    private IReadOnlyList<string>? limitedTags;
+    private IReadOnlyList<string>? emailTags;
+    private IReadOnlyList<string>? clearableTags;
+    private IReadOnlyList<string>? suggestedTags;
+    private IReadOnlyList<string>? asyncTags;
+    private IReadOnlyList<string>? variantTags1 = new[] { "React", "Vue" };
+    private IReadOnlyList<string>? variantTags2 = new[] { "TypeScript", "Rust" };
+    private IReadOnlyList<string>? variantTags3 = new[] { "Blazor", "C#" };
+    private IReadOnlyList<string> disabledTags = new[] { "React", "Vue", "Angular" };
+    private IReadOnlyList<string>? templateTags;
+
+    private string? rejectedMessage;
+
+    private readonly string[] availableFrameworks =
+    {
+        "React", "Vue", "Angular", "Blazor", "Svelte",
+        "Next.js", "Nuxt", "SvelteKit", "Astro", "Solid"
+    };
+
+    private void HandleRejected(string tag)
+    {
+        rejectedMessage = L.IsChinese ? $"已拒绝：“{tag}”" : $"Rejected: \"{tag}\"";
+        // BL0012（.NET 11）：事件处理器触发的重渲染由框架自动完成
+        // 此处的显式 StateHasChanged 无需保留。
+    }
+
+    private bool ValidateEmail(string tag) =>
+        tag.Contains('@') && tag.Contains('.');
+
+    private async Task<IEnumerable<string>> SearchFrameworks(string query, CancellationToken ct)
+    {
+        await Task.Delay(200, ct);
+        return availableFrameworks.Where(f =>
+            f.Contains(query, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static string FormatTags(IReadOnlyList<string>? tags) =>
+        tags is { Count: > 0 } ? string.Join(", ", tags) : "(none)";
+}

@@ -1,0 +1,52 @@
+@namespace AtomBlazor
+
+@if (Href is not null)
+{
+    <a @attributes="AdditionalAttributes" href="@Href" class="@CssClass" aria-current="@(Active ? "page" : null)"
+       aria-disabled="@(Disabled ? "true" : null)" tabindex="@(Disabled ? -1 : 0)"
+       @onclick="ActivateAsync" @onclick:preventDefault="Disabled">@Content()</a>
+}
+else
+{
+    <button @attributes="AdditionalAttributes" type="button" class="@CssClass" disabled="@Disabled"
+            aria-current="@(Active ? "page" : null)" @onclick="ActivateAsync">@Content()</button>
+}
+
+@code {
+    [CascadingParameter] private BottomNav? Navigation { get; set; }
+    /// <summary>唯一的项目值。</summary>
+    [Parameter, EditorRequired] public string Value { get; set; } = "";
+    /// <summary>可见且有障碍可读的标签。</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    /// <summary>图标，可选包裹在 NotificationBadge 中。</summary>
+    [Parameter] public RenderFragment? Icon { get; set; }
+    /// <summary>可选的链接目标。省略时为回调驱动的屏选。</summary>
+    [Parameter] public string? Href { get; set; }
+    /// <summary>禁用导航与回调。</summary>
+    [Parameter] public bool Disabled { get; set; }
+    /// <summary>激活之后调用。</summary>
+    [Parameter] public EventCallback OnClick { get; set; }
+    /// <summary>附加 CSS 类。</summary>
+    [Parameter] public string? Class { get; set; }
+    /// <summary>附加 HTML 属性。</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    private bool Active => Navigation?.Value == Value;
+    private string CssClass => ClassNames.cn("atom:flex atom:min-h-[56px] atom:min-w-[44px] atom:flex-1 atom:flex-col atom:items-center atom:justify-center atom:gap-1 atom:rounded-sm atom:px-2 atom:py-2 atom:text-xs atom:no-underline atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring", Active ? "atom:bg-accent/50 atom:text-primary" : "atom:text-muted-foreground atom:hover:bg-accent", Disabled ? "atom:pointer-events-none atom:opacity-50" : null, Class);
+    private RenderFragment Content() => __builder =>
+    {
+        @Icon
+        <span>@Label</span>
+    };
+
+    protected override void OnParametersSet()
+    {
+        if (Navigation is null) { throw new InvalidOperationException("BottomNavItem 需要 BottomNav。"); }
+    }
+
+    private async Task ActivateAsync()
+    {
+        if (Disabled) { return; }
+        await Navigation!.SelectAsync(Value);
+        await OnClick.InvokeAsync();
+    }
+}

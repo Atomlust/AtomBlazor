@@ -1,0 +1,515 @@
+@page "/components/input-otp"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("Input OTP 组件 - Atom BlazorUI", "Input OTP Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Input OTP 组件", "Input OTP Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("逐格输入的一次性密码输入框。", "A one-time password input with individual digit boxes.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本示例", "Basic Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带分隔符的 6 位验证码输入框。", "A 6-digit OTP input with separators.")
+            </p>
+        </div>
+        <InputOTP AriaLabel="@(L.T("验证码", "Verification code"))" @bind-Value="_otpValue" OnComplete="HandleComplete" />
+        <p class="text-sm text-muted-foreground">@L.T("值：", "Value:") @(_otpValue ?? L.T("空", "empty"))</p>
+        @if (_isComplete)
+        {
+            <p class="text-sm text-green-600">@L.T("验证码已输入完成！", "OTP Complete!")</p>
+        }
+        <CodeBlock Source="Components/InputOTP/basic.txt" />
+    </div>
+
+    <!-- Without Separator -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("不带分隔符", "Without Separator")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("不显示分隔符的验证码输入框。", "OTP input without separators.")
+            </p>
+        </div>
+        <InputOTP Length="4" ShowSeparator="false" />
+        <CodeBlock Source="Components/InputOTP/without-separator.txt" />
+    </div>
+
+    <!-- Custom Separator -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义分隔符", "Custom Separator")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("使用自定义分隔符的验证码输入框。", "OTP input with a custom separator.")
+            </p>
+        </div>
+        <InputOTP Length="6" GroupSize="2">
+            <Separator>
+                <span class="text-muted-foreground">:</span>
+            </Separator>
+        </InputOTP>
+        <CodeBlock Source="Components/InputOTP/custom-separator.txt" />
+    </div>
+
+    <!-- Different Lengths -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("不同长度", "Different Lengths")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("位数不同的验证码输入框。", "OTP inputs with different digit counts.")
+            </p>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <p class="text-sm text-muted-foreground mb-2">@L.T("4 位：", "4 digits:")</p>
+                <InputOTP Length="4" ShowSeparator="false" />
+            </div>
+            <div>
+                <p class="text-sm text-muted-foreground mb-2">@L.T("6 位：", "6 digits:")</p>
+                <InputOTP Length="6" />
+            </div>
+            <div>
+                <p class="text-sm text-muted-foreground mb-2">@L.T("8 位：", "8 digits:")</p>
+                <InputOTP Length="8" GroupSize="4" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/InputOTP/lengths.txt" />
+    </div>
+
+    <!-- Sizes -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("尺寸", "Sizes")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("验证码输入框提供多种尺寸。", "OTP inputs come in different sizes.")
+            </p>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <p class="text-sm text-muted-foreground mb-2">@L.T("Small：", "Small:")</p>
+                <InputOTP Length="4" ShowSeparator="false" Size="InputOTPSize.Small" />
+            </div>
+            <div>
+                <p class="text-sm text-muted-foreground mb-2">@L.T("Default：", "Default:")</p>
+                <InputOTP Length="4" ShowSeparator="false" Size="InputOTPSize.Default" />
+            </div>
+            <div>
+                <p class="text-sm text-muted-foreground mb-2">@L.T("Large：", "Large:")</p>
+                <InputOTP Length="4" ShowSeparator="false" Size="InputOTPSize.Large" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/InputOTP/sizes.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个被禁用的验证码输入框。", "A disabled OTP input.")
+            </p>
+        </div>
+        <InputOTP Length="6" Disabled="true" Value="123456" />
+        <CodeBlock Source="Components/InputOTP/disabled.txt" />
+    </div>
+
+    <!-- Masked -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("掩码", "Masked")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">Mask</code> 可用星号隐藏已输入的值，适用于 PIN 等敏感验证码。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">Mask</code> to hide entered values with asterisks. Useful for sensitive codes like PINs.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-4">
+            <div>
+                <p class="text-sm text-muted-foreground mb-2">@L.T("掩码 PIN：", "Masked PIN:")</p>
+                <InputOTP @bind-Value="_maskedValue" Length="4" ShowSeparator="false" Mask="true" />
+                <p class="text-sm text-muted-foreground mt-2">@L.T("实际值：", "Actual value:") @(_maskedValue ?? L.T("空", "empty"))</p>
+            </div>
+        </div>
+        <CodeBlock Source="Components/InputOTP/masked.txt" />
+    </div>
+
+    <!-- Input Mode -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("输入模式", "Input Mode")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">InputMode</code> 控制可输入的字符类型。
+                    默认仅允许数字。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Control the types of characters accepted with <code class="text-xs bg-muted px-1 py-0.5 rounded">InputMode</code>.
+                    Defaults to numbers only.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-4">
+            <div>
+                <p class="text-sm text-muted-foreground mb-2">@L.T("仅数字（默认）：", "Numbers only (default):")</p>
+                <InputOTP Length="4" ShowSeparator="false" InputMode="InputOTPInputMode.Numbers" />
+            </div>
+            <div>
+                <p class="text-sm text-muted-foreground mb-2">@L.T("仅字母：", "Letters only:")</p>
+                <InputOTP Length="4" ShowSeparator="false" InputMode="InputOTPInputMode.Letters" />
+            </div>
+            <div>
+                <p class="text-sm text-muted-foreground mb-2">@L.T("字母与数字：", "Letters and numbers:")</p>
+                <InputOTP Length="6" InputMode="InputOTPInputMode.LettersAndNumbers" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/InputOTP/input-mode.txt" />
+    </div>
+
+    <!-- Custom Input Styling -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <div class="flex items-center gap-2">
+                <h2 class="text-2xl font-semibold">@L.T("自定义输入框样式", "Custom Input Styling")</h2>
+                <span class="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20">v3</span>
+            </div>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">InputClass</code> 即可为每个输入格设置样式，无需 CSS 取巧写法。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">InputClass</code> to style individual OTP input boxes without CSS hacks.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-4">
+            <div>
+                <p class="text-sm text-muted-foreground mb-2">@L.T("自定义边框颜色：", "Custom border color:")</p>
+                <InputOTP Length="4" ShowSeparator="false" InputClass="border-blue-500 focus:ring-blue-500" />
+            </div>
+            <div>
+                <p class="text-sm text-muted-foreground mb-2">@L.T("全圆角输入框：", "Rounded full inputs:")</p>
+                <InputOTP Length="4" ShowSeparator="false" InputClass="rounded-full" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/InputOTP/custom-styling.txt" />
+    </div>
+
+    <!-- Verification Flow -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("校验流程", "Verification Flow")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带提交按钮的校验流程示例。", "Example verification flow with submit button.")
+            </p>
+        </div>
+        <div class="border rounded-lg p-6 space-y-4 max-w-sm">
+            <div class="text-center space-y-2">
+                <h3 class="text-lg font-semibold">@L.T("验证您的手机", "Verify your phone")</h3>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("请输入发送到您手机的 6 位验证码。", "Enter the 6-digit code sent to your phone.")
+                </p>
+            </div>
+            <div class="flex justify-center">
+                <InputOTP @bind-Value="_verifyOtp" Length="6" />
+            </div>
+            <Button Class="w-full" Disabled="@(_verifyOtp?.Length != 6)">
+                @L.T("验证", "Verify")
+            </Button>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-center text-sm text-muted-foreground">
+                    没收到验证码？<a href="#" class="text-primary underline">重新发送</a>
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-center text-sm text-muted-foreground">
+                    Didn't receive a code? <a href="#" class="text-primary underline">Resend</a>
+                </p>
+                        </text>
+}
+        </div>
+        <CodeBlock Source="Components/InputOTP/verification-flow.txt" />
+    </div>
+
+    <!-- Form Validation with EditForm -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表单校验", "Form Validation")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    InputOTP 可与 Blazor 的 EditForm 和 EditContext 集成完成模型校验。
+                    在 EditForm 中使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code> 后，
+                    校验错误会通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> 自动应用错误样式。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    InputOTP integrates with Blazor's EditForm and EditContext for model validation.
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code> within an EditForm and
+                    validation errors will automatically apply error styling via <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <EditForm Model="otpFormModel" OnValidSubmit="HandleOTPFormSubmit" class="max-w-md space-y-4">
+            <DataAnnotationsValidator />
+
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("验证码", "Verification Code")</label>
+                <InputOTP @bind-Value="otpFormModel.VerificationCode" Length="6" />
+                <ValidationMessage For="@(() => otpFormModel.VerificationCode)" class="text-sm text-destructive" />
+            </div>
+
+            <div class="flex gap-4">
+                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Default">@L.T("验证", "Verify")</Button>
+                <Button Type="ButtonType.Button" Variant="ButtonVariant.Outline" OnClick="ResetOTPForm">@L.T("重置", "Reset")</Button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(otpFormMessage))
+            {
+                <div class="p-4 bg-card rounded-lg border">
+                    <p class="text-sm">@otpFormMessage</p>
+                </div>
+            }
+        </EditForm>
+        <CodeBlock Source="Components/InputOTP/form-validation.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>每个数字输入框会依据 <code class="text-xs bg-muted px-1 py-0.5 rounded">InputMode</code> 参数使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">inputmode="numeric"</code> 或 <code class="text-xs bg-muted px-1 py-0.5 rounded">inputmode="text"</code></AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Each digit input uses <code class="text-xs bg-muted px-1 py-0.5 rounded">inputmode="numeric"</code> or <code class="text-xs bg-muted px-1 py-0.5 rounded">inputmode="text"</code> based on the <code class="text-xs bg-muted px-1 py-0.5 rounded">InputMode</code> parameter</AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>每个输入框都以 <code class="text-xs bg-muted px-1 py-0.5 rounded">maxlength="1"</code> 限制长度</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Individual inputs are constrained with <code class="text-xs bg-muted px-1 py-0.5 rounded">maxlength="1"</code></AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>禁用状态会为所有数字输入框应用 <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code> 特性</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Disabled state applies the <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code> attribute to all digit inputs</AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>与 EditForm 校验集成，出错时应用 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> 样式</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Integrates with EditForm validation, applying <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> styling on error</AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>带 <code class="text-xs bg-muted px-1 py-0.5 rounded">name</code> 特性的隐藏输入框支持 SSR 表单回传</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Hidden input with <code class="text-xs bg-muted px-1 py-0.5 rounded">name</code> attribute supports SSR form postback</AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("将焦点移到上一个数字格", "Move focus to the previous digit"))">
+                <Kbd>ArrowLeft</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("将焦点移到下一个数字格", "Move focus to the next digit"))">
+                <Kbd>ArrowRight</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("清除当前数字格并把焦点移回上一格", "Clear current digit and move to previous"))">
+                <Kbd>Backspace</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("输入后自动跳到下一个数字格", "Auto-advance to next digit after entry"))">
+                <Kbd>0-9</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("粘贴完整验证码并自动填满所有数字格", "Paste a full code and fill all digit boxes"))">
+                <Kbd>Ctrl</Kbd><Kbd>V</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="InputOTP">
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">@L.T("转发给交互控件或分组的可访问名称。", "Accessible name forwarded to the interactive control or group.")</ApiParameter>
+                <ApiParameter Name="Length" Type="int" Default="6">
+                    @L.T("要渲染的验证码数字格数量。", "The number of OTP digit inputs to render.")
+                </ApiParameter>
+                <ApiParameter Name="Value" Type="string?" Default="null">
+                    @L.T("当前验证码值。使用 @bind-Value 实现双向绑定。", "The current OTP value. Use @bind-Value for two-way binding.")
+                </ApiParameter>
+                <ApiParameter Name="ValueChanged" Type="EventCallback&lt;string&gt;">
+                    @L.T("验证码值变化时触发的回调。", "Callback invoked when the OTP value changes.")
+                </ApiParameter>
+                <ApiParameter Name="ValueExpression" Type="Expression&lt;Func&lt;string?&gt;&gt;?" Default="null">
+                    @L.T("标识所绑定值的表达式，用于 EditForm 集成。", "Expression that identifies the bound value. Used for EditForm integration.")
+                </ApiParameter>
+                <ApiParameter Name="OnComplete" Type="EventCallback&lt;string&gt;">
+                    @L.T("所有数字格填满时触发的回调。", "Callback invoked when all digits have been filled in.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("验证码输入框是否禁用。", "Whether the OTP input is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">
+                    @L.T("输入框是否为必填。", "Whether the input is required.")
+                </ApiParameter>
+                <ApiParameter Name="ShowSeparator" Type="bool" Default="true">
+                    @L.T("是否在数字分组之间显示分隔符。", "Whether to show separators between digit groups.")
+                </ApiParameter>
+                <ApiParameter Name="GroupSize" Type="int" Default="3">
+                    @L.T("每组用于摆放分隔符的数字格数量。", "Number of digits per group for separator placement.")
+                </ApiParameter>
+                <ApiParameter Name="Separator" Type="RenderFragment?" Default="null">
+                    @L.T("自定义分隔符内容。未提供时默认为短横线字符。", "Custom separator content. Defaults to a dash character when not provided.")
+                </ApiParameter>
+                <ApiParameter Name="Size" Type="InputOTPSize" Default="Default">
+                    @L.T("输入框的尺寸变体。可选值：Small、Default、Large。", "Size variant for the input boxes. Options: Small, Default, Large.")
+                </ApiParameter>
+                <ApiParameter Name="Mask" Type="bool" Default="false">
+                    @L.T("是否用星号（*）遮蔽输入值。内部仍然记录真实值。", "Whether to mask input values with asterisks (*). The actual value is still tracked internally.")
+                </ApiParameter>
+                <ApiParameter Name="InputMode" Type="InputOTPInputMode" Default="Numbers">
+                    @L.T("可输入的字符类型。可选值：Numbers、Letters、LettersAndNumbers。", "The types of characters accepted. Options: Numbers, Letters, LettersAndNumbers.")
+                </ApiParameter>
+                <ApiParameter Name="InputClass" Type="string?" Default="null">
+                    @L.T("应用到每个验证码输入框的附加 CSS 类。", "Additional CSS classes applied to each individual OTP input box.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("外层容器的附加 CSS 类。", "Additional CSS classes for the outer container.")
+                </ApiParameter>
+                <ApiParameter Name="Name" Type="string?" Default="null">
+                    @L.T("隐藏输入框的 HTML name 特性。在 EditForm 内会依据 ValueExpression 自动推导。", "HTML name attribute for the hidden input. Auto-derived from ValueExpression inside an EditForm.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string? _otpValue;
+    private string? _verifyOtp;
+    private string? _maskedValue;
+    private bool _isComplete;
+
+    private void HandleComplete(string value)
+    {
+        _isComplete = true;
+    }
+
+    private OTPFormModel otpFormModel = new();
+    private string? otpFormMessage;
+
+    private void HandleOTPFormSubmit()
+    {
+        otpFormMessage = L.IsChinese
+            ? $"表单已提交！验证码：{otpFormModel.VerificationCode}"
+            : $"Form submitted! Code: {otpFormModel.VerificationCode}";
+    }
+
+    private void ResetOTPForm()
+    {
+        otpFormModel = new();
+        otpFormMessage = null;
+    }
+
+    private class OTPFormModel
+    {
+        [Required(ErrorMessage = "Verification code is required.")]
+        [StringLength(6, MinimumLength = 6, ErrorMessage = "Please enter all 6 digits.")]
+        public string? VerificationCode { get; set; }
+    }
+}

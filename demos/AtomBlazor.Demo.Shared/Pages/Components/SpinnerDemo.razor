@@ -1,0 +1,238 @@
+@page "/components/spinner"
+<PageTitle>@L.T("Spinner 加载指示 - Atom BlazorUI", "Spinner Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Spinner 加载指示", "Spinner Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("显示某个操作正在进行的加载指示器。", "A loading indicator that shows an operation is in progress.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基础示例", "Basic Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个简单的旋转加载指示器。", "A simple spinning loading indicator.")
+            </p>
+        </div>
+        <Spinner />
+        <CodeBlock Source="Components/Spinner/basic.txt" />
+    </div>
+
+    <!-- Sizes -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("尺寸", "Sizes")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("加载指示器提供三种尺寸，适用于不同场景。", "Spinners come in three sizes for different contexts.")
+            </p>
+        </div>
+        <div class="flex items-center gap-8">
+            <div class="flex flex-col items-center gap-2">
+                <Spinner Size="SpinnerSize.Small" />
+                <span class="text-sm text-muted-foreground">@L.T("小", "Small")</span>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+                <Spinner Size="SpinnerSize.Default" />
+                <span class="text-sm text-muted-foreground">@L.T("默认", "Default")</span>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+                <Spinner Size="SpinnerSize.Large" />
+                <span class="text-sm text-muted-foreground">@L.T("大", "Large")</span>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Spinner/sizes.txt" />
+    </div>
+
+    <!-- In Buttons -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("加载按钮", "Loading Buttons")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("在按钮内使用加载指示器来表示加载状态。", "Use spinners inside buttons to indicate loading states.")
+            </p>
+        </div>
+        <div class="flex flex-wrap gap-4">
+            <Button Disabled="true">
+                <Spinner Size="SpinnerSize.Small" Class="mr-2" />
+                @L.T("请稍候", "Please wait")
+            </Button>
+            <Button Variant="ButtonVariant.Outline" Disabled="true">
+                <Spinner Size="SpinnerSize.Small" Class="mr-2" />
+                @L.T("加载中...", "Loading...")
+            </Button>
+            <Button Variant="ButtonVariant.Secondary" Disabled="true">
+                <Spinner Size="SpinnerSize.Small" Class="mr-2" />
+                @L.T("保存中", "Saving")
+            </Button>
+        </div>
+        <CodeBlock Source="Components/Spinner/loading-buttons.txt" />
+    </div>
+
+    <!-- Interactive Button -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("交互示例", "Interactive Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("点击按钮以模拟一次加载操作。", "Click the button to simulate a loading operation.")
+            </p>
+        </div>
+        <Button Disabled="@_isLoading" OnClick="@SimulateLoading">
+            @if (_isLoading)
+            {
+                <Spinner Size="SpinnerSize.Small" Class="mr-2" />
+                <span>@L.T("处理中...", "Processing...")</span>
+            }
+            else
+            {
+                <span>@L.T("提交", "Submit")</span>
+            }
+        </Button>
+        <CodeBlock Source="Components/Spinner/interactive.txt" />
+    </div>
+
+    <!-- Custom Colors -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义颜色", "Custom Colors")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("用自定义类覆盖加载指示器的颜色。", "Override the spinner color with custom classes.")
+            </p>
+        </div>
+        <div class="flex items-center gap-8">
+            <div class="flex flex-col items-center gap-2">
+                <Spinner Class="text-blue-500" />
+                <span class="text-sm text-muted-foreground">@L.T("蓝色", "Blue")</span>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+                <Spinner Class="text-green-500" />
+                <span class="text-sm text-muted-foreground">@L.T("绿色", "Green")</span>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+                <Spinner Class="text-red-500" />
+                <span class="text-sm text-muted-foreground">@L.T("红色", "Red")</span>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+                <Spinner Class="text-purple-500" />
+                <span class="text-sm text-muted-foreground">@L.T("紫色", "Purple")</span>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Spinner/custom-colors.txt" />
+    </div>
+
+    <!-- Loading States -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("加载状态", "Loading States")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("展示加载状态的常见模式。", "Common patterns for displaying loading states.")
+            </p>
+        </div>
+        <div class="space-y-4">
+            <!-- Centered Loading -->
+            <div class="border rounded-lg p-8 flex items-center justify-center">
+                <div class="flex flex-col items-center gap-2">
+                    <Spinner Size="SpinnerSize.Large" />
+                    <span class="text-sm text-muted-foreground">@L.T("正在加载内容...", "Loading content...")</span>
+                </div>
+            </div>
+
+            <!-- Inline Loading -->
+            <div class="border rounded-lg p-4 flex items-center gap-3">
+                <Spinner Size="SpinnerSize.Small" />
+                <span class="text-sm">@L.T("正在从服务器获取数据...", "Fetching data from server...")</span>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Spinner/loading-states.txt" />
+    </div>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">role="status"</code> 向辅助技术播报加载状态
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">role="status"</code> announces loading state to assistive technology
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> 默认为 "Loading"，可通过 AriaLabel 参数自定义
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> defaults to "Loading" and can be customized via the AriaLabel parameter
+                    </text>
+                }
+            </AccessibilityItem>
+        </AriaAttributes>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="Spinner">
+                <ApiParameter Name="Size" Type="SpinnerSize" Default="Default">
+                    @L.T("加载指示器的尺寸。可选项：Small (16px)、Default (24px)、Large (40px)。", "The size of the spinner. Options: Small (16px), Default (24px), Large (40px).")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("要应用的额外 CSS 类。可用 text-* 类改变颜色。", "Additional CSS classes to apply. Use text-* classes to change color.")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="Loading">
+                    @L.T("供读屏软件使用的可访问标签。", "Accessible label for screen readers.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到根 <code>&lt;svg&gt;</code> 元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            Additional HTML attributes applied to the root <code>&lt;svg&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </ApiParameter>
+                    </text>
+                }
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private bool _isLoading;
+
+    private async Task SimulateLoading()
+    {
+        _isLoading = true;
+        await Task.Delay(2000);
+        _isLoading = false;
+    }
+}

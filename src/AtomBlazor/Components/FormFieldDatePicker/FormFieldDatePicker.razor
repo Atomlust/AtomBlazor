@@ -1,0 +1,38 @@
+@namespace AtomBlazor
+@inherits FormFieldBase
+
+<Field Orientation="@Orientation" IsInvalid="@IsInvalid" Class="@Class">
+    @if (Label is not null)
+    {
+        <FieldLabel>@Label</FieldLabel>
+    }
+    <FieldContent>
+        <DatePicker IsInvalid="@IsInvalid" AriaLabel="@AriaLabel" Value="@Value"
+                      ValueChanged="HandleValueChanged"
+                      ValueExpression="@ValueExpression"
+                      DateFormat="@DateFormat"
+                      Placeholder="@Placeholder"
+                      MinDate="@MinDate"
+                      MaxDate="@MaxDate"
+                      DisabledDates="@DisabledDates"
+                      FirstDayOfWeek="@FirstDayOfWeek"
+                      Editable="@Editable"
+                      InputFormats="@InputFormats"
+                      Disabled="@Disabled"
+                      Required="@Required"
+                      Class="@InputClass"
+                      @attributes="AdditionalAttributes" />
+        @if (!string.IsNullOrEmpty(HelperText) && !IsInvalid)
+        {
+            <FieldDescription Id="@DescriptionId">@HelperText</FieldDescription>
+        }
+        @if (IsInvalid && !string.IsNullOrEmpty(ErrorText))
+        {
+            <FieldError Id="@ErrorId">@ErrorText</FieldError>
+        }
+        else if (HasEditContextErrors)
+        {
+            <FieldError Id="@ErrorId" Errors="@EditContextErrors" />
+        }
+    </FieldContent>
+</Field>

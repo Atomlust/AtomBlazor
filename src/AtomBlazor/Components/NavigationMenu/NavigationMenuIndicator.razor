@@ -1,0 +1,33 @@
+@namespace AtomBlazor
+
+@*
+    Navigation Menu Indicator——活动菜单项的视觉指示器。
+*@
+
+<div class="@CssClass" @attributes="AdditionalAttributes">
+    <div class="atom:relative atom:top-[60%] atom:h-2 atom:w-2 atom:rotate-45 atom:rounded-tl-sm atom:bg-border atom:shadow-md"></div>
+</div>
+
+@code {
+    /// <summary>
+    /// 要应用到指示器的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取指示器计算出的 CSS 类串。
+    /// </summary>
+    private string CssClass => ClassNames.cn(
+        "atom:top-full atom:z-[1] atom:flex atom:h-1.5 atom:items-end atom:justify-center atom:overflow-hidden",
+        "atom:data-[state=visible]:animate-in atom:data-[state=hidden]:animate-out",
+        "atom:data-[state=hidden]:fade-out atom:data-[state=visible]:fade-in",
+        Class
+    );
+}

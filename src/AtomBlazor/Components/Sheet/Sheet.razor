@@ -1,0 +1,70 @@
+@namespace AtomBlazor
+
+@*
+    带样式的面板组件封装。
+    使用 shadcn/ui 的样式封装 Sheet 基元。
+*@
+
+<AtomBlazor.Primitives.SheetPrimitive Open="@Open"
+                 OpenChanged="@OpenChanged"
+                 DefaultOpen="@DefaultOpen"
+                 OnOpenChange="@OnOpenChange"
+                 Side="@Side"
+                 Modal="@Modal"
+                 @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.SheetPrimitive>
+
+@code {
+    /// <summary>
+    /// 在面板内呈现的子内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 控制面板是否打开（受控模式）。
+    /// 为 null 时，面板自行管理自身状态（非受控模式）。
+    /// </summary>
+    [Parameter]
+    public bool? Open { get; set; }
+
+    /// <summary>
+    /// 打开状态发生变化时触发的事件回调。
+    /// 配合 @bind-Open 可实现双向绑定。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>
+    /// 非受控模式下的默认打开状态。
+    /// </summary>
+    [Parameter]
+    public bool DefaultOpen { get; set; } = false;
+
+    /// <summary>
+    /// 面板打开状态发生变化时触发的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OnOpenChange { get; set; }
+
+    /// <summary>
+    /// 面板从哪一侧滑入。
+    /// 默认值为 Right（右侧）。
+    /// </summary>
+    [Parameter]
+    public SheetSide Side { get; set; } = SheetSide.Right;
+
+    /// <summary>
+    /// 面板是否可以通过点击遮罩或按下 Esc 键来关闭。
+    /// 默认值为 true。
+    /// </summary>
+    [Parameter]
+    public bool Modal { get; set; } = true;
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}

@@ -1,0 +1,21 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+
+<a href="@(Disabled ? null : Href)"
+   target="@Target"
+   rel="@EffectiveRel"
+   class="@CssClass"
+   tabindex="@(Disabled ? -1 : 0)"
+   aria-disabled="@(Disabled ? "true" : null)"
+   @onclick="HandleClickAsync"
+   @attributes="AdditionalAttributes">
+    @ChildContent
+    @if (ShowExternalIcon)
+    {
+        <LucideIcon Name="external-link" Class="atom:inline-block atom:h-3 atom:w-3 atom:shrink-0 atom:align-baseline" />
+        @if (string.Equals(Target, "_blank", StringComparison.OrdinalIgnoreCase))
+        {
+            <span class="atom:sr-only">@Localizer["Link.OpensInNewTab"]</span>
+        }
+    }
+</a>

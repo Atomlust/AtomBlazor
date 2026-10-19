@@ -1,0 +1,1106 @@
+@page "/components/tree-view"
+
+<PageTitle>@L.T("Tree View 树形视图 - Atom BlazorUI", "Tree View Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Tree View 树形视图", "Tree View Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("面向文件浏览器、分类浏览、导航树等场景的层级数据展示组件。", "A hierarchical data display for file explorers, category browsers, navigation trees, and more.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+
+        @* --- 1. Basic Tree --- *@
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基础树", "Basic Tree")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("简单的声明式树，支持展开/折叠。点击箭头切换按钮即可展开或折叠分支。", "A simple declarative tree with expand/collapse. Click the chevron toggles to expand or collapse branches.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border p-4">
+                <TreeView TItem="object" SelectionMode="TreeSelectionMode.None">
+                    <AtomBlazor.TreeItem Value="docs" Label="Documents" Icon="folder">
+                        <AtomBlazor.TreeItem Value="reports" Label="Reports" Icon="folder">
+                            <AtomBlazor.TreeItem Value="q1" Label="Q1 Report.pdf" Icon="file-text" />
+                            <AtomBlazor.TreeItem Value="q2" Label="Q2 Report.pdf" Icon="file-text" />
+                        </AtomBlazor.TreeItem>
+                        <AtomBlazor.TreeItem Value="invoices" Label="Invoices" Icon="folder">
+                            <AtomBlazor.TreeItem Value="inv1" Label="Invoice #1001.pdf" Icon="file-text" />
+                            <AtomBlazor.TreeItem Value="inv2" Label="Invoice #1002.pdf" Icon="file-text" />
+                        </AtomBlazor.TreeItem>
+                    </AtomBlazor.TreeItem>
+                    <AtomBlazor.TreeItem Value="images" Label="Images" Icon="folder">
+                        <AtomBlazor.TreeItem Value="logo" Label="logo.png" Icon="image" />
+                        <AtomBlazor.TreeItem Value="banner" Label="banner.jpg" Icon="image" />
+                    </AtomBlazor.TreeItem>
+                    <AtomBlazor.TreeItem Value="readme" Label="README.md" Icon="file" />
+                </TreeView>
+            </div>
+            <CodeBlock Source="Components/TreeView/basic.txt" />
+        </section>
+
+        @* --- 2. Data-Driven Tree (Nested Data) --- *@
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("数据驱动（嵌套数据）", "Data-Driven (Nested Data)")</h2>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            通过 <code>ChildrenProperty</code> 从嵌套对象数据生成树。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            Tree generated from nested object data using <code>ChildrenProperty</code>.
+                        </p>
+                    </text>
+                }
+            </div>
+
+            <div class="rounded-lg border p-4">
+                <TreeView TItem="CategoryNode"
+                            Items="@nestedCategories"
+                            ChildrenProperty="@(c => c.Children)"
+                            TextField="@(c => c.Name)"
+                            ValueField="@(c => c.Id)"
+                            IconField="@(c => c.Icon)"
+                            SelectionMode="TreeSelectionMode.Single"
+                            @bind-SelectedValue="selectedCategory"
+                            DefaultExpandDepth="1" />
+            </div>
+            <p class="text-sm text-muted-foreground">
+                @L.T("已选择：", "Selected:") <strong>@(selectedCategory ?? L.T("无", "None"))</strong>
+            </p>
+            <CodeBlock Source="Components/TreeView/data-driven.txt" />
+        </section>
+
+        @* --- 3. Flat Data with Parent References --- *@
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("扁平数据（父级引用）", "Flat Data (Parent References)")</h2>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            使用 <code>ParentField</code> 引用父级 ID，从扁平数据构建树。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            Tree built from flat data using <code>ParentField</code> to reference parent IDs.
+                        </p>
+                    </text>
+                }
+            </div>
+
+            <div class="rounded-lg border p-4">
+                <TreeView TItem="FlatNode"
+                            Items="@flatNodes"
+                            ParentField="@(n => n.ParentId)"
+                            TextField="@(n => n.Name)"
+                            ValueField="@(n => n.Id)"
+                            SelectionMode="TreeSelectionMode.Multiple"
+                            @bind-SelectedValues="selectedFlatIds"
+                            DefaultExpandAll="true" />
+            </div>
+            <p class="text-sm text-muted-foreground">
+                @L.T("已选择：", "Selected:") <strong>@(selectedFlatIds.Count > 0 ? string.Join(", ", selectedFlatIds) : L.T("无", "None"))</strong>
+            </p>
+            <CodeBlock Source="Components/TreeView/flat-data.txt" />
+        </section>
+
+        @* --- 4. Single and Multi-Selection --- *@
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("选择模式", "Selection Modes")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("单选模式：只能选中一个节点。多选模式：可同时勾选多个节点。", "Single selection: only one node can be selected. Multiple selection: toggle multiple nodes.")
+                </p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="rounded-lg border p-4">
+                    <p class="text-sm font-medium mb-2">@L.T("单选", "Single Selection")</p>
+                    <TreeView TItem="object" SelectionMode="TreeSelectionMode.Single" @bind-SelectedValue="singleSelectedValue">
+                        <AtomBlazor.TreeItem Value="fruits" Label="Fruits" Icon="apple">
+                            <AtomBlazor.TreeItem Value="apple" Label="Apple" />
+                            <AtomBlazor.TreeItem Value="banana" Label="Banana" />
+                            <AtomBlazor.TreeItem Value="cherry" Label="Cherry" />
+                        </AtomBlazor.TreeItem>
+                        <AtomBlazor.TreeItem Value="vegetables" Label="Vegetables" Icon="salad">
+                            <AtomBlazor.TreeItem Value="carrot" Label="Carrot" />
+                            <AtomBlazor.TreeItem Value="broccoli" Label="Broccoli" />
+                        </AtomBlazor.TreeItem>
+                    </TreeView>
+                    <p class="text-xs text-muted-foreground mt-2">@L.T("已选择：", "Selected:") @(singleSelectedValue ?? L.T("无", "None"))</p>
+                </div>
+
+                <div class="rounded-lg border p-4">
+                    <p class="text-sm font-medium mb-2">@L.T("多选", "Multiple Selection")</p>
+                    <TreeView TItem="object" SelectionMode="TreeSelectionMode.Multiple" @bind-SelectedValues="multiSelectedValues">
+                        <AtomBlazor.TreeItem Value="red" Label="Red" />
+                        <AtomBlazor.TreeItem Value="green" Label="Green" />
+                        <AtomBlazor.TreeItem Value="blue" Label="Blue" />
+                        <AtomBlazor.TreeItem Value="yellow" Label="Yellow" />
+                        <AtomBlazor.TreeItem Value="purple" Label="Purple" />
+                    </TreeView>
+                    <p class="text-xs text-muted-foreground mt-2">@L.T("已选择：", "Selected:") @(multiSelectedValues.Count > 0 ? string.Join(", ", multiSelectedValues) : L.T("无", "None"))</p>
+                </div>
+            </div>
+            <CodeBlock Source="Components/TreeView/selection.txt" />
+        </section>
+
+        @* --- 5. Checkable Tree with Cascade --- *@
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("可勾选树", "Checkable Tree")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("三态复选框并带父子级联。勾选父节点会选中其全部后代；只勾选部分子节点时，父节点呈半选状态。", "Tri-state checkboxes with parent/child cascade. Checking a parent checks all descendants. Checking some children puts the parent in indeterminate state.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border p-4">
+                <TreeView TItem="object" Checkable="true" @bind-CheckedValues="checkedPermissions" DefaultExpandAll="true">
+                    <AtomBlazor.TreeItem Value="admin" Label="Administration" Icon="shield">
+                        <AtomBlazor.TreeItem Value="users" Label="User Management" Icon="users">
+                            <AtomBlazor.TreeItem Value="user-create" Label="Create Users" />
+                            <AtomBlazor.TreeItem Value="user-edit" Label="Edit Users" />
+                            <AtomBlazor.TreeItem Value="user-delete" Label="Delete Users" />
+                        </AtomBlazor.TreeItem>
+                        <AtomBlazor.TreeItem Value="settings" Label="Settings" Icon="settings">
+                            <AtomBlazor.TreeItem Value="settings-general" Label="General Settings" />
+                            <AtomBlazor.TreeItem Value="settings-security" Label="Security Settings" />
+                        </AtomBlazor.TreeItem>
+                    </AtomBlazor.TreeItem>
+                    <AtomBlazor.TreeItem Value="content" Label="Content" Icon="file-text">
+                        <AtomBlazor.TreeItem Value="content-create" Label="Create Content" />
+                        <AtomBlazor.TreeItem Value="content-edit" Label="Edit Content" />
+                        <AtomBlazor.TreeItem Value="content-publish" Label="Publish Content" />
+                    </AtomBlazor.TreeItem>
+                </TreeView>
+            </div>
+            <p class="text-sm text-muted-foreground">
+                @L.T("已勾选：", "Checked:") <strong>@(checkedPermissions.Count > 0 ? string.Join(", ", checkedPermissions) : L.T("无", "None"))</strong>
+            </p>
+            <CodeBlock Source="Components/TreeView/checkable.txt" />
+        </section>
+
+        @* --- 6. Lazy Loading --- *@
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("懒加载", "Lazy Loading")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("节点首次展开时才按需加载子级。加载期间显示 spinner，结果会被缓存。", "Children are loaded on demand when a node is expanded for the first time. A loading spinner appears during fetch, and results are cached.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border p-4">
+                <TreeView TItem="LazyNode"
+                            Items="@lazyRootNodes"
+                            TextField="@(n => n.Name)"
+                            ValueField="@(n => n.Id)"
+                            IconField="@(n => n.Icon)"
+                            HasChildrenField="@(n => n.HasChildren)"
+                            OnLoadChildren="LoadLazyChildren"
+                            SelectionMode="TreeSelectionMode.Single"
+                            @bind-SelectedValue="selectedLazyNode" />
+            </div>
+            <CodeBlock Source="Components/TreeView/lazy-loading.txt" />
+        </section>
+
+        @* --- 7. Drag and Drop --- *@
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("拖放", "Drag and Drop")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("拖动节点可在树内重新排序或变更父级。放置指示线会标出节点将落位的位置（目标节点之前、之后或内部）。", "Drag nodes to reorder or reparent within the tree. Drop indicators show where the node will be placed (before, after, or inside a target node).")
+                </p>
+            </div>
+
+            <div class="rounded-lg border p-4">
+                <TreeView TItem="DragNode"
+                            Items="@dragItems"
+                            ChildrenProperty="@(n => n.Children)"
+                            TextField="@(n => n.Name)"
+                            ValueField="@(n => n.Id)"
+                            IconField="@(n => n.Icon)"
+                            Draggable="true"
+                            OnNodeDrop="HandleDrop"
+                            DefaultExpandAll="true"
+                            SelectionMode="TreeSelectionMode.Single" />
+            </div>
+            <p class="text-sm text-muted-foreground">@dragMessage</p>
+            <CodeBlock Source="Components/TreeView/drag-drop.txt" />
+        </section>
+
+        @* --- 8. Search and Filter --- *@
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("搜索与过滤", "Search and Filter")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("内置搜索框会过滤可见节点并自动展开匹配分支，命中文本会高亮显示。", "Built-in search input filters visible nodes and auto-expands matching branches. Matching text is highlighted.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border p-4">
+                <TreeView TItem="CategoryNode"
+                            Items="@nestedCategories"
+                            ChildrenProperty="@(c => c.Children)"
+                            TextField="@(c => c.Name)"
+                            ValueField="@(c => c.Id)"
+                            IconField="@(c => c.Icon)"
+                            ShowSearch="true"
+                            SearchPlaceholder="@(L.T("搜索分类…", "Search categories..."))"
+                            SelectionMode="TreeSelectionMode.Single"
+                            DefaultExpandDepth="1" />
+            </div>
+            <CodeBlock Source="Components/TreeView/search.txt" />
+        </section>
+
+        @* --- 9. Custom Node Templates --- *@
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("自定义节点模板", "Custom Node Templates")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("使用自定义标签模板的节点，以及悬停时显示的操作按钮。", "Nodes with custom label templates and action buttons that appear on hover.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border p-4">
+                <TreeView TItem="object" SelectionMode="TreeSelectionMode.Single">
+                    <AtomBlazor.TreeItem Value="project" Label="My Project" Icon="folder">
+                        <AtomBlazor.TreeItem Value="src" Icon="folder">
+                            <LabelTemplate>
+                                <span class="font-medium">src</span>
+                                <span class="text-xs text-muted-foreground ml-1">(source code)</span>
+                            </LabelTemplate>
+                            <ActionsTemplate>
+                                <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Icon" Class="h-6 w-6">
+                                    <LucideIcon Name="plus" Size="14" />
+                                </Button>
+                            </ActionsTemplate>
+                            <ChildContent>
+                                <AtomBlazor.TreeItem Value="app.cs" Label="App.cs" Icon="file-code" />
+                                <AtomBlazor.TreeItem Value="program.cs" Label="Program.cs" Icon="file-code" />
+                            </ChildContent>
+                        </AtomBlazor.TreeItem>
+                        <AtomBlazor.TreeItem Value="tests" Icon="folder">
+                            <LabelTemplate>
+                                <span class="font-medium">tests</span>
+                                <Badge Variant="BadgeVariant.Outline" Class="ml-1 text-xs px-1 py-0 h-4">2 files</Badge>
+                            </LabelTemplate>
+                            <ChildContent>
+                                <AtomBlazor.TreeItem Value="test1.cs" Label="AppTests.cs" Icon="file-code" />
+                                <AtomBlazor.TreeItem Value="test2.cs" Label="UtilTests.cs" Icon="file-code" />
+                            </ChildContent>
+                        </AtomBlazor.TreeItem>
+                    </AtomBlazor.TreeItem>
+                </TreeView>
+            </div>
+            <CodeBlock Source="Components/TreeView/custom-templates.txt" />
+        </section>
+
+        @* --- 10. Icons and Badges --- *@
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("图标与徽标", "Icons and Badges")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("带 Lucide 图标与计数徽标的节点。", "Nodes with Lucide icons and count badges.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border p-4">
+                <TreeView TItem="object" SelectionMode="TreeSelectionMode.Single">
+                    <AtomBlazor.TreeItem Value="inbox" Label="Inbox" Icon="inbox" Badge="12">
+                        <AtomBlazor.TreeItem Value="primary" Label="Primary" Icon="mail" Badge="8" />
+                        <AtomBlazor.TreeItem Value="social" Label="Social" Icon="users" Badge="3" />
+                        <AtomBlazor.TreeItem Value="promotions" Label="Promotions" Icon="tag" Badge="1" />
+                    </AtomBlazor.TreeItem>
+                    <AtomBlazor.TreeItem Value="sent" Label="Sent" Icon="send" />
+                    <AtomBlazor.TreeItem Value="drafts" Label="Drafts" Icon="file-pen" Badge="2" />
+                    <AtomBlazor.TreeItem Value="trash" Label="Trash" Icon="trash-2" />
+                </TreeView>
+            </div>
+            <CodeBlock Source="Components/TreeView/icons-badges.txt" />
+        </section>
+
+        @* --- 11. Controlled Tree --- *@
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("受控树", "Controlled Tree")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("由外部状态管理展开/折叠。用按钮以编程方式控制树。", "External state management for expand/collapse. Use buttons to control the tree programmatically.")
+                </p>
+            </div>
+
+            <div class="flex gap-2 mb-2">
+                <Button Size="ButtonSize.Small" OnClick="ExpandAllControlled">@L.T("全部展开", "Expand All")</Button>
+                <Button Size="ButtonSize.Small" Variant="ButtonVariant.Outline" OnClick="CollapseAllControlled">@L.T("全部折叠", "Collapse All")</Button>
+            </div>
+
+            <div class="rounded-lg border p-4">
+                <TreeView TItem="object" @bind-ExpandedValues="controlledExpandedValues" SelectionMode="TreeSelectionMode.Single">
+                    <AtomBlazor.TreeItem Value="c-root" Label="Root" Icon="folder">
+                        <AtomBlazor.TreeItem Value="c-branch1" Label="Branch 1" Icon="folder">
+                            <AtomBlazor.TreeItem Value="c-leaf1" Label="Leaf 1" Icon="file" />
+                            <AtomBlazor.TreeItem Value="c-leaf2" Label="Leaf 2" Icon="file" />
+                        </AtomBlazor.TreeItem>
+                        <AtomBlazor.TreeItem Value="c-branch2" Label="Branch 2" Icon="folder">
+                            <AtomBlazor.TreeItem Value="c-leaf3" Label="Leaf 3" Icon="file" />
+                        </AtomBlazor.TreeItem>
+                    </AtomBlazor.TreeItem>
+                </TreeView>
+            </div>
+            <CodeBlock Source="Components/TreeView/controlled.txt" />
+        </section>
+
+        @* --- 12. Expand on Click --- *@
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("点击展开", "Expand on Click")</h2>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            启用 <code>ExpandOnClick</code> 后，点击父节点任意位置即可切换其展开状态——无需再点击箭头。对比下面的两棵树。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            With <code>ExpandOnClick</code>, clicking anywhere on a parent node toggles its
+                            expanded state — no need to click the chevron. Compare the two trees below.
+                        </p>
+                    </text>
+                }
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="rounded-lg border p-4">
+                    <p class="text-sm font-medium mb-2">@L.T("默认（仅箭头可切换）", "Default (chevron only)")</p>
+                    <TreeView TItem="object" SelectionMode="TreeSelectionMode.Single">
+                        <AtomBlazor.TreeItem Value="eoc-music" Label="Music" Icon="music">
+                            <AtomBlazor.TreeItem Value="eoc-rock" Label="Rock" Icon="disc">
+                                <AtomBlazor.TreeItem Value="eoc-classic-rock" Label="Classic Rock" />
+                                <AtomBlazor.TreeItem Value="eoc-alt-rock" Label="Alternative" />
+                            </AtomBlazor.TreeItem>
+                            <AtomBlazor.TreeItem Value="eoc-jazz" Label="Jazz" Icon="disc" />
+                            <AtomBlazor.TreeItem Value="eoc-electronic" Label="Electronic" Icon="disc" />
+                        </AtomBlazor.TreeItem>
+                        <AtomBlazor.TreeItem Value="eoc-podcasts" Label="Podcasts" Icon="podcast">
+                            <AtomBlazor.TreeItem Value="eoc-tech" Label="Technology" />
+                            <AtomBlazor.TreeItem Value="eoc-science" Label="Science" />
+                        </AtomBlazor.TreeItem>
+                    </TreeView>
+                </div>
+
+                <div class="rounded-lg border p-4">
+                    <p class="text-sm font-medium mb-2">@L.T("已启用 ExpandOnClick", "ExpandOnClick enabled")</p>
+                    <TreeView TItem="object" SelectionMode="TreeSelectionMode.Single" ExpandOnClick="true">
+                        <AtomBlazor.TreeItem Value="eoc2-music" Label="Music" Icon="music">
+                            <AtomBlazor.TreeItem Value="eoc2-rock" Label="Rock" Icon="disc">
+                                <AtomBlazor.TreeItem Value="eoc2-classic-rock" Label="Classic Rock" />
+                                <AtomBlazor.TreeItem Value="eoc2-alt-rock" Label="Alternative" />
+                            </AtomBlazor.TreeItem>
+                            <AtomBlazor.TreeItem Value="eoc2-jazz" Label="Jazz" Icon="disc" />
+                            <AtomBlazor.TreeItem Value="eoc2-electronic" Label="Electronic" Icon="disc" />
+                        </AtomBlazor.TreeItem>
+                        <AtomBlazor.TreeItem Value="eoc2-podcasts" Label="Podcasts" Icon="podcast">
+                            <AtomBlazor.TreeItem Value="eoc2-tech" Label="Technology" />
+                            <AtomBlazor.TreeItem Value="eoc2-science" Label="Science" />
+                        </AtomBlazor.TreeItem>
+                    </TreeView>
+                </div>
+            </div>
+            <CodeBlock Source="Components/TreeView/expand-on-click.txt" />
+        </section>
+
+        @* --- 13. Custom Styling --- *@
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("自定义样式", "Custom Styling")</h2>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            在 <code>TreeItem</code> 上使用 <code>Class</code> 参数为单个节点应用自定义样式，
+                            树级别的 <code>Class</code> 参数则用于容器样式。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            Use the <code>Class</code> parameter on <code>TreeItem</code> to apply custom styles per node,
+                            and the tree-level <code>Class</code> parameter for container styling.
+                        </p>
+                    </text>
+                }
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="rounded-lg border p-4">
+                    <p class="text-sm font-medium mb-2">@L.T("按状态着色节点", "Status-colored nodes")</p>
+                    <TreeView TItem="object" SelectionMode="TreeSelectionMode.Single" DefaultExpandAll="true">
+                        <AtomBlazor.TreeItem Value="cs-pipeline" Label="Deploy Pipeline" Icon="git-branch">
+                            <AtomBlazor.TreeItem Value="cs-build" Label="Build" Icon="hammer" Class="text-green-600 dark:text-green-400" />
+                            <AtomBlazor.TreeItem Value="cs-test" Label="Test" Icon="test-tubes" Class="text-green-600 dark:text-green-400" />
+                            <AtomBlazor.TreeItem Value="cs-lint" Label="Lint" Icon="search-check" Class="text-yellow-600 dark:text-yellow-400" />
+                            <AtomBlazor.TreeItem Value="cs-deploy" Label="Deploy" Icon="rocket" Class="text-red-600 dark:text-red-400" />
+                        </AtomBlazor.TreeItem>
+                    </TreeView>
+                </div>
+
+                <div class="rounded-lg border p-4">
+                    <p class="text-sm font-medium mb-2">@L.T("紧凑样式与自定义容器", "Compact with custom container")</p>
+                    <TreeView TItem="object"
+                                SelectionMode="TreeSelectionMode.Single"
+                                DefaultExpandAll="true"
+                                Class="text-xs bg-muted/30 rounded-md p-2"
+                                ShowIcons="false">
+                        <AtomBlazor.TreeItem Value="cs2-app" Label="app/">
+                            <AtomBlazor.TreeItem Value="cs2-layout" Label="layout.tsx" />
+                            <AtomBlazor.TreeItem Value="cs2-page" Label="page.tsx" />
+                            <AtomBlazor.TreeItem Value="cs2-api" Label="api/">
+                                <AtomBlazor.TreeItem Value="cs2-route" Label="route.ts" />
+                            </AtomBlazor.TreeItem>
+                        </AtomBlazor.TreeItem>
+                        <AtomBlazor.TreeItem Value="cs2-public" Label="public/">
+                            <AtomBlazor.TreeItem Value="cs2-favicon" Label="favicon.ico" />
+                        </AtomBlazor.TreeItem>
+                        <AtomBlazor.TreeItem Value="cs2-package" Label="package.json" />
+                    </TreeView>
+                </div>
+            </div>
+            <CodeBlock Source="Components/TreeView/custom-styling.txt" />
+        </section>
+
+        @* --- 14. File Explorer Example --- *@
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("文件浏览器", "File Explorer")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("综合了选择、图标、徽标与搜索的完整文件浏览器示例。", "A comprehensive file explorer combining selection, icons, badges, and search.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border p-4">
+                <TreeView TItem="CategoryNode"
+                            Items="@fileExplorerData"
+                            ChildrenProperty="@(n => n.Children)"
+                            TextField="@(n => n.Name)"
+                            ValueField="@(n => n.Id)"
+                            IconField="@(n => n.Icon)"
+                            ShowSearch="true"
+                            SearchPlaceholder="@(L.T("搜索文件…", "Search files..."))"
+                            SelectionMode="TreeSelectionMode.Single"
+                            @bind-SelectedValue="selectedFile"
+                            DefaultExpandDepth="2"
+                            ShowLines="true" />
+            </div>
+            <p class="text-sm text-muted-foreground">
+                @L.T("已选择文件：", "Selected file:") <strong>@(selectedFile ?? L.T("无", "None"))</strong>
+            </p>
+            <CodeBlock Source="Components/TreeView/file-explorer.txt" />
+        </section>
+
+        @* --- Accessibility --- *@
+        <AccessibilityList>
+            <AriaAttributes>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>根容器使用 <code>role="tree"</code>，每个节点使用 <code>role="treeitem"</code></text>
+                    }
+                    else
+                    {
+                        <text>Uses <code>role="tree"</code> on the root container and <code>role="treeitem"</code> on each node</text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>父节点带 <code>aria-expanded</code> 标示展开/折叠状态</text>
+                    }
+                    else
+                    {
+                        <text>Includes <code>aria-expanded</code> on parent nodes to indicate expand/collapse state</text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>启用选择时，节点带 <code>aria-selected</code></text>
+                    }
+                    else
+                    {
+                        <text>Includes <code>aria-selected</code> on nodes when selection is enabled</text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>可勾选节点带 <code>aria-checked</code></text>
+                    }
+                    else
+                    {
+                        <text>Includes <code>aria-checked</code> on checkable nodes</text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>用 <code>aria-level</code>、<code>aria-setsize</code> 与 <code>aria-posinset</code> 描述树结构</text>
+                    }
+                    else
+                    {
+                        <text>Uses <code>aria-level</code>, <code>aria-setsize</code>, and <code>aria-posinset</code> for tree structure</text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>树根支持 <code>aria-label</code>，便于读屏软件播报</text>
+                    }
+                    else
+                    {
+                        <text>Supports <code>aria-label</code> on the tree root for screen readers</text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>禁用节点带 <code>aria-disabled="true"</code></text>
+                    }
+                    else
+                    {
+                        <text>Disabled nodes include <code>aria-disabled="true"</code></text>
+                    }
+                </AccessibilityItem>
+            </AriaAttributes>
+            <KeyboardNavigation>
+                <KeyboardShortcutItem Description="@(L.T("将焦点移到下一个可见节点", "Move focus to the next visible node"))">
+                    <Kbd>ArrowDown</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("将焦点移到上一个可见节点", "Move focus to the previous visible node"))">
+                    <Kbd>ArrowUp</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("展开当前聚焦的节点（若已展开则移到第一个子节点）", "Expand the focused node (or move to first child if already expanded)"))">
+                    <Kbd>ArrowRight</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("折叠当前聚焦的节点（若已折叠则移到父节点）", "Collapse the focused node (or move to parent if already collapsed)"))">
+                    <Kbd>ArrowLeft</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("将焦点移到树中的第一个节点", "Move focus to the first node in the tree"))">
+                    <Kbd>Home</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("将焦点移到树中最后一个可见节点", "Move focus to the last visible node in the tree"))">
+                    <Kbd>End</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("选中聚焦的节点或切换其复选框", "Select the focused node or toggle its checkbox"))">
+                    <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("展开当前层级的全部同级节点", "Expand all siblings at the current level"))">
+                    <Kbd>*</Kbd>
+                </KeyboardShortcutItem>
+            </KeyboardNavigation>
+        </AccessibilityList>
+
+        @* --- API Reference --- *@
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+                <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+            </div>
+            <div class="space-y-4">
+                <ApiReference ComponentName="TreeView&lt;TItem&gt;">
+                    <ApiParameter Name="Items" Type="IEnumerable&lt;TItem&gt;?" Default="null">
+                        @L.T("数据驱动模式的数据源。提供后，节点依据数据渲染。", "Data source for data-driven mode. When provided, nodes are rendered from the data.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildrenProperty" Type="Func&lt;TItem, IEnumerable&lt;TItem&gt;?&gt;?" Default="null">
+                        @L.T("从父项获取子项的函数（嵌套数据模式）。", "Function to get child items from a parent item (nested data mode).")
+                    </ApiParameter>
+                    <ApiParameter Name="ParentField" Type="Func&lt;TItem, string?&gt;?" Default="null">
+                        @L.T("从条目获取父级 ID 的函数（扁平数据模式）。", "Function to get the parent ID from an item (flat data mode).")
+                    </ApiParameter>
+                    <ApiParameter Name="TextField" Type="Func&lt;TItem, string&gt;?" Default="null">
+                        @L.T("从条目获取显示文本的函数。", "Function to get display text from an item.")
+                    </ApiParameter>
+                    <ApiParameter Name="ValueField" Type="Func&lt;TItem, string&gt;?" Default="null">
+                        @L.T("从条目获取唯一值/ID 的函数。", "Function to get the unique value/ID from an item.")
+                    </ApiParameter>
+                    <ApiParameter Name="IconField" Type="Func&lt;TItem, string?&gt;?" Default="null">
+                        @L.T("从条目获取 Lucide 图标名的函数。", "Function to get a Lucide icon name from an item.")
+                    </ApiParameter>
+                    <ApiParameter Name="HasChildrenField" Type="Func&lt;TItem, bool&gt;?" Default="null">
+                        @L.T("判断条目是否有子级的函数（用于懒加载）。", "Function to determine if an item has children (for lazy loading).")
+                    </ApiParameter>
+                    <ApiParameter Name="SelectionMode" Type="TreeSelectionMode" Default="None">
+                        @L.T("选择模式：None、Single 或 Multiple。", "Selection mode: None, Single, or Multiple.")
+                    </ApiParameter>
+                    <ApiParameter Name="SelectedValue" Type="string?" Default="null">
+                        @L.T("单选模式下的选中值（支持双向绑定）。", "Selected value in single selection mode (two-way bindable).")
+                    </ApiParameter>
+                    <ApiParameter Name="SelectedValues" Type="HashSet&lt;string&gt;?" Default="null">
+                        @L.T("多选模式下的选中值集合（支持双向绑定）。", "Selected values in multiple selection mode (two-way bindable).")
+                    </ApiParameter>
+                    <ApiParameter Name="ExpandedValues" Type="HashSet&lt;string&gt;?" Default="null">
+                        @L.T("控制哪些节点处于展开状态（支持双向绑定）。", "Controls which nodes are expanded (two-way bindable).")
+                    </ApiParameter>
+                    <ApiParameter Name="DefaultExpandAll" Type="bool" Default="false">
+                        @L.T("初次渲染时是否展开全部节点。", "Whether to expand all nodes on initial render.")
+                    </ApiParameter>
+                    <ApiParameter Name="DefaultExpandDepth" Type="int?" Default="null">
+                        @L.T("初次渲染时展开到指定深度。", "Expand nodes to this depth on initial render.")
+                    </ApiParameter>
+                    <ApiParameter Name="Checkable" Type="bool" Default="false">
+                        @L.T("节点是否显示三态复选框。", "Whether nodes display tri-state checkboxes.")
+                    </ApiParameter>
+                    <ApiParameter Name="CheckStrictly" Type="bool" Default="false">
+                        @L.T("为 true 时禁用父子复选框级联，每个复选框相互独立。", "When true, disables parent/child checkbox cascade. Each checkbox is independent.")
+                    </ApiParameter>
+                    <ApiParameter Name="CheckedValues" Type="HashSet&lt;string&gt;?" Default="null">
+                        @L.T("已勾选的节点值（支持双向绑定）。", "Checked node values (two-way bindable).")
+                    </ApiParameter>
+                    <ApiParameter Name="ShowLines" Type="bool" Default="false">
+                        @L.T("是否显示节点之间的连接线。", "Whether to show connector lines between nodes.")
+                    </ApiParameter>
+                    <ApiParameter Name="ShowIcons" Type="bool" Default="true">
+                        @L.T("是否显示节点图标。", "Whether to show node icons.")
+                    </ApiParameter>
+                    <ApiParameter Name="ShowSearch" Type="bool" Default="false">
+                        @L.T("是否显示内置搜索框。", "Whether to show the built-in search input.")
+                    </ApiParameter>
+                    <ApiParameter Name="SearchPlaceholder" Type="string" Default="&quot;Search...&quot;">
+                        @L.T("搜索输入框的占位文本。", "Placeholder text for the search input.")
+                    </ApiParameter>
+                    <ApiParameter Name="ExpandOnClick" Type="bool" Default="false">
+                        @L.T("点击父节点是否同时切换其展开状态。为 true 时，点击含子级节点内的任意位置都会在选中之外展开或折叠该节点。", "Whether clicking a parent node also toggles its expanded state. When true, clicking anywhere on a node with children expands or collapses it in addition to selecting it.")
+                    </ApiParameter>
+                    <ApiParameter Name="Draggable" Type="bool" Default="false">
+                        @L.T("是否启用拖放。", "Whether drag and drop is enabled.")
+                    </ApiParameter>
+                    <ApiParameter Name="OnNodeDrop" Type="EventCallback&lt;TreeDropEventArgs&lt;TItem&gt;&gt;">
+                        @L.T("拖放过程中节点被放置时触发的事件回调。", "Event callback when a node is dropped during drag and drop.")
+                    </ApiParameter>
+                    <ApiParameter Name="OnLoadChildren" Type="Func&lt;TItem, Task&lt;IEnumerable&lt;TItem&gt;&gt;&gt;?" Default="null">
+                        @L.T("节点展开时按需加载子级的异步回调。", "Async callback to load children on demand when a node is expanded.")
+                    </ApiParameter>
+                    <ApiParameter Name="OnNodeClick" Type="EventCallback&lt;TItem&gt;">
+                        @L.T("节点被点击时触发。", "Fired when a node is clicked.")
+                    </ApiParameter>
+                    <ApiParameter Name="OnNodeExpand" Type="EventCallback&lt;TItem&gt;">
+                        @L.T("节点展开时触发。", "Fired when a node is expanded.")
+                    </ApiParameter>
+                    <ApiParameter Name="OnNodeCollapse" Type="EventCallback&lt;TItem&gt;">
+                        @L.T("节点折叠时触发。", "Fired when a node is collapsed.")
+                    </ApiParameter>
+                    <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                        @L.T("树根元素的 ARIA 标签。", "ARIA label for the tree root element.")
+                    </ApiParameter>
+                    <ApiParameter Name="Class" Type="string?" Default="null">
+                        @L.T("树容器的附加 CSS 类。", "Additional CSS classes for the tree container.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @if (L.IsChinese)
+                        {
+                            <text>应用到组件根元素的附加 HTML 属性（如 <code>data-testid</code>、<code>aria-label</code>）。</text>
+                        }
+                        else
+                        {
+                            <text>Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).</text>
+                        }
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="TreeItem">
+                    <ApiParameter Name="Value" Type="string" Default="(required)">
+                        @L.T("此节点的唯一值/标识。", "Unique value/identifier for this node.")
+                    </ApiParameter>
+                    <ApiParameter Name="Label" Type="string?" Default="null">
+                        @L.T("节点的显示文本。", "Display text for the node.")
+                    </ApiParameter>
+                    <ApiParameter Name="Icon" Type="string?" Default="null">
+                        @L.T("节点的 Lucide 图标名。", "Lucide icon name for the node.")
+                    </ApiParameter>
+                    <ApiParameter Name="Badge" Type="string?" Default="null">
+                        @L.T("标签后显示的徽标文本。", "Badge text shown after the label.")
+                    </ApiParameter>
+                    <ApiParameter Name="Disabled" Type="bool" Default="false">
+                        @L.T("此节点是否禁用（不可选中或勾选）。", "Whether this node is disabled (cannot be selected or checked).")
+                    </ApiParameter>
+                    <ApiParameter Name="Checkable" Type="bool?" Default="null">
+                        @L.T("对此节点覆盖父树的 checkable 设置。", "Override the parent tree's checkable setting for this node.")
+                    </ApiParameter>
+                    <ApiParameter Name="IsLeaf" Type="bool?" Default="null">
+                        @L.T("显式标记为叶子节点（不显示展开箭头）。", "Explicitly mark as a leaf node (no expand arrow).")
+                    </ApiParameter>
+                    <ApiParameter Name="LabelTemplate" Type="RenderFragment?" Default="null">
+                        @L.T("替换默认文本的自定义标签内容。", "Custom label content replacing the default text.")
+                    </ApiParameter>
+                    <ApiParameter Name="ActionsTemplate" Type="RenderFragment?" Default="null">
+                        @L.T("悬停时显示的操作按钮（如编辑、删除）。", "Action buttons shown on hover (e.g., edit, delete).")
+                    </ApiParameter>
+                    <ApiParameter Name="Class" Type="string?" Default="null">
+                        @L.T("节点行的附加 CSS 类。", "Additional CSS classes for the node row.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @if (L.IsChinese)
+                        {
+                            <text>应用到组件根元素的附加 HTML 属性（如 <code>data-testid</code>、<code>aria-label</code>）。</text>
+                        }
+                        else
+                        {
+                            <text>Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).</text>
+                        }
+                    </ApiParameter>
+                </ApiReference>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    // --- Selection state ---
+    private string? selectedCategory;
+    private HashSet<string> selectedFlatIds = new();
+    private string? singleSelectedValue;
+    private HashSet<string> multiSelectedValues = new();
+    private HashSet<string> checkedPermissions = new();
+    private string? selectedLazyNode;
+    private string? selectedFile;
+    private string dragMessage = "Drag a node to reorder.";
+
+    protected override void OnParametersSet()
+    {
+        // 初始提示随语言快照归位（字段初值早于级联到达）；拖放后的消息不再覆盖。
+        if (dragMessage is "Drag a node to reorder." or "拖动节点可调整顺序。")
+        {
+            dragMessage = L.T("拖动节点可调整顺序。", "Drag a node to reorder.");
+        }
+    }
+
+    // --- Controlled tree ---
+    private HashSet<string> controlledExpandedValues = new() { "c-root" };
+
+    private void ExpandAllControlled()
+    {
+        controlledExpandedValues = new HashSet<string> { "c-root", "c-branch1", "c-branch2" };
+    }
+
+    private void CollapseAllControlled()
+    {
+        controlledExpandedValues = new HashSet<string>();
+    }
+
+    // --- Nested category data ---
+    private List<CategoryNode> nestedCategories = new()
+    {
+        new CategoryNode
+        {
+            Id = "electronics", Name = "Electronics", Icon = "cpu",
+            Children = new List<CategoryNode>
+            {
+                new CategoryNode
+                {
+                    Id = "phones", Name = "Phones", Icon = "smartphone",
+                    Children = new List<CategoryNode>
+                    {
+                        new CategoryNode { Id = "iphone", Name = "iPhone", Icon = "smartphone" },
+                        new CategoryNode { Id = "samsung", Name = "Samsung Galaxy", Icon = "smartphone" },
+                        new CategoryNode { Id = "pixel", Name = "Google Pixel", Icon = "smartphone" }
+                    }
+                },
+                new CategoryNode
+                {
+                    Id = "laptops", Name = "Laptops", Icon = "laptop",
+                    Children = new List<CategoryNode>
+                    {
+                        new CategoryNode { Id = "macbook", Name = "MacBook", Icon = "laptop" },
+                        new CategoryNode { Id = "thinkpad", Name = "ThinkPad", Icon = "laptop" }
+                    }
+                },
+                new CategoryNode { Id = "tablets", Name = "Tablets", Icon = "tablet" }
+            }
+        },
+        new CategoryNode
+        {
+            Id = "clothing", Name = "Clothing", Icon = "shirt",
+            Children = new List<CategoryNode>
+            {
+                new CategoryNode { Id = "mens", Name = "Men's", Icon = "shirt" },
+                new CategoryNode { Id = "womens", Name = "Women's", Icon = "shirt" },
+                new CategoryNode { Id = "kids", Name = "Kids", Icon = "baby" }
+            }
+        },
+        new CategoryNode { Id = "books", Name = "Books", Icon = "book-open" }
+    };
+
+    // --- Flat data ---
+    private List<FlatNode> flatNodes = new()
+    {
+        new FlatNode { Id = "usa", Name = "United States", ParentId = null },
+        new FlatNode { Id = "ca", Name = "California", ParentId = "usa" },
+        new FlatNode { Id = "ny", Name = "New York", ParentId = "usa" },
+        new FlatNode { Id = "tx", Name = "Texas", ParentId = "usa" },
+        new FlatNode { Id = "sf", Name = "San Francisco", ParentId = "ca" },
+        new FlatNode { Id = "la", Name = "Los Angeles", ParentId = "ca" },
+        new FlatNode { Id = "nyc", Name = "New York City", ParentId = "ny" },
+        new FlatNode { Id = "uk", Name = "United Kingdom", ParentId = null },
+        new FlatNode { Id = "london", Name = "London", ParentId = "uk" },
+        new FlatNode { Id = "manchester", Name = "Manchester", ParentId = "uk" }
+    };
+
+    // --- Lazy loading ---
+    private List<LazyNode> lazyRootNodes = new()
+    {
+        new LazyNode { Id = "dept-eng", Name = "Engineering", Icon = "code", HasChildren = true },
+        new LazyNode { Id = "dept-design", Name = "Design", Icon = "palette", HasChildren = true },
+        new LazyNode { Id = "dept-marketing", Name = "Marketing", Icon = "megaphone", HasChildren = true }
+    };
+
+    private async Task<IEnumerable<LazyNode>> LoadLazyChildren(LazyNode parent)
+    {
+        // Simulate network delay
+        await Task.Delay(1000);
+
+        return parent.Id switch
+        {
+            "dept-eng" => new List<LazyNode>
+            {
+                new LazyNode { Id = "team-frontend", Name = "Frontend", Icon = "monitor", HasChildren = true },
+                new LazyNode { Id = "team-backend", Name = "Backend", Icon = "server", HasChildren = true },
+                new LazyNode { Id = "team-infra", Name = "Infrastructure", Icon = "cloud", HasChildren = false }
+            },
+            "dept-design" => new List<LazyNode>
+            {
+                new LazyNode { Id = "team-ux", Name = "UX Research", Icon = "search", HasChildren = false },
+                new LazyNode { Id = "team-ui", Name = "UI Design", Icon = "figma", HasChildren = false }
+            },
+            "dept-marketing" => new List<LazyNode>
+            {
+                new LazyNode { Id = "team-content", Name = "Content", Icon = "pen-tool", HasChildren = false },
+                new LazyNode { Id = "team-social", Name = "Social Media", Icon = "share-2", HasChildren = false }
+            },
+            "team-frontend" => new List<LazyNode>
+            {
+                new LazyNode { Id = "alice", Name = "Alice", Icon = "user", HasChildren = false },
+                new LazyNode { Id = "bob", Name = "Bob", Icon = "user", HasChildren = false }
+            },
+            "team-backend" => new List<LazyNode>
+            {
+                new LazyNode { Id = "charlie", Name = "Charlie", Icon = "user", HasChildren = false },
+                new LazyNode { Id = "diana", Name = "Diana", Icon = "user", HasChildren = false }
+            },
+            _ => Enumerable.Empty<LazyNode>()
+        };
+    }
+
+    // --- Drag and drop ---
+    private List<DragNode> dragItems = new()
+    {
+        new DragNode
+        {
+            Id = "todo", Name = "To Do", Icon = "circle",
+            Children = new List<DragNode>
+            {
+                new DragNode { Id = "task1", Name = "Design mockups", Icon = "file" },
+                new DragNode { Id = "task2", Name = "Write tests", Icon = "file" }
+            }
+        },
+        new DragNode
+        {
+            Id = "inprogress", Name = "In Progress", Icon = "clock",
+            Children = new List<DragNode>
+            {
+                new DragNode { Id = "task3", Name = "Build API", Icon = "file" }
+            }
+        },
+        new DragNode
+        {
+            Id = "done", Name = "Done", Icon = "circle-check",
+            Children = new List<DragNode>
+            {
+                new DragNode { Id = "task4", Name = "Setup CI/CD", Icon = "file" }
+            }
+        }
+    };
+
+    private Task HandleDrop(TreeDropEventArgs<DragNode> args)
+    {
+        var source = args.SourceNode;
+        var target = args.TargetNode;
+
+        // Remove source from its current location
+        RemoveDragNode(dragItems, source.Id);
+
+        // Insert at the new position
+        switch (args.Position)
+        {
+            case TreeDropPosition.Inside:
+                target.Children ??= new List<DragNode>();
+                target.Children.Add(source);
+                break;
+
+            case TreeDropPosition.Before:
+            case TreeDropPosition.After:
+                var parentList = FindDragParentList(dragItems, target.Id);
+                if (parentList != null)
+                {
+                    var idx = parentList.FindIndex(n => n.Id == target.Id);
+                    if (idx >= 0)
+                    {
+                        parentList.Insert(args.Position == TreeDropPosition.Before ? idx : idx + 1, source);
+                    }
+                }
+                break;
+        }
+
+        dragMessage = L.IsChinese
+            ? $"已将「{source.Name}」移动到「{target.Name}」的{(args.Position == TreeDropPosition.Inside ? "内部" : args.Position == TreeDropPosition.Before ? "之前" : "之后")}。"
+            : $"Moved '{source.Name}' {args.Position.ToString().ToLower()} '{target.Name}'";
+#pragma warning disable BL0012 // （.NET 11 Razor 分析器）照语句本体保留显式 StateHasChanged——HandleDrop 亦可经 JS interop 回调路径触发，分析器仅见事件处理器静态形态而判冗余；禁止为消诊断删本体，采定点抑制
+        StateHasChanged();
+#pragma warning restore BL0012
+        return Task.CompletedTask;
+    }
+
+    private bool RemoveDragNode(List<DragNode> nodes, string id)
+    {
+        for (var i = 0; i < nodes.Count; i++)
+        {
+            if (nodes[i].Id == id)
+            {
+                nodes.RemoveAt(i);
+                return true;
+            }
+
+            if (nodes[i].Children != null && RemoveDragNode(nodes[i].Children!, id))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private List<DragNode>? FindDragParentList(List<DragNode> nodes, string id)
+    {
+        foreach (var node in nodes)
+        {
+            if (node.Id == id)
+            {
+                return nodes;
+            }
+
+            if (node.Children != null)
+            {
+                var found = FindDragParentList(node.Children, id);
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    // --- File explorer data ---
+    private List<CategoryNode> fileExplorerData = new()
+    {
+        new CategoryNode
+        {
+            Id = "fe-src", Name = "src", Icon = "folder",
+            Children = new List<CategoryNode>
+            {
+                new CategoryNode
+                {
+                    Id = "fe-components", Name = "components", Icon = "folder",
+                    Children = new List<CategoryNode>
+                    {
+                        new CategoryNode { Id = "fe-button", Name = "Button.razor", Icon = "file-code" },
+                        new CategoryNode { Id = "fe-input", Name = "Input.razor", Icon = "file-code" },
+                        new CategoryNode { Id = "fe-dialog", Name = "Dialog.razor", Icon = "file-code" },
+                        new CategoryNode { Id = "fe-treeview", Name = "TreeView.razor", Icon = "file-code" }
+                    }
+                },
+                new CategoryNode
+                {
+                    Id = "fe-pages", Name = "pages", Icon = "folder",
+                    Children = new List<CategoryNode>
+                    {
+                        new CategoryNode { Id = "fe-index", Name = "Index.razor", Icon = "file-code" },
+                        new CategoryNode { Id = "fe-about", Name = "About.razor", Icon = "file-code" }
+                    }
+                },
+                new CategoryNode { Id = "fe-app", Name = "App.razor", Icon = "file-code" },
+                new CategoryNode { Id = "fe-program", Name = "Program.cs", Icon = "file-code" }
+            }
+        },
+        new CategoryNode
+        {
+            Id = "fe-tests", Name = "tests", Icon = "folder",
+            Children = new List<CategoryNode>
+            {
+                new CategoryNode { Id = "fe-unit", Name = "UnitTests.cs", Icon = "file-code" },
+                new CategoryNode { Id = "fe-integration", Name = "IntegrationTests.cs", Icon = "file-code" }
+            }
+        },
+        new CategoryNode { Id = "fe-readme", Name = "README.md", Icon = "file" },
+        new CategoryNode { Id = "fe-gitignore", Name = ".gitignore", Icon = "file" },
+        new CategoryNode { Id = "fe-sln", Name = "Solution.sln", Icon = "file-code" }
+    };
+
+    // --- Data model classes ---
+    private class CategoryNode
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string? Icon { get; set; }
+        public List<CategoryNode>? Children { get; set; }
+    }
+
+    private class FlatNode
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string? ParentId { get; set; }
+    }
+
+    private class LazyNode
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string? Icon { get; set; }
+        public bool HasChildren { get; set; }
+        public List<LazyNode>? Children { get; set; }
+    }
+
+    private class DragNode
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string? Icon { get; set; }
+        public List<DragNode>? Children { get; set; }
+    }
+}

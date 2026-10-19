@@ -1,0 +1,183 @@
+@namespace AtomBlazor
+@using System.Globalization
+@inject ILocalizer Localizer
+
+<div class="@CssClass"
+     role="separator"
+     tabindex="0"
+     aria-orientation="@(IsHorizontal ? "vertical" : "horizontal")"
+     aria-label="@(AriaLabel ?? Localizer["Resizable.ResizeHandle"])"
+     aria-controls="@PrimaryPanelId"
+     aria-valuenow="@AriaValue(Group?.GetPanelSize(_handleIndex))"
+     aria-valuemin="@AriaValue(Group?.GetPanelMinSize(_handleIndex))"
+     aria-valuemax="@AriaValue(Group?.GetPanelMaxSize(_handleIndex))"
+     @onpointerdown="HandlePointerDown"
+     @onkeydown="HandleKeyDown"
+     @onkeydown:preventDefault="_preventKeyDefault"
+     @onkeyup="HandleKeyUp"
+     @attributes="AdditionalAttributes">
+    @if (WithHandle)
+    {
+        <div class="@HandleIconClass">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5.5 4.625C6.12132 4.625 6.625 4.12132 6.625 3.5C6.625 2.87868 6.12132 2.375 5.5 2.375C4.87868 2.375 4.375 2.87868 4.375 3.5C4.375 4.12132 4.87868 4.625 5.5 4.625ZM9.5 4.625C10.1213 4.625 10.625 4.12132 10.625 3.5C10.625 2.87868 10.1213 2.375 9.5 2.375C8.87868 2.375 8.375 2.87868 8.375 3.5C8.375 4.12132 8.87868 4.625 9.5 4.625ZM10.625 7.5C10.625 8.12132 10.1213 8.625 9.5 8.625C8.87868 8.625 8.375 8.12132 8.375 7.5C8.375 6.87868 8.87868 6.375 9.5 6.375C10.1213 6.375 10.625 6.87868 10.625 7.5ZM5.5 8.625C6.12132 8.625 6.625 8.12132 6.625 7.5C6.625 6.87868 6.12132 6.375 5.5 6.375C4.87868 6.375 4.375 6.87868 4.375 7.5C4.375 8.12132 4.87868 8.625 5.5 8.625ZM10.625 11.5C10.625 12.1213 10.1213 12.625 9.5 12.625C8.87868 12.625 8.375 12.1213 8.375 11.5C8.375 10.8787 8.87868 10.375 9.5 10.375C10.1213 10.375 10.625 10.8787 10.625 11.5ZM5.5 12.625C6.12132 12.625 6.625 12.1213 6.625 11.5C6.625 10.8787 6.12132 10.375 5.5 10.375C4.87868 10.375 4.375 10.8787 4.375 11.5C4.375 12.1213 4.87868 12.625 5.5 12.625Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+            </svg>
+        </div>
+    }
+</div>
+
+@code {
+    [CascadingParameter]
+    private ResizablePanelGroup? Group { get; set; }
+
+    /// <summary>
+    /// 是否显示握把手柄图标。
+    /// </summary>
+    [Parameter]
+    public bool WithHandle { get; set; } = true;
+
+    /// <summary>
+    /// 要附加应用的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用于根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>方向键每按一次移动手柄的距离（占组的百分比）。</summary>
+    private const double arrowStep = 5;
+
+    /// <summary>Page Up / Page Down 的移动距离。</summary>
+    private const double pageStep = 20;
+
+    private int _handleIndex = -1;
+    private bool _preventKeyDefault;
+
+    /// <summary>
+    /// 分隔条的可访问名称。默认为本地化的
+    /// <c>Resizable.ResizeHandle</c> 字符串。
+    /// </summary>
+    [Parameter]
+    public string? AriaLabel { get; set; }
+
+    private bool IsHorizontal => Group?.GetDirection() == ResizableDirection.Horizontal;
+
+    /// <summary>
+    /// 这个分隔条所调整的面板——它前面的那一个。经由 <c>aria-controls</c>
+    /// 命名它，使分隔条上报的值有所归属。
+    /// </summary>
+    private string? PrimaryPanelId => Group is not null && _handleIndex >= 0
+        ? Group.PanelElementId(_handleIndex)
+        : null;
+
+    /// <summary>
+    /// 为 <c>aria-value*</c> 属性格式化百分比，或返回 null，让该属性在
+    /// 面板尚未注册时被省略。
+    /// </summary>
+    private static string? AriaValue(double? percentage) =>
+        percentage?.ToString("0.##", CultureInfo.InvariantCulture);
+
+    protected override void OnInitialized()
+    {
+        if (Group != null)
+        {
+            _handleIndex = Group.RegisterHandle();
+        }
+    }
+
+    private async Task HandlePointerDown(PointerEventArgs e)
+    {
+        if (Group != null && _handleIndex >= 0)
+        {
+            await Group.StartResize(_handleIndex, e.ClientX, e.ClientY, e.PointerId);
+        }
+    }
+
+    /// <summary>
+    /// 键盘调整尺寸：方向键按步进移动手柄，Page Up/Down 移动得更远，
+    /// Home/End 把面板带到它的最小与最大值。
+    /// </summary>
+    /// <remarks>
+    /// 手柄曾经只是一个带 pointer 处理程序的普通 <c>div</c>——没有 role、没有
+    /// tab 停靠点、也没有按键——而文档却描述了三者皆有。指针是唯一不能被
+    /// 假定存在的输入，所以对使用键盘的人来说调整尺寸是不可达的。
+    /// </remarks>
+    private async Task HandleKeyDown(KeyboardEventArgs args)
+    {
+        if (Group is null || _handleIndex < 0)
+        {
+            return;
+        }
+
+        // 哪些方向键起作用取决于面板的排布方式：并排的组用 Right 增大
+        // 第一个面板，堆叠的组用 Down。
+        var grow = IsHorizontal ? "ArrowRight" : "ArrowDown";
+        var shrink = IsHorizontal ? "ArrowLeft" : "ArrowUp";
+
+        double delta;
+
+        if (args.Key == grow)
+        {
+            delta = arrowStep;
+        }
+        else if (args.Key == shrink)
+        {
+            delta = -arrowStep;
+        }
+        else if (args.Key == "PageUp")
+        {
+            delta = pageStep;
+        }
+        else if (args.Key == "PageDown")
+        {
+            delta = -pageStep;
+        }
+        else if (args.Key is "Home" or "End")
+        {
+            // 足够远以抵达任一限位；NudgeAsync 会钳制到邻板允许的范围。
+            delta = args.Key == "Home" ? -100 : 100;
+        }
+        else
+        {
+            // 其他一切按键——Tab 也在内——保留默认行为。
+            _preventKeyDefault = false;
+            return;
+        }
+
+        _preventKeyDefault = true;
+        await Group.NudgeAsync(_handleIndex, delta);
+    }
+
+    /// <summary>
+    /// 按键一松开就立即解除抑制。
+    /// </summary>
+    /// <remarks>
+    /// Blazor 在元素渲染时而非事件触发时求值 <c>@onkeydown:preventDefault</c>，
+    /// 所以这个标志描述的永远是上一次按键。若让它保持置位，紧随一次
+    /// 调整尺寸之后的那次 Tab 就会被吞掉，焦点永远无法离开手柄。
+    /// </remarks>
+    private void HandleKeyUp() => _preventKeyDefault = false;
+
+    private string CssClass => ClassNames.cn(
+        "atom:relative atom:flex atom:items-center atom:justify-center atom:bg-border",
+        // 手柄现在进入了 tab 顺序，所以需要一个可见的焦点指示。
+        "atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-1 atom:focus-visible:z-10",
+        IsHorizontal
+            ? "atom:w-px atom:cursor-col-resize atom:hover:bg-primary/50 atom:active:bg-primary"
+            : "atom:h-px atom:cursor-row-resize atom:hover:bg-primary/50 atom:active:bg-primary",
+        "atom:after:absolute",
+        IsHorizontal
+            ? "atom:after:inset-y-0 atom:after:left-1/2 atom:after:w-1 atom:after:-translate-x-1/2"
+            : "atom:after:inset-x-0 atom:after:top-1/2 atom:after:h-1 atom:after:-translate-y-1/2",
+        Class
+    );
+
+    private string HandleIconClass => ClassNames.cn(
+        "atom:z-10 atom:flex atom:h-4 atom:w-3 atom:items-center atom:justify-center atom:rounded-sm atom:border atom:bg-border",
+        IsHorizontal ? "atom:rotate-90" : ""
+    );
+}

@@ -1,0 +1,143 @@
+@namespace AtomBlazor.Primitives
+@inject IPortalService PortalService
+@implements IDisposable
+
+@*
+    SheetPortal 使用 PortalService 将内容渲染到文档主体层级。
+    这确保了浮层正确的 z-index 堆叠。
+    当设置了 Container 时，改为内联渲染（适用于受约束的场景）。
+*@
+
+@if (!string.IsNullOrEmpty(Container))
+{
+    @if (Context.IsOpen || ForceMount)
+    {
+        <CascadingValue Value="Context" IsFixed="false">
+            @ChildContent
+        </CascadingValue>
+    }
+}
+
+@code {
+    [CascadingParameter]
+    private SheetContext Context { get; set; } = null!;
+
+    /// <summary>
+    /// 在门户中渲染的内容（通常为 SheetOverlay 与 SheetContent）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 门户要渲染到的容器元素。
+    /// 为 null（默认）时，通过 PortalService 渲染到文档主体。
+    /// 设置后，在当前组件树内内联渲染，从而允许内容被具有 CSS 包含性
+    /// （例如 transform: translateZ(0)）的父元素所约束。
+    /// </summary>
+    [Parameter]
+    public string? Container { get; set; }
+
+    /// <summary>
+    /// 是否强制在门户中渲染。
+    /// 为 false 时，仅当 Sheet 打开时才使用门户。
+    /// 默认值为 false。
+    /// </summary>
+    [Parameter]
+    public bool ForceMount { get; set; } = false;
+
+    private string _portalId = string.Empty;
+    private bool _isRegistered = false;
+
+    protected override void OnInitialized()
+    {
+        if (Context == null)
+        {
+            throw new InvalidOperationException(
+                "SheetPortal must be used within a Sheet component. " +
+                "Ensure SheetPortal is a child of a Sheet component.");
+        }
+
+        _portalId = $"{Context.Id}-portal";
+
+        // Subscribe to context changes to update portal content
+        Context.OnStateChanged += HandleStateChanged;
+
+        // When Container is set, content renders inline — skip portal registration
+        if (string.IsNullOrEmpty(Container))
+        {
+            // Register initial portal if sheet is open or force mount
+            if (Context.IsOpen || ForceMount)
+            {
+                RegisterPortal();
+            }
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        // When Container is set, content renders inline — skip portal registration
+        if (!string.IsNullOrEmpty(Container))
+        {
+            UnregisterPortal();
+            return;
+        }
+
+        if (Context.IsOpen || ForceMount)
+        {
+            if (!_isRegistered)
+            {
+                RegisterPortal();
+            }
+            else
+            {
+                PortalService.RefreshPortal(_portalId);
+            }
+        }
+        else
+        {
+            UnregisterPortal();
+        }
+    }
+
+    private void HandleStateChanged()
+    {
+        StateHasChanged();
+    }
+
+    private void RegisterPortal()
+    {
+        if (!_isRegistered && ChildContent != null)
+        {
+            PortalService.RegisterPortal(_portalId, GetPortalContent(), PortalCategory.Container);
+            _isRegistered = true;
+        }
+    }
+
+    private RenderFragment GetPortalContent() => builder =>
+    {
+        builder.OpenComponent<CascadingValue<SheetContext>>(0);
+        builder.AddAttribute(1, "Value", Context);
+        builder.AddAttribute(2, "IsFixed", false);
+        builder.AddAttribute(3, "ChildContent", ChildContent);
+        builder.CloseComponent();
+    };
+
+    private void UnregisterPortal()
+    {
+        if (_isRegistered)
+        {
+            PortalService.UnregisterPortal(_portalId);
+            _isRegistered = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        UnregisterPortal();
+
+        if (Context != null)
+        {
+            Context.OnStateChanged -= HandleStateChanged;
+        }
+    }
+}

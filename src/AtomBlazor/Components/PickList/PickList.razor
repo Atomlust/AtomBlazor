@@ -1,0 +1,97 @@
+@namespace AtomBlazor
+@typeparam TValue
+@using AtomBlazor.Icons.Lucide
+@using AtomBlazor.Primitives
+@inject ILocalizer Localizer
+
+@*
+    PickList - two lists and the buttons that move options between them.
+
+    One binding, not two: Options holds everything and Values holds what has been picked, so the
+    two panes cannot drift out of step with each other.
+*@
+
+<div class="@RootClass" data-slot="picklist" @attributes="AdditionalAttributes">
+    <div class="@PaneWrapperClass">
+
+        <div class="@PaneClass">
+            <ListBox TValue="TValue"
+                       Label="@EffectiveSourceLabel"
+                       SelectionMode="ListBoxSelectionMode.Multiple"
+                       Options="@SourceOptions"
+                       Values="@sourceSelection"
+                       ValuesChanged="@(v => sourceSelection = v)"
+                       ShowSearch="@ShowSearch"
+                       SearchText="@sourceSearch"
+                       SearchTextChanged="@(t => sourceSearch = t)"
+                       ShowSelectAll="@ShowSelectAll"
+                       OptionDisabled="@OptionDisabled"
+                       ItemTemplate="@ItemTemplate"
+                       EmptyMessage="@SourceEmptyMessage"
+                       Height="@Height"
+                       Disabled="@Disabled" />
+        </div>
+
+        <div class="@ButtonsClass">
+            <Button Variant="ButtonVariant.Outline"
+                      Size="ButtonSize.Icon"
+                      Disabled="@(Disabled || !HasSourceSelection)"
+                      OnClick="MoveSelectedToTargetAsync"
+                      title="@Localizer["PickList.MoveSelectedToTarget"]"
+                      aria-label="@Localizer["PickList.MoveSelectedToTarget"]">
+                <LucideIcon Name="@(IsVertical ? "chevron-down" : "chevron-right")" Size="16" />
+            </Button>
+
+            @if (ShowMoveAll)
+            {
+                <Button Variant="ButtonVariant.Outline"
+                          Size="ButtonSize.Icon"
+                          Disabled="@(Disabled || VisibleSource.Count == 0)"
+                          OnClick="MoveAllToTargetAsync"
+                          title="@Localizer["PickList.MoveAllToTarget"]"
+                          aria-label="@Localizer["PickList.MoveAllToTarget"]">
+                    <LucideIcon Name="@(IsVertical ? "chevrons-down" : "chevrons-right")" Size="16" />
+                </Button>
+            }
+
+            <Button Variant="ButtonVariant.Outline"
+                      Size="ButtonSize.Icon"
+                      Disabled="@(Disabled || !HasTargetSelection)"
+                      OnClick="MoveSelectedToSourceAsync"
+                      title="@Localizer["PickList.MoveSelectedToSource"]"
+                      aria-label="@Localizer["PickList.MoveSelectedToSource"]">
+                <LucideIcon Name="@(IsVertical ? "chevron-up" : "chevron-left")" Size="16" />
+            </Button>
+
+            @if (ShowMoveAll)
+            {
+                <Button Variant="ButtonVariant.Outline"
+                          Size="ButtonSize.Icon"
+                          Disabled="@(Disabled || VisibleTarget.Count == 0)"
+                          OnClick="MoveAllToSourceAsync"
+                          title="@Localizer["PickList.MoveAllToSource"]"
+                          aria-label="@Localizer["PickList.MoveAllToSource"]">
+                    <LucideIcon Name="@(IsVertical ? "chevrons-up" : "chevrons-left")" Size="16" />
+                </Button>
+            }
+        </div>
+
+        <div class="@PaneClass">
+            <ListBox TValue="TValue"
+                       Label="@EffectiveTargetLabel"
+                       SelectionMode="ListBoxSelectionMode.Multiple"
+                       Options="@TargetOptions"
+                       Values="@targetSelection"
+                       ValuesChanged="@(v => targetSelection = v)"
+                       ShowSearch="@ShowSearch"
+                       SearchText="@targetSearch"
+                       SearchTextChanged="@(t => targetSearch = t)"
+                       ShowSelectAll="@ShowSelectAll"
+                       OptionDisabled="@OptionDisabled"
+                       ItemTemplate="@ItemTemplate"
+                       EmptyMessage="@TargetEmptyMessage"
+                       Height="@Height"
+                       Disabled="@Disabled" />
+        </div>
+    </div>
+</div>

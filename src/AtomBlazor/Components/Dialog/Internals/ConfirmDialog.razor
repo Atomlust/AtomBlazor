@@ -1,0 +1,34 @@
+@using AtomBlazor.Components.Dialog.Internals.Shared
+@inject DialogService DialogService
+
+
+<DialogHeader Title="@Dialog.Title"
+              Description="@Dialog.Description"
+              TitleId="@TitleId"
+              DescriptionId="@DescriptionId" />
+
+<div class="atom:flex atom:flex-col-reverse atom:sm:flex-row atom:sm:justify-end atom:sm:space-x-2">
+    <Button Variant="ButtonVariant.Outline"
+              OnClick="Cancel">
+        @Dialog.Options.CancelText
+    </Button>
+
+    <Button Variant="@(Dialog.Options.Destructive ? ButtonVariant.Destructive : ButtonVariant.Default)"
+              OnClick="Confirm">
+        @Dialog.Options.ConfirmText
+    </Button>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public ConfirmDialogData Dialog { get; set; } = default!;
+
+    [Parameter] public string? TitleId { get; set; }
+    [Parameter] public string? DescriptionId { get; set; }
+
+    private void Cancel()
+        => DialogService.Resolve(Dialog.Id, DialogResult.Cancel());
+
+    private void Confirm()
+        => DialogService.Resolve(Dialog.Id, DialogResult.Ok(true));
+}

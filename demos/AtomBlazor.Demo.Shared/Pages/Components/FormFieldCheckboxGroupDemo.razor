@@ -1,0 +1,291 @@
+@page "/components/form-field-checkbox-group"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("FormFieldCheckboxGroup 复选框组表单域 - Atom BlazorUI", "FormFieldCheckboxGroup Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">FormFieldCheckboxGroup</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("为 CheckboxGroup 提供表单域包装，自带标签、辅助文字与错误提示。", "A form field wrapper for CheckboxGroup with built-in label, helper text, and error messages.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带标签与辅助文字的复选框组。", "A checkbox group with a label and helper text.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldCheckboxGroup AriaLabel="@(L.T("最喜欢的水果", "Favorite fruits"))" TValue="string"
+                                     @bind-Values="_selectedFruits"
+                                     Label="@(L.T("最喜欢的水果", "Favorite fruits"))"
+                                     HelperText="@(L.T("凡符合的都勾选。", "Select all that apply."))">
+                <CheckboxGroupItem Value="@("apple")" Label="@(L.T("苹果", "Apple"))" />
+                <CheckboxGroupItem Value="@("banana")" Label="@(L.T("香蕉", "Banana"))" />
+                <CheckboxGroupItem Value="@("cherry")" Label="@(L.T("樱桃", "Cherry"))" />
+                <CheckboxGroupItem Value="@("grape")" Label="@(L.T("葡萄", "Grape"))" />
+            </FormFieldCheckboxGroup>
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("已选择：", "Selected:")</p>
+            <p class="text-sm font-mono">@((_selectedFruits.Any()) ? string.Join(", ", _selectedFruits) : L.T("（无）", "(none)"))</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldCheckboxGroup/basic.txt" />
+    </div>
+
+    <!-- With Select All -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带全选", "With Select All")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    启用 <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowSelectAll</code> 会增加一个一键全选复选框。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Enable <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowSelectAll</code> to add a toggle-all checkbox.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldCheckboxGroup TValue="string"
+                                     @bind-Values="_selectedPermissions"
+                                     Label="@(L.T("权限", "Permissions"))"
+                                     HelperText="@(L.T("授予这些功能的访问权限。", "Grant access to these features."))"
+                                     ShowSelectAll="true"
+                                     SelectAllLabel="@(L.T("全部授予", "Grant all"))">
+                <CheckboxGroupItem Value="@("read")" Label="@(L.T("读取", "Read"))" />
+                <CheckboxGroupItem Value="@("write")" Label="@(L.T("写入", "Write"))" />
+                <CheckboxGroupItem Value="@("delete")" Label="@(L.T("删除", "Delete"))" />
+                <CheckboxGroupItem Value="@("admin")" Label="@(L.T("管理员", "Admin"))" />
+            </FormFieldCheckboxGroup>
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("已选择：", "Selected:")</p>
+            <p class="text-sm font-mono">@((_selectedPermissions.Any()) ? string.Join(", ", _selectedPermissions) : L.T("（无）", "(none)"))</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldCheckboxGroup/select-all.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用状态", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("一个被禁用的复选框组表单域。", "A disabled checkbox group form field.")</p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldCheckboxGroup TValue="string"
+                                     Values="@(new[] { "email" })"
+                                     Label="@(L.T("通知渠道", "Notification channels"))"
+                                     HelperText="@(L.T("由你的管理员统一管理。", "Managed by your administrator."))"
+                                     Disabled="true">
+                <CheckboxGroupItem Value="@("email")" Label="@(L.T("邮件", "Email"))" />
+                <CheckboxGroupItem Value="@("sms")" Label="@(L.T("短信", "SMS"))" />
+                <CheckboxGroupItem Value="@("push")" Label="@(L.T("推送", "Push"))" />
+            </FormFieldCheckboxGroup>
+        </div>
+        <CodeBlock Source="Components/FormFieldCheckboxGroup/disabled.txt" />
+    </div>
+
+    <!-- Validation with ErrorText -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("用 ErrorText 校验", "Validation with ErrorText")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    在 EditForm 之外做校验时，用 <code class="text-xs bg-muted px-1 py-0.5 rounded">ErrorText</code> 手动校验。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    For validation outside an EditForm, use <code class="text-xs bg-muted px-1 py-0.5 rounded">ErrorText</code> for manual validation.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldCheckboxGroup TValue="string"
+                                     Values="_validatedTopics"
+                                     ValuesChanged="OnValidatedTopicsChanged"
+                                     Label="@(L.T("感兴趣的主题", "Topics of interest"))"
+                                     HelperText="@(L.T("至少选择一个主题。", "Select at least one topic."))"
+                                     ErrorText="@_topicsError">
+                <CheckboxGroupItem Value="@("tech")" Label="@(L.T("科技", "Technology"))" />
+                <CheckboxGroupItem Value="@("science")" Label="@(L.T("科学", "Science"))" />
+                <CheckboxGroupItem Value="@("art")" Label="@(L.T("艺术", "Art"))" />
+                <CheckboxGroupItem Value="@("sports")" Label="@(L.T("体育", "Sports"))" />
+            </FormFieldCheckboxGroup>
+            <div class="mt-3">
+                <Button OnClick="ValidateTopics">@L.T("提交", "Submit")</Button>
+            </div>
+            @if (_topicsSubmitted)
+            {
+                <div class="mt-4 rounded-lg border border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800 p-4">
+                    <p class="text-sm font-medium text-green-800 dark:text-green-200">
+                        @L.F("已提交：{0}", "Submitted: {0}", string.Join(", ", _validatedTopics))
+                    </p>
+                </div>
+            }
+        </div>
+        <CodeBlock Source="Components/FormFieldCheckboxGroup/validation.txt" />
+    </div>
+
+    <section class="space-y-4" data-testid="editform-validation">
+        <h2 class="text-2xl font-semibold">@L.T("EditForm 校验", "EditForm validation")</h2>
+        <p>@L.T("双向绑定会自动提供 ValuesExpression。改用显式回调时，需要自行给出用于标识模型字段的表达式。手动错误仍可使用 ErrorText。", "Two-way binding supplies ValuesExpression automatically. With explicit callbacks, supply the expression to identify the model field. ErrorText remains available for manual errors.")</p>
+        <EditForm Model="validationModel" FormName="FormFieldCheckboxGroupValidation">
+    <DataAnnotationsValidator />
+    <FormFieldCheckboxGroup TValue="string" @bind-Values="validationModel.Values" Label="@(L.T("主题", "Topics"))" AriaLabel="@(L.T("主题", "Topics"))">
+        <CheckboxGroupItem Value="@("news")" Label="@(L.T("资讯", "News"))" />
+        <CheckboxGroupItem Value="@("events")" Label="@(L.T("活动", "Events"))" />
+    </FormFieldCheckboxGroup>
+    <Button Type="ButtonType.Submit" Class="mt-3">@L.T("校验所选内容", "Validate selection")</Button>
+</EditForm>
+        <CodeBlock Source="Components/FormFieldCheckboxGroup/editform.txt" />
+    </section>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("标签在视觉上与复选框组相关联。", "Label visually associated with the checkbox group")</AccessibilityItem>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>分组以 role=“group” 渲染</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Group rendered with role="group"</AccessibilityItem>
+                        </text>
+}
+            <AccessibilityItem>@L.T("描述文字通过 aria-describedby 关联。", "Description linked via aria-describedby")</AccessibilityItem>
+        </AriaAttributes>
+            <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可用的表单控件之间移动", "Move between enabled form controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("切换当前控件的勾选状态", "Toggle the focused control"))"><Kbd>Space</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="FormFieldCheckboxGroup&lt;TValue&gt;">
+                <ApiParameter Name="ValuesExpression" Type="Expression&lt;Func&lt;IReadOnlyCollection&lt;TValue&gt;&gt;&gt;?" Default="null">@L.T("标识 EditForm 中的字段。由 @@bind-Values 提供；启用字段通知与校验提示。", "Identifies the EditForm field. Supplied by @bind-Values; enables field notifications and validation messages.")</ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">@L.T("转发给交互控件或分组的无障碍名称。", "Accessible name forwarded to the interactive control or group.")</ApiParameter>
+                <ApiParameter Name="Label" Type="string?" Default="null">@L.T("标签文本。", "The label text.")</ApiParameter>
+                <ApiParameter Name="HelperText" Type="string?" Default="null">@L.T("分组下方的辅助文字。", "Helper text below the group.")</ApiParameter>
+                <ApiParameter Name="ErrorText" Type="string?" Default="null">@L.T("手动覆盖的错误提示文本。", "Manual error text override.")</ApiParameter>
+                <ApiParameter Name="Values" Type="IReadOnlyCollection&lt;TValue&gt;" Default="[]">@L.T("已选择的值。请使用 @@bind-Values。", "The selected values. Use @bind-Values.")</ApiParameter>
+                <ApiParameter Name="ValuesChanged" Type="EventCallback&lt;IReadOnlyCollection&lt;TValue&gt;&gt;">@L.T("值发生变化时的回调。", "Callback when values change.")</ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="ShowSelectAll" Type="bool" Default="false">显示一个 “Select all” 全选复选框。</ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="ShowSelectAll" Type="bool" Default="false">Show a "Select all" checkbox.</ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="SelectAllLabel" Type="string" Default="&quot;Select all&quot;">@L.T("全选复选框的文案。", "Label for the select-all checkbox.")</ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("是否禁用全部条目。", "Whether all items are disabled.")</ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?" Default="null">@L.T("CheckboxGroupItem 组件。", "CheckboxGroupItem components.")</ApiParameter>
+                <ApiParameter Name="InputClass" Type="string?" Default="null">@L.T("内层分组的 CSS 类。", "CSS classes for the inner group.")</ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到底层组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private readonly ValidationModel validationModel = new();
+
+    protected override void OnParametersSet()
+    {
+        validationModel.L = L;
+    }
+
+    private sealed class ValidationModel : IValidatableObject
+    {
+        /// <summary>显示语言快照（由所属组件同步下发）。</summary>
+        public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+        public IReadOnlyCollection<string> Values { get; set; } = Array.Empty<string>();
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (Values.Count == 0)
+            {
+                yield return new ValidationResult(L.T("请做出选择。", "Please make a selection."), [nameof(Values)]);
+            }
+        }
+    }
+
+    private IReadOnlyCollection<string> _selectedFruits = Array.Empty<string>();
+    private IReadOnlyCollection<string> _selectedPermissions = Array.Empty<string>();
+    private IReadOnlyCollection<string> _validatedTopics = Array.Empty<string>();
+    private string? _topicsError;
+    private bool _topicsSubmitted;
+
+    private void OnValidatedTopicsChanged(IReadOnlyCollection<string> values)
+    {
+        _validatedTopics = values;
+        _topicsError = null;
+        _topicsSubmitted = false;
+    }
+
+    private void ValidateTopics()
+    {
+        _topicsSubmitted = false;
+
+        if (!_validatedTopics.Any())
+        {
+            _topicsError = "Please select at least one topic.";
+            return;
+        }
+
+        _topicsError = null;
+        _topicsSubmitted = true;
+    }
+}

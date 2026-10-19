@@ -1,0 +1,24 @@
+@namespace AtomBlazor
+
+<p class="@CssClass" @attributes="AdditionalAttributes">
+    @ChildContent
+</p>
+
+@code {
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private string CssClass => ClassNames.cn(
+        "atom:text-sm atom:text-muted-foreground",
+        Class
+    );
+}

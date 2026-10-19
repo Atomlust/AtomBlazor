@@ -1,0 +1,311 @@
+@page "/components/range-slider"
+<PageTitle>@L.T("RangeSlider 范围滑块 - Atom BlazorUI", "RangeSlider Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("RangeSlider 范围滑块", "RangeSlider Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("双柄滑块，用于选择一段数值范围，支持键盘导航与可选的工具提示。", "A dual-handle slider for selecting a range of values with keyboard navigation and optional tooltips.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基础示例", "Basic Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("拖动两个手柄即可选择一段范围。", "Select a range by dragging the two handles.")
+            </p>
+        </div>
+        <div class="w-[60%]">
+            <RangeSlider @bind-Value="_basicValue" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("范围：", "Range:") @_basicValue.Start - @_basicValue.End</p>
+        <CodeBlock Source="Components/RangeSlider/basic.txt" />
+    </div>
+
+    <!-- With Tooltips -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带工具提示", "With Tooltips")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("在每个手柄上方显示数值提示。", "Shows value tooltips above each handle.")
+            </p>
+        </div>
+        <div class="w-[60%] pt-8">
+            <RangeSlider @bind-Value="_tooltipValue" ShowTooltips="true" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("范围：", "Range:") @_tooltipValue.Start - @_tooltipValue.End</p>
+        <CodeBlock Source="Components/RangeSlider/tooltips.txt" />
+    </div>
+
+    <!-- Custom Range -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义范围", "Custom Range")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("自定义最小/最大值（0-1000）。", "Custom min/max values (0-1000).")
+            </p>
+        </div>
+        <div class="w-[60%]">
+            <RangeSlider @bind-Value="_customRange" Min="0" Max="1000" Step="10" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("范围：", "Range:") @_customRange.Start - @_customRange.End @L.T("（步长：10）", "(step: 10)")</p>
+        <CodeBlock Source="Components/RangeSlider/custom-range.txt" />
+    </div>
+
+    <!-- With Minimum Gap -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("最小间隔", "Minimum Gap")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("两个手柄至少相隔 20 个单位。", "Handles must be at least 20 units apart.")
+            </p>
+        </div>
+        <div class="w-[60%]">
+            <RangeSlider @bind-Value="_minGapValue" MinRange="20" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("范围：", "Range:") @_minGapValue.Start - @_minGapValue.End @L.T("（最小间隔：20）", "(min gap: 20)")</p>
+        <CodeBlock Source="Components/RangeSlider/min-gap.txt" />
+    </div>
+
+    <!-- With Tick Marks -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带刻度", "With Tick Marks")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("在指定位置显示刻度。", "Shows tick marks at specified positions.")
+            </p>
+        </div>
+        <div class="w-[60%] pb-4">
+            <RangeSlider @bind-Value="_tickValue"
+                         ShowTickMarks="true"
+                         TickValues="@(new double[] { 0, 25, 50, 75, 100 })" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("范围：", "Range:") @_tickValue.Start - @_tickValue.End</p>
+        <CodeBlock Source="Components/RangeSlider/tick-marks.txt" />
+    </div>
+
+    <!-- Price Range -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("价格范围筛选", "Price Range Filter")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("常见用法：按价格范围过滤。", "Common use case: filtering by price range.")
+            </p>
+        </div>
+        <div class="w-[60%] pt-8">
+            <RangeSlider @bind-Value="_priceRange"
+                         Min="0"
+                         Max="500"
+                         Step="10"
+                         ShowTooltips="true"
+                         FormatValueFunc="@(v => $"${v:F0}")" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("价格：", "Price:") $@_priceRange.Start - $@_priceRange.End</p>
+        <CodeBlock Source="Components/RangeSlider/price-range.txt" />
+    </div>
+
+    <!-- Default Values -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("使用默认值", "With Default Values")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带初始值的非受控滑块。", "Uncontrolled slider with initial values.")
+            </p>
+        </div>
+        <div class="w-[60%]">
+            <RangeSlider DefaultStart="10" DefaultEnd="90" />
+        </div>
+        <CodeBlock Source="Components/RangeSlider/default-values.txt" />
+    </div>
+
+    <!-- Vertical -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("垂直方向", "Vertical")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("从下往上运行。给滑块一个高度即可，它会填满所在容器。", "Runs bottom to top. Give the slider a height; it fills its container.")
+            </p>
+        </div>
+        <div class="h-48">
+            <RangeSlider @bind-Value="_verticalRange"
+                         Orientation="AtomBlazor.RangeSliderOrientation.Vertical"
+                         ShowTooltips="true" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("范围：", "Range:") @_verticalRange.Start - @_verticalRange.End</p>
+        <CodeBlock Source="Components/RangeSlider/vertical.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个被禁用的范围滑块。", "A disabled range slider.")
+            </p>
+        </div>
+        <div class="w-[60%]">
+            <RangeSlider Value="@((25.0, 75.0))" Disabled="true" />
+        </div>
+        <CodeBlock Source="Components/RangeSlider/disabled.txt" />
+    </div>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    两个滑块都使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="slider"</code>，并带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuemin</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuemax</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuenow</code>
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Both thumbs use <code class="text-xs bg-muted px-1 py-0.5 rounded">role="slider"</code> with <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuemin</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuemax</code>, and <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuenow</code>
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    起始滑块默认带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label="Range start"</code>，结束滑块默认为 <code class="text-xs bg-muted px-1 py-0.5 rounded">"Range end"</code>（可通过 StartLabel/EndLabel 自定义）
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Start thumb defaults to <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label="Range start"</code>, end thumb to <code class="text-xs bg-muted px-1 py-0.5 rounded">"Range end"</code> (customizable via StartLabel/EndLabel)
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled</code> 传达禁用状态
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled</code> conveys the disabled state
+                </AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("按一个步长增大/减小数值", "Increase/decrease value by one step"))">
+                <Kbd>ArrowRight</Kbd> / <Kbd>ArrowLeft</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("按一个步长增大/减小数值", "Increase/decrease value by one step"))">
+                <Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("按一个大步长增大/减小数值", "Increase/decrease value by a large step"))">
+                <Kbd>PageUp</Kbd> / <Kbd>PageDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("跳转到最小/最大值", "Jump to minimum/maximum value"))">
+                <Kbd>Home</Kbd> / <Kbd>End</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="RangeSlider">
+                <ApiParameter Name="Value" Type="(double Start, double End)">
+                    @L.T("当前的范围值。", "Current range value.")
+                </ApiParameter>
+                <ApiParameter Name="Min" Type="double" Default="0">
+                    @L.T("最小值。", "Minimum value.")
+                </ApiParameter>
+                <ApiParameter Name="Max" Type="double" Default="100">
+                    @L.T("最大值。", "Maximum value.")
+                </ApiParameter>
+                <ApiParameter Name="Step" Type="double" Default="1">
+                    @L.T("步长增量。", "Step increment.")
+                </ApiParameter>
+                <ApiParameter Name="MinRange" Type="double" Default="0">
+                    @L.T("两个手柄之间的最小间隔。", "Minimum gap between handles.")
+                </ApiParameter>
+                <ApiParameter Name="ShowTooltips" Type="bool" Default="false">
+                    @L.T("是否显示数值提示。", "Show value tooltips.")
+                </ApiParameter>
+                <ApiParameter Name="ShowTickMarks" Type="bool" Default="false">
+                    @L.T("是否显示刻度。", "Show tick marks.")
+                </ApiParameter>
+                <ApiParameter Name="TickValues" Type="double[]?">
+                    @L.T("自定义刻度位置。", "Custom tick positions.")
+                </ApiParameter>
+                <ApiParameter Name="FormatValueFunc" Type="Func<double, string>?">
+                    @L.T("自定义数值格式化函数。", "Custom value formatter.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Orientation" Type="RangeSliderOrientation" Default="Horizontal">
+                        <code>Vertical</code> 让滑块从下往上运行，并填满所在容器的高度。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Orientation" Type="RangeSliderOrientation" Default="Horizontal">
+                        <code>Vertical</code> runs the slider bottom to top; it fills the height of its container.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="Disabled" Type="bool">
+                    @L.T("禁用滑块。", "Disables the slider.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private (double Start, double End) _basicValue = (25, 75);
+    private (double Start, double End) _tooltipValue = (30, 70);
+    private (double Start, double End) _customRange = (200, 800);
+    private (double Start, double End) _minGapValue = (30, 70);
+    private (double Start, double End) _tickValue = (25, 75);
+    private (double Start, double End) _priceRange = (50, 350);
+    private (double Start, double End) _verticalRange = (20, 80);
+}

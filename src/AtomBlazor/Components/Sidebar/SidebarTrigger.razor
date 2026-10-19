@@ -1,0 +1,71 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@inject ILocalizer Localizer
+
+@* SidebarTrigger 组件：切换侧边栏开合。
+*@
+
+<button type="button" class="@GetClasses()" data-sidebar="trigger" @onclick="HandleClick" @attributes="AdditionalAttributes">
+    @if (ChildContent != null)
+    {
+        @ChildContent
+    }
+    else
+    {
+        <LucideIcon Name="panel-left" Size="16" />
+        <span class="atom:sr-only">@Localizer["Sidebar.ToggleSidebar"]</span>
+    }
+</button>
+
+@code {
+#pragma warning disable BL0012 // 与一致保留 HandleClick 内显式 StateHasChanged：ToggleSidebar 后须当场落定，不押注事件管线末尾的自动重渲染（照 TabsTrigger 文件级 pragma 先例，+1 行已登记偏差）
+    [CascadingParameter]
+    private SidebarContext? Context { get; set; }
+
+    /// <summary>
+    /// 触发按钮的自定义内容。
+    /// 未提供时默认使用 panel-left 图标。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 用于自定义行为的点击处理器。
+    /// </summary>
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    /// <summary>
+    /// 附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private async Task HandleClick(MouseEventArgs e)
+    {
+        if (Context != null)
+        {
+            Context.ToggleSidebar();
+            StateHasChanged(); // 强制重渲染以更新 UI
+        }
+
+        if (OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync(e);
+        }
+    }
+
+    private string GetClasses()
+    {
+        return ClassNames.cn(
+            "atom:flex atom:h-7 atom:w-7 atom:items-center atom:justify-center atom:rounded-md atom:text-sidebar-foreground atom:outline-none atom:ring-sidebar-ring atom:transition-transform atom:hover:bg-sidebar-accent atom:hover:text-sidebar-accent-foreground atom:focus-visible:ring-2 atom:[&>svg]:size-4 atom:[&>svg]:shrink-0",
+            Class
+        );
+    }
+}

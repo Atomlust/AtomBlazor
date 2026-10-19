@@ -1,0 +1,277 @@
+@namespace AtomBlazor
+@implements IAsyncDisposable
+@inject ToastService ToastService
+
+@*
+    Toast 提供器——渲染 toast 容器并管理 toast 的生命周期。
+    把该组件放在应用根上一次性挂载即可（例如 MainLayout）。
+*@
+
+@* 主 toast 栈（不带逐条位置覆盖的那些 toast） *@
+<div class="@GetContainerCssClass(EffectivePosition)" @attributes="AdditionalAttributes">
+    @foreach (var toast in GetToastsForPosition(null))
+    {
+        <Toast @key="toast.Id"
+                 Data="@toast"
+                 Class="@toast.Class"
+                 ShowCountdown="@(toast.ShowCountdown ?? ShowCountdown)"
+                 OnDismiss="@(() => HandleDismiss(toast.Id))"
+                 OnPause="@(() => HandlePause(toast.Id))"
+                 OnResume="@(() => HandleResume(toast.Id))" />
+    }
+</div>
+
+@* 逐条位置容器 *@
+@foreach (var position in GetCustomPositions())
+{
+    <div class="@GetContainerCssClass(position)">
+        @foreach (var toast in GetToastsForPosition(position))
+        {
+            <Toast @key="toast.Id"
+                     Data="@toast"
+                     Class="@toast.Class"
+                     ShowCountdown="@(toast.ShowCountdown ?? ShowCountdown)"
+                     OnDismiss="@(() => HandleDismiss(toast.Id))"
+                     OnPause="@(() => HandlePause(toast.Id))"
+                     OnResume="@(() => HandleResume(toast.Id))" />
+        }
+    </div>
+}
+
+@code {
+    private readonly Dictionary<string, ToastTimerState> timerStates = new();
+    private bool disposed;
+
+    /// <summary>
+    /// toast 容器在屏幕上的位置。
+    /// </summary>
+    [Parameter]
+    public ToastPosition Position { get; set; } = ToastPosition.BottomRight;
+
+    /// <summary>
+    /// 每个位置同时显示的 toast 最大数量。设为零即不限制。
+    /// </summary>
+    /// <remarks>
+    /// 超出上限的 toast 并不会被丢弃：它们留在服务的队列里排队，
+    /// 前面的那些关闭之后就会补上。该值此前只声明、从不读取，
+    /// 所以无论有多少条，都会被全部显示出来。
+    /// </remarks>
+    [Parameter]
+    public int MaxToasts { get; set; } = 5;
+
+    /// <summary>
+    /// 鼠标悬停在 toast 上时是否暂停自动关闭。
+    /// </summary>
+    [Parameter]
+    public bool PauseOnHover { get; set; } = true;
+
+    /// <summary>
+    /// 是否在 toast 上显示倒计时进度条。
+    /// 单条 toast 可通过 ToastData.ShowCountdown 覆盖该设置。
+    /// </summary>
+    [Parameter]
+    public bool ShowCountdown { get; set; } = false;
+
+    /// <summary>
+    /// 应用到容器的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置附加 HTML 属性。
+    /// </summary>
+    /// <remarks>
+    /// 为了 API 一致性而捕获；本组件渲染多个根元素，因此这些属性不起作用。
+    /// </remarks>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    protected override void OnInitialized()
+    {
+        ToastService.OnChange += HandleToastsChanged;
+    }
+
+    private void HandleToastsChanged()
+    {
+        // 为新到的 toast 启动计时器
+        foreach (var toast in ToastService.Toasts)
+        {
+            if (!timerStates.ContainsKey(toast.Id) && toast.Duration > 0)
+            {
+                var state = new ToastTimerState { RemainingMs = toast.Duration };
+                timerStates[toast.Id] = state;
+                _ = RunDismissTimerAsync(toast.Id, state);
+            }
+        }
+
+        // 清理陈旧条目（已被外部移除的 toast）
+        var activeIds = new HashSet<string>(ToastService.Toasts.Select(t => t.Id));
+        var staleIds = timerStates.Keys.Where(id => !activeIds.Contains(id)).ToList();
+        foreach (var id in staleIds)
+        {
+            if (timerStates.TryGetValue(id, out var state))
+            {
+                state.Dismissed = true;
+                state.Cts?.Cancel();
+                state.ResumeSignal?.TrySetResult();
+            }
+            timerStates.Remove(id);
+        }
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RunDismissTimerAsync(string id, ToastTimerState state)
+    {
+        while (state.RemainingMs > 0 && !state.Dismissed && !disposed)
+        {
+            state.Cts?.Dispose();
+            state.Cts = new CancellationTokenSource();
+            var segmentStart = DateTime.UtcNow;
+
+            try
+            {
+                await Task.Delay(state.RemainingMs, state.Cts.Token);
+                state.RemainingMs = 0;
+            }
+            catch (OperationCanceledException)
+            {
+                var elapsed = (int)(DateTime.UtcNow - segmentStart).TotalMilliseconds;
+                state.RemainingMs = Math.Max(0, state.RemainingMs - elapsed);
+
+                if (state.Dismissed || disposed)
+                {
+                    return;
+                }
+
+                var tcs = new TaskCompletionSource();
+                state.ResumeSignal = tcs;
+
+                if (!state.IsPaused)
+                {
+                    state.ResumeSignal = null;
+                    continue;
+                }
+
+                await tcs.Task;
+                state.ResumeSignal = null;
+
+                if (state.Dismissed || disposed)
+                {
+                    return;
+                }
+            }
+        }
+
+        if (!state.Dismissed && !disposed)
+        {
+            state.Dismissed = true;
+            await InvokeAsync(() => ToastService.Dismiss(id));
+        }
+    }
+
+    private void HandleDismiss(string id)
+    {
+        if (timerStates.TryGetValue(id, out var state))
+        {
+            state.Dismissed = true;
+            state.Cts?.Cancel();
+            state.ResumeSignal?.TrySetResult();
+        }
+        ToastService.Dismiss(id);
+    }
+
+    private void HandlePause(string id)
+    {
+        if (!PauseOnHover)
+        {
+            return;
+        }
+
+        if (timerStates.TryGetValue(id, out var state))
+        {
+            state.IsPaused = true;
+            state.Cts?.Cancel();
+        }
+    }
+
+    private void HandleResume(string id)
+    {
+        if (!PauseOnHover)
+        {
+            return;
+        }
+
+        if (timerStates.TryGetValue(id, out var state))
+        {
+            state.IsPaused = false;
+            state.ResumeSignal?.TrySetResult();
+        }
+    }
+
+    private ToastPosition EffectivePosition => ToastService.Position ?? Position;
+
+    private IEnumerable<ToastPosition> GetCustomPositions()
+    {
+        return ToastService.Toasts
+            .Where(t => t.Position.HasValue)
+            .Select(t => t.Position!.Value)
+            .Distinct();
+    }
+
+    private IEnumerable<ToastData> GetToastsForPosition(ToastPosition? position)
+    {
+        var forPosition = position.HasValue
+            ? ToastService.Toasts.Where(t => t.Position == position)
+            : ToastService.Toasts.Where(t => !t.Position.HasValue);
+
+        // 服务按追加顺序存放，所以最新的那些排在末尾——要显示的就是它们。
+        return MaxToasts > 0 ? forPosition.TakeLast(MaxToasts) : forPosition;
+    }
+
+    private string GetContainerCssClass(ToastPosition position) => ClassNames.cn(
+        // pointer-events-none 让点击穿过这个固定定位的容器
+        // （它始终渲染，即便一条 toast 都没有），从而不会挡住后面的界面；
+        // 每条 Toast 会在自己的根元素上重新启用 pointer-events-auto。
+        "atom:pointer-events-none atom:fixed atom:z-[100] atom:flex atom:max-h-screen atom:w-full atom:flex-col-reverse atom:gap-2 atom:p-4 atom:sm:flex-col atom:md:max-w-[420px]",
+        position switch
+        {
+            ToastPosition.TopRight => "atom:top-0 atom:right-0",
+            ToastPosition.TopLeft => "atom:top-0 atom:left-0",
+            ToastPosition.TopCenter => "atom:top-0 atom:left-1/2 atom:-translate-x-1/2",
+            ToastPosition.BottomRight => "atom:bottom-0 atom:right-0",
+            ToastPosition.BottomLeft => "atom:bottom-0 atom:left-0",
+            ToastPosition.BottomCenter => "atom:bottom-0 atom:left-1/2 atom:-translate-x-1/2",
+            _ => "atom:bottom-0 atom:right-0"
+        },
+        Class
+    );
+
+    public ValueTask DisposeAsync()
+    {
+        disposed = true;
+        ToastService.OnChange -= HandleToastsChanged;
+
+        foreach (var state in timerStates.Values)
+        {
+            state.Dismissed = true;
+            state.Cts?.Cancel();
+            state.Cts?.Dispose();
+            state.ResumeSignal?.TrySetResult();
+        }
+        timerStates.Clear();
+
+        GC.SuppressFinalize(this);
+        return ValueTask.CompletedTask;
+    }
+
+    private class ToastTimerState
+    {
+        public CancellationTokenSource? Cts { get; set; }
+        public TaskCompletionSource? ResumeSignal { get; set; }
+        public int RemainingMs { get; set; }
+        public bool IsPaused { get; set; }
+        public bool Dismissed { get; set; }
+    }
+}

@@ -1,0 +1,968 @@
+@page "/components/select"
+@using System.ComponentModel.DataAnnotations
+<PageTitle>@L.T("Select 下拉选择组件 - Atom BlazorUI", "Select Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Select 下拉选择组件", "Select Component")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("展示一组可选项供用户挑选，由一个按钮触发。", "Displays a list of options for the user to pick from—triggered by a button.")
+        </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+    </div>
+
+    <!-- Data-Binding Mode -->
+    <section class="space-y-4">
+        <div class="flex items-center gap-2">
+            <h2 class="text-2xl font-semibold">@L.T("数据绑定模式", "Data-Binding Mode")</h2>
+            <span class="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20">v3</span>
+        </div>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                传入一组由 <code class="text-xs bg-muted px-1 py-0.5 rounded">Options</code> 承载的
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">SelectOption&lt;TValue&gt;</code> 键值对，
+                组件会自动生成触发器、值显示与下拉内容。
+                当值与标签相同时，请使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">SelectOption.FromValue</code>。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Pass an <code class="text-xs bg-muted px-1 py-0.5 rounded">Options</code> collection of
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">SelectOption&lt;TValue&gt;</code> pairs and
+                the component auto-generates the trigger, value display, and dropdown content.
+                Use <code class="text-xs bg-muted px-1 py-0.5 rounded">SelectOption.FromValue</code> when value and label are the same.
+            </p>
+                </text>
+}
+
+        <div class="flex items-center gap-4">
+            <Select AriaLabel="@(L.T("选择一个选项", "Choose an option"))" TValue="string"
+                    @bind-Value="selectedFruit"
+                    Options="@fruitOptions"
+                    Placeholder="@(L.T("选择一个水果", "Select a fruit"))"
+                    Class="w-[280px]" />
+
+            @if (!string.IsNullOrEmpty(selectedFruit))
+            {
+                <p class="text-sm">@L.T("已选择：", "Selected:") <strong>@selectedFruit</strong></p>
+            }
+        </div>
+
+        <div class="flex items-center gap-4">
+            <Select TValue="int?"
+                    @bind-Value="selectedNumber"
+                    Options="@numberOptions"
+                    Placeholder="@(L.T("选择一个数字", "Select a number"))"
+                    Class="w-[280px]" />
+
+            @if (selectedNumber is not null)
+            {
+                <p class="text-sm">@L.T("已选择：", "Selected:") <strong>@selectedNumber</strong></p>
+            }
+        </div>
+
+        <CodeBlock Source="Components/Select/data-binding.txt" />
+    </section>
+
+    <!-- Value/Label Pairs -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("值与标签配对", "Value/Label Pairs")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                当绑定值与显示文本不同（例如绑定到 ID 而显示名称）时，
+                每个 <code class="text-xs bg-muted px-1 py-0.5 rounded">SelectOption</code> 将值映射到其标签。
+                触发器会自动为选中的值显示对应的标签。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                When the bound value differs from the display text (e.g. binding to an ID while showing a name),
+                each <code class="text-xs bg-muted px-1 py-0.5 rounded">SelectOption</code> maps a value to its label.
+                The trigger automatically shows the label for the selected value.
+            </p>
+                </text>
+}
+
+        <div class="flex items-center gap-4">
+            <Select TValue="string"
+                    @bind-Value="selectedUserId"
+                    Options="@userOptions"
+                    Placeholder="@(L.T("选择一名团队成员", "Select a team member"))"
+                    Class="w-[280px]" />
+
+            @if (!string.IsNullOrEmpty(selectedUserId))
+            {
+                <p class="text-sm">@L.T("绑定值：", "Bound value:") <strong>@selectedUserId</strong></p>
+            }
+        </div>
+
+        <div class="flex items-center gap-4">
+            <Select TValue="Guid?"
+                    @bind-Value="selectedProjectId"
+                    Options="@projectOptions"
+                    Placeholder="@(L.T("选择一个项目", "Select a project"))"
+                    Class="w-[280px]" />
+
+            @if (selectedProjectId is not null)
+            {
+                <p class="text-sm">@L.T("绑定值：", "Bound value:") <strong>@selectedProjectId</strong></p>
+            }
+        </div>
+
+        <div class="flex items-center gap-4">
+            <Select TValue="string"
+                    @bind-Value="selectedPreselectedUserId"
+                    Options="@userOptions"
+                    Placeholder="@(L.T("选择一名团队成员", "Select a team member"))"
+                    Class="w-[280px]" />
+
+            @if (!string.IsNullOrEmpty(selectedPreselectedUserId))
+            {
+                <p class="text-sm">@L.T("绑定值：", "Bound value:") <strong>@selectedPreselectedUserId</strong></p>
+            }
+        </div>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-xs text-muted-foreground italic">
+                上面的第三个选择框已通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">selectedUserId = "u002"</code> 预选中了 “Bob Chen”。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-xs text-muted-foreground italic">
+                The third select above is pre-selected to "Bob Chen" via <code class="text-xs bg-muted px-1 py-0.5 rounded">selectedUserId = "u002"</code>.
+            </p>
+                </text>
+}
+
+        <CodeBlock Source="Components/Select/value-label-pairs.txt" />
+    </section>
+
+    <!-- Compositional Mode (Basic) -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("组合式模式", "Compositional Mode")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("要完全控制触发器、内容与条目渲染，请直接使用 SelectTrigger、SelectContent 与 SelectItem 子组件。", "For full control over the trigger, content, and item rendering, use SelectTrigger, SelectContent, and SelectItem child components directly.")
+        </p>
+
+        <div class="flex items-center gap-4">
+            <Select @bind-Value="selectedFruitComposed" TValue="string" Class="w-[280px]">
+                <AtomBlazor.SelectTrigger>
+                    <AtomBlazor.SelectValue Placeholder="@(L.T("选择一个水果", "Select a fruit"))" />
+                </AtomBlazor.SelectTrigger>
+                <AtomBlazor.SelectContent>
+                    <AtomBlazor.SelectItem Value="@("apple")" Text="🍎 Apple" />
+                    <AtomBlazor.SelectItem Value="@("banana")" Text="🍌 Banana" />
+                    <AtomBlazor.SelectItem Value="@("blueberry")" Text="🫐 Blueberry" />
+                    <AtomBlazor.SelectItem Value="@("grapes")" Text="🍇 Grapes" />
+                    <AtomBlazor.SelectItem Value="@("pineapple")" Text="🍍 Pineapple" />
+                </AtomBlazor.SelectContent>
+            </Select>
+
+            @if (!string.IsNullOrEmpty(selectedFruitComposed))
+            {
+                <p class="text-sm">@L.T("已选择：", "Selected:") <strong>@selectedFruitComposed</strong></p>
+            }
+        </div>
+
+        <CodeBlock Source="Components/Select/compositional.txt" />
+    </section>
+
+    <!-- Grouped Select -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("分组选项", "Grouped Options")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("将相关条目归入带标签的分组。", "Organize related items into labeled groups.")
+        </p>
+
+        <div class="flex items-center gap-4">
+            <Select @bind-Value="selectedAnimal" TValue="string" Class="w-[280px]">
+                <AtomBlazor.SelectTrigger>
+                    <AtomBlazor.SelectValue Placeholder="@(L.T("选择一种动物", "Select an animal"))" />
+                </AtomBlazor.SelectTrigger>
+                <AtomBlazor.SelectContent>
+                    <SelectGroup>
+                        <SelectLabel>Mammals</SelectLabel>
+                        <AtomBlazor.SelectItem Value="@("cat")" Text="Cat" />
+                        <AtomBlazor.SelectItem Value="@("dog")" Text="Dog" />
+                        <AtomBlazor.SelectItem Value="@("elephant")" Text="Elephant" />
+                    </SelectGroup>
+                    <SelectGroup>
+                        <SelectLabel>Birds</SelectLabel>
+                        <AtomBlazor.SelectItem Value="@("eagle")" Text="Eagle" />
+                        <AtomBlazor.SelectItem Value="@("parrot")" Text="Parrot" />
+                        <AtomBlazor.SelectItem Value="@("penguin")" Text="Penguin" />
+                    </SelectGroup>
+                    <SelectGroup>
+                        <SelectLabel>Reptiles</SelectLabel>
+                        <AtomBlazor.SelectItem Value="@("crocodile")" Text="Crocodile" />
+                        <AtomBlazor.SelectItem Value="@("snake")" Text="Snake" />
+                        <AtomBlazor.SelectItem Value="@("turtle")" Text="Turtle" />
+                    </SelectGroup>
+                </AtomBlazor.SelectContent>
+            </Select>
+
+            @if (!string.IsNullOrEmpty(selectedAnimal))
+            {
+                <p class="text-sm">@L.T("已选择：", "Selected:") <strong>@selectedAnimal</strong></p>
+            }
+        </div>
+
+        <CodeBlock Source="Components/Select/grouped.txt" />
+    </section>
+
+    <!-- Scrollable Long List -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("可滚动的长列表", "Scrollable Long List")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("通过自动滚动（max-h-60）处理大量选项。", "Handle many options with automatic scrolling (max-h-60).")
+        </p>
+
+        <div class="flex items-center gap-4">
+            <Select @bind-Value="selectedCountry" TValue="string" Class="w-[280px]">
+                <AtomBlazor.SelectTrigger>
+                    <AtomBlazor.SelectValue Placeholder="@(L.T("选择一个国家", "Select a country"))" />
+                </AtomBlazor.SelectTrigger>
+                <AtomBlazor.SelectContent>
+                    @foreach (var country in countries)
+                    {
+                        <AtomBlazor.SelectItem Value="@country" Text="@country" />
+                    }
+                </AtomBlazor.SelectContent>
+            </Select>
+
+            @if (!string.IsNullOrEmpty(selectedCountry))
+            {
+                <p class="text-sm">@L.T("已选择：", "Selected:") <strong>@selectedCountry</strong></p>
+            }
+        </div>
+
+        <CodeBlock Source="Components/Select/scrollable.txt" />
+    </section>
+
+    <!-- Scrollable Data-Binding -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("可滚动的数据绑定", "Scrollable Data-Binding")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("数据绑定模式与组合式模式一样，可通过自动滚动处理大型集合。", "Data-binding mode handles large collections with automatic scrolling, just like the compositional mode.")
+        </p>
+
+        <div class="flex items-center gap-4">
+            <Select TValue="string"
+                    @bind-Value="selectedCountryDataBound"
+                    Options="@countryOptions"
+                    Placeholder="@(L.T("选择一个国家", "Select a country"))"
+                    Class="w-[280px]" />
+
+            @if (!string.IsNullOrEmpty(selectedCountryDataBound))
+            {
+                <p class="text-sm">@L.T("已选择：", "Selected:") <strong>@selectedCountryDataBound</strong></p>
+            }
+        </div>
+
+        <CodeBlock Source="Components/Select/scrollable-data-binding.txt" />
+    </section>
+
+    <!-- Form Validation with EditForm -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("表单校验", "Form Validation")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Select 与 Blazor 的 EditForm 和 EditContext 集成以进行模型校验。
+                在 EditForm 内使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code>，
+                校验错误会通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> 自动应用错误样式。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Select integrates with Blazor's EditForm and EditContext for model validation.
+                Use <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code> within an EditForm and
+                validation errors will automatically apply error styling via <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code>.
+            </p>
+                </text>
+}
+
+        <EditForm Model="selectFormModel" OnValidSubmit="HandleSelectFormSubmit" class="max-w-md space-y-4">
+            <DataAnnotationsValidator />
+
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("喜欢的水果", "Favorite Fruit")</label>
+                <Select @bind-Value="selectFormModel.Fruit"
+                        TValue="string"
+                        Options="fruitOptions"
+                        Placeholder="@(L.T("选择一个水果", "Select a fruit"))"
+                        Class="w-[280px]" />
+                <ValidationMessage For="@(() => selectFormModel.Fruit)" class="text-sm text-destructive" />
+            </div>
+
+            <div class="flex gap-4">
+                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Default">@L.T("提交", "Submit")</Button>
+                <Button Type="ButtonType.Button" Variant="ButtonVariant.Outline" OnClick="ResetSelectForm">@L.T("重置", "Reset")</Button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(selectFormMessage))
+            {
+                <div class="p-4 bg-card rounded-lg border">
+                    <p class="text-sm">@selectFormMessage</p>
+                </div>
+            }
+        </EditForm>
+
+        <CodeBlock Source="Components/Select/form-validation.txt" />
+    </section>
+
+    <!-- Controlled Open State -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("受控的展开状态", "Controlled Open State")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                <code class="bg-muted px-1 py-0.5 rounded text-sm">@@bind-Open</code> 可从你自己的代码打开和关闭列表，
+                并把用户自身的打开与关闭回传给你。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                <code class="bg-muted px-1 py-0.5 rounded text-sm">@@bind-Open</code> opens and closes the list from
+                your own code, and reports the user's own opens and closes back to you.
+            </p>
+                </text>
+}
+
+        <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-3">
+                <Button Variant="ButtonVariant.Outline" OnClick="@(() => _selectListOpen = !_selectListOpen)">
+                    @(_selectListOpen ? L.T("关闭列表", "Close the list") : L.T("打开列表", "Open the list"))
+                </Button>
+                <Select TValue="string"
+                        Options="@_controlledOpenFruits"
+                        @bind-Value="_controlledOpenFruit"
+                        @bind-Open="_selectListOpen"
+                        Placeholder="@(L.T("选择一个水果…", "Select a fruit..."))"
+                        Class="w-[240px]" />
+            </div>
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("是否打开：", "Open:")</span> <span class="font-mono">@_selectListOpen</span></p>
+                <p class="text-sm"><span class="font-medium">@L.T("已选择：", "Selected:")</span> <span class="font-mono">@(_controlledOpenFruit ?? L.T("（无）", "(none)"))</span></p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Select/controlled-open.txt" />
+    </section>
+
+    <!-- Infinite Scroll -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("无限滚动", "Infinite Scroll")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                使用 <code class="bg-muted px-1 py-0.5 rounded text-sm">OnLoadMore</code> 与
+                <code class="bg-muted px-1 py-0.5 rounded text-sm">IsLoading</code> 在用户滚动时分批加载条目。
+                本示例包含 100 个带旗帜的国家，每次加载 20 个。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Use <code class="bg-muted px-1 py-0.5 rounded text-sm">OnLoadMore</code> and
+                <code class="bg-muted px-1 py-0.5 rounded text-sm">IsLoading</code> to load items in batches
+                as the user scrolls. This example has 100 countries with flags, loading 20 at a time.
+            </p>
+                </text>
+}
+
+        <div class="flex flex-col gap-2">
+            <Select TValue="string"
+                    Options="@_selectScrollCountries"
+                    @bind-Value="_selectScrollSelected"
+                    OnLoadMore="@HandleSelectLoadMore"
+                    IsLoading="@_selectScrollIsLoading"
+                    Placeholder="@(L.T("选择一个国家…", "Select a country..."))"
+                    Class="w-[320px]" />
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("已选择：", "Selected:")</span> <span class="font-mono">@(string.IsNullOrEmpty(_selectScrollSelected) ? L.T("（无）", "(none)") : _selectScrollSelected)</span></p>
+                <p class="text-sm"><span class="font-medium">@L.T("已加载：", "Loaded:")</span> @_selectScrollCountries.Length @L.T("共", "of") @_allSelectCountries.Length</p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Select/infinite-scroll.txt" />
+    </section>
+
+    <!-- Infinite Scroll (Compositional) -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("无限滚动（组合式）", "Infinite Scroll (Compositional)")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                使用 <code class="bg-muted px-1 py-0.5 rounded text-sm">SelectItem</code> 子元素与自定义渲染，
+                在组合式模式下实现无限滚动。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Infinite scroll with compositional mode using
+                <code class="bg-muted px-1 py-0.5 rounded text-sm">SelectItem</code> children and custom rendering.
+            </p>
+                </text>
+}
+
+        <div class="flex flex-col gap-2">
+            <Select TValue="string" @bind-Value="_selectCompScrollSelected" Class="w-[320px]">
+                <AtomBlazor.SelectTrigger TValue="string">
+                    <AtomBlazor.SelectValue Placeholder="@(L.T("选择一个国家…", "Select a country..."))" />
+                </AtomBlazor.SelectTrigger>
+                <AtomBlazor.SelectContent TValue="string" OnLoadMore="@HandleSelectCompLoadMore" IsLoading="@_selectCompScrollIsLoading">
+                    @foreach (var c in _selectCompScrollVisible)
+                    {
+                        <AtomBlazor.SelectItem TValue="string" Value="@c.Code" Text="@($"{c.Flag} {c.Name}")" />
+                    }
+                </AtomBlazor.SelectContent>
+            </Select>
+            <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+                <p class="text-sm"><span class="font-medium">@L.T("已选择：", "Selected:")</span> <span class="font-mono">@(string.IsNullOrEmpty(_selectCompScrollSelected) ? L.T("（无）", "(none)") : _selectCompScrollSelected)</span></p>
+                <p class="text-sm"><span class="font-medium">@L.T("已加载：", "Loaded:")</span> @_selectCompScrollVisible.Length @L.T("共", "of") @_allSelectCompCountries.Length</p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Select/infinite-scroll-compositional.txt" />
+    </section>
+
+    <!-- API Reference -->
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("底部抽屉呈现", "Bottom-sheet presentation")</h2>
+        <p class="text-sm text-muted-foreground">@L.T("为面向触摸的选择使用模态底部抽屉。它保留相同的值绑定、选项语义、方向键导航与加载回调。Tab 焦点保持在模态内，选择或 Escape 会把焦点返回给触发器。", "Use a modal bottom sheet for touch-oriented selection. It preserves the same value binding, option semantics, arrow navigation and loading callbacks. Tab stays within the modal, and selection or Escape returns focus to the trigger.")</p>
+<Select TValue="string" @bind-Value="sheetChoice" Presentation="SelectPresentation.BottomSheet"
+          SheetTitle="@(L.T("配送方式", "Delivery method"))" Placeholder="@(L.T("选择配送方式", "Choose delivery"))" Options="deliveryOptions" Class="w-64" />
+        <CodeBlock Source="Components/Select/bottom-sheet.txt" />
+
+    </section>
+
+    <AccessibilityList>
+            <AriaAttributes>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <AccessibilityItem>
+                        下拉内容上的 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="listbox"</code>
+                    </AccessibilityItem>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">role="listbox"</code> on the dropdown content
+                    </AccessibilityItem>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> 指示下拉状态
+                    </AccessibilityItem>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> indicates dropdown state
+                    </AccessibilityItem>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <AccessibilityItem>
+                        选中项上的 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-selected</code>
+                    </AccessibilityItem>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-selected</code> on selected item
+                    </AccessibilityItem>
+                                </text>
+}
+                <AccessibilityItem>
+                    @L.T("配合键盘导航支持的焦点管理", "Focus management with keyboard navigation support")
+                </AccessibilityItem>
+            </AriaAttributes>
+            <KeyboardNavigation>
+                <KeyboardShortcutItem Description="@(L.T("打开下拉", "Open dropdown"))">
+                    <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("浏览选项", "Navigate options"))">
+                    <Kbd>Arrow Keys</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("选择选项", "Select option"))">
+                    <Kbd>Enter</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("关闭下拉", "Close dropdown"))">
+                    <Kbd>Escape</Kbd>
+                </KeyboardShortcutItem>
+            </KeyboardNavigation>
+        </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件的属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="Select&lt;TValue&gt;">
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">@L.T("转发给交互控件或分组的无障碍名称。", "Accessible name forwarded to the interactive control or group.")</ApiParameter>
+                <ApiParameter Name="Options" Type="IEnumerable&lt;SelectOption&lt;TValue&gt;&gt;?">
+                    @L.T("数据驱动模式下的选项集合。提供时，会自动生成触发器、值显示与下拉内容。", "Collection of options for data-driven mode. When provided, auto-generates trigger, value display, and dropdown content.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Value" Type="TValue?">
+                        当前选中的值。支持使用 <code>@@bind-Value</code> 进行双向绑定。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Value" Type="TValue?">
+                        Currently selected value. Supports two-way binding with <code>@@bind-Value</code>.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="ValueChanged" Type="EventCallback&lt;TValue?&gt;">
+                    @L.T("选中值变化时调用的回调。", "Callback invoked when the selected value changes.")
+                </ApiParameter>
+                <ApiParameter Name="Placeholder" Type="string?">
+                    @L.T("未选择任何值时显示的占位文本（数据驱动模式）。", "Placeholder text when no value is selected (data-driven mode).")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("下拉选择是否被禁用。", "Whether the select is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">
+                    @L.T("下拉选择是否为必填。", "Whether the select is required.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Open" Type="bool?">
+                        下拉是否处于打开状态。支持使用 <code>@@bind-Open</code> 进行双向绑定。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Open" Type="bool?">
+                        Whether the dropdown is open. Supports two-way binding with <code>@@bind-Open</code>.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="DisplayTextSelector" Type="Func&lt;TValue, string&gt;?">
+                    @L.T("在组合式模式下从值显示文本的函数。缺省时回退到 ToString()。", "Function to derive display text from a value in compositional mode. Falls back to ToString().")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("组合式模式下的内容。应包含 SelectTrigger 与 SelectContent。", "Content for compositional mode. Should contain SelectTrigger and SelectContent.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="SelectTrigger&lt;TValue&gt;">
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("应用到触发按钮的额外 CSS 类。", "Additional CSS classes to apply to the trigger button.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="ActiveClass" Type="string?" Default="&quot;bg-accent text-accent-foreground&quot;">
+                        下拉打开时应用的 CSS 类。设为 <code>null</code> 或空即可禁用。
+                        用于贴合所处的上下文（例如侧边栏中的 <code>"bg-sidebar-accent text-sidebar-accent-foreground"</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="ActiveClass" Type="string?" Default="&quot;bg-accent text-accent-foreground&quot;">
+                        CSS classes applied when the dropdown is open. Set to <code>null</code> or empty to disable.
+                        Use to match the context (e.g., <code>"bg-sidebar-accent text-sidebar-accent-foreground"</code> in sidebars).
+                    </ApiParameter>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="SelectItem&lt;TValue&gt;">
+                <ApiParameter Name="Value" Type="TValue">
+                    @L.T("此项的值。必填。", "The value of this item. Required.")
+                </ApiParameter>
+                <ApiParameter Name="Text" Type="string?">
+                    @L.T("显示文本。若未提供，则使用 ChildContent 文本或 Value.ToString()。", "Display text. If not provided, uses ChildContent text or Value.ToString().")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("此项是否被禁用。", "Whether this item is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("作为此项显示内容渲染的自定义内容。", "Custom content rendered as the item's display.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="SelectValue">
+                <ApiParameter Name="Placeholder" Type="string?">
+                    @L.T("未选择任何值时显示的占位文本。", "Placeholder text when no value is selected.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment&lt;string&gt;?">
+                    @L.T("用于选中值显示的自定义模板。以上下文接收显示文本。", "Custom template for selected value display. Receives display text as context.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;span&gt;</code> 元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;span&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+
+<ApiReference ComponentName="Select / SelectContent">
+            <ApiParameter Since="v4" Name="Presentation" Type="SelectPresentation" Default="Popover">@L.T("Popover 或 BottomSheet。在 Select 上设置即可同时作用于选项模式与组合式模式；SelectContent 接受可空的覆盖值。由应用自行决定何时切换呈现方式。", "Popover or BottomSheet. Set it on Select for both options and compositional modes; SelectContent accepts a nullable override. Applications choose when to switch presentation.")</ApiParameter>
+            <ApiParameter Since="v4" Name="SheetTitle" Type="string?">@L.T("可见的无障碍抽屉标题；SelectContent 可覆盖父级的标题。", "Accessible visible sheet title; SelectContent can override the parent's title.")</ApiParameter>
+        </ApiReference>
+    </section>
+
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private bool _selectListOpen;
+    private string? _controlledOpenFruit;
+    private readonly SelectOption<string>[] _controlledOpenFruits =
+        [new("apple", "Apple"), new("banana", "Banana"), new("cherry", "Cherry")];
+
+    private string? sheetChoice;
+    private readonly SelectOption<string>[] deliveryOptions = [new("standard", "Standard delivery"), new("express", "Express delivery"), new("pickup", "Collect in store")];
+
+    protected override void OnInitialized()
+    {
+        InitSelectScroll();
+        InitSelectCompScroll();
+    }
+
+    private string? selectedFruit;
+    private string? selectedFruitComposed;
+
+    private string? selectedAnimal;
+    private string? selectedCountry;
+    private string? selectedCountryDataBound;
+    private int? selectedNumber;
+    private string? selectedUserId;
+    private Guid? selectedProjectId;
+    private string? selectedPreselectedUserId = "u002";
+
+    private static readonly string[] fruits = ["Apple", "Banana", "Blueberry", "Grapes", "Pineapple"];
+    private readonly SelectOption<string>[] fruitOptions = fruits.Select(SelectOption.FromValue).ToArray();
+
+    private readonly SelectOption<int?>[] numberOptions =
+    [
+        new(1, "One"), new(2, "Two"), new(3, "Three"), new(4, "Four"), new(5, "Five")
+    ];
+
+    private static readonly Guid project1Id = Guid.Parse("6163de1b-65e2-4c98-b8a8-403efa27a7c2");
+    private static readonly Guid project2Id = Guid.Parse("a4b8c3d1-2e5f-4a6b-9c8d-7e1f2a3b4c5d");
+    private static readonly Guid project3Id = Guid.Parse("d9e8f7a6-5b4c-3d2e-1f0a-9b8c7d6e5f4a");
+
+    private readonly SelectOption<string>[] userOptions =
+    [
+        new("u001", "Alice Martin"),
+        new("u002", "Bob Chen"),
+        new("u003", "Carol Davis"),
+        new("u004", "Dan Wilson")
+    ];
+
+    private readonly SelectOption<Guid?>[] projectOptions =
+    [
+        new(project1Id, "Website Redesign"),
+        new(project2Id, "Mobile App"),
+        new(project3Id, "API Migration")
+    ];
+
+    private static readonly string[] countries =
+    [
+        "Afghanistan", "Albania", "Algeria", "Andorra", "Angola",
+        "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
+        "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus",
+        "Belgium", "Belize", "Benin", "Bhutan", "Bolivia",
+        "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria",
+        "Burkina Faso", "Burundi", "Cambodia", "Cameroon", "Canada",
+        "Cape Verde", "Central African Republic", "Chad", "Chile", "China",
+        "Colombia", "Comoros", "Congo", "Costa Rica", "Croatia",
+        "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti",
+        "Dominica", "Dominican Republic", "East Timor", "Ecuador", "Egypt"
+    ];
+    private readonly SelectOption<string>[] countryOptions = countries.Select(SelectOption.FromValue).ToArray();
+
+    private SelectFormModel selectFormModel = new();
+    private string? selectFormMessage;
+
+    private void HandleSelectFormSubmit()
+    {
+        selectFormMessage = L.IsChinese
+            ? $"表单已提交！所选水果：{selectFormModel.Fruit}"
+            : $"Form submitted! Fruit: {selectFormModel.Fruit}";
+    }
+
+    private void ResetSelectForm()
+    {
+        selectFormModel = new();
+        selectFormMessage = null;
+    }
+
+    private class SelectFormModel
+    {
+        [Required(ErrorMessage = "Please select a fruit.")]
+        public string? Fruit { get; set; }
+    }
+
+    // 无限滚动示例
+    private string? _selectScrollSelected;
+    private SelectOption<string>[] _selectScrollCountries = Array.Empty<SelectOption<string>>();
+    private bool _selectScrollIsLoading;
+    private const int selectPageSize = 20;
+
+    private static readonly SelectOption<string>[] _allSelectCountries =
+    [
+        new("AF", "\U0001F1E6\U0001F1EB Afghanistan"), new("AL", "\U0001F1E6\U0001F1F1 Albania"),
+        new("DZ", "\U0001F1E9\U0001F1FF Algeria"), new("AD", "\U0001F1E6\U0001F1E9 Andorra"),
+        new("AO", "\U0001F1E6\U0001F1F4 Angola"), new("AG", "\U0001F1E6\U0001F1EC Antigua and Barbuda"),
+        new("AR", "\U0001F1E6\U0001F1F7 Argentina"), new("AM", "\U0001F1E6\U0001F1F2 Armenia"),
+        new("AU", "\U0001F1E6\U0001F1FA Australia"), new("AT", "\U0001F1E6\U0001F1F9 Austria"),
+        new("AZ", "\U0001F1E6\U0001F1FF Azerbaijan"), new("BS", "\U0001F1E7\U0001F1F8 Bahamas"),
+        new("BH", "\U0001F1E7\U0001F1ED Bahrain"), new("BD", "\U0001F1E7\U0001F1E9 Bangladesh"),
+        new("BB", "\U0001F1E7\U0001F1E7 Barbados"), new("BY", "\U0001F1E7\U0001F1FE Belarus"),
+        new("BE", "\U0001F1E7\U0001F1EA Belgium"), new("BZ", "\U0001F1E7\U0001F1FF Belize"),
+        new("BJ", "\U0001F1E7\U0001F1EF Benin"), new("BT", "\U0001F1E7\U0001F1F9 Bhutan"),
+        new("BO", "\U0001F1E7\U0001F1F4 Bolivia"), new("BA", "\U0001F1E7\U0001F1E6 Bosnia and Herzegovina"),
+        new("BW", "\U0001F1E7\U0001F1FC Botswana"), new("BR", "\U0001F1E7\U0001F1F7 Brazil"),
+        new("BN", "\U0001F1E7\U0001F1F3 Brunei"), new("BG", "\U0001F1E7\U0001F1EC Bulgaria"),
+        new("BF", "\U0001F1E7\U0001F1EB Burkina Faso"), new("BI", "\U0001F1E7\U0001F1EE Burundi"),
+        new("KH", "\U0001F1F0\U0001F1ED Cambodia"), new("CM", "\U0001F1E8\U0001F1F2 Cameroon"),
+        new("CA", "\U0001F1E8\U0001F1E6 Canada"), new("TD", "\U0001F1F9\U0001F1E9 Chad"),
+        new("CL", "\U0001F1E8\U0001F1F1 Chile"), new("CN", "\U0001F1E8\U0001F1F3 China"),
+        new("CO", "\U0001F1E8\U0001F1F4 Colombia"), new("CR", "\U0001F1E8\U0001F1F7 Costa Rica"),
+        new("HR", "\U0001F1ED\U0001F1F7 Croatia"), new("CU", "\U0001F1E8\U0001F1FA Cuba"),
+        new("CY", "\U0001F1E8\U0001F1FE Cyprus"), new("CZ", "\U0001F1E8\U0001F1FF Czech Republic"),
+        new("DK", "\U0001F1E9\U0001F1F0 Denmark"), new("DO", "\U0001F1E9\U0001F1F4 Dominican Republic"),
+        new("EC", "\U0001F1EA\U0001F1E8 Ecuador"), new("EG", "\U0001F1EA\U0001F1EC Egypt"),
+        new("SV", "\U0001F1F8\U0001F1FB El Salvador"), new("EE", "\U0001F1EA\U0001F1EA Estonia"),
+        new("ET", "\U0001F1EA\U0001F1F9 Ethiopia"), new("FI", "\U0001F1EB\U0001F1EE Finland"),
+        new("FR", "\U0001F1EB\U0001F1F7 France"), new("DE", "\U0001F1E9\U0001F1EA Germany"),
+        new("GH", "\U0001F1EC\U0001F1ED Ghana"), new("GR", "\U0001F1EC\U0001F1F7 Greece"),
+        new("GT", "\U0001F1EC\U0001F1F9 Guatemala"), new("HT", "\U0001F1ED\U0001F1F9 Haiti"),
+        new("HN", "\U0001F1ED\U0001F1F3 Honduras"), new("HU", "\U0001F1ED\U0001F1FA Hungary"),
+        new("IS", "\U0001F1EE\U0001F1F8 Iceland"), new("IN", "\U0001F1EE\U0001F1F3 India"),
+        new("ID", "\U0001F1EE\U0001F1E9 Indonesia"), new("IR", "\U0001F1EE\U0001F1F7 Iran"),
+        new("IQ", "\U0001F1EE\U0001F1F6 Iraq"), new("IE", "\U0001F1EE\U0001F1EA Ireland"),
+        new("IL", "\U0001F1EE\U0001F1F1 Israel"), new("IT", "\U0001F1EE\U0001F1F9 Italy"),
+        new("JM", "\U0001F1EF\U0001F1F2 Jamaica"), new("JP", "\U0001F1EF\U0001F1F5 Japan"),
+        new("JO", "\U0001F1EF\U0001F1F4 Jordan"), new("KZ", "\U0001F1F0\U0001F1FF Kazakhstan"),
+        new("KE", "\U0001F1F0\U0001F1EA Kenya"), new("KR", "\U0001F1F0\U0001F1F7 South Korea"),
+        new("KW", "\U0001F1F0\U0001F1FC Kuwait"), new("LV", "\U0001F1F1\U0001F1FB Latvia"),
+        new("LB", "\U0001F1F1\U0001F1E7 Lebanon"), new("LY", "\U0001F1F1\U0001F1FE Libya"),
+        new("LT", "\U0001F1F1\U0001F1F9 Lithuania"), new("LU", "\U0001F1F1\U0001F1FA Luxembourg"),
+        new("MY", "\U0001F1F2\U0001F1FE Malaysia"), new("MX", "\U0001F1F2\U0001F1FD Mexico"),
+        new("MA", "\U0001F1F2\U0001F1E6 Morocco"), new("NL", "\U0001F1F3\U0001F1F1 Netherlands"),
+        new("NZ", "\U0001F1F3\U0001F1FF New Zealand"), new("NG", "\U0001F1F3\U0001F1EC Nigeria"),
+        new("NO", "\U0001F1F3\U0001F1F4 Norway"), new("PK", "\U0001F1F5\U0001F1F0 Pakistan"),
+        new("PA", "\U0001F1F5\U0001F1E6 Panama"), new("PE", "\U0001F1F5\U0001F1EA Peru"),
+        new("PH", "\U0001F1F5\U0001F1ED Philippines"), new("PL", "\U0001F1F5\U0001F1F1 Poland"),
+        new("PT", "\U0001F1F5\U0001F1F9 Portugal"), new("RO", "\U0001F1F7\U0001F1F4 Romania"),
+        new("RU", "\U0001F1F7\U0001F1FA Russia"), new("SA", "\U0001F1F8\U0001F1E6 Saudi Arabia"),
+        new("SG", "\U0001F1F8\U0001F1EC Singapore"), new("ZA", "\U0001F1FF\U0001F1E6 South Africa"),
+        new("ES", "\U0001F1EA\U0001F1F8 Spain"), new("SE", "\U0001F1F8\U0001F1EA Sweden"),
+        new("CH", "\U0001F1E8\U0001F1ED Switzerland"), new("TH", "\U0001F1F9\U0001F1ED Thailand"),
+        new("TR", "\U0001F1F9\U0001F1F7 Turkey"), new("UA", "\U0001F1FA\U0001F1E6 Ukraine"),
+        new("AE", "\U0001F1E6\U0001F1EA United Arab Emirates"), new("GB", "\U0001F1EC\U0001F1E7 United Kingdom"),
+        new("US", "\U0001F1FA\U0001F1F8 United States"), new("VN", "\U0001F1FB\U0001F1F3 Vietnam"),
+    ];
+
+    private void InitSelectScroll()
+    {
+        _selectScrollCountries = _allSelectCountries.Take(selectPageSize).ToArray();
+    }
+
+    private async Task HandleSelectLoadMore()
+    {
+        // BL0012：加载态在首个 await 边界即随事件处理器同步段自动渲染，显式调用冗余。
+        _selectScrollIsLoading = true;
+
+        await Task.Delay(300);
+
+        var nextCount = _selectScrollCountries.Length + selectPageSize;
+        _selectScrollCountries = _allSelectCountries.Take(nextCount).ToArray();
+        _selectScrollIsLoading = false;
+    }
+
+    // 无限滚动（组合式）示例
+    private record SelectCountryInfo(string Code, string Name, string Flag);
+
+    private string? _selectCompScrollSelected;
+    private SelectCountryInfo[] _selectCompScrollVisible = Array.Empty<SelectCountryInfo>();
+    private bool _selectCompScrollIsLoading;
+
+    private static readonly SelectCountryInfo[] _allSelectCompCountries =
+    [
+        new("AF", "Afghanistan", "\U0001F1E6\U0001F1EB"), new("AL", "Albania", "\U0001F1E6\U0001F1F1"),
+        new("DZ", "Algeria", "\U0001F1E9\U0001F1FF"), new("AD", "Andorra", "\U0001F1E6\U0001F1E9"),
+        new("AO", "Angola", "\U0001F1E6\U0001F1F4"), new("AG", "Antigua and Barbuda", "\U0001F1E6\U0001F1EC"),
+        new("AR", "Argentina", "\U0001F1E6\U0001F1F7"), new("AM", "Armenia", "\U0001F1E6\U0001F1F2"),
+        new("AU", "Australia", "\U0001F1E6\U0001F1FA"), new("AT", "Austria", "\U0001F1E6\U0001F1F9"),
+        new("AZ", "Azerbaijan", "\U0001F1E6\U0001F1FF"), new("BS", "Bahamas", "\U0001F1E7\U0001F1F8"),
+        new("BH", "Bahrain", "\U0001F1E7\U0001F1ED"), new("BD", "Bangladesh", "\U0001F1E7\U0001F1E9"),
+        new("BB", "Barbados", "\U0001F1E7\U0001F1E7"), new("BY", "Belarus", "\U0001F1E7\U0001F1FE"),
+        new("BE", "Belgium", "\U0001F1E7\U0001F1EA"), new("BZ", "Belize", "\U0001F1E7\U0001F1FF"),
+        new("BJ", "Benin", "\U0001F1E7\U0001F1EF"), new("BT", "Bhutan", "\U0001F1E7\U0001F1F9"),
+        new("BO", "Bolivia", "\U0001F1E7\U0001F1F4"), new("BA", "Bosnia and Herzegovina", "\U0001F1E7\U0001F1E6"),
+        new("BW", "Botswana", "\U0001F1E7\U0001F1FC"), new("BR", "Brazil", "\U0001F1E7\U0001F1F7"),
+        new("BN", "Brunei", "\U0001F1E7\U0001F1F3"), new("BG", "Bulgaria", "\U0001F1E7\U0001F1EC"),
+        new("BF", "Burkina Faso", "\U0001F1E7\U0001F1EB"), new("BI", "Burundi", "\U0001F1E7\U0001F1EE"),
+        new("KH", "Cambodia", "\U0001F1F0\U0001F1ED"), new("CM", "Cameroon", "\U0001F1E8\U0001F1F2"),
+        new("CA", "Canada", "\U0001F1E8\U0001F1E6"), new("TD", "Chad", "\U0001F1F9\U0001F1E9"),
+        new("CL", "Chile", "\U0001F1E8\U0001F1F1"), new("CN", "China", "\U0001F1E8\U0001F1F3"),
+        new("CO", "Colombia", "\U0001F1E8\U0001F1F4"), new("CR", "Costa Rica", "\U0001F1E8\U0001F1F7"),
+        new("HR", "Croatia", "\U0001F1ED\U0001F1F7"), new("CU", "Cuba", "\U0001F1E8\U0001F1FA"),
+        new("CY", "Cyprus", "\U0001F1E8\U0001F1FE"), new("CZ", "Czech Republic", "\U0001F1E8\U0001F1FF"),
+        new("DK", "Denmark", "\U0001F1E9\U0001F1F0"), new("EG", "Egypt", "\U0001F1EA\U0001F1EC"),
+        new("FI", "Finland", "\U0001F1EB\U0001F1EE"), new("FR", "France", "\U0001F1EB\U0001F1F7"),
+        new("DE", "Germany", "\U0001F1E9\U0001F1EA"), new("GR", "Greece", "\U0001F1EC\U0001F1F7"),
+        new("IN", "India", "\U0001F1EE\U0001F1F3"), new("ID", "Indonesia", "\U0001F1EE\U0001F1E9"),
+        new("IE", "Ireland", "\U0001F1EE\U0001F1EA"), new("IL", "Israel", "\U0001F1EE\U0001F1F1"),
+        new("IT", "Italy", "\U0001F1EE\U0001F1F9"), new("JP", "Japan", "\U0001F1EF\U0001F1F5"),
+        new("KE", "Kenya", "\U0001F1F0\U0001F1EA"), new("KR", "South Korea", "\U0001F1F0\U0001F1F7"),
+        new("MY", "Malaysia", "\U0001F1F2\U0001F1FE"), new("MX", "Mexico", "\U0001F1F2\U0001F1FD"),
+        new("NL", "Netherlands", "\U0001F1F3\U0001F1F1"), new("NZ", "New Zealand", "\U0001F1F3\U0001F1FF"),
+        new("NG", "Nigeria", "\U0001F1F3\U0001F1EC"), new("NO", "Norway", "\U0001F1F3\U0001F1F4"),
+        new("PK", "Pakistan", "\U0001F1F5\U0001F1F0"), new("PE", "Peru", "\U0001F1F5\U0001F1EA"),
+        new("PH", "Philippines", "\U0001F1F5\U0001F1ED"), new("PL", "Poland", "\U0001F1F5\U0001F1F1"),
+        new("PT", "Portugal", "\U0001F1F5\U0001F1F9"), new("RU", "Russia", "\U0001F1F7\U0001F1FA"),
+        new("SA", "Saudi Arabia", "\U0001F1F8\U0001F1E6"), new("SG", "Singapore", "\U0001F1F8\U0001F1EC"),
+        new("ZA", "South Africa", "\U0001F1FF\U0001F1E6"), new("ES", "Spain", "\U0001F1EA\U0001F1F8"),
+        new("SE", "Sweden", "\U0001F1F8\U0001F1EA"), new("CH", "Switzerland", "\U0001F1E8\U0001F1ED"),
+        new("TH", "Thailand", "\U0001F1F9\U0001F1ED"), new("TR", "Turkey", "\U0001F1F9\U0001F1F7"),
+        new("UA", "Ukraine", "\U0001F1FA\U0001F1E6"), new("AE", "United Arab Emirates", "\U0001F1E6\U0001F1EA"),
+        new("GB", "United Kingdom", "\U0001F1EC\U0001F1E7"), new("US", "United States", "\U0001F1FA\U0001F1F8"),
+        new("VN", "Vietnam", "\U0001F1FB\U0001F1F3"),
+    ];
+
+    private void InitSelectCompScroll()
+    {
+        _selectCompScrollVisible = _allSelectCompCountries.Take(selectPageSize).ToArray();
+    }
+
+    private async Task HandleSelectCompLoadMore()
+    {
+        // BL0012：加载态在首个 await 边界即随事件处理器同步段自动渲染，显式调用冗余。
+        _selectCompScrollIsLoading = true;
+
+        await Task.Delay(300);
+
+        var nextCount = _selectCompScrollVisible.Length + selectPageSize;
+        _selectCompScrollVisible = _allSelectCompCountries.Take(nextCount).ToArray();
+        _selectCompScrollIsLoading = false;
+    }
+}

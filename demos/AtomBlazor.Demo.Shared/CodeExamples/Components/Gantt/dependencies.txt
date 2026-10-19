@@ -1,0 +1,28 @@
+<Gantt TItem="PlanTask"
+         Data="@plan"
+         IdSelector="@(t => t.Id)"
+         ParentIdSelector="@(t => t.Parent)"
+         TextSelector="@(t => t.Name)"
+         StartSelector="@(t => t.Start)"
+         EndSelector="@(t => t.End)"
+         Dependencies="@links"
+         Height="26rem" />
+
+@code {
+    // Each name reads as the predecessor's end first. FinishToStart is the default, and is what
+    // almost every plan means by "this has to happen first".
+    private static readonly GanttDependency[] Links =
+    [
+        new("interviews", "survey"),
+        new("survey", "findings"),
+        new("palette", "components", GanttDependencyType.StartToStart),
+        new("web", "integrate", GanttDependencyType.FinishToFinish),
+        new("docs", "beta", GanttDependencyType.StartToFinish),
+    ];
+}
+
+@* An arrow is drawn, not enforced: moving a task does not move what depends on it. Handle
+   OnTaskChange and do the rescheduling yourself if your plan has rules about float.
+
+   Fold a branch up and an arrow into a hidden task is re-tied to the summary standing in for
+   it. An arrow whose two ends fold into the same row is dropped rather than drawn as a loop. *@

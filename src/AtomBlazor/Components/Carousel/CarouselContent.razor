@@ -1,0 +1,18 @@
+@namespace AtomBlazor
+
+<div data-carousel-viewport class="atom:overflow-hidden" @attributes="AdditionalAttributes">
+    <div data-carousel-track class="@CssClass">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [CascadingParameter] public Carousel? Context { get; set; }
+    [Parameter] public string? Class { get; set; }
+    /// <summary>展开到视口的额外 HTML 属性，纵向布局时可在此给定高度。</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    private string CssClass => ClassNames.cn(
+        "atom:relative atom:flex atom:transition-transform atom:duration-300 atom:ease-in-out atom:motion-reduce:transition-none",
+        Context?.Orientation == CarouselOrientation.Vertical ? "atom:h-full atom:flex-col atom:-mt-(--atom-carousel-gap)" : "atom:-ms-(--atom-carousel-gap)", Class);
+}

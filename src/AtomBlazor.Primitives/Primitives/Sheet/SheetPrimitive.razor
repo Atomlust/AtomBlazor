@@ -1,0 +1,178 @@
+@namespace AtomBlazor.Primitives
+@using Microsoft.Extensions.Logging
+@inject ILogger<SheetPrimitive> Logger
+@implements IDisposable
+
+@* Sheet 原语根组件——仅提供无样式（headless）的行为逻辑 *@
+<CascadingValue Value="@_context" IsFixed="false">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    private SheetContext _context = new();
+    private UseControllableState<bool> _state = null!;
+
+    /// <summary>
+    /// 我们上次向使用者（consumer）上报的打开状态。
+    /// <para>
+    /// 这里有意不读取 <c>_state.Value</c>，因为在受控（controlled）模式下它返回的是
+    /// <c>ControlledValue</c> —— 该值仅在 <see cref="OnParametersSet"/> 时刷新，
+    /// 也就是说只有在使用者重新渲染时才会更新。若使用者抑制了重新渲染
+    /// （任何 <c>ShouldRender</c> 重写）就会使其过期，于是下一次真实的状态变化比较相等，
+    /// <c>OpenChanged</c> 永远不会触发，而使用者自身的打开标志永远停留在 <c>true</c>，
+    /// 从而与上下文永久失步（#437）。
+    /// </para>
+    /// </summary>
+    private bool lastNotifiedOpen;
+
+    /// <summary>
+    /// 保留此参数以便带样式的包装组件可以把自己的属性铺展到该根节点上，但它没有任何效果：
+    /// Sheet 不会渲染自身的元素 —— 它只向子组件提供上下文。
+    /// 请将额外的属性放到 SheetContent、SheetOverlay 或 SheetTrigger 上。
+    /// 在此处提供属性会在每个组件实例中记录一次警告。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private bool rootAttributesWarningLogged;
+
+    /// <summary>
+    /// 在 Sheet 上下文中渲染的子内容。
+    /// 通常包括 SheetTrigger、SheetContent、SheetOverlay 以及其他 Sheet 部件。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 控制 Sheet 是否打开（受控模式）。
+    /// 为 null 时，Sheet 自行管理状态（非受控模式）。
+    /// </summary>
+    [Parameter]
+    public bool? Open { get; set; }
+
+    /// <summary>
+    /// 打开状态变化时触发的事件回调。
+    /// 可与 @bind-Open 配合实现双向绑定。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>
+    /// 非受控模式下的默认打开状态。
+    /// </summary>
+    [Parameter]
+    public bool DefaultOpen { get; set; } = false;
+
+    /// <summary>
+    /// Sheet 打开状态变化时触发的事件回调。
+    /// 接收新的打开状态作为参数。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OnOpenChange { get; set; }
+
+    /// <summary>
+    /// Sheet 从哪一侧滑入。
+    /// 默认值为 Right。
+    /// </summary>
+    [Parameter]
+    public SheetSide Side { get; set; } = SheetSide.Right;
+
+    /// <summary>
+    /// Sheet 是否可以通过点击外部或按下 Esc 键来关闭（Dismiss）。
+    /// 默认值为 true。
+    /// </summary>
+    [Parameter]
+    public bool Modal { get; set; } = true;
+
+    protected override void OnInitialized()
+    {
+        // Initialize controllable state
+        _state = new UseControllableState<bool>(DefaultOpen)
+        {
+            ControlledValue = Open.HasValue ? Open.Value : DefaultOpen,
+            OnValueChanged = OpenChanged,
+            IsControlled = OpenChanged.HasDelegate
+        };
+
+        // Sync initial state to context
+        _context.State.IsOpen = _state.Value;
+        lastNotifiedOpen = _state.Value;
+        _context.State.Side = Side;
+        _context.State.Modal = Modal;
+
+        // Subscribe to context state changes
+        _context.OnStateChanged += HandleContextStateChanged;
+    }
+
+    protected override void OnParametersSet()
+    {
+        rootAttributesWarningLogged = ContextRootAttributes.WarnOnce(
+            Logger,
+            rootAttributesWarningLogged,
+            "Sheet",
+            "Put extra attributes on SheetContent, SheetOverlay or SheetTrigger instead.",
+            AdditionalAttributes);
+
+        // Update controlled value if it changed
+        if (_state.IsControlled && Open.HasValue)
+        {
+            _state.ControlledValue = Open.Value;
+            _context.State.IsOpen = Open.Value;
+
+            // The consumer is authoritative here, so treat its value as reported — otherwise the
+            // next change would be measured against a state we never actually sent.
+            lastNotifiedOpen = Open.Value;
+        }
+
+        // Update side if it changed
+        if (_context.State.Side != Side)
+        {
+            _context.SetSide(Side);
+        }
+
+        // Update modal if it changed
+        if (_context.State.Modal != Modal)
+        {
+            _context.State.Modal = Modal;
+        }
+    }
+
+    private void HandleContextStateChanged()
+    {
+        // When context state changes (e.g., from SheetTrigger or SheetClose),
+        // update the controllable state
+        var newOpenState = _context.State.IsOpen;
+
+        if (lastNotifiedOpen != newOpenState)
+        {
+            lastNotifiedOpen = newOpenState;
+
+            _ = _state.SetValueAsync(newOpenState);
+
+            // Invoke additional callback if provided
+            if (OnOpenChange.HasDelegate)
+            {
+                _ = OnOpenChange.InvokeAsync(newOpenState);
+            }
+        }
+
+        // Unconditional — the trigger's aria-expanded and pointer-events guard, and whether the
+        // content is mounted, all derive from context state, so this subtree must repaint
+        // whenever that state moves even if the consumer's controlled value did not (#437).
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// 取消对上下文的订阅。
+    /// </summary>
+    /// <remarks>
+    /// 这个方法一直存在，但组件从未声明 <c>IDisposable</c>，因此
+    /// Blazor 从未调用过它：每个根节点都把一个处理器留在了它不再渲染的上下文上，
+    /// 而这个闭包又让已释放的组件随之一直存活。
+    /// </remarks>
+    public void Dispose()
+    {
+        _context.OnStateChanged -= HandleContextStateChanged;
+        GC.SuppressFinalize(this);
+    }
+}

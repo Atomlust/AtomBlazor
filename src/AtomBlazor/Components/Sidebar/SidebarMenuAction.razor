@@ -1,0 +1,90 @@
+@namespace AtomBlazor
+
+@*
+    SidebarMenuAction 组件：菜单项内的操作按钮/图标。
+*@
+
+@if (!string.IsNullOrEmpty(Tooltip))
+{
+    <AtomBlazor.Primitives.TooltipPrimitive>
+        <AtomBlazor.Primitives.TooltipTrigger>
+            @RenderButton()
+        </AtomBlazor.Primitives.TooltipTrigger>
+        <AtomBlazor.Primitives.TooltipContent Side="@PopoverSide.Right">
+            <span>@Tooltip</span>
+        </AtomBlazor.Primitives.TooltipContent>
+    </AtomBlazor.Primitives.TooltipPrimitive>
+}
+else
+{
+    @RenderButton()
+}
+
+@code {
+    /// <summary>
+    /// 按钮内容（通常是图标）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 操作的工具提示文本。
+    /// </summary>
+    [Parameter]
+    public string? Tooltip { get; set; }
+
+    /// <summary>
+    /// 是否仅在悬停时显示操作。
+    /// </summary>
+    [Parameter]
+    public bool ShowOnHover { get; set; }
+
+    /// <summary>
+    /// 要渲染的元素标签（button 或 a）。
+    /// </summary>
+    [Parameter]
+    public SidebarMenuButtonElement AsChild { get; set; } = SidebarMenuButtonElement.Button;
+
+    /// <summary>
+    /// 附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private RenderFragment RenderButton() => __builder =>
+    {
+        if (AsChild == SidebarMenuButtonElement.Anchor)
+        {
+            <a class="@GetClasses()" data-sidebar="menu-action" @attributes="AdditionalAttributes">
+                @ChildContent
+            </a>
+        }
+        else
+        {
+            <button type="button" class="@GetClasses()" data-sidebar="menu-action" @attributes="AdditionalAttributes">
+                @ChildContent
+            </button>
+        }
+    };
+
+    private string GetClasses()
+    {
+        var baseClasses = "atom:absolute atom:end-1 atom:top-1.5 atom:flex atom:aspect-square atom:w-5 atom:items-center atom:justify-center atom:rounded-md atom:p-0 atom:text-sidebar-foreground atom:outline-none atom:ring-sidebar-ring atom:transition-transform atom:hover:bg-sidebar-accent atom:hover:text-sidebar-accent-foreground atom:focus-visible:ring-2 atom:peer-hover/menu-button:text-sidebar-accent-foreground atom:[&>svg]:size-4 atom:[&>svg]:shrink-0";
+
+        // 指针设备上，操作在菜单项被悬停或其中元素获得焦点之前保持隐藏；
+        // 触屏上则始终可见，因为没有 hover 可以把它显现——
+        // 因此 md: 加在隐藏规则上而非显现规则上。此前的类串只加宽了
+        // 点按目标却从不隐藏任何东西，ShowOnHover 因此毫无可见效果。
+        var hoverClasses = ShowOnHover
+            ? "atom:after:absolute atom:after:-inset-2 atom:after:md:hidden atom:peer-data-[size=sm]/menu-button:top-1 atom:peer-data-[size=default]/menu-button:top-1.5 atom:peer-data-[size=lg]/menu-button:top-2.5 atom:group-data-[collapsible=icon]:hidden atom:transition-opacity atom:md:opacity-0 atom:group-hover/menu-item:opacity-100 atom:group-focus-within/menu-item:opacity-100 atom:focus-visible:opacity-100 atom:data-[state=open]:opacity-100"
+            : "";
+
+        return ClassNames.cn(baseClasses, hoverClasses, Class);
+    }
+}

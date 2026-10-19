@@ -1,0 +1,440 @@
+@page "/components/popover"
+@using AtomBlazor.Primitives.Services
+<PageTitle>@L.T("Popover 气泡卡片 - Atom BlazorUI", "Popover Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Popover 气泡卡片组件", "Popover Component")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("采用 shadcn/ui 设计风格的气泡卡片组件。", "Styled Popover component with shadcn/ui design.")
+        </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+    </div>
+
+    <!-- AsChild Pattern -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("AsChild 模式", "AsChild Pattern")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("使用 AsChild 把触发器与你自己带样式的 Button 组件组合起来。", "Use AsChild to compose triggers with your own styled Button components.")
+        </p>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- Without AsChild -->
+            <div class="space-y-3 p-4 border rounded-lg">
+                <h3 class="text-lg font-medium">@L.T("不使用 AsChild", "Without AsChild")</h3>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("PopoverTrigger 会渲染自己的按钮并带上内联类。", "PopoverTrigger renders its own button with inline classes.")
+                </p>
+                <Popover>
+                    <AtomBlazor.PopoverTrigger AsChild="false" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                        @L.T("打开气泡卡片", "Open Popover")
+                    </AtomBlazor.PopoverTrigger>
+                    <AtomBlazor.PopoverContent>
+                        <p class="text-sm">@L.T("基础气泡卡片内容", "Basic popover content")</p>
+                    </AtomBlazor.PopoverContent>
+                </Popover>
+            </div>
+
+            <!-- With AsChild -->
+            <div class="space-y-3 p-4 border rounded-lg">
+                <h3 class="text-lg font-medium">@L.T("使用 AsChild", "With AsChild")</h3>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("Button 通过 TriggerContext 获得触发器行为。", "Button receives trigger behavior via TriggerContext.")
+                </p>
+                <Popover>
+                    <AtomBlazor.PopoverTrigger>
+                        <Button Variant="ButtonVariant.Outline">
+                            <LucideIcon Name="settings" Size="16" />
+                            @L.T("设置", "Settings")
+                        </Button>
+                    </AtomBlazor.PopoverTrigger>
+                    <AtomBlazor.PopoverContent>
+                        <div class="space-y-2">
+                            <h4 class="font-medium">@L.T("设置", "Settings")</h4>
+                            <p class="text-sm text-muted-foreground">@L.T("配置你的偏好", "Configure your preferences")</p>
+                        </div>
+                    </AtomBlazor.PopoverContent>
+                </Popover>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Popover/as-child.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold mb-4">@L.T("基础气泡卡片", "Basic Popover")</h2>
+        <Popover>
+            <AtomBlazor.PopoverTrigger>
+                <Button Variant="ButtonVariant.Outline">@L.T("打开气泡卡片", "Open Popover")</Button>
+            </AtomBlazor.PopoverTrigger>
+            <AtomBlazor.PopoverContent>
+                <div class="grid gap-4">
+                    <div class="space-y-2">
+                        <h4 class="font-medium leading-none">@L.T("尺寸", "Dimensions")</h4>
+                        <p class="text-sm text-muted-foreground">
+                            @L.T("为该层设置尺寸。", "Set the dimensions for the layer.")
+                        </p>
+                    </div>
+                    <div class="grid gap-2">
+                        <div class="grid grid-cols-3 items-center gap-4">
+                            <label class="text-sm font-medium">@L.T("宽度", "Width")</label>
+                            <input class="col-span-2 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" type="number" value="100" />
+                        </div>
+                        <div class="grid grid-cols-3 items-center gap-4">
+                            <label class="text-sm font-medium">@L.T("高度", "Height")</label>
+                            <input class="col-span-2 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" type="number" value="100" />
+                        </div>
+                    </div>
+                </div>
+            </AtomBlazor.PopoverContent>
+        </Popover>
+
+        <CodeBlock Source="Components/Popover/basic.txt" />
+    </section>
+
+    <section>
+        <h2 class="text-2xl font-semibold mb-4">@L.T("定位", "Positioning")</h2>
+        <div class="flex flex-wrap gap-4">
+            <Popover>
+                <AtomBlazor.PopoverTrigger>
+                    <Button Variant="ButtonVariant.Secondary">@L.T("上方", "Top")</Button>
+                </AtomBlazor.PopoverTrigger>
+                <AtomBlazor.PopoverContent Side="@PopoverSide.Top">
+                    <p class="text-sm">@L.T("定位在上方", "Positioned on top")</p>
+                </AtomBlazor.PopoverContent>
+            </Popover>
+
+            <Popover>
+                <AtomBlazor.PopoverTrigger>
+                    <Button Variant="ButtonVariant.Secondary">@L.T("下方", "Bottom")</Button>
+                </AtomBlazor.PopoverTrigger>
+                <AtomBlazor.PopoverContent Side="@PopoverSide.Bottom">
+                    <p class="text-sm">@L.T("定位在下方", "Positioned on bottom")</p>
+                </AtomBlazor.PopoverContent>
+            </Popover>
+
+            <Popover>
+                <AtomBlazor.PopoverTrigger>
+                    <Button Variant="ButtonVariant.Secondary">@L.T("左侧", "Left")</Button>
+                </AtomBlazor.PopoverTrigger>
+                <AtomBlazor.PopoverContent Side="@PopoverSide.Left">
+                    <p class="text-sm">@L.T("定位在左侧", "Positioned on left")</p>
+                </AtomBlazor.PopoverContent>
+            </Popover>
+
+            <Popover>
+                <AtomBlazor.PopoverTrigger>
+                    <Button Variant="ButtonVariant.Secondary">@L.T("右侧", "Right")</Button>
+                </AtomBlazor.PopoverTrigger>
+                <AtomBlazor.PopoverContent Side="@PopoverSide.Right">
+                    <p class="text-sm">@L.T("定位在右侧", "Positioned on right")</p>
+                </AtomBlazor.PopoverContent>
+            </Popover>
+        </div>
+
+        <CodeBlock Source="Components/Popover/positioning.txt" />
+    </section>
+
+    <section>
+        <h2 class="text-2xl font-semibold mb-4">@L.T("受控气泡卡片", "Controlled Popover")</h2>
+        <div class="flex items-center gap-4">
+            <Popover @bind-Open="_isControlledOpen">
+                <AtomBlazor.PopoverTrigger>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <Button>@(_isControlledOpen ? "关闭" : "打开") 受控</Button>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <Button>@(_isControlledOpen ? "Close" : "Open") Controlled</Button>
+                                        </text>
+}
+                </AtomBlazor.PopoverTrigger>
+                <AtomBlazor.PopoverContent>
+                    <div class="space-y-2">
+                        <p class="text-sm">@L.T("这个气泡卡片由外部控制。", "This popover is controlled externally.")</p>
+                        @if (L.IsChinese)
+                        {
+                                                <text>
+                                                    <p class="text-sm font-medium">状态：@(_isControlledOpen ? "打开" : "已关闭")</p>
+                                                </text>
+}
+                        else
+                        {
+                                                <text>
+                                                    <p class="text-sm font-medium">State: @(_isControlledOpen ? "Open" : "Closed")</p>
+                                                </text>
+}
+                    </div>
+                </AtomBlazor.PopoverContent>
+            </Popover>
+            <Button Variant="ButtonVariant.Outline" OnClick="() => _isControlledOpen = !_isControlledOpen">
+                @L.T("从外部切换", "Toggle from Outside")
+            </Button>
+        </div>
+
+        <CodeBlock Source="Components/Popover/controlled.txt" />
+    </section>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    触发器渲染 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-haspopup="true"</code> 以指示有弹窗可用
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Trigger renders <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-haspopup="true"</code> to indicate a popup is available
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    触发器渲染 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> 反映当前的打开状态
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Trigger renders <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> reflecting the current open state
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    触发器渲染 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-controls</code> 关联到气泡卡片内容元素
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Trigger renders <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-controls</code> linking to the popover content element
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    内容容器使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="dialog"</code>，并通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">tabindex="-1"</code> 获得焦点
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Content container uses <code class="text-xs bg-muted px-1 py-0.5 rounded">role="dialog"</code> and receives focus with <code class="text-xs bg-muted px-1 py-0.5 rounded">tabindex="-1"</code>
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    内容包含 <code class="text-xs bg-muted px-1 py-0.5 rounded">data-state</code> 属性，用于打开/关闭的样式钩子
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Content includes <code class="text-xs bg-muted px-1 py-0.5 rounded">data-state</code> attribute for open/closed styling hooks
+                </AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("关闭气泡卡片", "Close the popover"))">
+                <Kbd>Escape</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("把焦点移入或在气泡卡片内移动", "Move focus into or within the popover"))">
+                <Kbd>Tab</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="Popover">
+                <ApiParameter Name="Open" Type="bool?" Default="null">
+                    @L.T("控制气泡卡片是否打开（受控模式）。为 null 时气泡卡片自行管理状态。", "Controls whether the popover is open (controlled mode). When null, the popover manages its own state.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="OpenChanged" Type="EventCallback&lt;bool&gt;">
+                        打开状态发生变化时调用的事件回调。可与 @@bind-Open 一起用于双向绑定。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="OpenChanged" Type="EventCallback&lt;bool&gt;">
+                        Event callback invoked when the open state changes. Use with @@bind-Open for two-way binding.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="DefaultOpen" Type="bool" Default="false">
+                    @L.T("非受控模式下的默认打开状态。", "Default open state when in uncontrolled mode.")
+                </ApiParameter>
+                <ApiParameter Name="OnOpenChange" Type="EventCallback&lt;bool&gt;">
+                    @L.T("气泡卡片打开状态发生变化时调用的事件回调。", "Event callback invoked when the popover open state changes.")
+                </ApiParameter>
+                <ApiParameter Name="Modal" Type="bool" Default="true">
+                    @L.T("气泡卡片是否可以通过点击外部或按 Escape 键关闭。", "Whether the popover can be dismissed by clicking outside or pressing Escape.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("子内容。应当包含 PopoverTrigger 与 PopoverContent 组件。", "The child content. Should include PopoverTrigger and PopoverContent components.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+            <ApiReference ComponentName="PopoverTrigger">
+                <ApiParameter Name="AsChild" Type="bool" Default="true">
+                    @L.T("为 true 时，触发器不渲染自己的按钮元素，而是通过 TriggerContext 把触发器行为传给子组件。", "When true, the trigger does not render its own button element. Instead, it passes trigger behavior via TriggerContext to child components.")
+                </ApiParameter>
+                <ApiParameter Name="OnClick" Type="EventCallback&lt;MouseEventArgs&gt;">
+                    @L.T("在默认切换行为之外额外调用的自定义点击处理。", "Custom click handler invoked in addition to the default toggle behavior.")
+                </ApiParameter>
+                <ApiParameter Name="CustomClickHandling" Type="bool" Default="false">
+                    @L.T("为 true 时只调用 OnClick，跳过默认的气泡卡片切换行为。", "When true, only OnClick is invoked and the default popover toggle behavior is skipped.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("在触发器内部渲染的子内容。", "The child content to render within the trigger.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+            <ApiReference ComponentName="PopoverContent">
+                <ApiParameter Name="Side" Type="PopoverSide" Default="Bottom">
+                    @L.T("相对于触发器定位内容的首选侧。可选：Top、Right、Bottom、Left。", "Preferred side for positioning the content relative to the trigger. Options: Top, Right, Bottom, Left.")
+                </ApiParameter>
+                <ApiParameter Name="Align" Type="PopoverAlign" Default="Center">
+                    @L.T("内容相对于触发器的对齐方式。可选：Start、Center、End。", "Alignment of the content relative to the trigger. Options: Start, Center, End.")
+                </ApiParameter>
+                <ApiParameter Name="Offset" Type="int" Default="4">
+                    @L.T("距触发器元素的偏移距离（像素）。", "Offset distance from the trigger element in pixels.")
+                </ApiParameter>
+                <ApiParameter Name="MatchTriggerWidth" Type="bool" Default="false">
+                    @L.T("是否让气泡卡片的宽度与触发器元素的宽度一致。", "Whether to match the popover width to the trigger element width.")
+                </ApiParameter>
+                <ApiParameter Since="v4" Name="AutoFocusId" Type="string?" Default="null">
+                    @L.T("气泡卡片内某个元素的 id，会在其显示后的一帧、且在定位它的那次调用内聚焦该元素。这样不额外耗费往返；而从 OnContentReady 聚焦则要在回调运行前耗费一次、FocusAsync 再耗费一次。", "The id of an element inside the popover to focus one frame after it is revealed, inside the call that positions it. Costs no round trip, where focusing from OnContentReady costs one before the callback runs and another for FocusAsync.")
+                </ApiParameter>
+                <ApiParameter Since="v4" Name="ScrollToSelected" Type="bool" Default="false">
+                    @L.T("是否在每次气泡卡片打开、显示之前，把当前选中的项滚动到可视范围内。适用于组合框之类的列表内容，否则无论所选值在列表中多靠下，重新打开时都会停在列表顶部。", "Whether to scroll the currently chosen item into view each time the popover opens, before it is revealed. For list content such as a combobox, which otherwise reopens at the top of the list however far down the chosen value sits.")
+                </ApiParameter>
+                <ApiParameter Since="v4" Name="ScrollToSelectedSelector" Type="string" Default="[role=&quot;option&quot;][aria-selected=&quot;true&quot;]">
+                    @L.T("为 ScrollToSelected 标识所选项的 CSS 选择器。当内容以其他方式标记其选中状态时覆盖它——命令项用 aria-selected 表示键盘焦点，而不是表示所选值。", "CSS selector identifying the chosen item for ScrollToSelected. Override it when the content marks its selection some other way — a command item uses aria-selected for keyboard focus, not for the chosen value.")
+                </ApiParameter>
+                <ApiParameter Name="CloseOnEscape" Type="bool" Default="true">
+                    @L.T("按 Escape 键时是否关闭气泡卡片。", "Whether pressing Escape should close the popover.")
+                </ApiParameter>
+                <ApiParameter Name="CloseOnClickOutside" Type="bool" Default="true">
+                    @L.T("点击外部时是否关闭气泡卡片。", "Whether clicking outside should close the popover.")
+                </ApiParameter>
+                <ApiParameter Name="Strategy" Type="PositioningStrategy" Default="Fixed">
+                    @L.T("CSS 定位策略。使用 Fixed 以脱离层叠上下文，或使用 Absolute 以随容器滚动。", "CSS positioning strategy. Use Fixed to escape stacking contexts, or Absolute to scroll with a container.")
+                </ApiParameter>
+                <ApiParameter Name="ZIndex" Type="int" Default="9999">
+                    @L.T("气泡卡片内容的 CSS z-index 值。", "CSS z-index value for the popover content.")
+                </ApiParameter>
+                <ApiParameter Name="OnEscapeKeyDown" Type="EventCallback&lt;KeyboardEventArgs&gt;">
+                    @L.T("按下 Escape 键时调用的事件回调。", "Event callback invoked when Escape key is pressed.")
+                </ApiParameter>
+                <ApiParameter Name="OnClickOutside" Type="EventCallback">
+                    @L.T("点击气泡卡片外部时调用的事件回调。", "Event callback invoked when clicking outside the popover.")
+                </ApiParameter>
+                <ApiParameter Name="OnContentReady" Type="EventCallback">
+                    @L.T("气泡卡片内容完成定位并可见时调用的事件回调。可用于焦点管理。", "Event callback invoked when the popover content is fully positioned and visible. Useful for focus management.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("应用到内容容器的额外 CSS 类。", "Additional CSS classes to apply to the content container.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("在气泡卡片内部渲染的内容。", "The content to render inside the popover.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private bool _isControlledOpen = false;
+}

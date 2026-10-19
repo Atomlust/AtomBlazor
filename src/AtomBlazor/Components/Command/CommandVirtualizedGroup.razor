@@ -1,0 +1,766 @@
+@namespace AtomBlazor
+@typeparam TItem
+@implements IDisposable
+@implements IVirtualizedGroupHandler
+@inject IJSRuntime JS
+
+@* CommandVirtualizedGroup - 高效渲染大型项集合的虚拟化分组 *@
+<div id="@($"vgroup-container-{_id}")"
+     class="@CssClass"
+     style="@MergedGroupStyle"
+     role="group"
+     aria-labelledby="@(string.IsNullOrWhiteSpace(Heading) ? null : $"command-group-{_id}")"
+     @attributes="@InlineStyleMerge.WithoutStyle(AdditionalAttributes)">
+    @if (!string.IsNullOrWhiteSpace(Heading))
+    {
+        <div id="@($"command-group-{_id}")"
+             class="atom:px-2 atom:py-1.5 atom:text-xs atom:font-medium atom:text-muted-foreground">
+            @Heading
+            @if (_totalCount > 0)
+            {
+                var displayedCount = EnableLazyLoading ? _filteredCount : (_filteredItems?.Count ?? 0);
+                @if (displayedCount != _totalCount)
+                {
+                    <span class="atom:ms-1 atom:opacity-70">(@displayedCount of @_totalCount)</span>
+                }
+            }
+        </div>
+    }
+
+    @* 提供者模式下，Virtualize 即便计数为 0 也留在渲染树里（容器经上方 display:none 隐藏）， 从而保持挂载，并在搜索变化时重新查询提供者。 *@
+    @if (_hasVisibleItems || UseProvider)
+    {
+        @if (EnableLazyLoading)
+        {
+            <Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize
+                @ref="_virtualizeRef"
+                ItemsProvider="LoadItemsAsync"
+                ItemSize="32"
+                OverscanCount="5">
+                <ItemContent Context="indexed">
+                    <div id="@GetItemId(indexed.Index)"
+                         role="option"
+                         aria-selected="@(IsItemFocusedByIndex(indexed.Index) ? "true" : "false")"
+                         data-focused="@(IsItemFocusedByIndex(indexed.Index) ? "true" : "false")"
+                         @onclick="@(() => SelectItem(indexed.Item))"
+                         class="@GetItemCssClassByIndex(indexed.Index)">
+                        @ItemTemplate(indexed.Item)
+                    </div>
+                </ItemContent>
+                <Placeholder>
+                    <div class="atom:px-2 atom:py-1.5 atom:text-sm atom:text-muted-foreground atom:animate-pulse">Loading...</div>
+                </Placeholder>
+            </Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize>
+        }
+        else if (_indexedItems != null && _indexedItems.Count > 0)
+        {
+            <Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize
+                Items="_indexedItems"
+                ItemSize="32"
+                OverscanCount="5">
+                <ItemContent Context="indexed">
+                    <div id="@GetItemId(indexed.Index)"
+                         role="option"
+                         aria-selected="@(IsItemFocusedByIndex(indexed.Index) ? "true" : "false")"
+                         data-focused="@(IsItemFocusedByIndex(indexed.Index) ? "true" : "false")"
+                         @onclick="@(() => SelectItem(indexed.Item))"
+                         class="@GetItemCssClassByIndex(indexed.Index)">
+                        @ItemTemplate(indexed.Item)
+                    </div>
+                </ItemContent>
+            </Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize>
+        }
+    }
+</div>
+
+@code {
+    [CascadingParameter]
+    public CommandContext? Context { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到分组容器的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? MergedGroupStyle => InlineStyleMerge.Merge(_hasVisibleItems ? null : "display: none", AdditionalAttributes);
+
+    /// <summary>
+    /// 获取或设置本分组的标题文本（可选）。
+    /// </summary>
+    [Parameter]
+    public string? Heading { get; set; }
+
+    /// <summary>
+    /// 获取或设置要显示的项集合。
+    /// 除非提供了 <see cref="ItemsProvider"/>（提供者模式，此时本参数被忽略），否则必填。
+    /// </summary>
+    [Parameter]
+    public IReadOnlyList<TItem> Items { get; set; } = Array.Empty<TItem>();
+
+    /// <summary>
+    /// 获取或设置按需拉取项以实现真懒加载的异步回调
+    /// 而非把整个集合物化进 <see cref="Items"/>。
+    /// </summary>
+    /// <remarks>
+    /// 要求 <see cref="EnableLazyLoading"/> 为 <c>true</c>。提供者随用户滚动
+    /// 以及每次搜索查询变化被调用；它负责应用搜索条件
+    /// （<see cref="CommandItemsProviderRequest.SearchText"/>），并返回匹配的切片
+    /// 与匹配总数。设置后，<see cref="Items"/>、<see cref="MaxDisplayCount"/>
+    /// 以及组件内置的本地过滤都不再使用。
+    /// </remarks>
+    [Parameter]
+    public CommandItemsProvider<TItem>? ItemsProvider { get; set; }
+
+    /// <summary>
+    /// 获取或设置渲染每个项的模板。
+    /// </summary>
+    [Parameter, EditorRequired]
+    public RenderFragment<TItem> ItemTemplate { get; set; } = default!;
+
+    /// <summary>
+    /// 获取或设置从项中提取值的函数。
+    /// </summary>
+    [Parameter, EditorRequired]
+    public Func<TItem, string> ItemValue { get; set; } = default!;
+
+    /// <summary>
+    /// 获取或设置从项中提取搜索文本的函数。
+    /// 未提供时使用 ItemValue。
+    /// </summary>
+    [Parameter]
+    public Func<TItem, string>? ItemSearchText { get; set; }
+
+    /// <summary>
+    /// 获取或设置过滤后要显示的最大项数。
+    /// 默认为 100。设为 0 表示不限量。
+    /// 仅在 EnableLazyLoading 为 false 时适用。
+    /// </summary>
+    [Parameter]
+    public int MaxDisplayCount { get; set; } = 100;
+
+    /// <summary>
+    /// 获取或设置是否启用懒加载（无限滚动）。
+    /// 为 true 时，项随用户滚动被渐进加载。
+    /// 默认为 false。
+    /// </summary>
+    [Parameter]
+    public bool EnableLazyLoading { get; set; }
+
+    /// <summary>
+    /// 获取或设置懒加载时每批加载的项数。
+    /// 默认为 50。
+    /// </summary>
+    /// <remarks>
+    /// <c>Virtualize</c> 每次只索取它即将绘制的那几行，对着远端
+    /// <see cref="ItemsProvider"/> 而言就是每隔几行一次往返。批大小是每次往返
+    /// 抓取并缓存内容的下限；已在缓存中的行无需再次询问提供者即可供给。
+    /// 该值过去被声明却从未被读取。
+    /// </remarks>
+    [Parameter]
+    public int LazyLoadBatchSize { get; set; } = 50;
+
+    private readonly string _id = Guid.NewGuid().ToString("N");
+    private List<TItem>? _filteredItems;
+    private List<IndexedItem>? _indexedItems;
+    private int _totalCount;
+    private int _filteredCount; // 过滤后的总数（用于懒加载）
+    private bool _hasVisibleItems = true;
+    private int _focusedIndex = -1;
+    private bool _shouldScrollIntoView;
+    private Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize<IndexedItem>? _virtualizeRef;
+
+    // 缓存以避免 WASM 下昂贵的重复计算
+    private IReadOnlyList<TItem>? _cachedItems;
+    private string? _cachedSearchQuery;
+    private List<TItem>? _lazyFilteredSource; // 懒加载用的完整过滤列表
+    private int _lazyLoadedCount; // 懒加载当前已加载的项数
+
+    // 提供者模式（提供了 ItemsProvider）：完整集合从不驻留内存，因此按绝对索引
+    // 缓存提供者返回的每个切片，供键盘选择使用。
+    private CommandItemsProvider<TItem>? _cachedProvider;
+    private readonly Dictionary<int, TItem> _loadedItems = new();
+
+    /// <summary>
+    /// 项是否 <see cref="ItemsProvider"/> 而非内存中的 <see cref="Items"/>。
+    /// </summary>
+    private bool UseProvider => ItemsProvider is not null;
+
+    private readonly struct IndexedItem
+    {
+        public readonly TItem Item;
+        public readonly int Index;
+        public IndexedItem(TItem item, int index) { Item = item; Index = index; }
+    }
+
+    // IVirtualizedGroupHandler 实现
+    int IVirtualizedGroupHandler.VisibleItemCount => EnableLazyLoading ? _filteredCount : (_indexedItems?.Count ?? 0);
+
+    int IVirtualizedGroupHandler.FocusedIndex
+    {
+        get => _focusedIndex;
+        set
+        {
+            if (_focusedIndex != value)
+            {
+                _focusedIndex = value;
+                _shouldScrollIntoView = value >= 0; // 经键盘设置焦点时滚动
+            }
+        }
+    }
+
+    void IVirtualizedGroupHandler.NotifyStateChanged() => StateHasChanged();
+
+    async Task IVirtualizedGroupHandler.SelectFocusedItemAsync()
+    {
+        if (UseProvider)
+        {
+            // 完整集合不在内存里；被聚焦的项必然已随视图加载进来才可能被聚焦。
+            if (_focusedIndex >= 0 && _loadedItems.TryGetValue(_focusedIndex, out var providerItem))
+            {
+                await SelectItem(providerItem);
+            }
+        }
+        else if (EnableLazyLoading)
+        {
+            var source = _lazyFilteredSource ?? (IReadOnlyList<TItem>)Items;
+            if (source != null && _focusedIndex >= 0 && _focusedIndex < source.Count)
+            {
+                await SelectItem(source[_focusedIndex]);
+            }
+        }
+        else if (_indexedItems != null && _focusedIndex >= 0 && _focusedIndex < _indexedItems.Count)
+        {
+            await SelectItem(_indexedItems[_focusedIndex].Item);
+        }
+    }
+
+    async Task IVirtualizedGroupHandler.ScrollToIndexAsync(int index)
+    {
+        if (index < 0) return;
+
+        var totalItems = EnableLazyLoading ? _filteredCount : (_indexedItems?.Count ?? 0);
+        if (index >= totalItems) index = totalItems - 1;
+        if (index < 0) return;
+
+        // 设置焦点索引
+        _focusedIndex = index;
+        _shouldScrollIntoView = true;
+
+        // 滚动容器把目标项带入视图
+        // 懒加载与常规虚拟化都需要这一步
+        // 因为 Virtualize 只渲染可见项
+        if (Context != null)
+        {
+            try
+            {
+                var listId = Context.ListId;
+                var containerId = $"vgroup-container-{_id}";
+
+                // 使用虚拟化滚动模块（共享 barrel）滚动
+                var virtualizationScrollModule = await ComponentModules.GetCoreAsync(JS);
+                await virtualizationScrollModule.InvokeVoidAsync(
+                    "virtualizationScroll.scrollToVirtualizedIndex", listId, containerId, index, 32, 32);
+
+                // 给 Virtualize 一点时间在新滚动位置渲染项
+                await Task.Delay(50);
+            }
+            catch
+            {
+                // 忽略 JS 错误
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    private string CssClass => ClassNames.cn(
+        "atom:p-1 atom:text-foreground",
+        Class
+    );
+
+    private string GetItemId(int index) => $"vgroup-{_id}-item-{index}";
+
+    protected override void OnInitialized()
+    {
+        if (UseProvider && !EnableLazyLoading)
+        {
+            throw new InvalidOperationException(
+                $"{nameof(CommandVirtualizedGroup<TItem>)}.{nameof(ItemsProvider)} 要求 {nameof(EnableLazyLoading)}=\"true\"。" +
+                $"请设置 {nameof(EnableLazyLoading)}，或改为提供 {nameof(Items)}。");
+        }
+
+        if (Context != null)
+        {
+            Context.OnSearchChanged += HandleSearchChanged;
+            Context.OnKeyboardNavigationChanged += HandleKeyboardNavigationChanged;
+            Context.RegisterVirtualizedGroup(this);
+        }
+        _cachedItems = Items;
+        _cachedProvider = ItemsProvider;
+
+        if (UseProvider)
+        {
+            // 计数与可见性从提供者的首个响应中获知；先显示 Virtualize
+            // 让它发出第一次请求。
+            _hasVisibleItems = true;
+        }
+        else if (EnableLazyLoading)
+        {
+            UpdateLazyFilteredSource();
+        }
+        else
+        {
+            UpdateFilteredItems();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (UseProvider)
+        {
+            // 若提供者委托本身在运行时被替换，则重新查询。
+            if (!ReferenceEquals(ItemsProvider, _cachedProvider))
+            {
+                _cachedProvider = ItemsProvider;
+                _loadedItems.Clear();
+                _lazyLoadedCount = 0;
+                _cachedSearchQuery = null;
+                _hasVisibleItems = true;
+                if (_virtualizeRef != null)
+                {
+                    await _virtualizeRef.RefreshDataAsync();
+                }
+            }
+            return;
+        }
+
+        // 仅当 Items 引用确实变化时才重新过滤
+        if (!ReferenceEquals(Items, _cachedItems))
+        {
+            _cachedItems = Items;
+            _cachedSearchQuery = null; // 强制重建
+
+            if (EnableLazyLoading)
+            {
+                UpdateLazyFilteredSource();
+                _lazyLoadedCount = 0;
+                if (_virtualizeRef != null)
+                {
+                    await _virtualizeRef.RefreshDataAsync();
+                }
+            }
+            else
+            {
+                UpdateFilteredItems();
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_shouldScrollIntoView && _focusedIndex >= 0)
+        {
+            _shouldScrollIntoView = false;
+            var elementId = GetItemId(_focusedIndex);
+            try
+            {
+                // 首个分组的首项用 'start'，以便显示分组标题
+                var isFirstGroupFirstItem = _focusedIndex == 0 && Context != null && IsFirstVisibleGroup();
+                var scrollBlock = isFirstGroupFirstItem ? "start" : "nearest";
+                var virtualizationScrollModule = await ComponentModules.GetCoreAsync(JS);
+                await virtualizationScrollModule.InvokeVoidAsync("virtualizationScroll.scrollElementIntoView", elementId, scrollBlock);
+            }
+            catch
+            {
+                // 忽略滚动期间的 JS 错误
+            }
+        }
+    }
+
+    private bool IsFirstVisibleGroup()
+    {
+        if (Context == null) return false;
+
+        // 检查本分组是否是首个有可见项的虚拟化分组
+        var groups = Context.GetVirtualizedGroups();
+        foreach (var group in groups)
+        {
+            if (group.VisibleItemCount > 0)
+            {
+                return group == this;
+            }
+        }
+        return false;
+    }
+
+    private void UpdateFilteredItems()
+    {
+        if (Items == null || Items.Count == 0)
+        {
+            _filteredItems = new List<TItem>();
+            _indexedItems = new List<IndexedItem>();
+            _totalCount = 0;
+            _hasVisibleItems = false;
+            _cachedSearchQuery = null;
+            return;
+        }
+
+        var searchQuery = Context?.SearchQuery ?? "";
+
+        // 搜索查询未变化则跳过（缓存命中）
+        if (string.Equals(_cachedSearchQuery, searchQuery, StringComparison.Ordinal) && _indexedItems != null)
+        {
+            return;
+        }
+
+        _cachedSearchQuery = searchQuery;
+        _totalCount = Items.Count;
+
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            // 无搜索——显示前 MaxDisplayCount 项
+            var count = MaxDisplayCount > 0 ? Math.Min(MaxDisplayCount, Items.Count) : Items.Count;
+            _filteredItems = new List<TItem>(count);
+            _indexedItems = new List<IndexedItem>(count);
+
+            for (int i = 0; i < count; i++)
+            {
+                _filteredItems.Add(Items[i]);
+                _indexedItems.Add(new IndexedItem(Items[i], i));
+            }
+        }
+        else
+        {
+            // 按搜索查询过滤——使用预分配尺寸的列表避免扩容
+            var searchTextFunc = ItemSearchText ?? ItemValue;
+            _filteredItems = new List<TItem>();
+            _indexedItems = new List<IndexedItem>();
+            var index = 0;
+
+            foreach (var item in Items)
+            {
+                if (searchTextFunc(item).Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+                {
+                    _filteredItems.Add(item);
+                    _indexedItems.Add(new IndexedItem(item, index));
+                    index++;
+
+                    if (MaxDisplayCount > 0 && index >= MaxDisplayCount)
+                        break;
+                }
+            }
+        }
+
+        _hasVisibleItems = _indexedItems.Count > 0;
+    }
+
+    private void UpdateLazyFilteredSource()
+    {
+        if (Items == null || Items.Count == 0)
+        {
+            _lazyFilteredSource = new List<TItem>();
+            _filteredCount = 0;
+            _totalCount = 0;
+            _hasVisibleItems = false;
+                        return;
+        }
+
+        _totalCount = Items.Count;
+        var searchQuery = Context?.SearchQuery ?? "";
+
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            // 无搜索——使用全部项（按需懒加载）
+            _lazyFilteredSource = null; // null 表示直接使用 Items
+            _filteredCount = Items.Count;
+                    }
+        else
+        {
+            // 按搜索查询过滤
+            var searchTextFunc = ItemSearchText ?? ItemValue;
+            _lazyFilteredSource = new List<TItem>();
+
+            foreach (var item in Items)
+            {
+                if (searchTextFunc(item).Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+                {
+                    _lazyFilteredSource.Add(item);
+                }
+            }
+            _filteredCount = _lazyFilteredSource.Count;
+                    }
+
+        _hasVisibleItems = _filteredCount > 0;
+    }
+
+    private async ValueTask<Microsoft.AspNetCore.Components.Web.Virtualization.ItemsProviderResult<IndexedItem>> LoadItemsAsync(
+        Microsoft.AspNetCore.Components.Web.Virtualization.ItemsProviderRequest request)
+    {
+        if (UseProvider)
+        {
+            return await LoadFromProviderAsync(request);
+        }
+
+        // 确定源列表
+        var source = _lazyFilteredSource ?? (IReadOnlyList<TItem>)Items;
+        var totalItems = source.Count;
+
+        // 计算要返回的范围
+        var startIndex = request.StartIndex;
+        var count = Math.Min(request.Count, totalItems - startIndex);
+
+        // 调试：记录懒加载请求
+        
+        if (count <= 0)
+        {
+            return new Microsoft.AspNetCore.Components.Web.Virtualization.ItemsProviderResult<IndexedItem>(
+                Array.Empty<IndexedItem>(), totalItems);
+        }
+
+        // 构建本批次的项
+        var items = new IndexedItem[count];
+        for (int i = 0; i < count; i++)
+        {
+            var index = startIndex + i;
+            items[i] = new IndexedItem(source[index], index);
+        }
+
+        // 为键盘导航跟踪已加载数量
+        _lazyLoadedCount = Math.Max(_lazyLoadedCount, startIndex + count);
+
+        return new Microsoft.AspNetCore.Components.Web.Virtualization.ItemsProviderResult<IndexedItem>(
+            items, totalItems);
+    }
+
+    /// <summary>
+    /// 当请求要的每一行都已在批缓存里时，完全从缓存供给该请求。
+    /// 缓存会在搜索文本或提供者变化时被清空，因此一次命中
+    /// 必然反映当前的查询。
+    /// </summary>
+    private bool TryServeFromCache(
+        Microsoft.AspNetCore.Components.Web.Virtualization.ItemsProviderRequest request,
+        out Microsoft.AspNetCore.Components.Web.Virtualization.ItemsProviderResult<IndexedItem> result)
+    {
+        result = default;
+
+        if (_filteredCount <= 0)
+        {
+            return false;
+        }
+
+        var count = Math.Max(0, Math.Min(request.Count, _filteredCount - request.StartIndex));
+        var indexed = new IndexedItem[count];
+
+        for (var i = 0; i < count; i++)
+        {
+            var index = request.StartIndex + i;
+
+            if (!_loadedItems.TryGetValue(index, out var item))
+            {
+                return false;
+            }
+
+            indexed[i] = new IndexedItem(item, index);
+        }
+
+        result = new Microsoft.AspNetCore.Components.Web.Virtualization.ItemsProviderResult<IndexedItem>(
+            indexed, _filteredCount);
+        return true;
+    }
+
+    private async ValueTask<Microsoft.AspNetCore.Components.Web.Virtualization.ItemsProviderResult<IndexedItem>> LoadFromProviderAsync(
+        Microsoft.AspNetCore.Components.Web.Virtualization.ItemsProviderRequest request)
+    {
+        // 早前批次已经取过——无需往返。
+        if (TryServeFromCache(request, out var cached))
+        {
+            return cached;
+        }
+
+        var batchSize = Math.Max(1, LazyLoadBatchSize);
+        var batchStart = request.StartIndex / batchSize * batchSize;
+        var batchCount = Math.Max(batchSize, request.StartIndex + request.Count - batchStart);
+
+        var searchText = Context?.SearchQuery;
+        var providerRequest = new CommandItemsProviderRequest
+        {
+            StartIndex = batchStart,
+            Count = batchCount,
+            SearchText = string.IsNullOrWhiteSpace(searchText) ? null : searchText,
+            CancellationToken = request.CancellationToken,
+        };
+
+        CommandItemsProviderResult<TItem> result;
+        try
+        {
+            result = await ItemsProvider!(providerRequest);
+        }
+        catch (OperationCanceledException)
+        {
+            // 请求被取代（继续滚动/新搜索）或组件已释放——让 Virtualize 静默丢弃
+            // 这一批，不向外抛出错误。
+            return new Microsoft.AspNetCore.Components.Web.Virtualization.ItemsProviderResult<IndexedItem>(
+                Array.Empty<IndexedItem>(), _filteredCount);
+        }
+
+        var batch = result.Items as IList<TItem> ?? result.Items.ToList();
+        for (int i = 0; i < batch.Count; i++)
+        {
+            // 把整批按绝对索引缓存，既供键盘选择，也让本视口之外的行
+            // 在用户继续滚动时就位。
+            _loadedItems[batchStart + i] = batch[i];
+        }
+
+        _lazyLoadedCount = Math.Max(_lazyLoadedCount, batchStart + batch.Count);
+
+        // Virtualize 只想要它索取的窗口；把整批交出去会绘制
+        // 它没留位置的行。
+        var offset = request.StartIndex - batchStart;
+        var available = Math.Max(0, Math.Min(request.Count, batch.Count - offset));
+        var indexed = new IndexedItem[available];
+        for (int i = 0; i < available; i++)
+        {
+            var index = request.StartIndex + i;
+            indexed[i] = new IndexedItem(batch[offset + i], index);
+        }
+
+        // 计数以提供者为准，标题与可见性都要反映它的总数。
+        // 这些值变化时重渲染整个分组（而不只是 Virtualize）。
+        var hadVisible = _hasVisibleItems;
+        if (_totalCount != result.TotalItemCount || _filteredCount != result.TotalItemCount || hadVisible != result.TotalItemCount > 0)
+        {
+            _totalCount = result.TotalItemCount;
+            _filteredCount = result.TotalItemCount;
+            _hasVisibleItems = result.TotalItemCount > 0;
+            StateHasChanged();
+        }
+
+        return new Microsoft.AspNetCore.Components.Web.Virtualization.ItemsProviderResult<IndexedItem>(
+            indexed, result.TotalItemCount);
+    }
+
+    private async void HandleSearchChanged()
+    {
+        try
+        {
+            _cachedSearchQuery = null; // 强制重建
+
+            if (UseProvider)
+            {
+                // 丢弃缓存切片并乐观地重新显示，让（保持挂载的）Virtualize 用新搜索
+                // 重新查询提供者；响应会重置真实的计数。
+                _loadedItems.Clear();
+                _lazyLoadedCount = 0;
+                _hasVisibleItems = true;
+                _focusedIndex = -1;
+                StateHasChanged();
+                if (_virtualizeRef != null)
+                {
+                    await _virtualizeRef.RefreshDataAsync();
+                }
+                return;
+            }
+
+            if (EnableLazyLoading)
+            {
+                UpdateLazyFilteredSource();
+                _lazyLoadedCount = 0;
+                if (_virtualizeRef != null)
+                {
+                    await _virtualizeRef.RefreshDataAsync();
+                }
+            }
+            else
+            {
+                UpdateFilteredItems();
+            }
+
+            _focusedIndex = -1;
+            StateHasChanged();
+        }
+        catch (Exception)
+        {
+            // async void：没有人 await 本方法，因此逃逸的异常没有调用方可及
+            // Blazor Server 会视其为致命错误——电路关闭，用户看到重连遮罩。
+            // 本方法做的一切都是尽力而为，没有哪一步值得付那个代价。
+        }
+    }
+
+    private void HandleKeyboardNavigationChanged(bool isKeyboardNavigating)
+    {
+        // 重渲染以更新悬停类
+        StateHasChanged();
+    }
+
+    private bool IsItemFocusedByIndex(int index)
+    {
+        return _focusedIndex >= 0 && _focusedIndex == index;
+    }
+
+    // 悬停经 CommandList 的委托监听器与 CommandContext.HoverItemById 抵达
+    // 后者已经排除了指针静止而列表滚动的假悬停——所以这里不再需要键盘门控
+    // 也没有每项绑定的 @onmousemove 来充当门控。
+    bool IVirtualizedGroupHandler.TryHoverItem(string elementId)
+    {
+        var prefix = $"vgroup-{_id}-item-";
+        if (!elementId.StartsWith(prefix, StringComparison.Ordinal)
+            || !int.TryParse(elementId.AsSpan(prefix.Length), out var index))
+        {
+            return false;
+        }
+
+        FocusItemByIndex(index);
+        return true;
+    }
+
+    private void FocusItemByIndex(int index)
+    {
+        if (index >= 0 && index != _focusedIndex)
+        {
+            _focusedIndex = index;
+            // 通知上下文清除其他分组的焦点
+            Context?.SetVirtualizedGroupFocus(this, index);
+            // 鼠标悬停时不滚动
+            StateHasChanged();
+        }
+    }
+
+    private async Task SelectItem(TItem item)
+    {
+        if (Context != null)
+        {
+            var value = ItemValue(item);
+            if (Context.OnValueChange.HasDelegate)
+            {
+                await Context.OnValueChange.InvokeAsync(value);
+            }
+        }
+    }
+
+    private string GetItemCssClassByIndex(int index)
+    {
+        var isFocused = IsItemFocusedByIndex(index);
+        var isKeyboardNav = Context?.IsKeyboardNavigating == true;
+        var baseClasses = "atom:relative atom:flex atom:cursor-pointer atom:select-none atom:items-center atom:rounded-sm atom:px-2 atom:py-1.5 atom:text-sm atom:outline-none";
+        var hoverClasses = isKeyboardNav ? "" : " atom:hover:bg-accent atom:hover:text-accent-foreground";
+        var focusClasses = isFocused ? " atom:bg-accent atom:text-accent-foreground" : "";
+        return $"{baseClasses}{hoverClasses}{focusClasses}";
+    }
+
+    public void Dispose()
+    {
+        if (Context != null)
+        {
+            Context.OnSearchChanged -= HandleSearchChanged;
+            Context.OnKeyboardNavigationChanged -= HandleKeyboardNavigationChanged;
+            Context.UnregisterVirtualizedGroup(this);
+        }
+    }
+}

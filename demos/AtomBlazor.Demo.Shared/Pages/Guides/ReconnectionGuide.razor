@@ -1,0 +1,358 @@
+@page "/guides/reconnection"
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("重连 - Atom BlazorUI", "Reconnection - Atom BlazorUI")</PageTitle>
+
+<div class="max-w-4xl space-y-8">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("重连", "Reconnection")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("只需把一段标记粘贴进宿主页面，Blazor Server 的重连对话框就会跟随你的主题，而不是显示框架那个素白的方框。", "Paste one block into your host page and the Blazor Server reconnection dialog follows your theme instead of showing the framework's plain white box.")
+        </p>
+    </div>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("试一试", "Try it")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("这些按钮把真实对话框切到框架能够设置的每个状态。没有任何模拟 —— 这里的标记和 CSS 就是你的应用会原样发布的那份。", "These buttons put the real dialog into each state the framework can set. Nothing is simulated — the markup and the CSS are the ones your application would ship.")
+        </p>
+        <div class="flex flex-wrap gap-2">
+            <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="@(() => Preview("components-reconnect-show"))">@L.T("重连中", "Reconnecting")</Button>
+            <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="@(() => Preview("components-reconnect-show components-reconnect-retrying"))">@L.T("倒计时中", "Counting down")</Button>
+            <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="@(() => Preview("components-reconnect-paused"))">@L.T("已暂停", "Paused")</Button>
+            <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="@(() => Preview("components-reconnect-failed"))">@L.T("失败", "Failed")</Button>
+            <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="@(() => Preview("components-reconnect-rejected"))">@L.T("被拒绝", "Rejected")</Button>
+        </div>
+        <div class="rounded-r-lg border-s-4 border-primary bg-primary/5 p-4">
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        每个预览会在十二秒后自行清除。<strong class="text-foreground">失败</strong>
+                        与 <strong class="text-foreground">被拒绝</strong> 状态带有可用的按钮 —— 重新加载真的会重新加载页面。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Each preview clears itself after twelve seconds. The <strong class="text-foreground">Failed</strong>
+                        and <strong class="text-foreground">Rejected</strong> states carry working buttons —
+                        Reload really does reload.
+                    </p>
+                </text>
+            }
+        </div>
+    </section>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("为什么计数大约从 11 开始", "Why the counter starts around 11")</h2>
+        @if (L.IsChinese)
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    它没有跳过尝试。Blazor 的默认策略是
+                    <strong class="text-foreground">前十次完全无间隔地重试</strong>，然后在第 11 到 20 次之间每次等待五秒，
+                    之后直到三十次上限每次等待三十秒。前十次在几百毫秒内就过去了 —— 远快到人眼能读到的程度 —— 所以
+                    一个人真正看到的第一个数字是 11。
+                </p>
+            </text>
+        }
+        else
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    It is not skipping attempts. Blazor's default policy retries
+                    <strong class="text-foreground">ten times with no gap at all</strong>, then waits five
+                    seconds between attempts 11 and 20, then thirty seconds up to the limit of thirty. The
+                    first ten are over in a few hundred milliseconds — far faster than anyone can read — so
+                    the first number a person actually sees is 11.
+                </p>
+            </text>
+        }
+        @if (L.IsChinese)
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    这也是倒计时只从第 11 次开始出现的原因。间隔为零时没什么可倒数的，框架只有在存在
+                    真实等待时才会加上
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">components-reconnect-retrying</code>
+                    。启动 Blazor 时可通过
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">reconnectionOptions.retryIntervalMilliseconds</code>
+                    和 <code class="rounded bg-muted px-1 py-0.5 text-xs">maxRetries</code> 修改这一切。
+                </p>
+            </text>
+        }
+        else
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    That is also why the countdown only appears from attempt 11. While the gap is zero there
+                    is nothing to count, and the framework only adds
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">components-reconnect-retrying</code>
+                    once there is a real wait. Change any of it with
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">reconnectionOptions.retryIntervalMilliseconds</code>
+                    and <code class="rounded bg-muted px-1 py-0.5 text-xs">maxRetries</code> when you start Blazor.
+                </p>
+            </text>
+        }
+    </section>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("为什么它是标记而不是组件", "Why it is markup and not a component")</h2>
+        @if (L.IsChinese)
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    对话框出现在电路断开的时候，所以按定义此时什么组件都无法渲染。Blazor 由
+                    宿主页面的静态 HTML 驱动它：给页面一个
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">id="components-reconnect-modal"</code>
+                    的元素，框架就会在其上切换状态类。没有这样的元素时，它会自建遮罩并注入自己的样式表 —— 那就是多数 Server 应用自带的无样式方框。
+                </p>
+            </text>
+        }
+        else
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    The dialog appears when the circuit is down, so by definition nothing can render. Blazor
+                    drives it from static HTML in the host page: give the page an element with
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">id="components-reconnect-modal"</code>
+                    and the framework toggles state classes on it. With no such element it builds its own
+                    overlay and injects its own stylesheet, which is the unstyled box most Server
+                    applications ship with.
+                </p>
+            </text>
+        }
+        @if (L.IsChinese)
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    样式位于 <code class="rounded bg-muted px-1 py-0.5 text-xs">.css</code>
+                    中并读取你的主题变量，因此浅色与深色模式都无需配置。
+                </p>
+            </text>
+        }
+        else
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    The styling is in <code class="rounded bg-muted px-1 py-0.5 text-xs">.css</code>
+                    and reads your theme variables, so light and dark need no configuration.
+                </p>
+            </text>
+        }
+    </section>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("配置", "Setup")</h2>
+        @if (L.IsChinese)
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    把这段粘贴进 <code class="rounded bg-muted px-1 py-0.5 text-xs">App.razor</code>
+                    （或 <code class="rounded bg-muted px-1 py-0.5 text-xs">index.html</code>）的
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">&lt;body&gt;</code> 内。这个演示用的就是同一段。
+                </p>
+            </text>
+        }
+        else
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    Paste this into <code class="rounded bg-muted px-1 py-0.5 text-xs">App.razor</code>
+                    (or <code class="rounded bg-muted px-1 py-0.5 text-xs">index.html</code>) inside
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">&lt;body&gt;</code>. It is the same
+                    block this demo uses.
+                </p>
+            </text>
+        }
+        <CodeBlock Source="Guides/Reconnection/markup.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("状态", "States")</h2>
+        @if (L.IsChinese)
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    框架会在 modal 元素上设置这些类。带有
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">data-when</code> 的元素只在其列出的状态中出现，因此一段标记即可服务全部状态。
+                </p>
+            </text>
+        }
+        else
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    The framework sets these classes on the modal element. An element carrying
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">data-when</code> shows only in the
+                    states it lists, so one block of markup serves all of them.
+                </p>
+            </text>
+        }
+        <div class="overflow-hidden rounded-lg border">
+            <table class="w-full text-sm">
+                <thead class="bg-muted/50">
+                    <tr>
+                        <th class="p-3 text-start font-medium">@L.T("类名", "Class")</th>
+                        <th class="p-3 text-start font-medium">@L.T("出现时机", "When")</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="border-t"><td class="p-3 font-mono text-xs">components-reconnect-show</td><td class="p-3 text-muted-foreground">@L.T("正在尝试重连。", "Trying to reconnect.")</td></tr>
+                    <tr class="border-t"><td class="p-3 font-mono text-xs">components-reconnect-retrying</td><td class="p-3 text-muted-foreground">@if (L.IsChinese)
+                        {
+                            <text>
+                                在倒计时到下一次尝试期间，叠加在 <code class="text-xs">show</code> 之上。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Added on top of <code class="text-xs">show</code> while counting down to the next attempt.
+                            </text>
+                        }</td></tr>
+                    <tr class="border-t"><td class="p-3 font-mono text-xs">components-reconnect-paused</td><td class="p-3 text-muted-foreground">@L.T("电路被暂停，将自行恢复。", "The circuit was paused and will resume on its own.")</td></tr>
+                    <tr class="border-t"><td class="p-3 font-mono text-xs">components-reconnect-hide</td><td class="p-3 text-muted-foreground">@L.T("已重连，对话框消失。", "Reconnected. The dialog goes away.")</td></tr>
+                    <tr class="border-t"><td class="p-3 font-mono text-xs">components-reconnect-failed</td><td class="p-3 text-muted-foreground">@if (L.IsChinese)
+                        {
+                            <text>
+                                重试次数用尽。<code class="text-xs">Blazor.reconnect()</code> 会再试一次。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Out of attempts. <code class="text-xs">Blazor.reconnect()</code> tries again.
+                            </text>
+                        }</td></tr>
+                    <tr class="border-t"><td class="p-3 font-mono text-xs">components-reconnect-resume-failed</td><td class="p-3 text-muted-foreground">@L.T("被暂停的电路无法恢复。", "A paused circuit could not be resumed.")</td></tr>
+                    <tr class="border-t"><td class="p-3 font-mono text-xs">components-reconnect-rejected</td><td class="p-3 text-muted-foreground">@L.T("服务器拒绝了会话，只有重新加载有用。", "The server refused the session. Only a reload helps.")</td></tr>
+                </tbody>
+            </table>
+        </div>
+        @if (L.IsChinese)
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    Blazor 还会填充 <code class="rounded bg-muted px-1 py-0.5 text-xs">#components-reconnect-current-attempt</code>、
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">#components-reconnect-max-retries</code> 和
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">#components-seconds-to-next-attempt</code>。
+                    每个 id 只应出现一次 —— 框架按 id 查找它们，并且只取第一个。
+                </p>
+            </text>
+        }
+        else
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    Blazor also fills <code class="rounded bg-muted px-1 py-0.5 text-xs">#components-reconnect-current-attempt</code>,
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">#components-reconnect-max-retries</code> and
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">#components-seconds-to-next-attempt</code>.
+                    Each id may appear only once — the framework looks them up by id and takes the first.
+                </p>
+            </text>
+        }
+    </section>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("覆盖它", "Overriding it")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("标记由你掌管，因此以下四种做法都可行：", "The markup is yours, so all four of these work:")
+        </p>
+        <ul class="ms-4 list-disc space-y-1 text-sm text-muted-foreground">
+            <li>@if (L.IsChinese)
+                {
+                    <text>
+                        <strong class="text-foreground">什么都不改。</strong>每一种颜色都来自主题变量，所以它在两种模式下已经与你的应用相匹配。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <strong class="text-foreground">Change nothing.</strong> Every colour comes from a theme variable, so it already matches your application in both modes.
+                    </text>
+                }</li>
+            <li>@if (L.IsChinese)
+                {
+                    <text>
+                        <strong class="text-foreground">加上你自己的类。</strong>库的规则位于 <code class="rounded bg-muted px-1 py-0.5 text-xs">components</code> 级联层，排在你的工具类之下，因此你的类无需 <code class="rounded bg-muted px-1 py-0.5 text-xs">!important</code> 就能胜出。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <strong class="text-foreground">Add your own classes.</strong> The library's rules live in the <code class="rounded bg-muted px-1 py-0.5 text-xs">components</code> cascade layer, below your utilities, so your classes win without <code class="rounded bg-muted px-1 py-0.5 text-xs">!important</code>.
+                    </text>
+                }</li>
+            <li>@if (L.IsChinese)
+                {
+                    <text>
+                        <strong class="text-foreground">写不同的标记。</strong>任何带有该 id 的元素都能用；上面那段只是一个起点。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <strong class="text-foreground">Write different markup.</strong> Any element with that id works; the block above is only a starting point.
+                    </text>
+                }</li>
+            <li>@if (L.IsChinese)
+                {
+                    <text>
+                        <strong class="text-foreground">让 Blazor 指向别处。</strong>启动 Blazor 时设置 <code class="rounded bg-muted px-1 py-0.5 text-xs">reconnectionOptions.dialogId</code>，库的 CSS 就永远不会匹配到。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <strong class="text-foreground">Point Blazor elsewhere.</strong> Set <code class="rounded bg-muted px-1 py-0.5 text-xs">reconnectionOptions.dialogId</code> when you start Blazor and the library's CSS never matches.
+                    </text>
+                }</li>
+        </ul>
+    </section>
+</div>
+
+@code {
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private async Task Preview(string classes)
+    {
+        // The countdown ticks here the way the framework ticks it -- once a second -- so the
+        // preview shows the real behaviour rather than a number frozen at 5.
+        #pragma warning disable BL0016 // （.NET 11 Razor 分析器）照本体保留无 try/catch 守卫的 JS 调用，系重连对话框演示 Preview() 一次性触发、非交互期必可达；采定点抑制
+        await JS.InvokeVoidAsync("eval", $$"""
+            (() => {
+                const m = document.getElementById('components-reconnect-modal');
+                if (!m) return;
+                clearInterval(window.__bbReconnectPreview);
+                const set = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
+                set('components-reconnect-current-attempt', '12');
+                set('components-reconnect-max-retries', '30');
+                m.className = '{{classes}}';
+
+                if (m.classList.contains('components-reconnect-retrying')) {
+                    let secs = 5;
+                    let attempt = 12;
+                    set('components-seconds-to-next-attempt', secs);
+                    window.__bbReconnectPreview = setInterval(() => {
+                        secs -= 1;
+                        if (secs < 1) { secs = 5; attempt += 1; set('components-reconnect-current-attempt', attempt); }
+                        set('components-seconds-to-next-attempt', secs);
+                    }, 1000);
+                }
+
+                setTimeout(() => {
+                    clearInterval(window.__bbReconnectPreview);
+                    m.className = '';
+                }, 12000);
+            })();
+            """);
+        #pragma warning restore BL0016
+    }
+}

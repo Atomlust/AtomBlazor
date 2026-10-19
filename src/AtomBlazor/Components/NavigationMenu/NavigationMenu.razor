@@ -1,0 +1,188 @@
+@namespace AtomBlazor
+@using Microsoft.AspNetCore.Components.Routing
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+@*
+    Navigation Menu 组件——站点主导航。
+    提供一条带下拉支持的水平导航栏。
+*@
+
+<nav class="@CssClass" @attributes="AdditionalAttributes">
+    <CascadingValue Value="@this" IsFixed="true">
+        @ChildContent
+    </CascadingValue>
+</nav>
+
+@code {
+    private string? _activeItem;
+    private CancellationTokenSource? _closeTimerCts;
+    private readonly List<(object Owner, ElementReference Element)> _triggerRefs = new();
+
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        // 导航发生时关闭任何已打开的菜单
+        if (_activeItem != null)
+        {
+            _activeItem = null;
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+        _closeTimerCts?.Dispose();
+    }
+
+    /// <summary>
+    /// 要在导航菜单内渲染的内容。
+    /// 通常包含若干 NavigationMenuList 组件。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 要应用到导航菜单的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 要应用到导航菜单的附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 启用下拉菜单内的键盘导航。
+    /// 为 true 时，用户可用方向键在条目间移动。
+    /// 默认为 false。
+    /// </summary>
+    [Parameter]
+    public bool EnableKeyboardNavigation { get; set; } = false;
+
+    /// <summary>
+    /// 获取或设置当前激活/打开的菜单项。
+    /// </summary>
+    internal string? ActiveItem
+    {
+        get => _activeItem;
+        set
+        {
+            _activeItem = value;
+            StateHasChanged();
+        }
+    }
+
+    /// <summary>
+ /// 为一个触发器登记键盘导航；待其元素真实存在后，
+    /// 替换其中已为它持有的元素引用。
+    /// </summary>
+    /// <remarks>
+    /// 以触发器组件为键，而不是以它必须记住的位置为键，于是一个条目被移除时不会使其后的条目
+    /// 位移。触发器过去是靠反射伸进这里，在首渲染后替换自己那一格的；而且从来没有任何条目
+    /// 被移除过。
+    /// </remarks>
+    internal void RegisterTrigger(object owner, ElementReference triggerRef)
+    {
+        var index = IndexOfTrigger(owner);
+
+        if (index >= 0)
+        {
+            _triggerRefs[index] = (owner, triggerRef);
+            return;
+        }
+
+        _triggerRefs.Add((owner, triggerRef));
+    }
+
+    /// <summary>
+ /// 在触发器被释放时，把它从键盘导航的登记表里移除。
+    /// </summary>
+    internal void UnregisterTrigger(object owner)
+    {
+        var index = IndexOfTrigger(owner);
+
+        if (index >= 0)
+        {
+            _triggerRefs.RemoveAt(index);
+        }
+    }
+
+    /// <summary>
+ /// 获取指定下标处的触发器元素，按登记顺序。
+    /// </summary>
+    internal ElementReference? GetTriggerAt(int index)
+    {
+        if (index >= 0 && index < _triggerRefs.Count)
+        {
+            return _triggerRefs[index].Element;
+        }
+        return null;
+    }
+
+    /// <summary>
+ /// 该触发器在列表中的当前位置，未登记时为 -1。方向键导航读取它，而不是记住一个
+    /// 会被移除操作作废的下标。
+    /// </summary>
+    internal int TriggerIndexOf(object owner) => IndexOfTrigger(owner);
+
+    private int IndexOfTrigger(object owner) =>
+        _triggerRefs.FindIndex(entry => ReferenceEquals(entry.Owner, owner));
+
+    /// <summary>
+ /// 获取已登记触发器的总数。
+    /// </summary>
+    internal int TriggerCount => _triggerRefs.Count;
+
+    /// <summary>
+    /// 启动一个共享定时器，在短暂延迟后关闭菜单。
+    /// 该定时器在所有菜单项之间共享，以避免竞态。
+    /// </summary>
+    internal async void StartCloseTimer()
+    {
+        CancelCloseTimer();
+        _closeTimerCts = new CancellationTokenSource();
+
+        try
+        {
+            await Task.Delay(150, _closeTimerCts.Token);
+            ActiveItem = null;
+        }
+        catch (TaskCanceledException)
+        {
+            // 定时器已被取消，什么都不做
+        }
+        catch (Exception)
+        {
+            // async void：没有人 await 它，所以逃逸出的异常没有可到达的调用方，
+            // Blazor Server 会将其视为致命——电路随之关闭，用户看到重连遮罩。这个方法做的
+            // 一切都是尽力而为，没有任何一部分值得付出那样的代价。
+        }
+    }
+
+    /// <summary>
+    /// 取消一切挂起的关闭定时器。
+    /// </summary>
+    internal void CancelCloseTimer()
+    {
+        _closeTimerCts?.Cancel();
+        _closeTimerCts?.Dispose();
+        _closeTimerCts = null;
+    }
+
+    /// <summary>
+    /// 获取导航菜单计算出的 CSS 类串。
+    /// </summary>
+    private string CssClass => ClassNames.cn(
+        "atom:relative atom:flex atom:max-w-max atom:flex-1 atom:items-center atom:justify-center",
+        _activeItem != null ? "atom:z-50" : "atom:z-10",
+        Class
+    );
+}

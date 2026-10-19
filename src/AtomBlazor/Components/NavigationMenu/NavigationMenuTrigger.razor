@@ -1,0 +1,235 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@inject IJSRuntime JSRuntime
+@implements IDisposable
+
+@* Navigation Menu Trigger——打开一个下拉内容面板。
+*@
+
+<button @ref="_buttonRef"
+        type="button"
+        class="@CssClass"
+        data-state="@(MenuItem?.IsOpen == true ? "open" : "closed")"
+        aria-haspopup="menu"
+        aria-expanded="@(MenuItem?.IsOpen == true ? "true" : "false")"
+        @onclick="HandleClick"
+        @onkeydown="HandleKeyDown"
+        @onkeydown:preventDefault="_preventKeyDefault"
+        @onmouseenter="HandleMouseEnter"
+        @onmouseleave="HandleMouseLeave"
+        @attributes="AdditionalAttributes">
+    @ChildContent
+    <LucideIcon Name="chevron-down"
+                Class="@ChevronCssClass" />
+</button>
+
+@code {
+    private ElementReference _buttonRef;
+    private bool _preventKeyDefault = false;
+    private IJSObjectReference? _navModule;
+
+    /// <summary>
+    /// 对父级菜单项的引用。
+    /// </summary>
+    [CascadingParameter]
+    public NavigationMenuItem? MenuItem { get; set; }
+
+    /// <summary>
+    /// 对父级导航菜单的引用。
+    /// </summary>
+    [CascadingParameter]
+    public NavigationMenu? Menu { get; set; }
+
+    /// <summary>
+    /// 触发器按钮的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 要应用到触发器上的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取用于焦点管理的元素引用。
+    /// </summary>
+    internal ElementReference ButtonRef => _buttonRef;
+
+    protected override void OnInitialized()
+    {
+        Menu?.RegisterTrigger(this, _buttonRef);
+        MenuItem?.RegisterTrigger(this);
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+ // 元素引用直到此刻才真实，所以替换上面登记的占位条目。这一步过去
+            // 靠反射伸进菜单的私有列表，覆写它自己记住下标的
+            // 那一格。
+            Menu?.RegisterTrigger(this, _buttonRef);
+        }
+    }
+
+    /// <summary>
+    /// 离开菜单的触发器列表，让方向键导航不再跳到已经不在页面
+    /// 上的按钮。
+    /// </summary>
+    public void Dispose()
+    {
+        Menu?.UnregisterTrigger(this);
+        GC.SuppressFinalize(this);
+    }
+
+    private void HandleClick()
+    {
+        // 只打开，不切换关闭（点击已打开的菜单时保持其打开）
+        if (MenuItem != null && !MenuItem.IsOpen)
+        {
+            MenuItem.IsOpen = true;
+        }
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs args)
+    {
+        _preventKeyDefault = false;
+
+        switch (args.Key)
+        {
+            case "ArrowRight":
+                _preventKeyDefault = true;
+                await FocusTriggerAtOffset(1);
+                break;
+            case "ArrowLeft":
+                _preventKeyDefault = true;
+                await FocusTriggerAtOffset(-1);
+                break;
+            case "ArrowDown":
+                _preventKeyDefault = true;
+                if (MenuItem != null)
+                {
+                    MenuItem.CancelCloseTimer();
+                    // 请内容在其渲染完成后聚焦自己的第一个条目，用于键盘打开——而不是
+                    // 睡 50ms 再祈祷渲染已经落地。内容确切地知道自己何时上了屏幕
+                    // 定时器只是在猜。
+                    MenuItem.FocusFirstContentItemOnOpen();
+                    MenuItem.IsOpen = true;
+                }
+                break;
+            case "ArrowUp":
+                _preventKeyDefault = true;
+                break;
+            case "Enter":
+            case " ":
+                _preventKeyDefault = true;
+                MenuItem?.Toggle();
+                break;
+            case "Escape":
+                _preventKeyDefault = true;
+                if (MenuItem != null)
+                {
+                    MenuItem.IsOpen = false;
+                }
+                break;
+        }
+    }
+
+    private async Task FocusTriggerAtOffset(int offset)
+    {
+        if (Menu == null) return;
+
+        // 现在读取位置，而不是记住一个：触发器离开页面时会带走它的条目
+        // 其后的每个下标都会位移。
+        var index = Menu.TriggerIndexOf(this);
+        if (index < 0) return;
+
+        var newIndex = index + offset;
+        if (newIndex < 0) newIndex = Menu.TriggerCount - 1;
+        if (newIndex >= Menu.TriggerCount) newIndex = 0;
+
+        var targetRef = Menu.GetTriggerAt(newIndex);
+        if (targetRef.HasValue)
+        {
+            await EnsureModuleLoaded();
+            if (_navModule != null)
+            {
+ // BL0016（.NET 11）：与一致不加 try/catch 守卫——目标元素由登记表
+                // 持有且刚确认存在，断线时由电路生命周期兜底。
+#pragma warning disable BL0016
+                await _navModule.InvokeVoidAsync("navigationMenu.focusElement", targetRef.Value);
+#pragma warning restore BL0016
+            }
+        }
+    }
+
+    private async Task EnsureModuleLoaded()
+    {
+        if (_navModule == null)
+        {
+            try
+            {
+ _navModule = await ComponentModules.GetCoreAsync(JSRuntime); // 有意偏差（记录在案）：此处直连 navigation-menu.js 独立路径，本仓库统一改走共享 components-core.js barrel（照先例）
+            }
+            catch { }
+        }
+    }
+
+    private void HandleMouseEnter()
+    {
+        if (MenuItem != null)
+        {
+            MenuItem.CancelCloseTimer();
+            MenuItem.IsOpen = true;
+        }
+    }
+
+    private void HandleMouseLeave()
+    {
+        MenuItem?.StartCloseTimer();
+    }
+
+    /// <summary>
+    /// 聚焦本触发器元素。
+    /// </summary>
+    internal async Task FocusAsync()
+    {
+        await EnsureModuleLoaded();
+        if (_navModule != null)
+        {
+            // BL0016（.NET 11）：与一致不加 try/catch 守卫——本触发按钮在页且模块
+            // 已加载，断线时由电路生命周期兜底。
+#pragma warning disable BL0016
+            await _navModule.InvokeVoidAsync("navigationMenu.focusElement", _buttonRef);
+#pragma warning restore BL0016
+        }
+    }
+
+    /// <summary>
+    /// 获取触发器计算出的 CSS 类串。
+    /// </summary>
+    private string CssClass => ClassNames.cn(
+        "atom:group atom:inline-flex atom:h-10 atom:w-max atom:items-center atom:justify-center atom:rounded-md atom:bg-background atom:px-4 atom:py-2 atom:text-sm atom:font-medium",
+        "atom:transition-colors atom:hover:bg-accent atom:hover:text-accent-foreground",
+        "atom:focus:bg-accent atom:focus:text-accent-foreground atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2",
+        "atom:disabled:pointer-events-none atom:disabled:opacity-50",
+        "atom:data-[state=open]:bg-accent/50",
+        Class
+    );
+
+    /// <summary>
+    /// 获取 V形箭头图标计算出的 CSS 类串。
+    /// </summary>
+    private string ChevronCssClass => ClassNames.cn(
+        "atom:relative atom:top-[1px] atom:ms-1 atom:h-3 atom:w-3 atom:transition atom:duration-200",
+        MenuItem?.IsOpen == true ? "atom:rotate-180" : null
+    );
+}

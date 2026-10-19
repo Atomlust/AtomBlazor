@@ -1,0 +1,320 @@
+@page "/charts/scatter"
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("散点图 - Atom BlazorUI", "Scatter Chart - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-6xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("散点图", "Scatter Chart")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("用散点图与气泡图呈现相关性与分布。", "Visualize correlations and distributions with scatter plots and bubble charts.")
+            </p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("散点图", "Scatter Chart")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("身高与体重的分布", "Height vs Weight Distribution")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <ScatterChart Data="@_scatterData" Height="250px">
+                        <XAxis Type="AxisType.Value" Scale="true" />
+                        <YAxis Scale="true" />
+                        <ChartTooltip />
+                        <Scatter XDataKey="height" DataKey="weight" Name="@(L.T("体重", "Weight"))" Color="var(--chart-1)" />
+                    </ScatterChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("数值轴上真正的 X:Y 散点", "True X:Y scatter on a value axis")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("展示身高与体重之间的相关性", "Showing height vs weight correlation")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/ScatterChart/default.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("多个系列", "Multiple Series")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("A 组与 B 组对比", "Group A vs Group B")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <ScatterChart Data="@_scatterData" Height="250px">
+                        <XAxis Type="AxisType.Value" Scale="true" />
+                        <YAxis Scale="true" />
+                        <ChartTooltip />
+                        <ChartLegend />
+                        <Scatter XDataKey="height" DataKey="weight" Name="@(L.T("A 组", "Group A"))" Color="var(--chart-1)" />
+                        <Scatter XDataKey="height" DataKey="score" Name="@(L.T("B 组", "Group B"))" Color="var(--chart-2)" />
+                    </ScatterChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("两个散点系列，并带图例", "Two scatter series with legend")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("把两组数据并排放在一起比较", "Comparing two datasets side by side")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/ScatterChart/multiple.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("自定义符号大小", "Custom Symbol Size")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("更大的数据点", "Larger data points")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <ScatterChart Data="@_scatterData" Height="250px">
+                        <XAxis Type="AxisType.Value" Scale="true" />
+                        <YAxis Scale="true" />
+                        <ChartTooltip />
+                        <Scatter XDataKey="height" DataKey="weight" Name="@(L.T("体重", "Weight"))" Color="var(--chart-3)" SymbolSize="16" />
+                    </ScatterChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("SymbolSize 设为 16px", "SymbolSize set to 16px")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("圆点更大，更易辨认", "Larger dots for better visibility")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/ScatterChart/custom-size.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("带标签", "With Labels")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("带标签的数据点", "Labeled data points")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <ScatterChart Data="@_scatterData" Height="250px">
+                        <XAxis Type="AxisType.Value" Scale="true" />
+                        <YAxis Scale="true" />
+                        <ChartTooltip />
+                        <Scatter XDataKey="height" DataKey="weight" Name="@(L.T("体重", "Weight"))" Color="var(--chart-4)" ShowLabel="true" LabelPosition="LabelPosition.Top" />
+                    </ScatterChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("在每个点上标出数值", "Value labels on each point")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("ShowLabel 配合 Top 位置", "ShowLabel with Top position")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/ScatterChart/labels.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("气泡图", "Bubble Chart")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("按分数改变大小", "Variable size by score")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <ScatterChart Data="@_scatterData" Height="250px">
+                        <XAxis Type="AxisType.Value" Scale="true" />
+                        <YAxis Scale="true" />
+                        <ChartTooltip />
+                        <Scatter XDataKey="height" DataKey="weight" Name="@(L.T("体重", "Weight"))" Color="var(--chart-5)" SymbolSizeKey="score" />
+                    </ScatterChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("符号大小由数据驱动", "Symbol size driven by data")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("SymbolSizeKey 把分数映射成圆点大小", "SymbolSizeKey maps score to dot size")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/ScatterChart/bubble.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("小圆点", "Small Dots")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("极简散点", "Minimal scatter")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <ScatterChart Data="@_scatterData" Height="250px">
+                        <XAxis Type="AxisType.Value" Scale="true" />
+                        <YAxis Scale="true" />
+                        <ChartTooltip />
+                        <Scatter XDataKey="height" DataKey="weight" Name="@(L.T("体重", "Weight"))" Color="var(--chart-1)" SymbolSize="5" />
+                    </ScatterChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("符号大小取 5px", "Small symbol size of 5px")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("适合数据点密集的场合", "Suitable for dense datasets")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/ScatterChart/small.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("类别型 X 轴", "Categorical X Axis")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("按区域统计的销售额", "Sales by region")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <ScatterChart Data="@_regionData" Height="250px">
+                        <XAxis DataKey="region" Type="AxisType.Category" />
+                        <YAxis />
+                        <ChartTooltip />
+                        <Scatter DataKey="sales" Name="@(L.T("销售额", "Sales"))" Color="var(--chart-2)" />
+                    </ScatterChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("离散类别时省略 XDataKey", "Omit XDataKey for discrete categories")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("数据点等距排布，标签由坐标轴提供", "Points sit at evenly spaced positions labelled by the axis")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/ScatterChart/categorical.txt" />
+        </div>
+    </div>
+
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+        </div>
+        <div class="border rounded-lg p-6 space-y-4">
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Scatter.XDataKey</h3>
+                <p class="text-sm text-muted-foreground mb-2">
+                    @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">string?</code> (@L.T("默认值：", "default:") <code class="text-xs bg-muted px-1 py-0.5 rounded">null</code>)
+                </p>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        保存每个点 X 数值的属性名。设置它之后，点会在
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code>、
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Time</code> 或
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Log</code> 轴上按自己的坐标落位。
+                        做类别型散点图时请留空，此时数据点等距排布，X 轴自带标签。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        Property name holding each point's X value, plotting it at its own coordinate on a
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code>,
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Time</code> or
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Log</code> axis. Leave it unset for a
+                        categorical scatter, where points are spaced evenly and the X axis supplies its own labels.
+                    </p>
+                                </text>
+}
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">XAxis.Scale / YAxis.Scale</h3>
+                <p class="text-sm text-muted-foreground mb-2">
+                    @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code> (@L.T("默认值：", "default:") <code class="text-xs bg-muted px-1 py-0.5 rounded">false</code>)
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("让数值轴按数据范围取尺度，而不是把零点包含进来。不开启时，160-190 这些身高只占绘图区的最后六分之一。若离零点的远近本身就是读者要看的信息，请保持关闭。", "Scales a value axis to the data range instead of including zero. Without it, heights of 160-190 sit in the last sixth of the plot. Leave it off wherever the distance from zero is part of what the reader should see.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Scatter.SymbolSize</h3>
+                <p class="text-sm text-muted-foreground mb-2">
+                    @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">int</code> (@L.T("默认值：", "default:") <code class="text-xs bg-muted px-1 py-0.5 rounded">10</code>)
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("每个散点符号的大小，单位是像素。", "The size of each scatter symbol in pixels.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Scatter.SymbolSizeKey</h3>
+                <p class="text-sm text-muted-foreground mb-2">
+                    @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">string?</code> (@L.T("默认值：", "default:") <code class="text-xs bg-muted px-1 py-0.5 rounded">null</code>)
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("逐项符号大小对应的属性名，有了它就能画出气泡图。", "Property name for per-item symbol sizes, enabling bubble chart visualizations.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Scatter.ShowLabel</h3>
+                <p class="text-sm text-muted-foreground mb-2">
+                    @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code> (@L.T("默认值：", "default:") <code class="text-xs bg-muted px-1 py-0.5 rounded">false</code>)
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("是否在每个点上显示数据标签。", "Whether to display data labels on each point.")
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    public class ScatterData
+    {
+        public int Height { get; set; }
+        public int Weight { get; set; }
+        public int Score { get; set; }
+    }
+
+    private readonly List<ScatterData> _scatterData =
+    [
+        new() { Height = 160, Weight = 55, Score = 8 },
+        new() { Height = 165, Weight = 62, Score = 12 },
+        new() { Height = 170, Weight = 68, Score = 15 },
+        new() { Height = 172, Weight = 71, Score = 10 },
+        new() { Height = 175, Weight = 75, Score = 18 },
+        new() { Height = 178, Weight = 80, Score = 22 },
+        new() { Height = 180, Weight = 82, Score = 14 },
+        new() { Height = 183, Weight = 88, Score = 20 },
+        new() { Height = 185, Weight = 90, Score = 16 },
+        new() { Height = 190, Weight = 95, Score = 25 }
+    ];
+
+    public class RegionData
+    {
+        public string Region { get; set; } = "";
+        public int Sales { get; set; }
+    }
+
+    private readonly List<RegionData> _regionData =
+    [
+        new() { Region = "North", Sales = 42 },
+        new() { Region = "South", Sales = 68 },
+        new() { Region = "East", Sales = 55 },
+        new() { Region = "West", Sales = 73 },
+        new() { Region = "Central", Sales = 61 }
+    ];
+}

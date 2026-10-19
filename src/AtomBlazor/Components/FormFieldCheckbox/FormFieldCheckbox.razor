@@ -1,0 +1,69 @@
+@namespace AtomBlazor
+@inherits FormFieldBase
+
+<Field Orientation="@EffectiveOrientation" IsInvalid="@IsInvalid" Class="@Class">
+    @if (Label is not null && Orientation is FieldOrientation.Vertical)
+    {
+        <FieldLabel For="@ControlId">@Label</FieldLabel>
+    }
+    <FieldContent>
+        @if (Orientation is FieldOrientation.HorizontalEnd or FieldOrientation.Horizontal)
+        {
+            <div class="atom:flex atom:items-center atom:gap-2">
+                @if (Orientation is FieldOrientation.Horizontal && Label is not null)
+                {
+                    <FieldLabel For="@ControlId">@Label</FieldLabel>
+                }
+                <Checkbox Id="@ControlId"
+                          Checked="@Checked"
+                          CheckedChanged="HandleCheckedChanged"
+                          CheckedExpression="@CheckedExpression"
+                          Name="@Name"
+                          Indeterminate="@Indeterminate"
+                          IndeterminateChanged="@IndeterminateChanged"
+                          Disabled="@Disabled"
+                          Required="@Required"
+                          AriaLabel="@AriaLabel"
+                          AriaDescribedBy="@DescribedById"
+                          Class="@InputClass"
+                          @attributes="AdditionalAttributes"/>
+                @if (Orientation is FieldOrientation.HorizontalEnd && Label is not null)
+                {
+                    <FieldLabel For="@ControlId">@Label</FieldLabel>
+                }
+            </div>
+        }
+        else
+        {
+            <Checkbox Id="@ControlId"
+                      Checked="@Checked"
+                      CheckedChanged="HandleCheckedChanged"
+                      CheckedExpression="@CheckedExpression"
+                      Name="@Name"
+                      Indeterminate="@Indeterminate"
+                      IndeterminateChanged="@IndeterminateChanged"
+                      Disabled="@Disabled"
+                      Required="@Required"
+                      AriaLabel="@AriaLabel"
+                      AriaDescribedBy="@DescribedById"
+                      Class="@InputClass"
+                      @attributes="AdditionalAttributes" />
+            @if (Label is not null && Orientation is FieldOrientation.VerticalEnd)
+            {
+                <FieldLabel For="@ControlId">@Label</FieldLabel>
+            }
+        }
+        @if (!string.IsNullOrEmpty(HelperText) && !IsInvalid)
+        {
+            <FieldDescription Id="@DescriptionId">@HelperText</FieldDescription>
+        }
+        @if (IsInvalid && !string.IsNullOrEmpty(ErrorText))
+        {
+            <FieldError Id="@ErrorId">@ErrorText</FieldError>
+        }
+        else if (HasEditContextErrors)
+        {
+            <FieldError Id="@ErrorId" Errors="@EditContextErrors" />
+        }
+    </FieldContent>
+</Field>

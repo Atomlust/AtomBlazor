@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>AtomBlazor.Demo</RootNamespace>
+    <AssemblyName>AtomBlazor.Demo.Shared</AssemblyName>
+    <!-- AD0001：SDK 分析器 ForLoopIteratorInClosureAnalyzer 自身抛 NullReferenceException 的框架缺陷
+         （实证触发面：PaginationDemo @for 内 `var page = i;` 别名闭包，全仓唯一形态；Carousel/Skeleton
+         等 @for 页零命中）。诊断报在 CSC 级、文件级 pragma 不可达，工程级压制并登记理由。 -->
+    <NoWarn>$(NoWarn);CS1591;CA1716;AD0001</NoWarn>
+
+    <!-- 文档站样式入口：由 Tailwind 构建管线生成（对照源 Demo 工程的 tailwind.targets 配置） -->
+    <TailwindInput>wwwroot/css/app-input.css</TailwindInput>
+    <TailwindOutput>wwwroot/css/app.css</TailwindOutput>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AtomBlazor\AtomBlazor.csproj" />
+    <ProjectReference Include="..\..\src\AtomBlazor.Icons.Lucide\AtomBlazor.Icons.Lucide.csproj" />
+    <ProjectReference Include="..\..\src\AtomBlazor.Icons.Feather\AtomBlazor.Icons.Feather.csproj" />
+    <ProjectReference Include="..\..\src\AtomBlazor.Icons.Heroicons\AtomBlazor.Icons.Heroicons.csproj" />
+    <ProjectReference Include="..\..\src\AtomBlazor.Icons.FontAwesome\AtomBlazor.Icons.FontAwesome.csproj" />
+    <ProjectReference Include="..\..\src\AtomBlazor.Primitives\AtomBlazor.Primitives.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="11.0.0-rtm.26480.113" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- CodeExamples 基础设施：示例片段以嵌入资源方式随程序集分发，由 CodeBlock 按路径加载。
+         具体组件的 .txt 示例片段随各自文档页逐步补入。 -->
+    <EmbeddedResource Include="CodeExamples\**\*.txt" />
+  </ItemGroup>
+
+  <Import Project="..\..\tools\atom.tailwind.targets" />
+
+</Project>

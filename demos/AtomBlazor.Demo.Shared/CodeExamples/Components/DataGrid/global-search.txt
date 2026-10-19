@@ -1,0 +1,24 @@
+<DataGrid TData="Person" Items="@people" InitialPageSize="10" ShowSearch>
+    <Columns>
+        <DataGridPropertyColumn TData="Person" TProp="string"
+            Property="@(p => p.Name)" Sortable Filterable />
+        <DataGridPropertyColumn TData="Person" TProp="string"
+            Property="@(p => p.Email)" Filterable />
+        <DataGridPropertyColumn TData="Person" TProp="string"
+            Property="@(p => p.Department)" Sortable Filterable />
+        <DataGridPropertyColumn TData="Person" TProp="int"
+            Property="@(p => p.Salary)" Format="C0" Sortable />
+    </Columns>
+</DataGrid>
+
+@* Customize placeholder and debounce *@
+<DataGrid TData="Person" Items="@people" ShowSearch
+            SearchPlaceholder="Find employees..."
+            SearchDebounceMs="500">
+    ...
+</DataGrid>
+
+@* Server-side: SearchText is passed via DataGridRequest.SearchText *@
+<DataGrid TData="Person" ItemsProvider="@LoadAsync" ShowSearch>
+    ...
+</DataGrid>

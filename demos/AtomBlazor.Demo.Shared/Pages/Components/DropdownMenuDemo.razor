@@ -1,0 +1,779 @@
+@page "/components/dropdown-menu"
+
+<PageTitle>@L.T("下拉菜单组件 - Atom BlazorUI", "Dropdown Menu Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("下拉菜单组件", "Dropdown Menu Component")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("由按钮触发的操作或选项菜单。", "Displays a menu of actions or options triggered by a button.")
+        </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+    </div>
+
+    <!-- Basic Dropdown -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("基础下拉菜单", "Basic Dropdown Menu")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("一个带条目列表的简单下拉菜单。", "A simple dropdown menu with items.")
+        </p>
+
+        <div class="flex items-start gap-2">
+            <DropdownMenu>
+                <AtomBlazor.DropdownMenuTrigger AsChild="false" Class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                    @L.T("打开菜单", "Open Menu")
+                </AtomBlazor.DropdownMenuTrigger>
+                <AtomBlazor.DropdownMenuContent>
+                    <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleBasicAction("Profile"))">@L.T("个人资料", "Profile")</AtomBlazor.DropdownMenuItem>
+                    <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleBasicAction("Settings"))">@L.T("设置", "Settings")</AtomBlazor.DropdownMenuItem>
+                    <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleBasicAction("Billing"))">@L.T("账单", "Billing")</AtomBlazor.DropdownMenuItem>
+                </AtomBlazor.DropdownMenuContent>
+            </DropdownMenu>
+            @if (!string.IsNullOrEmpty(basicAction))
+            {
+                <p class="text-sm">@L.T("最近一次操作：", "Last action:") <strong>@basicAction</strong></p>
+            }
+        </div>
+        <CodeBlock Source="Components/DropdownMenu/basic.txt" />
+    </section>
+
+    <!-- With Labels and Separators -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("带标签与分隔线", "With Labels and Separators")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("用标签与视觉分隔线来组织菜单条目。", "Organize menu items with labels and visual separators.")
+        </p>
+
+        <div class="flex items-start gap-2">
+            <DropdownMenu>
+                <AtomBlazor.DropdownMenuTrigger AsChild="false" Class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                    @L.T("我的账户", "My Account")
+                </AtomBlazor.DropdownMenuTrigger>
+                <AtomBlazor.DropdownMenuContent>
+                    <DropdownMenuLabel>@L.T("我的账户", "My Account")</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleLabelsAction("Profile"))">@L.T("个人资料", "Profile")</AtomBlazor.DropdownMenuItem>
+                    <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleLabelsAction("Billing"))">@L.T("账单", "Billing")</AtomBlazor.DropdownMenuItem>
+                    <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleLabelsAction("Settings"))">@L.T("设置", "Settings")</AtomBlazor.DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <AtomBlazor.DropdownMenuItem Class="text-destructive" OnClick="@(() => HandleLabelsAction("Logout"))">@L.T("退出登录", "Logout")</AtomBlazor.DropdownMenuItem>
+                </AtomBlazor.DropdownMenuContent>
+            </DropdownMenu>
+            @if (!string.IsNullOrEmpty(labelsAction))
+            {
+                <p class="text-sm">@L.T("最近一次操作：", "Last action:") <strong>@labelsAction</strong></p>
+            }
+        </div>
+        <CodeBlock Source="Components/DropdownMenu/labels-separators.txt" />
+    </section>
+
+    <!-- With Groups -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("分组条目", "Grouped Items")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("把相关的菜单条目归到一组。", "Group related menu items together.")
+        </p>
+
+        <div class="flex items-start gap-2">
+            <DropdownMenu>
+                <AtomBlazor.DropdownMenuTrigger AsChild="false" Class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                    @L.T("操作", "Actions")
+                </AtomBlazor.DropdownMenuTrigger>
+                <AtomBlazor.DropdownMenuContent>
+                    <DropdownMenuLabel>@L.T("文件操作", "File Operations")</DropdownMenuLabel>
+                    <DropdownMenuGroup>
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleGroupsAction("New File"))">@L.T("新建文件", "New File")</AtomBlazor.DropdownMenuItem>
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleGroupsAction("Open"))">@L.T("打开", "Open")</AtomBlazor.DropdownMenuItem>
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleGroupsAction("Save"))">@L.T("保存", "Save")</AtomBlazor.DropdownMenuItem>
+                    </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>@L.T("编辑操作", "Edit Operations")</DropdownMenuLabel>
+                    <DropdownMenuGroup>
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleGroupsAction("Cut"))">@L.T("剪切", "Cut")</AtomBlazor.DropdownMenuItem>
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleGroupsAction("Copy"))">@L.T("复制", "Copy")</AtomBlazor.DropdownMenuItem>
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleGroupsAction("Paste"))">@L.T("粘贴", "Paste")</AtomBlazor.DropdownMenuItem>
+                    </DropdownMenuGroup>
+                </AtomBlazor.DropdownMenuContent>
+            </DropdownMenu>
+            @if (!string.IsNullOrEmpty(groupsAction))
+            {
+                <p class="text-sm">@L.T("最近一次操作：", "Last action:") <strong>@groupsAction</strong></p>
+            }
+        </div>
+        <CodeBlock Source="Components/DropdownMenu/grouped.txt" />
+    </section>
+
+    <!-- Alignment Options -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("对齐选项", "Alignment Options")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("控制下拉菜单相对触发器的对齐方式（Start、Center、End）。用小图标按钮测试，可以更清楚地看到对齐效果。", "Control how the dropdown aligns relative to its trigger (Start, Center, End). Test with small icon buttons to see alignment clearly.")
+        </p>
+
+        <div class="flex flex-wrap gap-4 items-start">
+            <div class="flex flex-col gap-2 items-start">
+                <DropdownMenu>
+                    <AtomBlazor.DropdownMenuTrigger AsChild="false" Class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10" aria-label="@(L.T("起始对齐菜单", "Start aligned menu"))">
+                        <LucideIcon Name="menu" Size="16" />
+                    </AtomBlazor.DropdownMenuTrigger>
+                    <AtomBlazor.DropdownMenuContent Align="@PopoverAlign.Start">
+                        <DropdownMenuLabel>@L.T("起始对齐", "Start Alignment")</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleMenuAction("start", "Item 1"))">@L.T("条目 1", "Item 1")</AtomBlazor.DropdownMenuItem>
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleMenuAction("start", "Item 2"))">@L.T("条目 2", "Item 2")</AtomBlazor.DropdownMenuItem>
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleMenuAction("start", "Item 3"))">@L.T("条目 3", "Item 3")</AtomBlazor.DropdownMenuItem>
+                    </AtomBlazor.DropdownMenuContent>
+                </DropdownMenu>
+                @if (GetMenuAction("start") != null)
+                {
+                    <p class="text-sm">@L.T("起始：", "Start:") <strong>@GetMenuAction("start")</strong></p>
+                }
+            </div>
+
+            <div class="flex flex-col gap-2 items-start">
+                <DropdownMenu>
+                    <AtomBlazor.DropdownMenuTrigger AsChild="false" Class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10" aria-label="@(L.T("居中对齐菜单", "Center aligned menu"))">
+                        <LucideIcon Name="menu" Size="16" />
+                    </AtomBlazor.DropdownMenuTrigger>
+                    <AtomBlazor.DropdownMenuContent Align="@PopoverAlign.Center">
+                        <DropdownMenuLabel>@L.T("居中对齐", "Center Alignment")</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleMenuAction("center", "Item 1"))">@L.T("条目 1", "Item 1")</AtomBlazor.DropdownMenuItem>
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleMenuAction("center", "Item 2"))">@L.T("条目 2", "Item 2")</AtomBlazor.DropdownMenuItem>
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleMenuAction("center", "Item 3"))">@L.T("条目 3", "Item 3")</AtomBlazor.DropdownMenuItem>
+                    </AtomBlazor.DropdownMenuContent>
+                </DropdownMenu>
+                @if (GetMenuAction("center") != null)
+                {
+                    <p class="text-sm">@L.T("居中：", "Center:") <strong>@GetMenuAction("center")</strong></p>
+                }
+            </div>
+
+            <div class="flex flex-col gap-2 items-start">
+                <DropdownMenu>
+                    <AtomBlazor.DropdownMenuTrigger AsChild="false" Class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10" aria-label="@(L.T("末尾对齐菜单", "End aligned menu"))">
+                        <LucideIcon Name="menu" Size="16" />
+                    </AtomBlazor.DropdownMenuTrigger>
+                    <AtomBlazor.DropdownMenuContent Align="@PopoverAlign.End">
+                        <DropdownMenuLabel>@L.T("末尾对齐", "End Alignment")</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleMenuAction("end", "Item 1"))">@L.T("条目 1", "Item 1")</AtomBlazor.DropdownMenuItem>
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleMenuAction("end", "Item 2"))">@L.T("条目 2", "Item 2")</AtomBlazor.DropdownMenuItem>
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleMenuAction("end", "Item 3"))">@L.T("条目 3", "Item 3")</AtomBlazor.DropdownMenuItem>
+                    </AtomBlazor.DropdownMenuContent>
+                </DropdownMenu>
+                @if (GetMenuAction("end") != null)
+                {
+                    <p class="text-sm">@L.T("末尾：", "End:") <strong>@GetMenuAction("end")</strong></p>
+                }
+            </div>
+        </div>
+        <CodeBlock Source="Components/DropdownMenu/alignment.txt" />
+    </section>
+
+    <!-- Disabled Items -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("禁用条目", "Disabled Items")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("菜单条目可以被禁用以防止交互。", "Menu items can be disabled to prevent interaction.")
+        </p>
+
+        <div class="flex items-start gap-2">
+            <DropdownMenu>
+                <AtomBlazor.DropdownMenuTrigger AsChild="false" Class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                    @L.T("编辑菜单", "Edit Menu")
+                </AtomBlazor.DropdownMenuTrigger>
+                <AtomBlazor.DropdownMenuContent>
+                    <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleDisabledAction("Cut"))">@L.T("剪切", "Cut")</AtomBlazor.DropdownMenuItem>
+                    <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleDisabledAction("Copy"))">@L.T("复制", "Copy")</AtomBlazor.DropdownMenuItem>
+                    <AtomBlazor.DropdownMenuItem Disabled="true" OnClick="@(() => HandleDisabledAction("Paste"))">@L.T("粘贴（已禁用）", "Paste (Disabled)")</AtomBlazor.DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleDisabledAction("Select All"))">@L.T("全选", "Select All")</AtomBlazor.DropdownMenuItem>
+                    <AtomBlazor.DropdownMenuItem Disabled="true" OnClick="@(() => HandleDisabledAction("Delete"))">@L.T("删除（已禁用）", "Delete (Disabled)")</AtomBlazor.DropdownMenuItem>
+                </AtomBlazor.DropdownMenuContent>
+            </DropdownMenu>
+            @if (!string.IsNullOrEmpty(disabledAction))
+            {
+                <p class="text-sm">@L.T("最近一次操作：", "Last action:") <strong>@disabledAction</strong></p>
+            }
+        </div>
+        <CodeBlock Source="Components/DropdownMenu/disabled.txt" />
+    </section>
+
+    <!-- Checkbox Items -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("复选条目", "Checkbox Items")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("切换保持勾选状态的菜单条目。切换复选框时菜单保持打开。", "Toggle menu items that maintain checked state. The menu stays open when toggling checkboxes.")
+        </p>
+
+        <div class="flex items-start gap-4">
+            <DropdownMenu>
+                <AtomBlazor.DropdownMenuTrigger AsChild="false" Class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                    @L.T("视图选项", "View Options")
+                </AtomBlazor.DropdownMenuTrigger>
+                <AtomBlazor.DropdownMenuContent>
+                    <DropdownMenuLabel>@L.T("外观", "Appearance")</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <AtomBlazor.DropdownMenuCheckboxItem @bind-Checked="showStatusBar">
+                        @L.T("状态栏", "Status Bar")
+                    </AtomBlazor.DropdownMenuCheckboxItem>
+                    <AtomBlazor.DropdownMenuCheckboxItem @bind-Checked="showActivityBar">
+                        @L.T("活动栏", "Activity Bar")
+                    </AtomBlazor.DropdownMenuCheckboxItem>
+                    <AtomBlazor.DropdownMenuCheckboxItem @bind-Checked="showPanel">
+                        @L.T("面板", "Panel")
+                    </AtomBlazor.DropdownMenuCheckboxItem>
+                    <DropdownMenuSeparator />
+                    <AtomBlazor.DropdownMenuCheckboxItem @bind-Checked="fullScreen">
+                        @L.T("全屏", "Full Screen")
+                    </AtomBlazor.DropdownMenuCheckboxItem>
+                    <AtomBlazor.DropdownMenuCheckboxItem Disabled="true" Checked="false">
+                        @L.T("自动换行（已禁用）", "Word Wrap (Disabled)")
+                    </AtomBlazor.DropdownMenuCheckboxItem>
+                </AtomBlazor.DropdownMenuContent>
+            </DropdownMenu>
+
+            <div class="text-sm space-y-1">
+                <p>@L.T("状态栏：", "Status Bar:") <strong>@(showStatusBar ? L.T("已显示", "Visible") : L.T("已隐藏", "Hidden"))</strong></p>
+                <p>@L.T("活动栏：", "Activity Bar:") <strong>@(showActivityBar ? L.T("已显示", "Visible") : L.T("已隐藏", "Hidden"))</strong></p>
+                <p>@L.T("面板：", "Panel:") <strong>@(showPanel ? L.T("已显示", "Visible") : L.T("已隐藏", "Hidden"))</strong></p>
+                <p>@L.T("全屏：", "Full Screen:") <strong>@(fullScreen ? L.T("已开启", "On") : L.T("已关闭", "Off"))</strong></p>
+            </div>
+        </div>
+        <CodeBlock Source="Components/DropdownMenu/checkbox.txt" />
+    </section>
+
+    <!-- Icon Shorthand -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("图标简写", "Icon Shorthand")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">使用 <code class="bg-muted px-1 py-0.5 rounded">Icon</code> 参数即可在菜单条目内容前添加图标，无需手写标记。</p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Use the <code class="bg-muted px-1 py-0.5 rounded">Icon</code> parameter to add an icon before the menu item content without manual markup.
+            </p>
+                </text>
+}
+
+        <div class="flex items-start gap-2">
+            <DropdownMenu>
+                <AtomBlazor.DropdownMenuTrigger AsChild="false" Class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                    @L.T("文件操作", "File Actions")
+                </AtomBlazor.DropdownMenuTrigger>
+                <AtomBlazor.DropdownMenuContent>
+                    <AtomBlazor.DropdownMenuItem>
+                        <Icon><LucideIcon Name="pencil" Size="16" /></Icon>
+                        <ChildContent>@L.T("编辑", "Edit")</ChildContent>
+                    </AtomBlazor.DropdownMenuItem>
+                    <AtomBlazor.DropdownMenuItem>
+                        <Icon><LucideIcon Name="copy" Size="16" /></Icon>
+                        <ChildContent>@L.T("创建副本", "Duplicate")</ChildContent>
+                    </AtomBlazor.DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <AtomBlazor.DropdownMenuItem Class="text-destructive">
+                        <Icon><LucideIcon Name="trash-2" Size="16" /></Icon>
+                        <ChildContent>@L.T("删除", "Delete")</ChildContent>
+                    </AtomBlazor.DropdownMenuItem>
+                </AtomBlazor.DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+        <CodeBlock Source="Components/DropdownMenu/icon-shorthand.txt" />
+    </section>
+
+    <!-- Link Items -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("链接条目", "Link Items")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">使用 <code class="bg-muted px-1 py-0.5 rounded">Href</code> 参数可将菜单条目渲染为用于导航的锚元素。</p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Use the <code class="bg-muted px-1 py-0.5 rounded">Href</code> parameter to render menu items as anchor elements for navigation.
+            </p>
+                </text>
+}
+
+        <div class="flex items-start gap-2">
+            <DropdownMenu>
+                <AtomBlazor.DropdownMenuTrigger AsChild="false" Class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                    @L.T("资源", "Resources")
+                </AtomBlazor.DropdownMenuTrigger>
+                <AtomBlazor.DropdownMenuContent>
+                    <DropdownMenuLabel>@L.T("页面", "Pages")</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <AtomBlazor.DropdownMenuItem Href="/components/select">@L.T("Select 组件", "Select Component")</AtomBlazor.DropdownMenuItem>
+                    <AtomBlazor.DropdownMenuItem Href="/components/switch">@L.T("Switch 组件", "Switch Component")</AtomBlazor.DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>@L.T("外部链接", "External")</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <AtomBlazor.DropdownMenuItem Href="https://github.com" Target="_blank">
+                        @L.T("GitHub（新标签页打开）", "GitHub (new tab)")
+                    </AtomBlazor.DropdownMenuItem>
+                </AtomBlazor.DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+
+        <CodeBlock Source="Components/DropdownMenu/link.txt" />
+    </section>
+
+    <!-- AsChild Pattern -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("AsChild 组合模式", "AsChild Pattern")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("使用 AsChild 可将触发行为组合进你自己带样式的 Button 组件。", "Use AsChild to compose triggers with your own styled Button components.")
+        </p>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- Without AsChild -->
+            <div class="space-y-3 p-4 border rounded-lg">
+                <h3 class="text-lg font-medium">@L.T("不使用 AsChild", "Without AsChild")</h3>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("DropdownMenuTrigger 会自行渲染一个带内联类的按钮。", "DropdownMenuTrigger renders its own button with inline classes.")
+                </p>
+                <DropdownMenu>
+                    <AtomBlazor.DropdownMenuTrigger AsChild="false" Class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                        @L.T("打开菜单", "Open Menu")
+                    </AtomBlazor.DropdownMenuTrigger>
+                    <AtomBlazor.DropdownMenuContent>
+                        <AtomBlazor.DropdownMenuItem>@L.T("个人资料", "Profile")</AtomBlazor.DropdownMenuItem>
+                        <AtomBlazor.DropdownMenuItem>@L.T("设置", "Settings")</AtomBlazor.DropdownMenuItem>
+                    </AtomBlazor.DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+
+            <!-- With AsChild -->
+            <div class="space-y-3 p-4 border rounded-lg">
+                <h3 class="text-lg font-medium">@L.T("使用 AsChild", "With AsChild")</h3>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("Button 组件通过 TriggerContext 接收触发行为。", "Button component receives trigger behavior via TriggerContext.")
+                </p>
+                <DropdownMenu>
+                    <AtomBlazor.DropdownMenuTrigger>
+                        <Button Variant="ButtonVariant.Outline">
+                            @L.T("操作", "Actions")
+                            <LucideIcon Name="chevron-down" Size="16" />
+                        </Button>
+                    </AtomBlazor.DropdownMenuTrigger>
+                    <AtomBlazor.DropdownMenuContent>
+                        <DropdownMenuLabel>@L.T("操作", "Actions")</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <AtomBlazor.DropdownMenuItem>
+                            <LucideIcon Name="pencil" Size="16" />
+                            @L.T("编辑", "Edit")
+                        </AtomBlazor.DropdownMenuItem>
+                        <AtomBlazor.DropdownMenuItem>
+                            <LucideIcon Name="copy" Size="16" />
+                            @L.T("创建副本", "Duplicate")
+                        </AtomBlazor.DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <AtomBlazor.DropdownMenuItem Class="text-destructive">
+                            <LucideIcon Name="trash-2" Size="16" />
+                            @L.T("删除", "Delete")
+                        </AtomBlazor.DropdownMenuItem>
+                    </AtomBlazor.DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/DropdownMenu/as-child.txt" />
+    </section>
+
+    <!-- Complex Example -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("综合示例", "Complex Example")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("组合所有特性：标签、分隔线、分组、快捷键与禁用条目。", "Combining all features: labels, separators, groups, shortcuts, and disabled items.")
+        </p>
+
+        <div class="flex items-start gap-2">
+            <DropdownMenu>
+                <AtomBlazor.DropdownMenuTrigger AsChild="false" Class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                    @L.T("完整菜单", "Complete Menu")
+                </AtomBlazor.DropdownMenuTrigger>
+                <AtomBlazor.DropdownMenuContent Class="w-56">
+                    <DropdownMenuLabel>@L.T("我的账户", "My Account")</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuGroup>
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleComplexAction("Profile"))">
+                            @L.T("个人资料", "Profile")
+                            <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+                        </AtomBlazor.DropdownMenuItem>
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleComplexAction("Billing"))">
+                            @L.T("账单", "Billing")
+                            <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
+                        </AtomBlazor.DropdownMenuItem>
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleComplexAction("Settings"))">
+                            @L.T("设置", "Settings")
+                            <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+                        </AtomBlazor.DropdownMenuItem>
+                        <AtomBlazor.DropdownMenuItem Disabled="true" OnClick="@(() => HandleComplexAction("Keyboard shortcuts"))">
+                            @L.T("键盘快捷键", "Keyboard shortcuts")
+                            <DropdownMenuShortcut>⌘K</DropdownMenuShortcut>
+                        </AtomBlazor.DropdownMenuItem>
+                    </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuGroup>
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleComplexAction("Team"))">@L.T("团队", "Team")</AtomBlazor.DropdownMenuItem>
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleComplexAction("Invite users"))">
+                            @L.T("邀请用户", "Invite users")
+                            <DropdownMenuShortcut>⌘I</DropdownMenuShortcut>
+                        </AtomBlazor.DropdownMenuItem>
+                    </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                    <AtomBlazor.DropdownMenuItem Href="https://github.com" Target="_blank">GitHub</AtomBlazor.DropdownMenuItem>
+                    <AtomBlazor.DropdownMenuItem Disabled="true" OnClick="@(() => HandleComplexAction("Support"))">@L.T("支持", "Support")</AtomBlazor.DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleComplexAction("Log out"))">
+                        @L.T("退出登录", "Log out")
+                        <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+                    </AtomBlazor.DropdownMenuItem>
+                </AtomBlazor.DropdownMenuContent>
+            </DropdownMenu>
+            @if (!string.IsNullOrEmpty(complexAction))
+            {
+                <p class="text-sm">@L.T("最近一次操作：", "Last action:") <strong>@complexAction</strong></p>
+            }
+        </div>
+        <CodeBlock Source="Components/DropdownMenu/complex.txt" />
+    </section>
+
+    <!-- API Reference -->
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("单选条目与嵌套子菜单", "Radio choices and nested submenus")</h2>
+        <p class="text-sm text-muted-foreground">@L.T("用方向键在条目间移动，向前方向键进入子菜单，按 Escape 或向后方向键返回其触发器。向前与向后随文本方向调整。这里的单选条目选择后菜单保持打开。", "Use arrows to move through items, the forward arrow to enter a submenu, and Escape or the back arrow to return to its trigger. Forward and back follow text direction. Radio choices here keep the menu open.")</p>
+<DropdownMenu>
+    <AtomBlazor.DropdownMenuTrigger AsChild="false" Class="rounded-md border px-3 py-2 focus-visible:ring-2 focus-visible:ring-ring">@L.T("查看与分享", "View and share")</AtomBlazor.DropdownMenuTrigger>
+    <AtomBlazor.DropdownMenuContent>
+<DropdownMenuRadioGroup TValue="string" @bind-Value="menuDensity" aria-label="@(L.T("密度", "Density"))">
+    <DropdownMenuRadioItem Value='@("Comfortable")' CloseOnSelect="false">@L.T("舒适", "Comfortable")</DropdownMenuRadioItem>
+    <DropdownMenuRadioItem Value='@("Compact")' CloseOnSelect="false">@L.T("紧凑", "Compact")</DropdownMenuRadioItem>
+    <DropdownMenuRadioItem Value='@("Unavailable")' Disabled="true">@L.T("不可用", "Unavailable")</DropdownMenuRadioItem>
+</DropdownMenuRadioGroup>
+<DropdownMenuSeparator />
+<DropdownMenuSub>
+    <DropdownMenuSubTrigger>@L.T("分享", "Share")</DropdownMenuSubTrigger>
+    <DropdownMenuSubContent>
+        <AtomBlazor.DropdownMenuItem OnClick='@(() => menuResult = L.IsChinese ? "链接已复制" : "Link copied")'>@L.T("复制链接", "Copy link")</AtomBlazor.DropdownMenuItem>
+        <DropdownMenuSub>
+            <DropdownMenuSubTrigger>@L.T("导出", "Export")</DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+                <AtomBlazor.DropdownMenuItem OnClick='@(() => menuResult = L.IsChinese ? "已导出 CSV" : "Exported CSV")'>CSV</AtomBlazor.DropdownMenuItem>
+                <AtomBlazor.DropdownMenuItem OnClick='@(() => menuResult = L.IsChinese ? "已导出 JSON" : "Exported JSON")'>JSON</AtomBlazor.DropdownMenuItem>
+            </DropdownMenuSubContent>
+        </DropdownMenuSub>
+    </DropdownMenuSubContent>
+</DropdownMenuSub>
+    </AtomBlazor.DropdownMenuContent>
+</DropdownMenu>
+        <p class="text-sm">@L.T("密度：", "Density:") @menuDensity. @menuResult</p>
+        <CodeBlock Source="Components/DropdownMenu/composition.txt" />
+    </section>
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>使用 role="menu" 与 role="menuitem"，便于读屏软件识别</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Uses role="menu" and role="menuitem" for screen readers</AccessibilityItem>
+                        </text>
+}
+            <AccessibilityItem>@L.T("aria-expanded 指示下拉菜单的打开状态", "aria-expanded indicates dropdown open state")</AccessibilityItem>
+            <AccessibilityItem>@L.T("禁用条目会以 aria-disabled 标记", "Disabled items are marked with aria-disabled")</AccessibilityItem>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>复选条目使用 role="menuitemcheckbox" 与 aria-checked</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Checkbox items use role="menuitemcheckbox" with aria-checked</AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>单选条目使用 role="menuitemradio" 与 aria-checked；复选条目使用 role="menuitemcheckbox"。子菜单触发器会播报其展开状态。</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Radio items use role="menuitemradio" and aria-checked; checkbox items use role="menuitemcheckbox". Submenu triggers announce their expanded state.</AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("打开下拉菜单 / 激活条目", "Open dropdown / activate item"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("浏览条目", "Navigate items"))">
+                <Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭下拉菜单", "Close dropdown"))">
+                <Kbd>Escape</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("打开子菜单或返回父级菜单（RTL 下方向相反）", "Open a submenu or return to its parent (directions reverse in RTL)"))"><Kbd>ArrowRight</Kbd> / <Kbd>ArrowLeft</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="DropdownMenuContent">
+                <ApiParameter Name="Side" Type="PopoverSide" Default="Bottom">
+                    @L.T("首选的定位侧边。", "Preferred side for positioning.")
+                </ApiParameter>
+                <ApiParameter Name="Align" Type="PopoverAlign" Default="Start">
+                    @L.T("相对触发器的对齐方式。", "Alignment relative to trigger.")
+                </ApiParameter>
+                <ApiParameter Name="Offset" Type="int" Default="4">
+                    @L.T("与触发器的偏移距离（像素）。", "Offset distance from the trigger in pixels.")
+                </ApiParameter>
+                <ApiParameter Name="Loop" Type="bool" Default="true">
+                    @L.T("是否启用键盘循环导航。", "Whether to enable keyboard loop navigation.")
+                </ApiParameter>
+                <ApiParameter Name="CloseOnEscape" Type="bool" Default="true">
+                    @L.T("按下 Escape 是否关闭下拉菜单。", "Whether pressing Escape closes the dropdown.")
+                </ApiParameter>
+                <ApiParameter Name="CloseOnClickOutside" Type="bool" Default="true">
+                    @L.T("点击外部是否关闭下拉菜单。", "Whether clicking outside closes the dropdown.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用于组件根元素的附加 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="DropdownMenuItem">
+                <ApiParameter Name="OnClick" Type="EventCallback&lt;MouseEventArgs&gt;">
+                    @L.T("点击处理回调。", "Click handler.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("禁用该条目。", "Disables the item.")
+                </ApiParameter>
+                <ApiParameter Name="Href" Type="string?">
+                    @L.T("要导航到的 URL。会将条目渲染为锚元素。", "URL to navigate to. Renders item as an anchor element.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Target" Type="string?">
+                        锚点 target 属性（例如 "_blank"）。仅在设置了 Href 时生效。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Target" Type="string?">
+                        Anchor target attribute (e.g., "_blank"). Only applies when Href is set.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="CloseOnSelect" Type="bool" Default="true">
+                    @L.T("选择该条目时是否关闭下拉菜单。", "Whether to close the dropdown when this item is selected.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用于组件根元素的附加 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="DropdownMenuCheckboxItem">
+                <ApiParameter Name="Checked" Type="bool">
+                    @L.T("复选框是否勾选。双向绑定请使用 @bind-Checked。", "Whether the checkbox is checked. Use @bind-Checked for two-way binding.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("禁用该复选条目。", "Disables the checkbox item.")
+                </ApiParameter>
+                <ApiParameter Name="CloseOnSelect" Type="bool" Default="false">
+                    @L.T("切换时是否关闭下拉菜单。", "Whether to close the dropdown when toggled.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用于组件根元素的附加 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="DropdownMenuTrigger">
+                <ApiParameter Name="AsChild" Type="bool" Default="true">
+                    @L.T("为 true 时，把触发行为传给子组件，而不是自行渲染按钮。", "When true, passes trigger behavior to child components instead of rendering its own button.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="ActiveClass" Type="string?">
+                        下拉菜单打开时应用的 CSS 类。默认值为 <code>null</code>（无激活样式）。
+                        可用于高亮触发器（例如侧边栏中使用 <code>"bg-sidebar-accent"</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="ActiveClass" Type="string?">
+                        CSS classes applied when the dropdown is open. Default is <code>null</code> (no active style).
+                        Use to highlight the trigger (e.g., <code>"bg-sidebar-accent"</code> in sidebars).
+                    </ApiParameter>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用于组件根元素的附加 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+
+        <span id="dropdown-menu-radio-group" class="block scroll-mt-20" aria-hidden="true"></span>
+        <ApiReference Since="v4" ComponentName="DropdownMenuRadioGroup&lt;TValue&gt;">
+            <ApiParameter Name="Value / ValueChanged" Type="TValue / EventCallback&lt;TValue&gt;">@L.T("选中值；支持 @bind-Value。", "Selected value; supports @bind-Value.")</ApiParameter>
+            <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("禁用组内所有单选条目。", "Disables every radio item in the group.")</ApiParameter>
+            <ApiParameter Name="ChildContent / AdditionalAttributes" Type="RenderFragment / Dictionary&lt;string, object&gt;">@L.T("单选条目与组的 HTML 属性；用 aria-label 或 aria-labelledby 为分组命名。", "Radio items and group HTML attributes; use aria-label or aria-labelledby to label the group.")</ApiParameter>
+        </ApiReference>
+
+        <span id="dropdown-menu-radio-item" class="block scroll-mt-20" aria-hidden="true"></span>
+        <ApiReference Since="v4" ComponentName="DropdownMenuRadioItem&lt;TValue&gt;">
+            <ApiParameter Name="Value" Type="TValue">@L.T("该条目所表示的必填值。", "Required value represented by this item.")</ApiParameter>
+            <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("禁用选择。", "Disables selection.")</ApiParameter>
+            <ApiParameter Name="CloseOnSelect" Type="bool" Default="true">@L.T("选择后关闭整个菜单。", "Closes the entire menu after selection.")</ApiParameter>
+            <ApiParameter Name="ChildContent / Class / AdditionalAttributes" Type="RenderFragment / string / Dictionary&lt;string, object&gt;">@L.T("标签、CSS 类与 HTML 属性。", "Label, CSS classes and HTML attributes.")</ApiParameter>
+        </ApiReference>
+
+        <span id="dropdown-menu-submenu" class="block scroll-mt-20" aria-hidden="true"></span>
+        <ApiReference Since="v4" ComponentName="DropdownMenuSub">
+            <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("禁止打开此子菜单。", "Disables opening this submenu.")</ApiParameter>
+            <ApiParameter Name="ChildContent" Type="RenderFragment">@L.T("一个 SubTrigger 后接 SubContent。子菜单可以嵌套。", "A SubTrigger followed by SubContent. Submenus may be nested.")</ApiParameter>
+        </ApiReference>
+
+        <span id="dropdown-menu-submenu-trigger" class="block scroll-mt-20" aria-hidden="true"></span>
+        <ApiReference Since="v4" ComponentName="DropdownMenuSubTrigger">
+            <ApiParameter Name="OpenOnHover" Type="bool" Default="true">@L.T("悬停即打开且不移动键盘焦点。点击或向前方向键会打开并聚焦第一个条目。", "Opens on hover without moving keyboard focus. Click or the forward arrow opens and focuses the first item.")</ApiParameter>
+            <ApiParameter Name="Inset" Type="bool" Default="false">@L.T("使标签与包含图标的条目对齐。", "Aligns the label with items that contain icons.")</ApiParameter>
+            <ApiParameter Name="ChildContent / Class / AdditionalAttributes" Type="RenderFragment / string / Dictionary&lt;string, object&gt;">@L.T("标签、CSS 类与 HTML 属性。", "Label, CSS classes and HTML attributes.")</ApiParameter>
+        </ApiReference>
+
+        <span id="dropdown-menu-submenu-content" class="block scroll-mt-20" aria-hidden="true"></span>
+        <ApiReference Since="v4" ComponentName="DropdownMenuSubContent">
+            <ApiParameter Name="Side" Type="PopoverSide" Default="Right">@L.T("首选方位；从右到左布局中用 Left。靠近视口边缘时定位会翻转。", "Preferred placement; use Left in right-to-left layouts. Positioning flips near the viewport edge.")</ApiParameter>
+            <ApiParameter Name="Offset / ZIndex" Type="int / int" Default="2 / 60">@L.T("与触发器的距离和堆叠顺序。", "Trigger distance and stacking order.")</ApiParameter>
+            <ApiParameter Name="Loop" Type="bool" Default="true">@L.T("方向键导航在第一个与最后一个条目间循环。", "Wraps arrow navigation at the first and last item.")</ApiParameter>
+            <ApiParameter Name="ChildContent / Class / AdditionalAttributes" Type="RenderFragment / string / Dictionary&lt;string, object&gt;">@L.T("条目、CSS 类与 HTML 属性。", "Items, CSS classes and HTML attributes.")</ApiParameter>
+        </ApiReference>
+    </section>
+
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string menuDensity = "Comfortable";
+    private string menuResult = "";
+
+    // Independent state for each menu section
+    private string? basicAction;
+    private string? labelsAction;
+    private string? groupsAction;
+    private string? disabledAction;
+    private string? complexAction;
+    private Dictionary<string, string?> menuActions = new();
+
+    // Checkbox items state
+    private bool showStatusBar = true;
+    private bool showActivityBar = true;
+    private bool showPanel = false;
+    private bool fullScreen = false;
+
+    // Individual handlers for each section
+    private void HandleBasicAction(string action) => basicAction = action;
+    private void HandleLabelsAction(string action) => labelsAction = action;
+    private void HandleGroupsAction(string action) => groupsAction = action;
+    private void HandleDisabledAction(string action) => disabledAction = action;
+    private void HandleComplexAction(string action) => complexAction = action;
+
+    // Alignment section uses dictionary approach
+    private void HandleMenuAction(string menuName, string action)
+    {
+        menuActions[menuName] = action;
+    }
+
+    private string? GetMenuAction(string menuName)
+    {
+        return menuActions.TryGetValue(menuName, out var action) ? action : null;
+    }
+}

@@ -1,0 +1,42 @@
+@namespace AtomBlazor.Primitives
+@using System.Globalization
+
+@* SliderRange —— 轨道上已填充的部分 *@
+<div data-orientation="@Context?.Orientation.ToString().ToLower()"
+     style="@MergedStyle"
+     @attributes="FilteredAttributes">
+</div>
+
+@inherits AtomBlazor.Primitives.PrimitiveBase
+
+@code {
+    [CascadingParameter]
+    private SliderPrimitive? Context { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        if (Context == null)
+        {
+            throw new InvalidOperationException(
+                "SliderRange 必须用在 Slider 组件内部。");
+        }
+    }
+
+    private string RangeStyle
+    {
+        get
+        {
+            var percentage = Context?.Percentage ?? 0;
+            var pctStr = percentage.ToString(CultureInfo.InvariantCulture);
+            if (Context?.Orientation == SliderOrientation.Vertical)
+            {
+                return $"height: var(--atom-slider-position, {pctStr}%)";
+            }
+            return $"width: var(--atom-slider-position, {pctStr}%)";
+        }
+    }
+
+    private string? MergedStyle => MergeStyles(RangeStyle);
+}

@@ -1,0 +1,87 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@implements IAsyncDisposable
+@inject ILocalizer Localizer
+
+@*
+    带样式的 TabsList 组件。
+    以 shadcn/ui 样式包裹 TabsList 基元。
+    支持响应式模式：溢出时收起为一个 Select。
+
+    新增标签的按钮永远摆在 tablist 旁边、而非其中。一个 tablist 只应容纳标签，
+    而一个不是标签的按钮放进其中，要么对屏幕阅读器谎称自己是标签，要么挤进
+    阅读者并无理由预期的方向键顺序里。
+*@
+
+@if (Responsive)
+{
+    <div @ref="reorderRoot" data-tabs-id="@componentId" class="atom:flex atom:w-full atom:items-center atom:gap-1" @attributes="AdditionalAttributes">
+    <div @ref="_containerRef" class="atom:relative atom:min-w-0 atom:flex-1">
+        @* 标签按钮——溢出时使用 visibility:hidden（而非 display:none），
+           以便元素为 ResizeObserver 保留其测得的宽度。 *@
+        <AtomBlazor.Primitives.TabsList class="@ClassNames.cn(CssClass, TabListVisibilityClass)">
+            <CascadingValue Value="this" IsFixed="true">
+                @ChildContent
+            </CascadingValue>
+        </AtomBlazor.Primitives.TabsList>
+
+        @* Select 兜底——用绝对定位以免影响 tablist 的测量。
+           未溢出时它不可见且不可交互。 *@
+        @if (_responsiveTriggers.Count > 0)
+        {
+            <div class="@SelectWrapperClass">
+                <Select TValue="string"
+                          Value="@Context.ActiveValue"
+                          ValueChanged="@HandleSelectChange"
+                          Options="@SelectOptions"
+                          Class="@SelectCssClass" />
+            </div>
+        }
+    </div>
+        @if (Addable && OnAdd.HasDelegate)
+        {
+            <button type="button"
+                    class="@AddCssClass"
+                    title="@EffectiveAddLabel"
+                    aria-label="@EffectiveAddLabel"
+                    @onclick="HandleAddAsync">
+                <LucideIcon Name="plus" Size="14" />
+            </button>
+        }
+    </div>
+}
+else if (NeedsWrapper)
+{
+    @* 仅在新行为之一开启时才包一层，因此普通标签列表保有一直以来一模一样的 DOM，
+       任何人的布局都不会在他们脚下移动。 *@
+    <div @ref="reorderRoot"
+         data-tabs-id="@componentId"
+         class="atom:inline-flex atom:items-center atom:gap-1"
+         @attributes="AdditionalAttributes">
+        <AtomBlazor.Primitives.TabsList class="@CssClass">
+            <CascadingValue Value="this" IsFixed="true">
+                @ChildContent
+            </CascadingValue>
+        </AtomBlazor.Primitives.TabsList>
+
+        @if (Addable && OnAdd.HasDelegate)
+        {
+            <button type="button"
+                    class="@AddCssClass"
+                    title="@EffectiveAddLabel"
+                    aria-label="@EffectiveAddLabel"
+                    @onclick="HandleAddAsync">
+                <LucideIcon Name="plus" Size="14" />
+            </button>
+        }
+    </div>
+}
+else
+{
+    <AtomBlazor.Primitives.TabsList class="@CssClass"
+                                             @attributes="AdditionalAttributes">
+        <CascadingValue Value="this" IsFixed="true">
+            @ChildContent
+        </CascadingValue>
+    </AtomBlazor.Primitives.TabsList>
+}

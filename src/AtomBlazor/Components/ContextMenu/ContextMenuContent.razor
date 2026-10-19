@@ -1,0 +1,30 @@
+@namespace AtomBlazor
+
+<AtomBlazor.Primitives.ContextMenuContent Loop="@Loop" class="@CssClass" @attributes="AdditionalAttributes">
+    <div class="atom:p-1">
+        @ChildContent
+    </div>
+</AtomBlazor.Primitives.ContextMenuContent>
+
+@code {
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用于根元素的额外 HTML 特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public bool Loop { get; set; } = true;
+
+    private string CssClass => ClassNames.cn(
+        "atom:min-w-[8rem] atom:overflow-hidden atom:rounded-md atom:border atom:bg-(--atom-menu-surface) atom:text-(--atom-menu-foreground) atom:shadow-(--atom-menu-shadow) atom:backdrop-blur-(--atom-menu-blur) atom:outline-none",
+        "atom:animate-in atom:fade-in-0 atom:zoom-in-95",
+        Class
+    );
+}

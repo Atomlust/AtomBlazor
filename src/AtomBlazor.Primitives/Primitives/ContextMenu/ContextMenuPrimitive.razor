@@ -1,0 +1,112 @@
+@namespace AtomBlazor.Primitives
+@using System.ComponentModel
+@implements IAsyncDisposable
+
+@*
+    ContextMenu 基元 —— 由右键点击触发的无样式上下文菜单（headless）。
+    管理打开/关闭状态以及定位坐标。
+*@
+
+<CascadingValue Value="this" IsFixed="false">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    /// <summary>
+    /// 子内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 控制 ContextMenu 是否处于打开状态（受控模式）。
+    /// </summary>
+    [Parameter]
+    public bool? Open { get; set; }
+
+    /// <summary>
+    /// 打开状态发生变化时触发的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>
+    /// 获取 ContextMenu 是否处于打开状态。
+    /// </summary>
+    public bool IsOpen { get; private set; }
+
+    /// <summary>
+    /// 获取触发 ContextMenu 的 X 坐标。
+    /// </summary>
+    public double X { get; private set; }
+
+    /// <summary>
+    /// 获取触发 ContextMenu 的 Y 坐标。
+    /// </summary>
+    public double Y { get; private set; }
+
+    internal bool NeedsFocus { get; set; }
+
+    private bool disposed;
+
+    protected override void OnParametersSet()
+    {
+        if (Open is { } open)
+        {
+            NeedsFocus = open && !IsOpen;
+            IsOpen = open;
+        }
+    }
+
+    /// <summary>
+    /// 在指定坐标处打开 ContextMenu。
+    /// </summary>
+    public async Task OpenAt(double x, double y)
+    {
+        X = x;
+        Y = y;
+        IsOpen = true;
+        NeedsFocus = true;
+
+        if (OpenChanged.HasDelegate)
+        {
+            await OpenChanged.InvokeAsync(true);
+        }
+
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// 关闭 ContextMenu。
+    /// </summary>
+    public async Task Close()
+    {
+        IsOpen = false;
+
+        if (OpenChanged.HasDelegate)
+        {
+            await OpenChanged.InvokeAsync(false);
+        }
+
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public async Task JsOnClickOutside()
+    {
+        if (disposed)
+        {
+            return;
+        }
+
+        await Close();
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        GC.SuppressFinalize(this);
+        disposed = true;
+        return ValueTask.CompletedTask;
+    }
+}

@@ -1,0 +1,50 @@
+@namespace AtomBlazor
+
+@*
+    警告对话框内容 - 模态内容面板。
+    封装 AlertDialog 基元，该基元强制禁止通过点击外部或 Esc 键关闭。
+*@
+
+<AtomBlazor.Primitives.AlertDialogPortal>
+    <AtomBlazor.Primitives.AlertDialogOverlay
+        class="atom:fixed atom:inset-0 atom:z-50 atom:bg-black/80 atom:data-[state=open]:animate-in atom:data-[state=closed]:animate-out atom:data-[state=closed]:fade-out-0 atom:data-[state=open]:fade-in-0" />
+
+    <AtomBlazor.Primitives.AlertDialogContent
+        class="@GetClassNames()"
+        @attributes="AdditionalAttributes">
+        @ChildContent
+    </AtomBlazor.Primitives.AlertDialogContent>
+</AtomBlazor.Primitives.AlertDialogPortal>
+
+@code {
+    /// <summary>
+    /// 在警告对话框内呈现的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用到对话框内容的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 应用到对话框内容的额外属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取为警告对话框内容计算得到的 CSS 类。
+    /// </summary>
+    private string GetClassNames() => ClassNames.cn(
+        "atom:fixed atom:left-[50%] atom:top-[50%] atom:z-50 atom:grid atom:w-full atom:max-w-lg atom:translate-x-[-50%] atom:translate-y-[-50%]",
+        "atom:gap-4 atom:border atom:bg-background atom:p-6 atom:shadow-lg atom:duration-200",
+        "atom:data-[state=open]:animate-in atom:data-[state=closed]:animate-out",
+        "atom:data-[state=closed]:fade-out-0 atom:data-[state=open]:fade-in-0",
+        "atom:data-[state=closed]:zoom-out-95 atom:data-[state=open]:zoom-in-95",
+        "atom:sm:rounded-lg",
+        Class
+    );
+}

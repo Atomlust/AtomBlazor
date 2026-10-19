@@ -1,0 +1,31 @@
+<ContextMenu>
+    <ContextMenuTrigger><div class="rounded-md border border-dashed p-8">Right-click for display and sharing options</div></ContextMenuTrigger>
+    <ContextMenuContent>
+<ContextMenuCheckboxItem @bind-Checked="menuShowDetails">Show details</ContextMenuCheckboxItem>
+<ContextMenuRadioGroup TValue="string" @bind-Value="menuDensity" aria-label="Density">
+    <ContextMenuRadioItem Value='@("Comfortable")' CloseOnSelect="false">Comfortable</ContextMenuRadioItem>
+    <ContextMenuRadioItem Value='@("Compact")' CloseOnSelect="false">Compact</ContextMenuRadioItem>
+    <ContextMenuRadioItem Value='@("Unavailable")' Disabled="true">Unavailable</ContextMenuRadioItem>
+</ContextMenuRadioGroup>
+<ContextMenuSeparator />
+<ContextMenuSub>
+    <ContextMenuSubTrigger>Share</ContextMenuSubTrigger>
+    <ContextMenuSubContent>
+        <ContextMenuItem OnClick='@(() => menuResult = "Link copied")'>Copy link</ContextMenuItem>
+        <ContextMenuSub>
+            <ContextMenuSubTrigger>Export</ContextMenuSubTrigger>
+            <ContextMenuSubContent>
+                <ContextMenuItem OnClick='@(() => menuResult = "Exported CSV")'>CSV</ContextMenuItem>
+                <ContextMenuItem OnClick='@(() => menuResult = "Exported JSON")'>JSON</ContextMenuItem>
+            </ContextMenuSubContent>
+        </ContextMenuSub>
+    </ContextMenuSubContent>
+</ContextMenuSub>
+    </ContextMenuContent>
+</ContextMenu>
+
+@code {
+    private string menuDensity = "Comfortable";
+    private string menuResult = "";
+    private bool menuShowDetails = true;
+}

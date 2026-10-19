@@ -1,0 +1,36 @@
+@namespace AtomBlazor
+
+@* BreadcrumbList 是可选的——条目可以直接放在 Breadcrumb 里 *@
+<CascadingValue Value="this" IsFixed="false">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    private int _itemCount;
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 为 true 时，自动在每个 <see cref="BreadcrumbItem"/> 之间插入 <see cref="BreadcrumbSeparator"/>。
+    /// </summary>
+    [Parameter]
+    public bool AutoSeparator { get; set; }
+
+    /// <summary>
+    /// <see cref="AutoSeparator"/> 为 true 时使用的自定义分隔符内容。
+    /// 未提供时，使用默认的 chevron-right 图标。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? SeparatorContent { get; set; }
+
+    internal int RegisterItem()
+    {
+        return _itemCount++;
+    }
+
+    protected override void OnParametersSet()
+    {
+        _itemCount = 0;
+    }
+}

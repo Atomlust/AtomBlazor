@@ -1,0 +1,174 @@
+@namespace AtomBlazor
+@inject ILocalizer Localizer
+@inject IJSRuntime JSRuntime
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+
+<div id="@Context?.ListId"
+     @ref="_scrollRef"
+     class="@CssClass"
+     role="listbox"
+     aria-label="@Localizer["Command.CommandList"]"
+     @attributes="AdditionalAttributes">
+    @ChildContent
+    @if (IsLoading)
+    {
+        <div class="atom:flex atom:items-center atom:justify-center atom:py-2">
+            <Spinner Size="SpinnerSize.Small" />
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(EndOfListMessage))
+    {
+        <div class="atom:py-2 atom:text-center atom:text-xs atom:text-muted-foreground">
+            @EndOfListMessage
+        </div>
+    }
+</div>
+
+@code {
+    private ElementReference _scrollRef;
+    private DotNetObjectReference<CommandList>? _selfRef;
+    private int _nearBottomObserver;
+    private int _hoverObserver;
+
+    [CascadingParameter]
+    public CommandContext? Context { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到列表容器的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取或设置在列表内部渲染的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置在用户滚动到列表底部附近时调用的回调。
+    /// 用于无限滚动场景下加载更多内容。
+    /// </summary>
+    [Parameter]
+    public EventCallback OnLoadMore { get; set; }
+
+    /// <summary>
+    /// 获取或设置是否正在加载更多内容。
+    /// 为 true 时在列表底部显示加载指示器，且 <see cref="OnLoadMore"/>
+    /// 会被抑制直至加载完成。
+    /// </summary>
+    [Parameter]
+    public bool IsLoading { get; set; }
+
+    /// <summary>
+    /// 获取或设置在全部内容加载完毕后显示于列表底部的消息。
+    /// 仅在 <see cref="IsLoading"/> 为 false 时显示。设为 <c>null</c> 或空字符串即隐藏。
+    /// </summary>
+    [Parameter]
+    public string? EndOfListMessage { get; set; }
+
+    /// <summary>
+    /// 获取列表容器计算后的 CSS 类。
+    /// </summary>
+    private string CssClass => ClassNames.cn(
+        "atom:max-h-[300px] atom:overflow-y-auto atom:overflow-x-hidden",
+        Class
+    );
+
+    // 没有 @onscroll。它把每个滚动事件都绑到服务器上——滚轮每转一圈约六十次电路消息——
+    // 而且每一次都要先 await isNearBottom 才能做出任何判断，于是每个滚动事件同时也是一次
+    // 往返。如今浏览器自己盯着这个元素，只在滚动位置进入"接近底部"区域时回调恰好一次。
+    // 挂载时不 await：反正都是一次往返之后的事，这里没有任何逻辑等它。
+    //
+    // 同一套监听也负责悬停。每个项过去都向服务器绑定 @onmouseenter 与 @onmousemove——
+    // 指针每移动一像素一次电路消息，每跨过一个项还要重渲染全部项。列表上的一个委托监听
+    // 就能区分真实悬停与键盘导航时列表在静止指针下方滚过的假悬停，并且指针每真正移动到
+    // 一个新项才回调一次。
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _ = AttachObserversAsync();
+        }
+    }
+
+    private async Task AttachObserversAsync()
+    {
+        try
+        {
+            var module = await PrimitiveModules.GetAsync(JSRuntime);
+            _selfRef ??= DotNetObjectReference.Create(this);
+
+            _hoverObserver = await module.InvokeAsync<int>(
+                "elementUtils.observeHover", _scrollRef, _selfRef, nameof(JsOnHover), "[role=\"option\"]");
+
+            if (OnLoadMore.HasDelegate)
+            {
+                _nearBottomObserver = await module.InvokeAsync<int>(
+                    "elementUtils.observeNearBottom", _scrollRef, _selfRef, nameof(JsOnNearBottom), 80.0);
+            }
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or JSException or TaskCanceledException or ObjectDisposedException or InvalidOperationException)
+        {
+            // 电路已断、预渲染中，或列表已被拆掉。这些都是礼节性的存在。
+        }
+    }
+
+    /// <summary>
+    /// 由 JavaScript 在指针移动到另一个项上时调用。
+    /// </summary>
+    [JSInvokable]
+    public void JsOnHover(string itemId) => Context?.HoverItemById(itemId);
+
+    /// <summary>
+    /// 由 JavaScript 在列表滚动到接近底部时调用。
+    /// </summary>
+    [JSInvokable]
+    public async Task JsOnNearBottom()
+    {
+        if (!OnLoadMore.HasDelegate || IsLoading)
+        {
+            return;
+        }
+
+        await OnLoadMore.InvokeAsync();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if ((_nearBottomObserver != 0 || _hoverObserver != 0) && PrimitiveModules.TryGetLoaded(JSRuntime, out var module))
+        {
+            var nearBottom = _nearBottomObserver;
+            var hover = _hoverObserver;
+            _nearBottomObserver = 0;
+            _hoverObserver = 0;
+
+            try
+            {
+                if (hover != 0)
+                {
+                    await module.InvokeVoidAsync("elementUtils.unobserveHover", hover);
+                }
+
+                if (nearBottom != 0)
+                {
+                    await module.InvokeVoidAsync("elementUtils.unobserveNearBottom", nearBottom);
+                }
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or JSException or TaskCanceledException or ObjectDisposedException)
+            {
+                // 电路已断——监听器随文档一起消失了。
+            }
+        }
+
+        _selfRef?.Dispose();
+        _selfRef = null;
+    }
+}

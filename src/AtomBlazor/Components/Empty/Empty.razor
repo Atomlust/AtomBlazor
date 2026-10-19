@@ -1,0 +1,111 @@
+@namespace AtomBlazor
+
+<div class="@CssClass" @attributes="AdditionalAttributes">
+    @if (Icon != null)
+    {
+        <div class="@IconContainerClass">
+            @Icon
+        </div>
+    }
+    @if (!string.IsNullOrEmpty(Title))
+    {
+        <h3 class="@TitleClass">@Title</h3>
+    }
+    @if (!string.IsNullOrEmpty(Description))
+    {
+        <p class="@DescriptionClass">@Description</p>
+    }
+    @if (ChildContent != null)
+    {
+        <div class="atom:mt-4">
+            @ChildContent
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// 空状态中显示的标题。
+    /// </summary>
+    [Parameter]
+    public string? Title { get; set; }
+
+    /// <summary>
+    /// 显示在标题下方的描述文本。
+    /// </summary>
+    [Parameter]
+    public string? Description { get; set; }
+
+    /// <summary>
+    /// 可选图标，显示在标题上方。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? Icon { get; set; }
+
+    /// <summary>
+    /// 额外内容，例如操作按钮。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用到容器的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 空状态的尺寸变体。
+    /// </summary>
+    [Parameter]
+    public EmptySize Size { get; set; } = EmptySize.Default;
+
+    private string SizeClasses => Size switch
+    {
+        EmptySize.Small => "atom:py-6",
+        EmptySize.Default => "atom:py-12",
+        EmptySize.Large => "atom:py-20",
+        _ => "atom:py-12"
+    };
+
+    private string IconSizeClasses => Size switch
+    {
+        EmptySize.Small => "atom:h-8 atom:w-8",
+        EmptySize.Default => "atom:h-12 atom:w-12",
+        EmptySize.Large => "atom:h-16 atom:w-16",
+        _ => "atom:h-12 atom:w-12"
+    };
+
+    private string TitleSizeClasses => Size switch
+    {
+        EmptySize.Small => "atom:text-sm",
+        EmptySize.Default => "atom:text-lg",
+        EmptySize.Large => "atom:text-xl",
+        _ => "atom:text-lg"
+    };
+
+    private string CssClass => ClassNames.cn(
+        "atom:flex atom:flex-col atom:items-center atom:justify-center atom:text-center",
+        SizeClasses,
+        Class
+    );
+
+    private string IconContainerClass => ClassNames.cn(
+        "atom:text-muted-foreground atom:mb-4",
+        IconSizeClasses,
+        "atom:[&>svg]:h-full atom:[&>svg]:w-full"
+    );
+
+    private string TitleClass => ClassNames.cn(
+        "atom:font-semibold atom:text-foreground",
+        TitleSizeClasses
+    );
+
+    private string DescriptionClass => "atom:text-sm atom:text-muted-foreground atom:mt-1 atom:max-w-sm";
+}

@@ -1,0 +1,253 @@
+@page "/guides/nested-overlays"
+
+<PageTitle>@L.T("嵌套浮层 - Atom BlazorUI", "Nested Overlays - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("嵌套浮层", "Nested Overlays")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("在一个浮层内部再打开一个浮层。内层不得把外层关掉。", "An overlay opened from inside another overlay. The inner one must not dismiss the outer one.")
+        </p>
+    </div>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("为什么这事值得单独写一页", "Why this needs a page of its own")</h2>
+        @if (L.IsChinese)
+        {
+            <text>
+                <p class="text-muted-foreground leading-relaxed">
+                    浮层内容并不在你书写它的位置渲染。它经由
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">PortalHost</code> 渲染到文档末尾。
+                    所以写在 <code class="text-xs bg-muted px-1 py-0.5 rounded">Popover</code> 里的
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Select</code>，在 DOM 中是该浮层的
+                    兄弟节点 —— 而不是它的后代。
+                </p>
+            </text>
+        }
+        else
+        {
+            <text>
+                <p class="text-muted-foreground leading-relaxed">
+                    Overlay content does not render where you wrote it. It renders through
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">PortalHost</code>, at the end of the document.
+                    So a <code class="text-xs bg-muted px-1 py-0.5 rounded">Select</code> written inside a
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Popover</code> is, in the DOM, a sibling of that
+                    popover &mdash; not a descendant of it.
+                </p>
+            </text>
+        }
+        @if (L.IsChinese)
+        {
+            <text>
+                <p class="text-muted-foreground leading-relaxed">
+                    “点击外部即关闭”要回答的问题是“那次点击在我内部吗？”。若用
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">element.contains(target)</code> 来回答，内层浮层的答案是
+                    <em>不是</em> —— 于是你一碰内层，外层就关上了。因此监听器追踪的是交互
+                    起始于哪个 portal，而不是做包含性测试；起始于嵌套 portal 的点击会被视为在内部。
+                </p>
+            </text>
+        }
+        else
+        {
+            <text>
+                <p class="text-muted-foreground leading-relaxed">
+                    Dismiss-on-outside-interaction asks "was that click inside me?". Answered with
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">element.contains(target)</code>, the answer for the
+                    inner overlay is <em>no</em> &mdash; and the outer one closes the moment you touch the inner one. The
+                    listener therefore tracks which portal an interaction started in, rather than testing containment, and
+                    treats a click that began in a nested portal as inside.
+                </p>
+            </text>
+        }
+        <p class="text-muted-foreground leading-relaxed">
+            @L.T("下面的每一种组合都是从不同方向做同一个检查。若其中任何一种在你操作内层浮层时把外层关掉了，那就是缺陷。", "Every combination below is the same check from a different direction. If one of them closes the outer overlay when you use the inner one, that is the bug.")
+        </p>
+    </section>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("发生了什么", "What happened")</h2>
+        <div class="rounded-lg border p-4 space-y-2">
+            <div class="flex items-center justify-between">
+                <p class="text-sm font-medium">@L.T("事件日志", "Event log")</p>
+                <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="@(() => log.Clear())">
+                    @L.T("清空", "Clear")
+                </Button>
+            </div>
+            @if (log.Count == 0)
+            {
+                <p class="text-sm text-muted-foreground">@L.T("请在下方打开某个浮层。", "Open something below.")</p>
+            }
+            else
+            {
+                <ol class="text-sm font-mono space-y-1">
+                    @foreach (var entry in log)
+                    {
+                        <li>@entry</li>
+                    }
+                </ol>
+            }
+        </div>
+    </section>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("Select 嵌在 Popover 里", "Select inside a Popover")</h2>
+        <p class="text-muted-foreground leading-relaxed">
+            @L.T("打开浮层，再打开其中的 select 并选一个水果。浮层必须全程保持打开，而点击后面的页面时它又必须照常关闭。", "Open the popover, then open the select inside it and pick a fruit. The popover must stay open the whole time, and must still close when you click the page behind it.")
+        </p>
+        <div class="p-4 border rounded-lg">
+            <Popover Open="@popoverOpen" OpenChanged="@(v => OnOpenChanged("Popover", v, x => popoverOpen = x))">
+                <AtomBlazor.PopoverTrigger>
+                    <Button Variant="ButtonVariant.Outline">@L.T("打开浮层", "Open popover")</Button>
+                </AtomBlazor.PopoverTrigger>
+                <AtomBlazor.PopoverContent Class="w-[320px]">
+                    <div class="space-y-3">
+                        <p class="text-sm font-medium">@L.T("内含 select 的浮层", "Popover with a select in it")</p>
+                        <Select TValue="string"
+                                  Value="@fruitInPopover"
+                                  ValueChanged="@(v => Record(L.T("浮层中的 Select", "Select in popover"), ref fruitInPopover, v))"
+                                  Options="@fruitOptions"
+                                  Placeholder="@(L.T("选择一个水果", "Select a fruit"))"
+                                  Class="w-full" />
+                        <p class="text-sm text-muted-foreground">@L.T("已选：", "Chosen:") <strong>@(fruitInPopover ?? L.T("无", "nothing"))</strong></p>
+                    </div>
+                </AtomBlazor.PopoverContent>
+            </Popover>
+        </div>
+        <CodeBlock Source="Guides/nested-select-in-popover.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("Select 嵌在下拉菜单里", "Select inside a Dropdown Menu")</h2>
+        <p class="text-muted-foreground leading-relaxed">
+            @L.T("对菜单做同样的检查。菜单几乎在任何交互下都会关闭，是三者中最不宽容的。", "The same check for a menu. A menu closes on almost any interaction, so it is the least forgiving of the three.")
+        </p>
+        <div class="p-4 border rounded-lg">
+            <DropdownMenu Open="@menuOpen" OpenChanged="@(v => OnOpenChanged("Menu", v, x => menuOpen = x))">
+                <AtomBlazor.DropdownMenuTrigger>
+                    <Button Variant="ButtonVariant.Outline">@L.T("打开菜单", "Open menu")</Button>
+                </AtomBlazor.DropdownMenuTrigger>
+                <AtomBlazor.DropdownMenuContent Class="w-[280px]">
+                    <div class="p-2 space-y-2">
+                        <p class="text-sm font-medium">@L.T("筛选", "Filter")</p>
+                        <Select TValue="string"
+                                  Value="@fruitInMenu"
+                                  ValueChanged="@(v => Record(L.T("菜单中的 Select", "Select in menu"), ref fruitInMenu, v))"
+                                  Options="@fruitOptions"
+                                  Placeholder="@(L.T("选择一个水果", "Select a fruit"))"
+                                  Class="w-full" />
+                    </div>
+                </AtomBlazor.DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+        <CodeBlock Source="Guides/nested-select-in-menu.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("Popover 嵌在 Dialog 里", "Popover inside a Dialog")</h2>
+        @if (L.IsChinese)
+        {
+            <text>
+                <p class="text-muted-foreground leading-relaxed">
+                    两层浮层，而 Escape 应当逐层剥离 —— 先关浮层，再关对话框。
+                </p>
+            </text>
+        }
+        else
+        {
+            <text>
+                <p class="text-muted-foreground leading-relaxed">
+                    Two layers of overlay, and Escape should peel them one at a time &mdash; the popover first, then the
+                    dialog.
+                </p>
+            </text>
+        }
+        <div class="p-4 border rounded-lg">
+            <Dialog Open="@dialogOpen" OpenChanged="@(v => OnOpenChanged("Dialog", v, x => dialogOpen = x))">
+                <AtomBlazor.DialogTrigger>
+                    <Button Variant="ButtonVariant.Outline">@L.T("打开对话框", "Open dialog")</Button>
+                </AtomBlazor.DialogTrigger>
+                <AtomBlazor.DialogContent>
+                    <DialogHeader>
+                        <AtomBlazor.DialogTitle>@L.T("内含浮层的对话框", "Dialog with a popover in it")</AtomBlazor.DialogTitle>
+                        <AtomBlazor.DialogDescription>
+                            @L.T("下面的浮层与本对话框经由同一个 portal 宿主渲染。", "The popover below renders through the same portal host as this dialog.")
+                        </AtomBlazor.DialogDescription>
+                    </DialogHeader>
+                    <div class="py-2">
+                        <Popover Open="@innerPopoverOpen" OpenChanged="@(v => OnOpenChanged(L.T("对话框内的浮层", "Popover in dialog"), v, x => innerPopoverOpen = x))">
+                            <AtomBlazor.PopoverTrigger>
+                                <Button Variant="ButtonVariant.Outline">@L.T("打开浮层", "Open popover")</Button>
+                            </AtomBlazor.PopoverTrigger>
+                            <AtomBlazor.PopoverContent Class="w-[280px]">
+                                <div class="space-y-3">
+                                    <p class="text-sm">@L.T("关闭它必须让对话框保持打开。", "Closing this must leave the dialog open.")</p>
+                                    <Select TValue="string"
+                                              Value="@fruitInDialog"
+                                              ValueChanged="@(v => Record(L.T("对话框内浮层中的 Select", "Select in dialog popover"), ref fruitInDialog, v))"
+                                              Options="@fruitOptions"
+                                              Placeholder="@(L.T("选择一个水果", "Select a fruit"))"
+                                              Class="w-full" />
+                                </div>
+                            </AtomBlazor.PopoverContent>
+                        </Popover>
+                    </div>
+                </AtomBlazor.DialogContent>
+            </Dialog>
+        </div>
+        <CodeBlock Source="Guides/nested-popover-in-dialog.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("要检查什么", "What to check")</h2>
+        <ul class="space-y-2 text-muted-foreground leading-relaxed list-disc pl-5">
+            <li>@L.T("打开内层浮层时，外层保持打开。", "Opening the inner overlay leaves the outer one open.")</li>
+            <li>@L.T("在内层浮层中选择值时，外层保持打开。", "Choosing a value in the inner overlay leaves the outer one open.")</li>
+            <li>@L.T("Escape 只关闭内层浮层；再按一次 Escape 才关闭外层。", "Escape closes the inner overlay only. A second Escape closes the outer one.")</li>
+            <li>@L.T("点击所有浮层后面的页面，仍能关闭外层浮层。", "Clicking the page behind everything still closes the outer overlay.")</li>
+        </ul>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private readonly List<string> log = new();
+
+    private bool popoverOpen;
+    private bool menuOpen;
+    private bool dialogOpen;
+    private bool innerPopoverOpen;
+
+    private string? fruitInPopover;
+    private string? fruitInMenu;
+    private string? fruitInDialog;
+
+    private static readonly string[] fruits = ["Apple", "Banana", "Blueberry", "Grapes", "Pineapple"];
+    private readonly SelectOption<string>[] fruitOptions = fruits.Select(SelectOption.FromValue).ToArray();
+
+    // The log is the point of the page: a wrong dismissal shows up as an outer overlay closing
+    // on the same tick you touched the inner one.
+    private void OnOpenChanged(string name, bool open, Action<bool> assign)
+    {
+        assign(open);
+        Add($"{name} {(open ? L.T("已打开", "opened") : L.T("已关闭", "closed"))}");
+    }
+
+    private void Record(string source, ref string? field, string? value)
+    {
+        field = value;
+        Add($"{source} → {value}");
+    }
+
+    private void Add(string message)
+    {
+        log.Insert(0, $"{DateTime.Now:HH:mm:ss.fff}  {message}");
+
+        // Newest first, and short enough to read at a glance while clicking around.
+        if (log.Count > 12)
+        {
+            log.RemoveAt(log.Count - 1);
+        }
+    }
+}

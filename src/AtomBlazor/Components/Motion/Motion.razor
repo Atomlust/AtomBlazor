@@ -1,0 +1,60 @@
+@namespace AtomBlazor
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<div @ref="element" @attributes="AdditionalAttributes" class="@Class" style="@Style" hidden="@(!Visible)" inert="@(!Visible)" aria-hidden="@(!Visible ? "true" : null)">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>参与动画的内容；隐藏时仍保留在 DOM 中。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>控制可见性。隐藏内容会置为 inert 并移出无障碍导航。</summary>
+    [Parameter] public bool Visible { get; set; } = true;
+    /// <summary>动画形状。</summary>
+    [Parameter] public MotionPreset Preset { get; set; } = MotionPreset.Fade;
+    /// <summary>启动动画的事件。</summary>
+    [Parameter] public MotionTrigger Trigger { get; set; } = MotionTrigger.Visibility;
+    /// <summary>时长，单位毫秒。</summary>
+    [Parameter] public int Duration { get; set; } = 250;
+    /// <summary>延迟，单位毫秒，可用于错落排布。</summary>
+    [Parameter] public int Delay { get; set; }
+    /// <summary>CSS 缓动函数。</summary>
+    [Parameter] public string Easing { get; set; } = "ease-out";
+    /// <summary>滑动与抖动预设的位移距离，单位像素。</summary>
+    [Parameter] public double Distance { get; set; } = 16;
+    /// <summary>在首次可交互渲染后播放动画；预渲染内容保持可见。</summary>
+    [Parameter] public bool AnimateOnFirstRender { get; set; }
+    /// <summary>InView 触发的动画只播放一次。</summary>
+    [Parameter] public bool Once { get; set; } = true;
+    /// <summary>InView 动画要求与视口的相交比例。</summary>
+    [Parameter] public double Threshold { get; set; } = .1;
+    /// <summary>自定义 Web Animations 关键帧；每个字典把 CSS 属性名映射到取值。</summary>
+    [Parameter] public IReadOnlyList<IReadOnlyDictionary<string, object>>? Keyframes { get; set; }
+    /// <summary>动画包裹层的额外 CSS 类。</summary>
+    [Parameter] public string? Class { get; set; }
+    /// <summary>动画包裹层的内联样式。</summary>
+    [Parameter] public string? Style { get; set; }
+    /// <summary>展开到根元素的额外 HTML 属性。</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    private ElementReference element;
+    private MotionInterop? interop;
+
+    protected override void OnParametersSet()
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(Duration);
+        ArgumentOutOfRangeException.ThrowIfNegative(Delay);
+        if (!double.IsFinite(Distance) || Distance < 0) { throw new ArgumentOutOfRangeException(nameof(Distance)); }
+        if (!double.IsFinite(Threshold) || Threshold is < 0 or > 1) { throw new ArgumentOutOfRangeException(nameof(Threshold)); }
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender) => ConfigureAsync();
+
+    private Task ConfigureAsync() => (interop ??= new(JS)).InvokeAsync("motion", element,
+        new { visible = Visible, preset = Preset.ToString(), trigger = Trigger.ToString(), duration = Duration, delay = Delay, easing = Easing, distance = Distance, first = AnimateOnFirstRender, once = Once, threshold = Threshold, keyframes = Keyframes });
+
+    /// <summary>在渲染器调度线程上播放动画；用户减弱动效偏好始终优先。</summary>
+    public Task PlayAsync() => InvokeAsync(async () => { await ConfigureAsync(); await interop!.InvokeAsync("play", element); });
+    public async ValueTask DisposeAsync() { if (interop is not null) { await interop.DisposeAsync(); } }
+}

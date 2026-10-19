@@ -1,0 +1,36 @@
+<AtomBlazor.Primitives.SortablePrimitive TItem="string"
+                                               Items="@_items"
+                                               AriaLabel="Sortable task list"
+                                                                 KeyboardAnnouncements="keyboardAnnouncements"
+                                               OnUpdate="HandleUpdate"
+                                               class="space-y-2">
+    <ItemTemplate Context="item">
+        <div class="flex items-center gap-3 rounded-md border px-4 py-3 text-sm cursor-grab active:cursor-grabbing">
+            <span>@item</span>
+        </div>
+    </ItemTemplate>
+</AtomBlazor.Primitives.SortablePrimitive>
+
+@code {
+    private static readonly IReadOnlyDictionary<string, string> keyboardAnnouncements = new Dictionary<string, string>
+    {
+        ["Cancelled"] = "Task move cancelled.",
+        ["PickedUp"] = "Picked up task {0} of {1}."
+    };
+
+    private List<string> _items =
+    [
+        "Design mockups",
+        "Set up project",
+        "Implement authentication",
+        "Write unit tests",
+        "Deploy to staging",
+    ];
+
+    private void HandleUpdate((int OldIndex, int NewIndex) args)
+    {
+        var item = _items[args.OldIndex];
+        _items.RemoveAt(args.OldIndex);
+        _items.Insert(args.NewIndex, item);
+    }
+}

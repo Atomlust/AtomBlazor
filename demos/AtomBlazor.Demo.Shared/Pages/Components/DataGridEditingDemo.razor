@@ -1,0 +1,324 @@
+@page "/components/datagrid-editing"
+@using System.ComponentModel.DataAnnotations
+@using AtomBlazor.Primitives
+
+<PageTitle>@L.T("DataGrid 编辑 - Atom BlazorUI", "Data Grid Editing - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-6xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("DataGrid 编辑", "Data Grid Editing")</h1>
+        <p class="text-xl text-muted-foreground">@L.T("编辑单个单元格，或把多处修改一起保存，按数据类型挑选合适的输入控件。", "Edit individual cells or save several changes together, using the input controls that suit your data.")</p>
+    </div>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("单元格编辑", "Cell Editing")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("点击铅笔图标可编辑名称或数字，用对勾保存、用叉号取消；编辑过程中列宽保持不变。", "Choose a pencil to edit a name or number. Use the check to save or the cross to cancel; the column keeps its width while editing.")</p>
+        </div>
+        <div class="rounded-lg border p-4">
+            @* example: cell-editing *@
+            <DataGrid Items="cellRows" TData="Employee" ItemKey="@(r => r.Id)" EditMode="DataGridEditMode.Cell" EditItemFactory="Clone" ShowPagination="false" AriaLabel="@(L.T("可编辑单元格的员工列表", "Cell editing employees"))">
+                <Columns>
+                    <DataGridPropertyColumn TData="Employee" TProp="string" Property="@(r => r.Name)" Sortable>
+                        <EditTemplate><InputGroupInput @bind-Value="context.Name" AriaLabel="@(L.T("姓名", "Name"))" /></EditTemplate>
+                    </DataGridPropertyColumn>
+                    <DataGridPropertyColumn TData="Employee" TProp="int" Property="@(r => r.Hours)" Sortable>
+                        <EditTemplate><NumericInput TValue="int" @bind-Value="context.Hours" AriaLabel="@(L.T("工时", "Hours"))" ShowButtons="false" /></EditTemplate>
+                    </DataGridPropertyColumn>
+                </Columns>
+            </DataGrid>
+            @* end example *@
+        </div>
+        <CodeBlock Source="Components/DataGrid/cell-editing.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("日期、下拉与复选框编辑器", "Date, Dropdown and Checkbox Editors")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("在编辑模板里使用日期选择器、下拉框或复选框。选定取值只会更新草稿，保存单元格后才会落到数据上。", "Use a date picker, select or checkbox in an edit template. Choosing a value updates the draft; save the cell to apply it.")</p>
+        </div>
+        <div class="rounded-lg border p-4">
+            @* example: input-editors *@
+            <DataGrid Items="tasks" TData="WorkItem" ItemKey="@(r => r.Id)" EditMode="DataGridEditMode.Cell" EditItemFactory="CloneTask" ShowPagination="false" AriaLabel="@(L.T("各类编辑器的任务列表", "Task editor types"))">
+                <Columns>
+                    <DataGridPropertyColumn TData="WorkItem" TProp="string" Property="@(r => r.Title)" Title="@(L.T("任务", "Task"))" Sortable />
+                    <DataGridPropertyColumn TData="WorkItem" TProp="DateTime?" Property="@(r => r.DueDate)" Title="@(L.T("截止日期", "Due Date"))" Format="dd MMM yyyy" Sortable Width="280px">
+                        <EditTemplate><DatePicker @bind-Value="context.DueDate" DateFormat="dd MMM yyyy" Class="w-full" /></EditTemplate>
+                    </DataGridPropertyColumn>
+                    <DataGridPropertyColumn TData="WorkItem" TProp="string" Property="@(r => r.Status)" Sortable Width="230px">
+                        <EditTemplate>
+                            <Select TValue="string" @bind-Value="context.Status">
+                                <AtomBlazor.SelectTrigger aria-label="@(L.T("状态", "Status"))"><AtomBlazor.SelectValue /></AtomBlazor.SelectTrigger>
+                                <AtomBlazor.SelectContent>
+                                    <AtomBlazor.SelectItem Value='@("Planned")' Text="Planned" />
+                                    <AtomBlazor.SelectItem Value='@("In progress")' Text="In progress" />
+                                    <AtomBlazor.SelectItem Value='@("Done")' Text="Done" />
+                                </AtomBlazor.SelectContent>
+                            </Select>
+                        </EditTemplate>
+                    </DataGridPropertyColumn>
+                    <DataGridPropertyColumn TData="WorkItem" TProp="bool" Property="@(r => r.Approved)" Sortable Width="150px">
+                        <CellTemplate>@(context.Approved ? L.T("是", "Yes") : L.T("否", "No"))</CellTemplate>
+                        @* No wrapper div: a checkbox editor is a plain button and the grid must leave it alone. *@
+                        <EditTemplate><Checkbox @bind-Checked="context.Approved" AriaLabel="@(L.T("已批准", "Approved"))" /></EditTemplate>
+                    </DataGridPropertyColumn>
+                </Columns>
+            </DataGrid>
+            @* end example *@
+        </div>
+        <CodeBlock Source="Components/DataGrid/input-editors.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("窄列里的编辑器", "Editors in Narrow Columns")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("这里的每一列都比弹出式触发器自身的默认宽度更窄，而单元格编辑过去正是在这种地方散架的。组合框与多选都把触发器包在容器里，于是它们保持着固定的 200px 与 300px 宽度，直接盖在 Save 和 Cancel 之上——两个按钮仍在 DOM 里、仍能用键盘点，只是看不见它们。复选框是个普通按钮，网格的重置把它拉满整格并剥掉了边框，于是未勾选的单元格看起来是空的。打开下面任意一个编辑器：触发器收得进单元格，复选框仍然是复选框，Save 和 Cancel 永远在最上层。", "Every column here is narrower than a popup trigger's own default width, which is where cell editing used to come apart. A combobox and a multi select wrap their trigger in a container, so they kept their fixed 200px and 300px widths and painted straight over Save and Cancel — both buttons were still in the DOM and still clickable by keyboard, but nothing showed them. A checkbox is a plain button, and the grid's reset stretched it full width and stripped its border, so an unchecked cell looked empty. Open any editor below: the trigger fits its cell, the checkbox stays a checkbox, and Save and Cancel are always on top.")</p>
+        </div>
+        <div class="rounded-lg border p-4">
+            @* example: narrow-editors *@
+            <DataGrid Items="narrowRows" TData="WorkItem" ItemKey="@(r => r.Id)" EditMode="DataGridEditMode.Cell"
+                        EditItemFactory="CloneTask" ShowPagination="false" AriaLabel="@(L.T("窄列中的编辑器", "Editors in narrow columns"))">
+                <Columns>
+                    <DataGridPropertyColumn TData="WorkItem" TProp="string" Property="@(r => r.Title)" Title="@(L.T("任务", "Task"))" Width="140px" />
+                    <DataGridPropertyColumn TData="WorkItem" TProp="string" Property="@(r => r.Status)" Title="@(L.T("状态", "Status"))" Width="150px">
+                        <EditTemplate>
+                            <Combobox TValue="string" @bind-Value="context.Status" Options="statusOptions" aria-label="@(L.T("状态", "Status"))" />
+                        </EditTemplate>
+                    </DataGridPropertyColumn>
+                    <DataGridPropertyColumn TData="WorkItem" TProp="string" Property="@(r => r.SkillSummary)" Title="@(L.T("技能", "Skills"))" Width="160px">
+                        <EditTemplate>
+                            <MultiSelect TValue="string" Options="skillOptions" Values="context.Skills"
+                                           ValuesChanged="@(values => context.Skills = values?.ToList() ?? [])" aria-label="@(L.T("技能", "Skills"))" />
+                        </EditTemplate>
+                    </DataGridPropertyColumn>
+                    <DataGridPropertyColumn TData="WorkItem" TProp="bool" Property="@(r => r.Approved)" Title="@(L.T("已批准", "Approved"))" Width="110px">
+                        <CellTemplate>@(context.Approved ? L.T("是", "Yes") : L.T("否", "No"))</CellTemplate>
+                        <EditTemplate><Checkbox @bind-Checked="context.Approved" AriaLabel="@(L.T("已批准", "Approved"))" /></EditTemplate>
+                    </DataGridPropertyColumn>
+                </Columns>
+            </DataGrid>
+            @* end example *@
+        </div>
+        <CodeBlock Source="Components/DataGrid/narrow-editors.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("保存后的排序", "Sorting After an Edit")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("行初始按工时从高到低排列。把 Alex 的工时从 32 改成 50 并保存，Alex 就会排到 Morgan 之上。点击任意表头可换一种排序试试。", "Rows start sorted by hours, highest first. Change Alex's hours from 32 to 50 and save: Alex moves above Morgan. Sort any header to try another order.")</p>
+        </div>
+        <div class="rounded-lg border p-4">
+            @* example: editing-sorting *@
+            <DataGrid Items="sortedRows" TData="Employee" State="sortingState" ItemKey="@(r => r.Id)" EditMode="DataGridEditMode.Cell" EditItemFactory="Clone" ShowPagination="false" AriaLabel="@(L.T("编辑后重新排序的员工列表", "Employees sorted after editing"))">
+                <Columns>
+                    <DataGridPropertyColumn TData="Employee" TProp="string" Property="@(r => r.Name)" Sortable>
+                        <EditTemplate><InputGroupInput @bind-Value="context.Name" AriaLabel="@(L.T("姓名", "Name"))" /></EditTemplate>
+                    </DataGridPropertyColumn>
+                    <DataGridPropertyColumn TData="Employee" TProp="int" Property="@(r => r.Hours)" Sortable>
+                        <EditTemplate><NumericInput TValue="int" @bind-Value="context.Hours" AriaLabel="@(L.T("工时", "Hours"))" ShowButtons="false" /></EditTemplate>
+                    </DataGridPropertyColumn>
+                </Columns>
+            </DataGrid>
+            @* end example *@
+        </div>
+        <CodeBlock Source="Components/DataGrid/editing-sorting.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("批量编辑", "Batch Editing")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("逐个保存单元格只是暂存草稿，再点 Save changes 才把这一批一起提交。首批保存之后，按最初的工时排序会被重新应用；Discard changes 会还原为原始记录。", "Save individual cells to stage drafts, then choose Save changes to apply the batch. The initial hours sort updates after the batch is saved. Discard changes restores the original records.")</p>
+        </div>
+        <div class="rounded-lg border p-4 space-y-4">
+            @* example: batch-editing *@
+            <DataGrid Items="batchRows" TData="Employee" State="batchState" ItemKey="@(r => r.Id)" EditMode="DataGridEditMode.Batch" EditItemFactory="Clone" OnBatchCommit="SaveBatchAsync" ShowPagination="false" AriaLabel="@(L.T("可批量编辑的员工列表", "Batch editing employees"))">
+                <Columns>
+                    <DataGridPropertyColumn TData="Employee" TProp="string" Property="@(r => r.Name)" Sortable>
+                        <EditTemplate><InputGroupInput @bind-Value="context.Name" AriaLabel="@(L.T("姓名", "Name"))" /></EditTemplate>
+                    </DataGridPropertyColumn>
+                    <DataGridPropertyColumn TData="Employee" TProp="int" Property="@(r => r.Hours)" Sortable>
+                        <EditTemplate><NumericInput TValue="int" @bind-Value="context.Hours" AriaLabel="@(L.T("工时", "Hours"))" ShowButtons="false" /></EditTemplate>
+                    </DataGridPropertyColumn>
+                </Columns>
+            </DataGrid>
+            @* end example *@
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground" role="status">@batchStatusZh</p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground" role="status">@batchStatus</p>
+                        </text>
+}
+        </div>
+        <CodeBlock Source="Components/DataGrid/batch-editing.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("校验与保存失败恢复", "Validation and Save Recovery")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("姓名必填，工时须在 0 到 80 之间。保存失败时草稿会保持打开，便于修改后重试。", "A name is required and hours must be between 0 and 80. A failed save keeps the draft open so it can be corrected or retried.")</p>
+        </div>
+        <div class="rounded-lg border p-4 space-y-4">
+            @* example: editing-validation *@
+            <div class="flex items-center gap-2">
+                <Checkbox Id="grid-reject-saves" @bind-Checked="rejectSaves" />
+                @* 偏差：本仓 _Imports 同时引入 Microsoft.AspNetCore.Components.Forms（其 Label<TValue> 带 For 参数），
+                   裸 <AtomBlazor.Label For=...> 触发 RZ10012 泛型/非泛型歧义，照 FileUploadDemo 先例改全限定标签，渲染行为零变化（下同）。 *@
+                <AtomBlazor.Label For="grid-reject-saves">@L.T("模拟一次保存失败", "Simulate a failed save")</AtomBlazor.Label>
+            </div>
+            <DataGrid Items="validationRows" TData="Employee" ItemKey="@(r => r.Id)" EditMode="DataGridEditMode.Cell" EditItemFactory="Clone" OnRowCommit="SaveCellAsync" ShowPagination="false" AriaLabel="@(L.T("编辑校验与失败恢复", "Editing validation and recovery"))">
+                <Columns>
+                    <DataGridPropertyColumn TData="Employee" TProp="string" Property="@(r => r.Name)">
+                        <EditTemplate><InputGroupInput @bind-Value="context.Name" AriaLabel="@(L.T("姓名", "Name"))" /></EditTemplate>
+                    </DataGridPropertyColumn>
+                    <DataGridPropertyColumn TData="Employee" TProp="int" Property="@(r => r.Hours)">
+                        <EditTemplate><NumericInput TValue="int" @bind-Value="context.Hours" AriaLabel="@(L.T("工时", "Hours"))" ShowButtons="false" /></EditTemplate>
+                    </DataGridPropertyColumn>
+                </Columns>
+            </DataGrid>
+            @* end example *@
+        </div>
+        <CodeBlock Source="Components/DataGrid/editing-validation.txt" />
+    </section>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("编辑按钮会标明所属列；Save 与 Cancel 都带有可读的标签。", "Edit buttons identify their column. Save and Cancel controls have accessible labels.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("校验错误始终显示在编辑器旁；保存进行中时输入控件与操作按钮会被禁用。", "Validation errors remain beside the editor. Inputs and actions are disabled while a save is pending.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("用于撑住列宽的展示内容对辅助技术隐藏，也无法获得焦点。", "The display content retained for column sizing is hidden from assistive technology and cannot receive focus.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在编辑按钮与编辑器控件之间移动", "Move between edit buttons and editor controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift</Kbd> + <Kbd>Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在文本或数字输入框中保存；激活已聚焦的按钮或选择器", "Save from a text or numeric input; activate a focused button or picker"))"><Kbd>Enter</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("取消当前单元格；若选择器已打开则先关闭它", "Cancel the active cell; an open picker closes first"))"><Kbd>Escape</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-muted-foreground">单元格与批量编辑的参数和方法。排序、筛选与列选项请见 <a class="text-primary underline" href="/components/datagrid">数据网格</a> 页面。</p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-muted-foreground">Cell and batch editing parameters and methods. See the <a class="text-primary underline" href="/components/datagrid">Data Grid</a> page for sorting, filtering and column options.</p>
+                        </text>
+}
+        </div>
+        <ApiReference ComponentName="@(L.T("DataGrid 编辑", "DataGrid editing"))">
+            <ApiParameter Name="State" Type="DataGridState&lt;TData&gt;?">@L.T("渲染前即可设置初始排序定义。已接受的单元格或批量保存会重新应用当前排序；未提交的草稿则保持源数据的顺序。", "Set initial sort definitions before rendering. Accepted cell or batch saves reapply the active sort; uncommitted drafts retain the source row order.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="EditMode" Type="DataGridEditMode" Default="None">None、Row、Cell 或 Batch。<code>Cell</code> 与 <code>Batch</code> <ApiVersionBadge /> 是 v4 新增的模式，需要独立的克隆工厂。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="EditMode" Type="DataGridEditMode" Default="None">None, Row, Cell or Batch. <code>Cell</code> and <code>Batch</code> <ApiVersionBadge /> are new modes in v4 and require an independent clone factory.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Since="v4" Name="EditItemFactory" Type="Func&lt;TData,TData&gt;">@L.T("克隆每个可写字段，包括嵌套的可编辑对象。稳定的 ItemKey 取值不得改变。被接受的草稿会把可公开写的属性复制回原始记录。", "Clone every writable field, including nested editable objects. Stable ItemKey values cannot change. Accepted drafts copy public writable properties back to the original records.")</ApiParameter>
+            <ApiParameter Name="OnRowCommit" Type="EventCallback&lt;DataGridRowCommitContext&lt;TData&gt;&gt;">@L.T("在 Cell 模式下，Item 是草稿、OriginalItem 是源数据。置 Cancel 可拒绝；抛出的错误会保留草稿。Row 模式保持它原有的就地行为。", "In Cell mode Item is the draft and OriginalItem is the source. Set Cancel to reject; thrown errors retain the draft. Row mode retains its original in-place behavior.")</ApiParameter>
+            <ApiParameter Since="v4" Name="OnBatchCommit" Type="EventCallback&lt;DataGridBatchCommitContext&lt;TData&gt;&gt;">@L.T("在你的后端原子地持久化 Changes；每条变更都包含 OriginalItem 与 Item。置 Cancel 可拒绝整批。回调成功后会在本地应用全部草稿。", "Persist Changes atomically in your backend; each change contains OriginalItem and Item. Set Cancel to reject the entire batch. Successful callbacks apply all drafts locally.")</ApiParameter>
+            <ApiParameter Since="v4" Name="OnBatchCancel" Type="EventCallback">@L.T("在全部待处理草稿被丢弃之后运行。", "Runs after all pending drafts are discarded.")</ApiParameter>
+            <ApiParameter Since="v4" Name="PendingChanges / IsSavingEdits / EditingColumnId" Type="read-only properties">@L.T("查看待处理的行草稿、保存状态与当前列。", "Inspect pending row drafts, save activity and the active column.")</ApiParameter>
+            <ApiParameter Since="v4" Name="StartCellEditAsync(item, columnId)" Type="Task">@L.T("打开一个可编辑的可见列。当前无效的编辑内容会阻止导航。", "Opens one editable visible column. Invalid current edits block navigation.")</ApiParameter>
+            <ApiParameter Name="CommitEditAsync() / CancelEditAsync()" Type="Task">@L.T("接受或丢弃当前单元格。在 Batch 模式下，取消当前单元格时会保留此前暂存的单元格。", "Accept or discard the active cell. In Batch mode, earlier staged cells are retained when the current cell is canceled.")</ApiParameter>
+            <ApiParameter Since="v4" Name="CommitBatchAsync() / CancelBatchAsync()" Type="Task">@L.T("接受或丢弃每一行暂存内容。校验或持久化失败时 Commit 返回 false。", "Accept or discard every staged row. Commit returns false when validation or persistence fails.")</ApiParameter>
+        </ApiReference>
+        <ApiReference ComponentName="@(L.T("DataGridPropertyColumn 编辑", "DataGridPropertyColumn editing"))">
+            <ApiParameter Name="EditTemplate" Type="RenderFragment&lt;TData&gt;">@L.T("把编辑器绑定到作为 context 传入的草稿。支持文本、数字、日期、下拉与复选框控件。Save 与 Cancel 操作由网格提供；InputGroupInput 提供无边框的文本编辑器。", "Bind an editor to the draft supplied as context. Text, number, date, select and checkbox controls are supported. Save and Cancel actions are supplied by the grid; InputGroupInput provides a borderless text editor.")</ApiParameter>
+        </ApiReference>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private bool rejectSaves;
+    private string batchStatus = "No batch saved yet.";
+    private string batchStatusZh = "尚未保存批量修改。";
+    private readonly List<Employee> cellRows = CreateEmployees();
+    private readonly List<Employee> sortedRows = CreateEmployees();
+    private readonly List<Employee> batchRows = CreateEmployees();
+    private readonly List<Employee> validationRows = [new() { Id = 1, Name = "Alex", Hours = 32 }];
+    private readonly AtomBlazor.Primitives.DataGridState<Employee> sortingState = new();
+    private readonly AtomBlazor.Primitives.DataGridState<Employee> batchState = new();
+    private static readonly IReadOnlyList<SelectOption<string>> statusOptions =
+    [
+        new("Planned", "Planned"), new("In progress", "In progress"), new("Done", "Done")
+    ];
+    private static readonly IReadOnlyList<SelectOption<string>> skillOptions =
+    [
+        new("C#", "C#"), new("Blazor", "Blazor"), new("SQL", "SQL"), new("Azure", "Azure")
+    ];
+    private readonly List<WorkItem> narrowRows =
+    [
+        new() { Id = 1, Title = "Design review", Status = "In progress", Skills = ["C#", "Blazor"], Approved = false },
+        new() { Id = 2, Title = "Release notes", Status = "Planned", Skills = ["SQL"], Approved = true },
+        new() { Id = 3, Title = "Accessibility audit", Status = "Done", Skills = [], Approved = false }
+    ];
+
+    private readonly List<WorkItem> tasks =
+    [
+        new() { Id = 1, Title = "Design review", DueDate = new(2026, 9, 18), Status = "In progress", Approved = false },
+        new() { Id = 2, Title = "Release notes", DueDate = new(2026, 9, 21), Status = "Planned", Approved = false },
+        new() { Id = 3, Title = "Accessibility audit", DueDate = new(2026, 9, 16), Status = "Done", Approved = true }
+    ];
+
+    protected override void OnInitialized()
+    {
+        sortingState.Sorting.SetSort("hours", SortDirection.Descending);
+        batchState.Sorting.SetSort("hours", SortDirection.Descending);
+    }
+
+    private static List<Employee> CreateEmployees() =>
+    [
+        new() { Id = 1, Name = "Alex", Hours = 32 },
+        new() { Id = 2, Name = "Sam", Hours = 24 },
+        new() { Id = 3, Name = "Morgan", Hours = 40 },
+        new() { Id = 4, Name = "Jamie", Hours = 16 }
+    ];
+    private static Employee Clone(Employee source) => new() { Id = source.Id, Name = source.Name, Hours = source.Hours };
+    private static WorkItem CloneTask(WorkItem source) => new() { Id = source.Id, Title = source.Title, DueDate = source.DueDate, Status = source.Status, Approved = source.Approved, Skills = [.. source.Skills] };
+    private async Task SaveCellAsync(DataGridRowCommitContext<Employee> context)
+    {
+        await Task.Delay(300);
+        context.Cancel = rejectSaves;
+    }
+    private async Task SaveBatchAsync(DataGridBatchCommitContext<Employee> context)
+    {
+        await Task.Delay(300);
+        batchStatus = $"Saved changes to {context.Changes.Count} records.";
+        batchStatusZh = $"已保存 {context.Changes.Count} 条记录的批量修改。";
+    }
+    private sealed class Employee
+    {
+        public int Id { get; set; }
+        [Required] public string Name { get; set; } = "";
+        [Range(0, 80)] public int Hours { get; set; }
+    }
+    private sealed class WorkItem
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = "";
+        public DateTime? DueDate { get; set; }
+        public string Status { get; set; } = "Planned";
+        public bool Approved { get; set; }
+        public List<string> Skills { get; set; } = [];
+        public string SkillSummary => Skills.Count == 0 ? "—" : string.Join(", ", Skills);
+    }
+}

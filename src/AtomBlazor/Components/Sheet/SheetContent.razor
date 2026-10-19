@@ -1,0 +1,155 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@inject ILocalizer Localizer
+
+@*
+    带样式的面板内容组件，使用 shadcn/ui 类及与侧边相关的动画。
+    包含遮罩、面板和关闭按钮。
+*@
+
+<AtomBlazor.Primitives.SheetPortal Container="@Container">
+    <AtomBlazor.Primitives.SheetOverlay class="atom:fixed atom:inset-0 atom:z-50 atom:bg-black/80 atom:data-[state=open]:animate-in atom:data-[state=closed]:animate-out atom:data-[state=closed]:fade-out-0 atom:data-[state=open]:fade-in-0"
+                                                      CloseOnClick="@CloseOnOverlayClick" />
+
+    <AtomBlazor.Primitives.SheetContent
+        class="@GetClassNames()"
+        CloseOnEscape="@CloseOnEscape"
+        TrapFocus="@TrapFocus"
+        InitialFocus="@InitialFocus"
+        InitialFocusElement="@InitialFocusElement"
+        LockScroll="@LockScroll"
+        OnEscapeKeyDown="@OnEscapeKeyDown"
+        @attributes="AdditionalAttributes">
+        @ChildContent
+
+        @if (ShowClose)
+        {
+            <AtomBlazor.Primitives.SheetClose class="atom:absolute atom:end-4 atom:top-4 atom:rounded-sm atom:opacity-70 atom:ring-offset-background atom:transition-opacity atom:hover:opacity-100 atom:focus:outline-none atom:focus:ring-2 atom:focus:ring-ring atom:focus:ring-offset-2 atom:disabled:pointer-events-none atom:data-[state=open]:bg-accent atom:data-[state=open]:text-muted-foreground">
+                <LucideIcon Name="x" Class="atom:h-4 atom:w-4" />
+                <span class="atom:sr-only">@Localizer["Sheet.Close"]</span>
+            </AtomBlazor.Primitives.SheetClose>
+        }
+    </AtomBlazor.Primitives.SheetContent>
+</AtomBlazor.Primitives.SheetPortal>
+
+@code {
+    [CascadingParameter]
+    private AtomBlazor.Primitives.SheetContext? Context { get; set; }
+
+    /// <summary>
+    /// 在面板内呈现的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用到面板内容的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 应用到面板内容的额外属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 将面板以内联方式呈现在某个容器内，而非通过门户渲染到文档正文。
+    /// 设置后，面板的遮罩与内容保留在 DOM 树中，从而可被具有 CSS 包含（如 transform: translateZ(0)）
+    /// 的父元素所约束。
+    /// 为 null（默认）时，通过门户渲染到文档正文。
+    /// </summary>
+    [Parameter]
+    public string? Container { get; set; }
+
+    /// <summary>
+    /// 面板从哪一侧滑入。
+    /// 为 null 时，使用父级 Sheet 组件指定的侧边。
+    /// </summary>
+    [Parameter]
+    public SheetSide? Side { get; set; }
+
+    /// <summary>
+    /// 是否显示关闭按钮（X 图标）。
+    /// 默认值为 true。
+    /// </summary>
+    [Parameter]
+    public bool ShowClose { get; set; } = true;
+
+    /// <summary>
+    /// 点击遮罩（背景）时是否应关闭面板。
+    /// 默认值为 true。
+    /// </summary>
+    [Parameter]
+    public bool CloseOnOverlayClick { get; set; } = true;
+
+    /// <summary>
+    /// 按下 Esc 键时是否应关闭面板。
+    /// 默认值为 true。
+    /// </summary>
+    [Parameter]
+    public bool CloseOnEscape { get; set; } = true;
+
+    /// <summary>
+    /// 是否将焦点限制在面板内部（焦点陷阱）。
+    /// 对于模态面板，默认值为 true。
+    /// </summary>
+    [Parameter]
+    public bool TrapFocus { get; set; } = true;
+
+    /// <summary>
+    /// 建立焦点陷阱时应当聚焦的目标。默认聚焦第一个可聚焦的后代元素。
+    /// </summary>
+    /// <remarks>
+    /// 当第一个可聚焦子元素在聚焦时会产生副作用时，可将其设置为
+    /// <see cref="FocusTrapInitialFocus.Container"/>；或使用 <see cref="InitialFocusElement"/>
+    /// 来指定一个具体的目标元素。带有 <c>data-autofocus</c> 属性的元素优先级高于此设置。
+    /// </remarks>
+    [Parameter]
+    public FocusTrapInitialFocus InitialFocus { get; set; } = FocusTrapInitialFocus.FirstFocusable;
+
+    /// <summary>
+    /// 建立焦点陷阱时要聚焦的明确元素，其优先级高于 <see cref="InitialFocus"/> 以及任何
+    /// 带有 <c>data-autofocus</c> 的元素。当该元素不在面板内部时将被忽略。
+    /// </summary>
+    [Parameter]
+    public ElementReference? InitialFocusElement { get; set; }
+
+    /// <summary>
+    /// 面板打开时是否锁定页面滚动。
+    /// 对于模态面板，默认值为 true。
+    /// </summary>
+    [Parameter]
+    public bool LockScroll { get; set; } = true;
+
+    /// <summary>
+    /// 按下 Esc 键时触发的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<KeyboardEventArgs> OnEscapeKeyDown { get; set; }
+
+    /// <summary>
+    /// 根据侧边获取为面板内容计算得到的 CSS 类。
+    /// 使用 cn() 工具函数进行智能类合并及 Tailwind 冲突消解。
+    /// </summary>
+    private string GetClassNames()
+    {
+        var side = Side ?? Context?.Side ?? SheetSide.Right;
+
+        // 所有侧边共享的基础类
+        var baseClasses = "atom:fixed atom:z-50 atom:gap-4 atom:bg-background atom:p-6 atom:shadow-lg atom:transition atom:ease-in-out atom:data-[state=open]:animate-in atom:data-[state=closed]:animate-out atom:data-[state=closed]:duration-300 atom:data-[state=open]:duration-500";
+
+        // 与侧边相关的位置、尺寸及动画类
+        var sideClasses = side switch
+        {
+            SheetSide.Top => "atom:inset-x-0 atom:top-0 atom:border-b atom:data-[state=closed]:slide-out-to-top atom:data-[state=open]:slide-in-from-top",
+            SheetSide.Bottom => "atom:inset-x-0 atom:bottom-0 atom:border-t atom:data-[state=closed]:slide-out-to-bottom atom:data-[state=open]:slide-in-from-bottom",
+            SheetSide.Left => "atom:inset-y-0 atom:left-0 atom:h-full atom:w-3/4 atom:border-r atom:data-[state=closed]:slide-out-to-left atom:data-[state=open]:slide-in-from-left atom:sm:max-w-sm",
+            SheetSide.Right => "atom:inset-y-0 atom:right-0 atom:h-full atom:w-3/4 atom:border-l atom:data-[state=closed]:slide-out-to-right atom:data-[state=open]:slide-in-from-right atom:sm:max-w-sm",
+            _ => "atom:inset-y-0 atom:right-0 atom:h-full atom:w-3/4 atom:border-l atom:data-[state=closed]:slide-out-to-right atom:data-[state=open]:slide-in-from-right atom:sm:max-w-sm"
+        };
+
+        return ClassNames.cn(baseClasses, sideClasses, Class);
+    }
+}

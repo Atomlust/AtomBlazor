@@ -1,0 +1,737 @@
+@page "/components/textarea"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("Textarea 多行文本框 - Atom BlazorUI", "Textarea Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Textarea 多行文本框", "Textarea Component")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("一个多行文本输入框，遵循 shadcn/ui 设计体系。", "Displays a multi-line text input field that follows the shadcn/ui design system.")
+        </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+    </div>
+
+    <!-- Default Textarea -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("默认样式", "Default")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个简单的文本框，带占位文本并自动调整内容高度。", "A simple textarea with placeholder and automatic content sizing.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <Textarea Placeholder="@(L.T("在此输入你的留言。", "Type your message here."))" />
+        </div>
+        <CodeBlock Source="Components/Textarea/default.txt" />
+    </div>
+
+    <!-- Disabled State -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用状态", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("处于禁用状态的文本框。", "Textarea with disabled state.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <Textarea Placeholder="@(L.T("禁用的文本框", "Disabled textarea"))" Disabled="true" Value="@(L.T("这段文字无法编辑。", "Cannot edit this text."))" />
+        </div>
+        <CodeBlock Source="Components/Textarea/disabled.txt" />
+    </div>
+
+    <!-- Required State -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("必填状态", "Required")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带 HTML5 必填校验的文本框。", "Textarea with HTML5 required validation.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <form class="space-y-4">
+                <div class="space-y-2">
+                    <label class="text-sm font-medium">@L.T("留言（必填）", "Message (required)")</label>
+                    <Textarea Placeholder="@(L.T("请输入你的留言", "Enter your message"))" Required="true" />
+                </div>
+                <button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90">
+                    @L.T("提交", "Submit")
+                </button>
+            </form>
+        </div>
+        <CodeBlock Source="Components/Textarea/required.txt" />
+    </div>
+
+    <!-- With Label and Description -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带标签", "With Label")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带标签与辅助文本的文本框。", "Textarea with labels and helper text.")
+            </p>
+        </div>
+        <div class="max-w-md space-y-4">
+            <div class="space-y-2">
+                <label for="bio-textarea" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    @L.T("个人简介", "Bio")
+                </label>
+                <Textarea Placeholder="@(L.T("介绍一下你自己…", "Tell us about yourself..."))" AriaLabel="@(L.T("个人简介", "Biography"))" />
+                <p class="text-sm text-muted-foreground">
+                    @L.T("你的简介会展示在公开资料页上。", "Your bio will be displayed on your public profile.")
+                </p>
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    @L.T("评论", "Comments")
+                </label>
+                <Textarea Placeholder="@(L.T("留下你的评论…", "Leave a comment..."))" AriaLabel="@(L.T("评论", "Comments"))" />
+                <p class="text-sm text-muted-foreground">
+                    @L.T("与社区分享你的想法。", "Share your thoughts with the community.")
+                </p>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Textarea/with-label.txt" />
+    </div>
+
+    <!-- MaxLength -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("字符上限", "Character Limit")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("用 MaxLength 参数限制最大字符数。", "Textarea with maximum character limit using MaxLength parameter.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("推文（最多 280 字符）", "Tweet (max 280 characters)")</label>
+                <Textarea MaxLength="280" Placeholder="@(L.T("此刻有什么新鲜事？", "What's happening?"))" Value="@tweetValue" ValueChanged="@((value) => tweetValue = value)" />
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-xs text-muted-foreground">
+                            @(tweetValue?.Length ?? 0) / 280 字符
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-xs text-muted-foreground">
+                            @(tweetValue?.Length ?? 0) / 280 characters
+                        </p>
+                    </text>
+                }
+            </div>
+        </div>
+        <CodeBlock Source="Components/Textarea/character-limit.txt" />
+    </div>
+
+    <!-- Built-in Character Count -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <div class="flex items-center gap-2">
+                <h2 class="text-2xl font-semibold">@L.T("内置字数统计", "Built-in Character Count")</h2>
+                <span class="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20">v3</span>
+            </div>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowCharacterCount="true"</code> 即可在文本框下方显示内置的字数统计。
+                        设置了 <code class="text-xs bg-muted px-1 py-0.5 rounded">MaxLength</code> 时，它会以 <code class="text-xs bg-muted px-1 py-0.5 rounded">当前/上限</code> 的格式显示。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Use <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowCharacterCount="true"</code> to display a built-in character counter below the textarea. When <code class="text-xs bg-muted px-1 py-0.5 rounded">MaxLength</code> is set, it shows the count in a <code class="text-xs bg-muted px-1 py-0.5 rounded">current/max</code> format.
+                    </p>
+                </text>
+            }
+        </div>
+        <div class="max-w-md space-y-4">
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("设置 MaxLength", "With MaxLength")</label>
+                <Textarea ShowCharacterCount="true" MaxLength="280" Placeholder="@(L.T("此刻有什么新鲜事？", "What's happening?"))" />
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("不设置 MaxLength", "Without MaxLength")</label>
+                <Textarea ShowCharacterCount="true" Placeholder="@(L.T("自由输入文本…", "Free-form text..."))" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/Textarea/character-count.txt" />
+    </div>
+
+    <!-- Two-Way Binding Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("双向绑定", "Two-Way Binding")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        演示用 Value 与 ValueChanged 实现实时取值。
+                        空白或纯空格的输入会自动归一为 <code class="text-xs bg-muted px-1 py-0.5 rounded">null</code>，
+                        与 ASP.NET MVC 的模型绑定约定保持一致。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Demonstrating real-time value updates using Value and ValueChanged.
+                        Empty or whitespace-only input is automatically normalized to <code class="text-xs bg-muted px-1 py-0.5 rounded">null</code>,
+                        matching ASP.NET MVC model binding conventions.
+                    </p>
+                </text>
+            }
+        </div>
+        <div class="max-w-md space-y-4">
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("随便输入一些内容", "Type something")</label>
+                <Textarea Value="@boundValue" ValueChanged="@((value) => boundValue = value)" Placeholder="@(L.T("开始输入…", "Start typing..."))" />
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-xs text-muted-foreground">
+                            试着输入一些文字再清空，值会回到 <code class="text-xs bg-muted px-1 py-0.5 rounded">null</code>，而不是空字符串。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-xs text-muted-foreground">
+                            Try typing text, then clearing it. The value returns to <code class="text-xs bg-muted px-1 py-0.5 rounded">null</code> instead of becoming an empty string.
+                        </p>
+                    </text>
+                }
+            </div>
+            <div class="rounded-lg border p-4 bg-muted/50">
+                <p class="text-sm font-medium mb-1">@L.T("当前值：", "Current value:")</p>
+                @if (boundValue is null)
+                {
+                    <p class="text-sm font-mono text-muted-foreground italic">null</p>
+                }
+                else
+                {
+                    <p class="text-sm font-mono whitespace-pre-wrap break-words">"@boundValue"</p>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-xs text-muted-foreground mt-2">
+                            字符数：@(boundValue?.Length ?? 0)
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-xs text-muted-foreground mt-2">
+                            Character count: @(boundValue?.Length ?? 0)
+                        </p>
+                    </text>
+                }
+            </div>
+        </div>
+        <CodeBlock Source="Components/Textarea/two-way-binding.txt" />
+    </div>
+
+    <!-- Update Timing -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("更新时机", "Update Timing")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        用 <code class="text-xs bg-muted px-1 py-0.5 rounded">UpdateTiming</code> 参数控制
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">ValueChanged</code> 何时触发。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Control when <code class="text-xs bg-muted px-1 py-0.5 rounded">ValueChanged</code> fires using the
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">UpdateTiming</code> parameter.
+                    </p>
+                </text>
+            }
+        </div>
+        <div class="grid gap-6 md:grid-cols-3 max-w-4xl">
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("Immediate（默认）", "Immediate (default)")</label>
+                <Textarea UpdateTiming="UpdateTiming.Immediate"
+                          Value="@_immediateValue"
+                          ValueChanged="@((v) => _immediateValue = v)"
+                          Placeholder="@(L.T("每次按键都触发", "Fires on every keystroke"))" />
+                <div class="rounded-lg border p-3 bg-muted/50">
+                    <p class="text-xs text-muted-foreground mb-1">@L.T("值：", "Value:")</p>
+                    <p class="text-sm font-mono">@(string.IsNullOrEmpty(_immediateValue) ? L.T("（空）", "(empty)") : _immediateValue)</p>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("OnChange（失焦 / 回车）", "OnChange (blur / Enter)")</label>
+                <Textarea UpdateTiming="UpdateTiming.OnChange"
+                          Value="@_onChangeValue"
+                          ValueChanged="@((v) => _onChangeValue = v)"
+                          Placeholder="@(L.T("失焦或回车时触发", "Fires on blur or Enter"))" />
+                <div class="rounded-lg border p-3 bg-muted/50">
+                    <p class="text-xs text-muted-foreground mb-1">@L.T("值：", "Value:")</p>
+                    <p class="text-sm font-mono">@(string.IsNullOrEmpty(_onChangeValue) ? L.T("（空）", "(empty)") : _onChangeValue)</p>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("Debounced（500 毫秒）", "Debounced (500ms)")</label>
+                <Textarea UpdateTiming="UpdateTiming.Debounced"
+                          DebounceInterval="500"
+                          Value="@_debouncedValue"
+                          ValueChanged="@((v) => _debouncedValue = v)"
+                          Placeholder="@(L.T("停止输入后触发", "Fires after typing pauses"))" />
+                <div class="rounded-lg border p-3 bg-muted/50">
+                    <p class="text-xs text-muted-foreground mb-1">@L.T("值：", "Value:")</p>
+                    <p class="text-sm font-mono">@(string.IsNullOrEmpty(_debouncedValue) ? L.T("（空）", "(empty)") : _debouncedValue)</p>
+                </div>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Textarea/update-timing.txt" />
+    </div>
+
+    <!-- Custom Styling -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义样式", "Custom Styling")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("用 Class 参数覆盖样式。", "Override styles with the Class parameter.")
+            </p>
+        </div>
+        <div class="space-y-4 max-w-md">
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("自定义边框颜色", "Custom border color")</label>
+                <Textarea Placeholder="@(L.T("蓝色边框", "Blue border"))" Class="border-blue-500 focus-visible:ring-blue-500" />
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("自定义高度", "Custom height")</label>
+                <Textarea Placeholder="@(L.T("更高的文本框", "Taller textarea"))" Class="min-h-32" />
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("成功状态", "Success state")</label>
+                <Textarea Value="@(L.T("一条有效的留言", "Valid message"))" Class="border-green-500 focus-visible:ring-green-500" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/Textarea/custom-styling.txt" />
+    </div>
+
+    <!-- Form Validation with EditForm -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表单校验", "Form Validation")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Textarea 与 Blazor 的 EditForm、EditContext 集成，可参与模型校验。
+                        在 EditForm 内使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code>，
+                        校验错误就会通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> 自动套用错误样式。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Textarea integrates with Blazor's EditForm and EditContext for model validation.
+                        Use <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code> within an EditForm and
+                        validation errors will automatically apply error styling via <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code>.
+                    </p>
+                </text>
+            }
+        </div>
+        <EditForm Model="formModel" OnValidSubmit="HandleValidSubmit" class="max-w-md space-y-4">
+            <DataAnnotationsValidator />
+
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("个人简介", "Bio")</label>
+                <Textarea @bind-Value="formModel.Bio" Placeholder="@(L.T("介绍一下你自己…", "Tell us about yourself..."))" />
+                <ValidationMessage For="@(() => formModel.Bio)" class="text-sm text-destructive" />
+            </div>
+
+            <div class="flex gap-4">
+                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Default">@L.T("提交", "Submit")</Button>
+                <Button Type="ButtonType.Button" Variant="ButtonVariant.Outline" OnClick="ResetForm">@L.T("重置", "Reset")</Button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(formMessage))
+            {
+                <div class="p-4 bg-card rounded-lg border">
+                    <p class="text-sm">@formMessage</p>
+                </div>
+            }
+        </EditForm>
+        <CodeBlock Source="Components/Textarea/form-validation.txt" />
+    </div>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        使用原生 <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;textarea&gt;</code> 元素，自带隐式的 textbox 角色
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                        Uses a native <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;textarea&gt;</code> element with implicit textbox role
+                    </AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        提供 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> 参数，用于表单无障碍
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code>, and <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> parameters for form accessibility
+                    </AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        支持原生 <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">required</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">maxlength</code> 属性
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                        Native <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">required</code>, and <code class="text-xs bg-muted px-1 py-0.5 rounded">maxlength</code> attributes are supported
+                    </AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        与 Blazor EditContext 集成，通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> 自动反映校验状态
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                        Integrates with Blazor EditContext for automatic validation state via <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code>
+                    </AccessibilityItem>
+                </text>
+            }
+        </AriaAttributes>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+        </div>
+        <div class="border rounded-lg p-6 space-y-4">
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Value</h3>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mb-2">
+                            类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">string?</code>
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mb-2">
+                            Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">string?</code>
+                        </p>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">
+                            文本框的当前值。支持用 <code>@@bind-Value</code> 双向绑定。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">
+                            The current value of the textarea. Supports two-way binding with @("@")bind-Value.
+                        </p>
+                    </text>
+                }
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Placeholder</h3>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mb-2">
+                            类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">string?</code>
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mb-2">
+                            Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">string?</code>
+                        </p>
+                    </text>
+                }
+                <p class="text-sm text-muted-foreground">
+                    @L.T("文本框为空时显示的占位文本。", "Placeholder text shown when textarea is empty.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">MaxLength</h3>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mb-2">
+                            类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">int?</code>
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mb-2">
+                            Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">int?</code>
+                        </p>
+                    </text>
+                }
+                <p class="text-sm text-muted-foreground">
+                    @L.T("允许的最大字符数，浏览器会阻止超出该上限。", "Maximum number of characters allowed. Browser will prevent exceeding this limit.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Disabled</h3>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mb-2">
+                            类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code>
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mb-2">
+                            Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code>
+                        </p>
+                    </text>
+                }
+                <p class="text-sm text-muted-foreground">
+                    @L.T("文本框是否被禁用。默认：false", "Whether the textarea is disabled. Default: false")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Required</h3>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mb-2">
+                            类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code>
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mb-2">
+                            Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code>
+                        </p>
+                    </text>
+                }
+                <p class="text-sm text-muted-foreground">
+                    @L.T("表单校验时该文本框是否必填。默认：false", "Whether the textarea is required for form validation. Default: false")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">@L.T("ARIA 属性", "ARIA Attributes")</h3>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">AriaLabel</code>、
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">AriaDescribedBy</code>
+                            与 <code class="text-xs bg-muted px-1 py-0.5 rounded">AriaInvalid</code>，用于无障碍。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">AriaLabel</code>,
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">AriaDescribedBy</code>,
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">AriaInvalid</code> for accessibility.
+                        </p>
+                    </text>
+                }
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">UpdateTiming</h3>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mb-2">
+                            类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">UpdateTiming</code>
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mb-2">
+                            Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">UpdateTiming</code>
+                        </p>
+                    </text>
+                }
+                <p class="text-sm text-muted-foreground">
+                    @L.T("控制 ValueChanged 何时触发。可选：Immediate（默认）、OnChange、Debounced。", "Controls when ValueChanged fires. Options: Immediate (default), OnChange, Debounced.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">DebounceInterval</h3>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mb-2">
+                            类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">int</code>
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mb-2">
+                            Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">int</code>
+                        </p>
+                    </text>
+                }
+                <p class="text-sm text-muted-foreground">
+                    @L.T("UpdateTiming 为 Debounced 时的防抖延迟（毫秒）。默认：500", "Debounce delay in milliseconds when UpdateTiming is Debounced. Default: 500")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">ShowCharacterCount</h3>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mb-2">
+                            类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code> —— 默认：<code class="text-xs bg-muted px-1 py-0.5 rounded">false</code>
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mb-2">
+                            Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code> — Default: <code class="text-xs bg-muted px-1 py-0.5 rounded">false</code>
+                        </p>
+                    </text>
+                }
+                <p class="text-sm text-muted-foreground">
+                    @L.T("为 true 时在文本框下方显示字数统计；设置了 MaxLength 时按当前/上限格式显示。", "When true, displays a character counter below the textarea. Shows current/max format when MaxLength is set.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Class</h3>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mb-2">
+                            类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">string?</code>
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mb-2">
+                            Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">string?</code>
+                        </p>
+                    </text>
+                }
+                <p class="text-sm text-muted-foreground">
+                    @L.T("附加的 CSS 类。自定义类会覆盖默认样式。", "Additional CSS classes to apply. Custom classes override default styles.")
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string? boundValue;
+    private string? tweetValue;
+    private string? _immediateValue;
+    private string? _onChangeValue;
+    private string? _debouncedValue;
+    private TextareaFormModel formModel = new();
+    private string? formMessage;
+
+    private void HandleValidSubmit()
+    {
+        formMessage = L.IsChinese ? $"表单提交成功！简介：{formModel.Bio}" : $"Form submitted! Bio: {formModel.Bio}";
+    }
+
+    private void ResetForm()
+    {
+        formModel = new();
+        formMessage = null;
+    }
+
+    private class TextareaFormModel
+    {
+        [Required(ErrorMessage = "Bio is required.")]
+        [StringLength(500, MinimumLength = 10, ErrorMessage = "Bio must be between 10 and 500 characters.")]
+        public string? Bio { get; set; }
+    }
+}

@@ -1,0 +1,1054 @@
+@page "/components/pivot-data-grid"
+@using AtomBlazor.Primitives.Pivot
+<PageTitle>@L.T("透视数据网格 - Atom BlazorUI", "Pivot Data Grid - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-5xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("透视数据网格", "Pivot Data Grid")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("一侧铺一个字段，另一侧横一个字段，它们交汇处是一个算出来的值。它是本页唯一列由数据而来、而非由声明而来的一张网格。", "One field down the side, another across the top, and a worked-out value where they cross. The one grid whose columns come from the data rather than from a declaration.")
+            </p>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    本页每张表都对同样的 @sales.Length 条订单做交叉汇总。每条订单都是一个
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Sale</code>——含地区、国家、
+                    类别、年份、季度、月份、金额与数量。在任意表下方点开 <strong>显示数据</strong>
+                    即可阅读它所基于的行。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    Every table on this page cross-tabulates the same @sales.Length orders. Each order is
+                    one <code class="text-xs bg-muted px-1 py-0.5 rounded">Sale</code> &mdash; a region, a
+                    country, a category, a year, a quarter, a month, an amount and a number of units.
+                    Open <strong>Show the data</strong> under any table to read the rows it was built
+                    from.
+                </p>
+                        </text>
+}
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        在 <code class="text-xs bg-muted px-1 py-0.5 rounded">Rows</code> 里声明一个字段，
+                        在 <code class="text-xs bg-muted px-1 py-0.5 rounded">Columns</code> 里声明一个，
+                        再在 <code class="text-xs bg-muted px-1 py-0.5 rounded">Values</code> 里给一个值。
+                        字段属于哪条轴，取决于它写在哪个片段里；所以在行列之间移动它，就是在标记里移动它。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        Declare a field in <code class="text-xs bg-muted px-1 py-0.5 rounded">Rows</code>,
+                        one in <code class="text-xs bg-muted px-1 py-0.5 rounded">Columns</code> and a
+                        value in <code class="text-xs bg-muted px-1 py-0.5 rounded">Values</code>. Which
+                        axis a field belongs to comes from the fragment it is written in, so moving it
+                        between rows and columns is moving it in the markup.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <PivotDataGrid TItem="Sale" Data="@sales" AriaLabel="@(L.T("按国家和类别的销售额", "Sales by country and category"))">
+                    <Rows>
+                        <PivotField TItem="Sale" Title="Country" Value="@(s => s.Country)" />
+                    </Rows>
+                    <Columns>
+                        <PivotField TItem="Sale" Title="Category" Value="@(s => s.Category)" />
+                    </Columns>
+                    <Values>
+                        <PivotValue TItem="Sale" Title="Sales" Function="AggregateFunction.Sum"
+                                      Value="@(s => s.Amount)" Format="C0" />
+                    </Values>
+                </PivotDataGrid>
+            </div>
+
+            @DataPanel("basic")
+
+            <CodeBlock Source="Components/PivotDataGrid/basic.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("嵌套与小计", "Nesting and Subtotals")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        在一条轴上叠两个字段，第二个就嵌在第一个里面。
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Totals</code> 决定加总些什么：
+                        把名字读作「对所名之物求和」，所以
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">RowTotals</code> 是每行末尾多出的一列，
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">ColumnTotals</code> 是底部多出的一行。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        Stack two fields on an axis and the second nests inside the first.
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Totals</code> then decides what
+                        is added: read the names as totals <em>of</em> the thing named, so
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">RowTotals</code> is a column at
+                        the end of every row and
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">ColumnTotals</code> is a row at
+                        the bottom.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <PivotDataGrid TItem="Sale" Data="@sales" Totals="PivotTotals.All"
+                                 AriaLabel="@(L.T("按地区和国家对应年份与季度的销售额", "Sales by region and country against year and quarter"))">
+                    <Rows>
+                        <PivotField TItem="Sale" Title="Region" Value="@(s => s.Region)" />
+                        <PivotField TItem="Sale" Title="Country" Value="@(s => s.Country)" />
+                    </Rows>
+                    <Columns>
+                        <PivotField TItem="Sale" Title="Year" Value="@(s => s.Year)" />
+                        <PivotField TItem="Sale" Title="Quarter" Value="@(s => s.Quarter)" />
+                    </Columns>
+                    <Values>
+                        <PivotValue TItem="Sale" Title="Sales" Function="AggregateFunction.Sum"
+                                      Value="@(s => s.Amount)" Format="C0" />
+                    </Values>
+                </PivotDataGrid>
+            </div>
+
+            @DataPanel("nesting")
+
+            <CodeBlock Source="Components/PivotDataGrid/nesting.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("多个值", "More Than One Value")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("声明两个值，每个单元格就会显示两个数字，这便是标题多出最后一行为它们命名的原因。小计是把其下的每一项都算进去，而不是它所覆盖的那些单元格——平均值的平均值不是平均值，而这一区别在出错之前是看不见的。", "Declare two values and every cell shows two numbers, which is why the headings gain a last row naming them. A total is worked out from every item under it, not from the cells it covers — an average of averages is not an average, and that difference is invisible until it is wrong.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <PivotDataGrid TItem="Sale" Data="@sales" AriaLabel="@(L.T("按国家和类别的销售额与数量", "Sales and units by country and category"))">
+                    <Rows>
+                        <PivotField TItem="Sale" Title="Country" Value="@(s => s.Country)" />
+                    </Rows>
+                    <Columns>
+                        <PivotField TItem="Sale" Title="Category" Value="@(s => s.Category)" />
+                    </Columns>
+                    <Values>
+                        <PivotValue TItem="Sale" Title="Sales" Function="AggregateFunction.Sum"
+                                      Value="@(s => s.Amount)" Format="C0" />
+                        <PivotValue TItem="Sale" Title="Units" Function="AggregateFunction.Sum"
+                                      Value="@(s => s.Units)" Format="N0" />
+                        <PivotValue TItem="Sale" Title="Average order" Function="AggregateFunction.Average"
+                                      Value="@(s => s.Amount)" Format="C0" />
+                    </Values>
+                </PivotDataGrid>
+            </div>
+
+            @DataPanel("values")
+
+            <CodeBlock Source="Components/PivotDataGrid/values.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("自行计算值", "Working the Value Out Yourself")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Aggregate</code> 接收落到某个单元格里的各项，
+                        并返回你想要的任何东西。小计拿到的是其下的每一项，而不是它所覆盖的单元格，
+                        正因如此，一个比率才能算得正确——而比率的加和却做不到。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Aggregate</code> takes the items
+                        that landed in a cell and returns whatever you like. A total is handed every item
+                        under it rather than the cells it covers, which is what lets a rate come out right
+                        where a sum of rates would not.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <PivotDataGrid TItem="Sale" Data="@sales" AriaLabel="@(L.T("按国家和类别的单价", "Price per unit by country and category"))">
+                    <Rows>
+                        <PivotField TItem="Sale" Title="Country" Value="@(s => s.Country)" />
+                    </Rows>
+                    <Columns>
+                        <PivotField TItem="Sale" Title="Category" Value="@(s => s.Category)" />
+                    </Columns>
+                    <Values>
+                        <PivotValue TItem="Sale" Title="Per unit" Format="C2"
+                                      Aggregate="@(items => PerUnit(items))" />
+                    </Values>
+                </PivotDataGrid>
+            </div>
+
+            @DataPanel("custom-aggregate")
+
+            <CodeBlock Source="Components/PivotDataGrid/custom-aggregate.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("字段分桶", "Bucketing a Field")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Label</code> 把一个分组的值
+                        变成它的标题。先按真实值分组、事后才加标签，而不是按格式化后的字符串分组，
+                        这样分组仍会按值的顺序排列——这正是「一月、二月、三月」与「二月、一月、三月」之间的区别。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Label</code> turns a group's
+                        value into its heading. Group on the real value and label it afterwards, rather
+                        than grouping on the formatted string, and the groups still sort the way the
+                        value does — which is the difference between January, February, March and
+                        February, January, March.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <PivotDataGrid TItem="Sale" Data="@sales" AriaLabel="@(L.T("按月份和订单规模的销售额", "Sales by month and order size"))">
+                    <Rows>
+                        <PivotField TItem="Sale" Title="Month" Value="@(s => s.Month)"
+                                      Label="@(v => System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName((int)v!))" />
+                    </Rows>
+                    <Columns>
+                        <PivotField TItem="Sale" Title="Order size" Value="@(s => Band(s.Amount))"
+                                      Comparer="@bandOrder" />
+                    </Columns>
+                    <Values>
+                        <PivotValue TItem="Sale" Title="Orders" Function="AggregateFunction.Count" Format="N0" />
+                    </Values>
+                </PivotDataGrid>
+            </div>
+
+            @DataPanel("bucketing")
+
+            <CodeBlock Source="Components/PivotDataGrid/bucketing.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("下钻", "Drilling In")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        设置 <code class="text-xs bg-muted px-1 py-0.5 rounded">OnCellClick</code>，
+                        单元格就变成了按钮。上下文带着单元格背后的各项——包括小计背后的，那里是其下的每一项。点一个试试。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        Set <code class="text-xs bg-muted px-1 py-0.5 rounded">OnCellClick</code> and the
+                        cells become buttons. The context carries the items behind the cell — including
+                        behind a total, where they are every item under it. Click one.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <PivotDataGrid TItem="Sale" Data="@sales" OnCellClick="OnDrillDown"
+                                 AriaLabel="@(L.T("按国家和类别的销售额，可点击", "Sales by country and category, clickable"))">
+                    <Rows>
+                        <PivotField TItem="Sale" Title="Country" Value="@(s => s.Country)" />
+                    </Rows>
+                    <Columns>
+                        <PivotField TItem="Sale" Title="Category" Value="@(s => s.Category)" />
+                    </Columns>
+                    <Values>
+                        <PivotValue TItem="Sale" Title="Sales" Function="AggregateFunction.Sum"
+                                      Value="@(s => s.Amount)" Format="C0" />
+                    </Values>
+                </PivotDataGrid>
+
+                @if (drilled is not null)
+                {
+                    <div class="rounded-md border bg-muted/40 p-4 space-y-2">
+                        @if (L.IsChinese)
+                        {
+                                                <text>
+                                                    <p class="text-sm font-medium">
+                                @drilled.Value.Row.Label × @drilled.Value.Column.Label
+                                —— @drilled.Value.Items.Count 条订单，@drilled.Value.Text
+                            </p>
+                                                </text>
+}
+                        else
+                        {
+                                                <text>
+                                                    <p class="text-sm font-medium">
+                                @drilled.Value.Row.Label &times; @drilled.Value.Column.Label
+                                &mdash; @drilled.Value.Items.Count orders, @drilled.Value.Text
+                            </p>
+                                                </text>
+}
+                        <ul class="text-sm text-muted-foreground space-y-0.5">
+                            @foreach (var sale in drilled.Value.Items.Take(6))
+                            {
+                                @if (L.IsChinese)
+                                {
+                                                                <text>
+                                                                    <li class="font-mono">
+                                        @sale.Region / @sale.Country / @sale.Category — @sale.Amount.ToString("C0") — @sale.Units 件
+                                    </li>
+                                                                </text>
+}
+                                else
+                                {
+                                                                <text>
+                                                                    <li class="font-mono">
+                                        @sale.Region / @sale.Country / @sale.Category
+                                        &mdash; @sale.Amount.ToString("C0") &mdash; @sale.Units units
+                                    </li>
+                                                                </text>
+}
+                            }
+                            @if (drilled.Value.Items.Count > 6)
+                            {
+                                @if (L.IsChinese)
+                                {
+                                                                <text>
+                                                                    <li>另有 @(drilled.Value.Items.Count - 6) 条</li>
+                                                                </text>
+}
+                                else
+                                {
+                                                                <text>
+                                                                    <li>and @(drilled.Value.Items.Count - 6) more</li>
+                                                                </text>
+}
+                            }
+                        </ul>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-sm text-muted-foreground">@L.T("点击某个单元格以查看其背后的数据。", "Click a cell to see what is behind it.")</p>
+                }
+            </div>
+
+            @DataPanel("drill-down")
+
+            <CodeBlock Source="Components/PivotDataGrid/drill-down.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("选择字段", "Picking Fields")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowFieldPicker</code> 让人无需改动标记，
+                        就能开关已声明的字段与值。关掉一个字段，表格会重新分组；再开回来，它就回来了。
+                        最后剩下的那个值会保持开启，因为一个格子里什么都没有的透视表算不上是表。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowFieldPicker</code> lets
+                        someone turn declared fields and values on and off without the markup changing.
+                        Switch a field off and the table regroups; switch it back and it returns. The last
+                        value standing stays on, because a pivot with nothing in its cells is not a table.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <PivotDataGrid TItem="Sale" Data="@sales" ShowFieldPicker="true" Totals="PivotTotals.All"
+                                 AriaLabel="@(L.T("销售额，带字段选择器", "Sales, with a field picker"))">
+                    <Rows>
+                        <PivotField TItem="Sale" Title="Region" Value="@(s => s.Region)" />
+                        <PivotField TItem="Sale" Title="Country" Value="@(s => s.Country)" />
+                    </Rows>
+                    <Columns>
+                        <PivotField TItem="Sale" Title="Year" Value="@(s => s.Year)" />
+                        <PivotField TItem="Sale" Title="Category" Value="@(s => s.Category)" />
+                    </Columns>
+                    <Values>
+                        <PivotValue TItem="Sale" Title="Sales" Function="AggregateFunction.Sum"
+                                      Value="@(s => s.Amount)" Format="C0" />
+                        <PivotValue TItem="Sale" Title="Units" Function="AggregateFunction.Sum"
+                                      Value="@(s => s.Units)" Format="N0" />
+                    </Values>
+                </PivotDataGrid>
+            </div>
+
+            @DataPanel("field-picker")
+
+            <CodeBlock Source="Components/PivotDataGrid/field-picker.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("分页、高度与网格线", "Paging, Height and Rules")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        分页作用于最外层的行分组，而非逐行，所以一个分组绝不会被边界切开，其小计也始终与其同在一页。
+                        设一个 <code class="text-xs bg-muted px-1 py-0.5 rounded">Height</code>，
+                        标题就会固定不动、只有正文滚动。
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">GridLines</code> 会去掉窄表并不需要的那些线条。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        Paging works on the outermost row groups rather than on rows, so a group is never
+                        split across a boundary and its subtotal always lands with it. Set a
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Height</code> and the headings
+                        stay put while the body scrolls.
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">GridLines</code> drops the rules
+                        a narrow table does not need.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <PivotDataGrid TItem="Sale" Data="@sales"
+                                 Totals="PivotTotals.All"
+                                 PageSize="2"
+                                 PagerPosition="PivotPagerPosition.Bottom"
+                                 Height="22rem"
+                                 GridLines="PivotGridLines.Horizontal"
+                                 AriaLabel="@(L.T("按地区分页的销售额", "Sales, paged by region"))">
+                    <Rows>
+                        <PivotField TItem="Sale" Title="Region" Value="@(s => s.Region)" />
+                        <PivotField TItem="Sale" Title="Country" Value="@(s => s.Country)" />
+                    </Rows>
+                    <Columns>
+                        <PivotField TItem="Sale" Title="Quarter" Value="@(s => s.Quarter)" />
+                    </Columns>
+                    <Values>
+                        <PivotValue TItem="Sale" Title="Sales" Function="AggregateFunction.Sum"
+                                      Value="@(s => s.Amount)" Format="C0" />
+                    </Values>
+                </PivotDataGrid>
+            </div>
+
+            @DataPanel("paging")
+
+            <CodeBlock Source="Components/PivotDataGrid/paging.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("模板", "Templates")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Template</code> 独揽一个单元格，
+                        小计也用它——上下文会说明当前是哪种，所以一套模板同时覆盖两者。这里按单元格偏离所在列平均值的程度来着色。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Template</code> owns a cell and
+                        is used for the totals too — the context says which it is, so one template covers
+                        both. Here a cell is tinted by how far it sits from its column's average.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <PivotDataGrid TItem="Sale" Data="@sales" AriaLabel="@(L.T("按量级着色的销售额", "Sales, shaded by size"))">
+                    <Rows>
+                        <PivotField TItem="Sale" Title="Country" Value="@(s => s.Country)" />
+                    </Rows>
+                    <Columns>
+                        <PivotField TItem="Sale" Title="Quarter" Value="@(s => s.Quarter)" />
+                    </Columns>
+                    <Values>
+                        <PivotValue TItem="Sale" Title="Sales" Function="AggregateFunction.Sum"
+                                      Value="@(s => s.Amount)" Format="C0">
+                            <Template Context="cell">
+                                @if (cell.Value is null)
+                                {
+                                    <span class="text-muted-foreground">&mdash;</span>
+                                }
+                                else
+                                {
+                                    <span class="@HeatClass(cell)">@cell.Text</span>
+                                }
+                            </Template>
+                        </PivotValue>
+                    </Values>
+                </PivotDataGrid>
+            </div>
+
+            @DataPanel("templates")
+
+            <CodeBlock Source="Components/PivotDataGrid/templates.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("无界面", "Headless")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AtomBlazor.Primitives</code>
+                        里的 <code class="text-xs bg-muted px-1 py-0.5 rounded">PivotBuilder</code>
+                        能单独返回交叉汇总表——两棵标题树，以及它们交汇处的那些值。
+                        随你怎么渲染它，或者把它发到一块屏幕之外的地方。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">PivotBuilder</code> in
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AtomBlazor.Primitives</code>
+                        returns the cross-tabulation on its own — two trees of headings and the values
+                        where they cross. Render it however suits, or send it somewhere that is not a
+                        screen.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <pre class="overflow-x-auto rounded-md bg-muted p-3 text-xs"><code>@HeadlessDump</code></pre>
+            </div>
+
+            @DataPanel("headless")
+
+            <CodeBlock Source="Components/PivotDataGrid/headless.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            </div>
+            <div class="space-y-4">
+                <ApiReference ComponentName="PivotDataGrid&lt;TItem&gt;">
+                    <ApiParameter Name="Data" Type="IEnumerable&lt;TItem&gt;?">
+                        @L.T("待做交叉汇总的项。", "The items to cross-tabulate.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="Rows" Type="RenderFragment?">
+                            构成各级行标题的 <code class="text-xs bg-muted px-1 py-0.5 rounded">PivotField</code> 声明，由外向内排列。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="Rows" Type="RenderFragment?">
+                            The <code class="text-xs bg-muted px-1 py-0.5 rounded">PivotField</code> declarations that become levels of row headings, outermost first.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="Columns" Type="RenderFragment?">
+                        @L.T("构成各级列标题的字段声明，由外向内排列。", "The field declarations that become levels of column headings, outermost first.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="Values" Type="RenderFragment?">
+                            在每个单元格里算出的 <code class="text-xs bg-muted px-1 py-0.5 rounded">PivotValue</code> 声明。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="Values" Type="RenderFragment?">
+                            The <code class="text-xs bg-muted px-1 py-0.5 rounded">PivotValue</code> declarations worked out in each cell.
+                        </ApiParameter>
+                                        </text>
+}
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="Totals" Type="PivotTotals" Default="Grand">
+                            要加总哪些：<code class="text-xs bg-muted px-1 py-0.5 rounded">RowTotals</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">ColumnTotals</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">RowSubtotals</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">ColumnSubtotals</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Grand</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">All</code> 或 <code class="text-xs bg-muted px-1 py-0.5 rounded">None</code>。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="Totals" Type="PivotTotals" Default="Grand">
+                            Which totals to add: <code class="text-xs bg-muted px-1 py-0.5 rounded">RowTotals</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">ColumnTotals</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">RowSubtotals</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">ColumnSubtotals</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Grand</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">All</code> or <code class="text-xs bg-muted px-1 py-0.5 rounded">None</code>.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="ShowFieldPicker" Type="bool" Default="false">
+                        @L.T("是否显示用于开关已声明字段与值的选择器。", "Whether the picker for turning declared fields and values on and off is shown.")
+                    </ApiParameter>
+                    <ApiParameter Name="PageSize" Type="int?">
+                        @L.T("一页容纳多少个最外层行分组。为 null 时全部显示。", "How many outermost row groups a page holds. Null shows them all.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="PagerPosition" Type="PivotPagerPosition" Default="Bottom">
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">Top</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Bottom</code> 或 <code class="text-xs bg-muted px-1 py-0.5 rounded">Both</code>。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="PagerPosition" Type="PivotPagerPosition" Default="Bottom">
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">Top</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Bottom</code> or <code class="text-xs bg-muted px-1 py-0.5 rounded">Both</code>.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="Height" Type="string?">
+                        @L.T("滚动区域的高度，以 CSS 长度表示。标题固定不动，正文滚动。", "The height of the scrolling area, as a CSS length. The headings stay put while the body scrolls.")
+                    </ApiParameter>
+                    <ApiParameter Name="AlternatingRows" Type="bool" Default="true">
+                        @L.T("是否每隔一行着色。", "Whether every other row is tinted.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="GridLines" Type="PivotGridLines" Default="Both">
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">Both</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Horizontal</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Vertical</code> 或 <code class="text-xs bg-muted px-1 py-0.5 rounded">None</code>。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="GridLines" Type="PivotGridLines" Default="Both">
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">Both</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Horizontal</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Vertical</code> or <code class="text-xs bg-muted px-1 py-0.5 rounded">None</code>.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="Loading" Type="bool" Default="false">
+                        @L.T("表格是否正在等待数据。", "Whether the table is waiting for its data.")
+                    </ApiParameter>
+                    <ApiParameter Name="EmptyMessage" Type="string?">
+                        @L.T("当没有可交叉汇总的内容时显示的消息。", "The message shown when there is nothing to cross-tabulate.")
+                    </ApiParameter>
+                    <ApiParameter Name="TotalLabel" Type="string?">
+                        @L.T("小计所带的标题。默认值为 “Total”。", "The heading a total carries. Defaults to \"Total\".")
+                    </ApiParameter>
+                    <ApiParameter Name="BlankLabel" Type="string?">
+                        @L.T("当某个分组所依据的值为空时，该分组所带的标题。", "The heading a group carries when the value it groups on is empty.")
+                    </ApiParameter>
+                    <ApiParameter Name="CornerTemplate" Type="RenderFragment?">
+                        @L.T("位于行标题上方的那个方格。默认为各行字段的标题。", "The box above the row headings. Defaults to the row fields' titles.")
+                    </ApiParameter>
+                    <ApiParameter Name="HeaderTemplate" Type="RenderFragment&lt;PivotHeaderContext&gt;?">
+                        @L.T("一个行标题或列标题。上下文会说明它在哪条轴上。", "A row or column heading. The context says which axis it is on.")
+                    </ApiParameter>
+                    <ApiParameter Name="OnCellClick" Type="EventCallback&lt;PivotCellContext&lt;TItem&gt;&gt;">
+                        @L.T("点击某个单元格时触发。设置它就会让单元格变成按钮。", "Fires when a cell is clicked. Setting it makes the cells buttons.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="OnBuilt" Type="EventCallback&lt;PivotTable&lt;TItem&gt;?&gt;">
+                            每当表格重建时触发。在标记里请用 <code class="text-xs bg-muted px-1 py-0.5 rounded">Table</code> 而非这个。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="OnBuilt" Type="EventCallback&lt;PivotTable&lt;TItem&gt;?&gt;">
+                            Fires whenever the table is rebuilt. Use this rather than <code class="text-xs bg-muted px-1 py-0.5 rounded">Table</code> in markup.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="Table" Type="PivotTable&lt;TItem&gt;?">
+                        @L.T("只读。上一次构建出的交叉汇总表。", "Read-only. The cross-tabulation as last built.")
+                    </ApiParameter>
+                    <ApiParameter Name="AriaLabel" Type="string?">
+                        @L.T("表格的无障碍名称。", "An accessible name for the table.")
+                    </ApiParameter>
+                    <ApiParameter Name="Class" Type="string?">
+                        @L.T("应用到根元素的额外 CSS 类。", "Additional CSS classes for the root element.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="PivotField&lt;TItem&gt;">
+                    <ApiParameter Name="Title" Type="string">
+                        @L.T("为该层级显示的标题。", "The heading shown for this level.")
+                    </ApiParameter>
+                    <ApiParameter Name="Value" Type="Func&lt;TItem, object?&gt;">
+                        @L.T("读取用于分组的值。", "Reads the value to group by.")
+                    </ApiParameter>
+                    <ApiParameter Name="Label" Type="Func&lt;object?, string&gt;?">
+                        @L.T("把一个分组的值变成它的标题。先按真实值分组、事后才加标签，这样分组就会按值的顺序排列。", "Turns a group's value into its heading. Group on the real value and label it afterwards, so the groups sort the way the value does.")
+                    </ApiParameter>
+                    <ApiParameter Name="Comparer" Type="IComparer&lt;object?&gt;?">
+                        @L.T("该层级的各分组如何排序。", "How the groups of this level are ordered.")
+                    </ApiParameter>
+                    <ApiParameter Name="Descending" Type="bool" Default="false">
+                        @L.T("分组是否逆序排列。", "Whether the groups run in reverse.")
+                    </ApiParameter>
+                    <ApiParameter Name="Visible" Type="bool" Default="true">
+                        @L.T("该字段是否参与。选择器会覆盖它而不改动它。", "Whether the field takes part. The picker overrides this without changing it.")
+                    </ApiParameter>
+                    <ApiParameter Name="Key" Type="string?">
+                        @L.T("一个稳定的标识符。默认为标题。", "A stable identifier. Defaults to the title.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="PivotValue&lt;TItem&gt;">
+                    <ApiParameter Name="Title" Type="string">
+                        @L.T("为该值显示的标题。", "The heading shown for this value.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="Function" Type="AggregateFunction" Default="Sum">
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">Sum</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Average</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Count</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Min</code> 或 <code class="text-xs bg-muted px-1 py-0.5 rounded">Max</code>。只有 Count 无需 <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code> 即可工作。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="Function" Type="AggregateFunction" Default="Sum">
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">Sum</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Average</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Count</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Min</code> or <code class="text-xs bg-muted px-1 py-0.5 rounded">Max</code>. Only Count works without a <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code>.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="Value" Type="Func&lt;TItem, object?&gt;?">
+                        @L.T("读取要聚合的数字。", "Reads the number to aggregate.")
+                    </ApiParameter>
+                    <ApiParameter Name="Aggregate" Type="Func&lt;IEnumerable&lt;TItem&gt;, object?&gt;?">
+                        @L.T("自行算出单元格的值。小计拿到的是其下的每一项，而不是它所覆盖的单元格。", "Works the cell's value out itself. A total is given every item under it, not the cells it covers.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="Format" Type="string?">
+                            用于打印值的格式字符串，例如 <code class="text-xs bg-muted px-1 py-0.5 rounded">C0</code>。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="Format" Type="string?">
+                            The format string used to print the value, such as <code class="text-xs bg-muted px-1 py-0.5 rounded">C0</code>.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="Template" Type="RenderFragment&lt;PivotCellContext&lt;TItem&gt;&gt;?">
+                        @L.T("独揽一个单元格。小计也用它；上下文会说明当前是哪种。", "Owns a cell. Used for the totals too; the context says which it is.")
+                    </ApiParameter>
+                    <ApiParameter Name="HeaderTemplate" Type="RenderFragment&lt;PivotValue&lt;TItem&gt;&gt;?">
+                        @L.T("独揽这个值自身的标题。", "Owns this value's own heading.")
+                    </ApiParameter>
+                    <ApiParameter Name="Visible" Type="bool" Default="true">
+                        @L.T("该值是否参与。", "Whether the value takes part.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="PivotBuilder">
+                    <ApiParameter Name="Build(source, rowFields, columnFields, measures, totals, ...)" Type="PivotTable&lt;TItem&gt;">
+                        @L.T("在没有任何标记的情况下构建一张交叉汇总表。", "Builds a cross-tabulation without any markup.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="PivotTable&lt;TItem&gt;">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="RowRoots / ColumnRoots" Type="IReadOnlyList&lt;PivotAxisNode&gt;">
+                            标题树。每个节点都带着它的标签、它的键、它的子节点以及它的 <code class="text-xs bg-muted px-1 py-0.5 rounded">Span</code>。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="RowRoots / ColumnRoots" Type="IReadOnlyList&lt;PivotAxisNode&gt;">
+                            The heading trees. Each node carries its label, its key, its children and its <code class="text-xs bg-muted px-1 py-0.5 rounded">Span</code>.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="RowLeaves / ColumnLeaves" Type="IReadOnlyList&lt;PivotAxisNode&gt;">
+                        @L.T("每一个对应一行单元格的标题，按其绘制顺序排列。", "Every heading that addresses a line of cells, in the order they are drawn.")
+                    </ApiParameter>
+                    <ApiParameter Name="GetValue(rowLeaf, columnLeaf, measure)" Type="object?">
+                        @L.T("某行与某列交汇处的值。只算一次，之后保留。", "The value where a row and a column cross. Worked out once and then kept.")
+                    </ApiParameter>
+                    <ApiParameter Name="GetItems(rowLeaf, columnLeaf)" Type="IReadOnlyList&lt;TItem&gt;">
+                        @L.T("某个单元格背后的源数据项。若是小计，则是其下的每一项。", "The source items behind a cell. For a total, every item under it.")
+                    </ApiParameter>
+                    <ApiParameter Name="IsEmpty" Type="bool">
+                        @L.T("表格是否无内容可显示。", "Whether the table has nothing to show.")
+                    </ApiParameter>
+                </ApiReference>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private sealed record Sale(
+        string Region,
+        string Country,
+        string Category,
+        int Year,
+        string Quarter,
+        int Month,
+        decimal Amount,
+        int Units);
+
+    private static readonly string[] bands = ["Small", "Medium", "Large"];
+
+    private readonly IComparer<object?> bandOrder = Comparer<object?>.Create((a, b) =>
+        Array.IndexOf(bands, a?.ToString()).CompareTo(Array.IndexOf(bands, b?.ToString())));
+
+    private PivotCellContext<Sale>? drilled;
+
+    /// <summary>哪些数据面板处于打开状态。每个演示各一个，打开一个不会影响其他面板。</summary>
+    private readonly HashSet<string> openData = [];
+
+    private void ToggleData(string id)
+    {
+        if (!openData.Remove(id))
+        {
+            openData.Add(id);
+        }
+    }
+
+    /// <summary>
+    /// 可折叠地查看某张表所基于的行数据。没有它们，上方的数字几乎没有意义
+    /// 而表格只在面板打开时才渲染，所以十份拷贝也不费什么开销。
+    /// </summary>
+    private RenderFragment DataPanel(string id) => @<div class="space-y-2">
+        @* aria-expanded takes the words: a bool would render as a bare attribute. *@
+        <button type="button"
+                class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                aria-expanded="@(openData.Contains(id) ? "true" : "false")"
+                @onclick="@(() => ToggleData(id))">
+            <span class="font-mono text-xs">@(openData.Contains(id) ? "\u25be" : "\u25b8")</span>
+            @(openData.Contains(id)
+                ? "Hide the data"
+                : $"Show the data \u2014 {sales.Length} orders")
+        </button>
+
+        @if (openData.Contains(id))
+        {
+            <div class="rounded-md border overflow-auto" style="max-height: 20rem">
+                <table class="w-full text-xs">
+                    <thead class="sticky top-0 bg-muted">
+                        <tr class="border-b">
+                            <th class="px-2 py-1.5 text-left font-medium">Region</th>
+                            <th class="px-2 py-1.5 text-left font-medium">Country</th>
+                            <th class="px-2 py-1.5 text-left font-medium">Category</th>
+                            <th class="px-2 py-1.5 text-left font-medium">Year</th>
+                            <th class="px-2 py-1.5 text-left font-medium">Quarter</th>
+                            <th class="px-2 py-1.5 text-left font-medium">Month</th>
+                            <th class="px-2 py-1.5 text-right font-medium">Amount</th>
+                            <th class="px-2 py-1.5 text-right font-medium">Units</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sale in sales)
+                        {
+                            <tr class="border-b last:border-0">
+                                <td class="px-2 py-1">@sale.Region</td>
+                                <td class="px-2 py-1">@sale.Country</td>
+                                <td class="px-2 py-1">@sale.Category</td>
+                                <td class="px-2 py-1 tabular-nums">@sale.Year</td>
+                                <td class="px-2 py-1">@sale.Quarter</td>
+                                <td class="px-2 py-1 tabular-nums">@sale.Month</td>
+                                <td class="px-2 py-1 text-right tabular-nums">@sale.Amount.ToString("C0")</td>
+                                <td class="px-2 py-1 text-right tabular-nums">@sale.Units</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>;
+
+    private static string Band(decimal amount) => amount switch
+    {
+        < 500m => "Small",
+        < 2000m => "Medium",
+        _ => "Large",
+    };
+
+    private static object? PerUnit(IEnumerable<Sale> items)
+    {
+        var list = items.ToList();
+        var units = list.Sum(s => s.Units);
+        return units == 0 ? null : (double)list.Sum(s => s.Amount) / units;
+    }
+
+    private void OnDrillDown(PivotCellContext<Sale> cell) => drilled = cell;
+
+    /// <summary>按单元格相对全表最大值的量级为单元格着色。</summary>
+    private string HeatClass(PivotCellContext<Sale> cell)
+    {
+        var biggest = cell.Table.RowLeaves
+            .SelectMany(r => cell.Table.ColumnLeaves.Select(c => cell.Table.GetValue(r, c, cell.MeasureIndex)))
+            .OfType<double>()
+            .DefaultIfEmpty(0)
+            .Max();
+
+        if (cell.Value is not double value || biggest <= 0)
+        {
+            return string.Empty;
+        }
+
+        var share = value / biggest;
+
+        return share switch
+        {
+            >= 0.75 => "rounded px-1.5 py-0.5 bg-emerald-500/25 font-medium",
+            >= 0.4 => "rounded px-1.5 py-0.5 bg-emerald-500/10",
+            _ => string.Empty,
+        };
+    }
+
+    private static string HeadlessDump
+    {
+        get
+        {
+            var table = PivotBuilder.Build(
+                salesData,
+                [new AtomBlazor.Primitives.Pivot.PivotField<Sale>("country", "Country", s => s.Country)],
+                [new AtomBlazor.Primitives.Pivot.PivotField<Sale>("quarter", "Quarter", s => s.Quarter)],
+                [new PivotMeasure<Sale>("sales", "Sales", AggregateFunction.Sum, s => s.Amount)],
+                PivotTotals.Grand);
+
+            var builder = new System.Text.StringBuilder();
+            var culture = System.Globalization.CultureInfo.InvariantCulture;
+
+            builder.Append(culture, $"{"",-10}");
+            foreach (var column in table.ColumnLeaves)
+            {
+                builder.Append(culture, $"{column.Label,12}");
+            }
+
+            builder.Append('\n');
+
+            foreach (var row in table.RowLeaves)
+            {
+                builder.Append(culture, $"{row.Label,-10}");
+                foreach (var column in table.ColumnLeaves)
+                {
+                    var value = table.GetValue(row, column, 0);
+                    builder.Append(culture, $"{(value is null ? "-" : ((double)value).ToString("N0", culture)),12}");
+                }
+
+                builder.Append('\n');
+            }
+
+            return builder.ToString();
+        }
+    }
+
+    private static readonly Sale[] salesData = BuildSales();
+
+    private readonly Sale[] sales = salesData;
+
+    private static Sale[] BuildSales()
+    {
+        var random = new Random(20260920);
+        var regions = new (string Region, string[] Countries)[]
+        {
+            ("Europe", ["France", "Germany", "Spain"]),
+            ("Americas", ["Brazil", "Canada", "United States"]),
+            ("Asia Pacific", ["Australia", "Japan", "Singapore"]),
+        };
+        var categories = new[] { "Hardware", "Software", "Services" };
+
+        var sales = new List<Sale>();
+
+        foreach (var (region, countries) in regions)
+        {
+            foreach (var country in countries)
+            {
+                foreach (var category in categories)
+                {
+                    foreach (var year in new[] { 2025, 2026 })
+                    {
+                        for (var month = 1; month <= 12; month += 3)
+                        {
+                            var units = random.Next(1, 40);
+                            var amount = units * random.Next(20, 400);
+
+                            sales.Add(new Sale(
+                                region,
+                                country,
+                                category,
+                                year,
+                                $"Q{((month - 1) / 3) + 1}",
+                                month,
+                                amount,
+                                units));
+                        }
+                    }
+                }
+            }
+        }
+
+        return [.. sales];
+    }
+}

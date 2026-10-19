@@ -1,0 +1,33 @@
+@namespace AtomBlazor
+
+<CascadingValue Value="this" Name="AvatarGroup" IsFixed="true">
+    <div class="@CssClass" @attributes="AdditionalAttributes">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    /// <summary>
+    /// 获取或设置要在头像组内部渲染的内容（通常为若干 Avatar）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到头像组上的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    // 负向间距使头像彼此叠放，形成层叠的头像组视觉。
+    private string CssClass => ClassNames.cn(
+        "atom:flex atom:-space-x-3",
+        Class
+    );
+}

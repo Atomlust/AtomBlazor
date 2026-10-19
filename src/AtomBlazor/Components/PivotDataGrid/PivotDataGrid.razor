@@ -1,0 +1,329 @@
+@namespace AtomBlazor
+@typeparam TItem
+@using AtomBlazor.Primitives.Pivot
+@using AtomBlazor.Icons.Lucide
+@inject ILocalizer Localizer
+
+@*
+    PivotDataGrid - a cross-tabulation whose columns come from the data rather than a declaration.
+
+    The declarations render into a hidden box first: the field and value components have to run
+    their lifecycle to register themselves, and only then is there anything to build a table from.
+*@
+
+<div class="@RootClass" data-slot="pivot-data-grid" @attributes="AdditionalAttributes">
+
+    <div class="atom:hidden">
+        <CascadingValue Value="this" IsFixed="true">
+            <CascadingValue Value="PivotAxis.Row" Name="PivotAxis" IsFixed="true">
+                @Rows
+            </CascadingValue>
+            <CascadingValue Value="PivotAxis.Column" Name="PivotAxis" IsFixed="true">
+                @Columns
+            </CascadingValue>
+            @Values
+        </CascadingValue>
+    </div>
+
+    @if (ShowFieldPicker && (fields.Count > 0 || values.Count > 0))
+    {
+        <div class="atom:flex atom:flex-wrap atom:items-center atom:gap-2">
+            <Popover>
+                <PopoverTrigger>
+                    <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small">
+                        <LucideIcon Name="sliders-horizontal" Size="16" Class="atom:me-2" />
+                        @Localizer["PivotDataGrid.Fields"]
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent Class="atom:w-64">
+                    <div class="atom:space-y-3">
+                        @RenderPickerGroup(Localizer["PivotDataGrid.RowFields"], RowFields)
+                        @RenderPickerGroup(Localizer["PivotDataGrid.ColumnFields"], ColumnFields)
+
+                        @if (values.Count > 0)
+                        {
+                            <div class="atom:space-y-1">
+                                <p class="atom:text-xs atom:font-medium atom:text-muted-foreground">
+                                    @Localizer["PivotDataGrid.ValueFields"]
+                                </p>
+                                @foreach (var value in values)
+                                {
+                                    <label class="atom:flex atom:items-center atom:gap-2 atom:text-sm">
+                                        <Checkbox Checked="IsShown(value)"
+                                                    CheckedChanged="@(_ => ToggleValue(value))"
+                                                    aria-label="@value.Title" />
+                                        <span>@value.Title</span>
+                                    </label>
+                                }
+                            </div>
+                        }
+                    </div>
+                </PopoverContent>
+            </Popover>
+        </div>
+    }
+
+    @if (buildError is not null)
+    {
+        <p role="alert" class="atom:text-sm atom:text-destructive">@buildError</p>
+    }
+    else if (Loading)
+    {
+        <div class="atom:flex atom:items-center atom:gap-2 atom:py-8 atom:text-sm atom:text-muted-foreground">
+            <Spinner Size="SpinnerSize.Small" />
+            <span>@Localizer["PivotDataGrid.Loading"]</span>
+        </div>
+    }
+    else if (table is null || table.IsEmpty)
+    {
+        <p class="atom:py-8 atom:text-center atom:text-sm atom:text-muted-foreground">
+            @(EmptyMessage ?? Localizer["PivotDataGrid.Empty"])
+        </p>
+    }
+    else
+    {
+        @if (PageSize is > 0 && PagerPosition is PivotPagerPosition.Top or PivotPagerPosition.Both)
+        {
+            @RenderPager()
+        }
+
+        <div class="atom:relative atom:overflow-auto atom:rounded-md atom:border atom:border-border"
+             style="@(Height is null ? null : $"max-height: {Height}")">
+            <table class="@TableClass" aria-label="@AriaLabel">
+                <thead class="atom:sticky atom:top-0 atom:z-10">
+                    @for (var depth = 0; depth < Math.Max(ColumnDepth, 1); depth++)
+                    {
+                        var level = depth;
+                        <tr>
+                            @if (level == 0)
+                            {
+                                <th scope="col"
+                                    rowspan="@(Math.Max(ColumnDepth, 1) + (ShowValueHeaderRow ? 1 : 0))"
+                                    colspan="@RowDepth"
+                                    class="@HeaderCellClass(false) atom:align-bottom">
+                                    @if (CornerTemplate is not null)
+                                    {
+                                        @CornerTemplate
+                                    }
+                                    else
+                                    {
+                                        <span class="atom:text-xs atom:text-muted-foreground">
+                                            @string.Join(" / ", RowFields.Where(IsShown).Select(f => f.Title))
+                                        </span>
+                                    }
+                                </th>
+                            }
+
+                            @if (ColumnDepth == 0)
+                            {
+                                @* No column fields, so the values are the only column headings. *@
+                                @foreach (var value in VisibleValues)
+                                {
+                                    <th scope="col" class="@HeaderCellClass(false) atom:text-end">
+                                        @RenderValueHeader(value)
+                                    </th>
+                                }
+                            }
+                            else
+                            {
+                                @foreach (var node in ColumnLevel(level))
+                                {
+                                    <th scope="col"
+                                        colspan="@(node.Span * (ShowValueHeaderRow ? VisibleValues.Count : 1))"
+                                        rowspan="@(node.IsLeaf && level < ColumnDepth - 1 ? ColumnDepth - level : 1)"
+                                        class="@HeaderCellClass(node.IsTotal) atom:text-center">
+                                        @if (HeaderTemplate is not null)
+                                        {
+                                            @HeaderTemplate(new PivotHeaderContext(node, PivotAxis.Column))
+                                        }
+                                        else
+                                        {
+                                            @node.Label
+                                        }
+                                    </th>
+                                }
+                            }
+                        </tr>
+                    }
+
+                    @if (ShowValueHeaderRow && ColumnDepth > 0)
+                    {
+                        <tr>
+                            @foreach (var column in table.ColumnLeaves)
+                            {
+                                @foreach (var value in VisibleValues)
+                                {
+                                    <th scope="col" class="@HeaderCellClass(column.IsTotal) atom:text-end atom:text-xs">
+                                        @RenderValueHeader(value)
+                                    </th>
+                                }
+                            }
+                        </tr>
+                    }
+                </thead>
+
+                <tbody>
+                    @{
+                        var remaining = new Dictionary<int, int>();
+                        var rowIndex = 0;
+                    }
+                    @foreach (var leaf in PagedRowLeaves)
+                    {
+                        var index = rowIndex;
+                        rowIndex++;
+
+                        <tr class="@RowClass(index)">
+                            @foreach (var (node, rowSpan, columnSpan) in RowHeaderCells(leaf, remaining))
+                            {
+                                <th scope="row"
+                                    rowspan="@rowSpan"
+                                    colspan="@columnSpan"
+                                    class="@HeaderCellClass(node.IsTotal) atom:align-top">
+                                    @if (HeaderTemplate is not null)
+                                    {
+                                        @HeaderTemplate(new PivotHeaderContext(node, PivotAxis.Row))
+                                    }
+                                    else
+                                    {
+                                        @node.Label
+                                    }
+                                </th>
+                            }
+
+                            @foreach (var column in table.ColumnLeaves)
+                            {
+                                @for (var m = 0; m < VisibleValues.Count; m++)
+                                {
+                                    var context = CellContext(leaf, column, m);
+                                    var declaration = VisibleValues[m];
+
+                                    <td class="@BodyCellClass(context)"
+                                        @onclick="@(() => OnCellActivatedAsync(context))"
+                                        role="@(OnCellClick.HasDelegate ? "button" : null)"
+                                        tabindex="@(OnCellClick.HasDelegate ? 0 : null)">
+                                        @if (declaration.Template is not null)
+                                        {
+                                            @declaration.Template(context)
+                                        }
+                                        else
+                                        {
+                                            @context.Text
+                                        }
+                                    </td>
+                                }
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (PageSize is > 0 && PagerPosition is PivotPagerPosition.Bottom or PivotPagerPosition.Both)
+        {
+            @RenderPager()
+        }
+    }
+</div>
+
+@code {
+    private RenderFragment RenderValueHeader(PivotValue<TItem> value) => builder =>
+    {
+        if (value.HeaderTemplate is not null)
+        {
+            builder.AddContent(0, value.HeaderTemplate(value));
+        }
+        else
+        {
+            builder.AddContent(1, value.Title);
+        }
+    };
+
+    private RenderFragment RenderPickerGroup(string title, IReadOnlyList<PivotField<TItem>> group) => builder =>
+    {
+        if (group.Count == 0)
+        {
+            return;
+        }
+
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", "atom:space-y-1");
+
+        builder.OpenElement(2, "p");
+        builder.AddAttribute(3, "class", "atom:text-xs atom:font-medium atom:text-muted-foreground");
+        builder.AddContent(4, title);
+        builder.CloseElement();
+
+        var sequence = 5;
+        foreach (var field in group)
+        {
+            var current = field;
+
+            builder.OpenElement(sequence++, "label");
+            builder.AddAttribute(sequence++, "class", "atom:flex atom:items-center atom:gap-2 atom:text-sm");
+
+            builder.OpenComponent<Checkbox>(sequence++);
+            builder.AddComponentParameter(sequence++, nameof(Checkbox.Checked), IsShown(current));
+            builder.AddComponentParameter(
+                sequence++,
+                nameof(Checkbox.CheckedChanged),
+                EventCallback.Factory.Create<bool>(this, _ => ToggleField(current)));
+            builder.AddAttribute(sequence++, "aria-label", current.Title);
+            builder.CloseComponent();
+
+            builder.OpenElement(sequence++, "span");
+            builder.AddContent(sequence++, current.Title);
+            builder.CloseElement();
+
+            builder.CloseElement();
+        }
+
+        builder.CloseElement();
+    };
+
+    private RenderFragment RenderPager() => builder =>
+    {
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", "atom:flex atom:items-center atom:justify-between atom:gap-2 atom:text-sm");
+
+        builder.OpenElement(2, "span");
+        builder.AddAttribute(3, "class", "atom:text-muted-foreground");
+        builder.AddContent(4, Localizer["PivotDataGrid.PageOf", page + 1, PageCount]);
+        builder.CloseElement();
+
+        builder.OpenElement(5, "div");
+        builder.AddAttribute(6, "class", "atom:flex atom:gap-1");
+
+        AddPagerButton(builder, 7, "chevron-left", Localizer["PivotDataGrid.PreviousPage"], page - 1, page == 0);
+        AddPagerButton(builder, 20, "chevron-right", Localizer["PivotDataGrid.NextPage"], page + 1, page >= PageCount - 1);
+
+        builder.CloseElement();
+        builder.CloseElement();
+    };
+
+    private void AddPagerButton(
+        Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder,
+        int sequence,
+        string icon,
+        string label,
+        int target,
+        bool disabled)
+    {
+        builder.OpenComponent<Button>(sequence);
+        builder.AddComponentParameter(sequence + 1, nameof(Button.Variant), ButtonVariant.Outline);
+        builder.AddComponentParameter(sequence + 2, nameof(Button.Size), ButtonSize.Small);
+        builder.AddComponentParameter(sequence + 3, nameof(Button.Disabled), disabled);
+        builder.AddComponentParameter(
+            sequence + 4,
+            nameof(Button.OnClick),
+            EventCallback.Factory.Create<Microsoft.AspNetCore.Components.Web.MouseEventArgs>(this, () => GoToPage(target)));
+        builder.AddAttribute(sequence + 5, "aria-label", label);
+        builder.AddComponentParameter(sequence + 6, nameof(Button.ChildContent), (RenderFragment)(child =>
+        {
+            child.OpenComponent<LucideIcon>(0);
+            child.AddComponentParameter(1, nameof(LucideIcon.Name), icon);
+            child.AddComponentParameter(2, nameof(LucideIcon.Size), 16);
+            child.CloseComponent();
+        }));
+        builder.CloseComponent();
+    }
+}

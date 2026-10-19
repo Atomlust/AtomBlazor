@@ -1,0 +1,64 @@
+@page "/components/button-test"
+
+<PageTitle>@L.T("按钮测试", "Button Test")</PageTitle>
+
+<div class="p-8 space-y-4">
+    <h1 class="text-2xl font-bold mb-4">@L.T("按钮组件测试", "Button Component Test")</h1>
+
+    <div class="space-y-2">
+        <h2 class="text-lg font-semibold">@L.T("基本按钮", "Basic Buttons")</h2>
+        <div class="flex gap-4">
+            <Button>@L.T("默认按钮", "Default Button")</Button>
+            <Button Variant="ButtonVariant.Destructive">Destructive</Button>
+            <Button Variant="ButtonVariant.Outline">Outline</Button>
+            <Button Variant="ButtonVariant.Secondary">Secondary</Button>
+            <Button Variant="ButtonVariant.Ghost">Ghost</Button>
+            <Button Variant="ButtonVariant.Link">Link</Button>
+        </div>
+    </div>
+
+    <div class="space-y-2">
+        <h2 class="text-lg font-semibold">@L.T("尺寸", "Sizes")</h2>
+        <div class="flex gap-4 items-center">
+            <Button Size="ButtonSize.Small">Small</Button>
+            <Button Size="ButtonSize.Default">Default</Button>
+            <Button Size="ButtonSize.Large">Large</Button>
+        </div>
+    </div>
+
+    <div class="space-y-2">
+        <h2 class="text-lg font-semibold">@L.T("禁用状态", "Disabled State")</h2>
+        <div class="flex gap-4">
+            <Button Disabled="true">@L.T("禁用的默认按钮", "Disabled Default")</Button>
+            <Button Variant="ButtonVariant.Outline" Disabled="true">@L.T("禁用的描边按钮", "Disabled Outline")</Button>
+        </div>
+    </div>
+
+    <div class="space-y-2">
+        <h2 class="text-lg font-semibold">@L.T("带点击处理", "With Click Handler")</h2>
+        <div class="flex gap-4 items-center">
+            <Button OnClick="HandleClick">@L.T("点击我", "Click Me")</Button>
+            <span>@clickMessage</span>
+        </div>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string clickMessage = "";
+
+    private Task HandleClick(MouseEventArgs e)
+    {
+        if (L.IsChinese)
+        {
+            clickMessage = $"按钮点击时间：{DateTime.Now:HH:mm:ss}";
+        }
+        else
+        {
+            clickMessage = $"Button clicked at {DateTime.Now:HH:mm:ss}";
+        }
+        return Task.CompletedTask;
+    }
+}

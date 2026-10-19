@@ -1,0 +1,123 @@
+@namespace AtomBlazor
+
+<form @onsubmit="HandleApply" @onsubmit:preventDefault="true" class="atom:p-3 atom:space-y-3" @attributes="AdditionalAttributes">
+    <div class="atom:text-sm atom:font-medium">@Localizer["DataGrid.FilterPlaceholder", ColumnTitle ?? ""]</div>
+
+    @* Operator selector *@
+    <Select TValue="FilterOperator"
+              Value="@editCondition.Operator"
+              ValueChanged="HandleOperatorChanged"
+              Options="@operatorOptions"
+              Class="atom:w-full" />
+
+    @* Value input — type-aware *@
+    @if (!FilterOperatorHelper.IsValuelessOperator(editCondition.Operator))
+    {
+        @switch (FieldType)
+        {
+            case FilterFieldType.Text:
+                <Input Value="@GetStringValue()"
+                         ValueChanged="HandleStringValueChanged"
+                         Placeholder="@Localizer["DataGrid.FilterColumnEnterValue"]"
+                         Class="atom:w-full" />
+                break;
+
+            case FilterFieldType.Number when FilterOperatorHelper.IsRangeOperator(editCondition.Operator):
+                <div class="atom:flex atom:items-center atom:gap-2">
+                    <NumericInput TValue="double"
+                                    Value="@GetDoubleValue()"
+                                    ValueChanged="HandleDoubleValueChanged"
+                                    Placeholder="@Localizer["DataGrid.FilterColumnMin"]"
+                                    Class="atom:w-full" />
+                    <span class="atom:text-sm atom:text-muted-foreground atom:shrink-0">@Localizer["DataGrid.FilterColumnAnd"]</span>
+                    <NumericInput TValue="double"
+                                    Value="@GetDoubleValueEnd()"
+                                    ValueChanged="HandleDoubleValueEndChanged"
+                                    Placeholder="@Localizer["DataGrid.FilterColumnMax"]"
+                                    Class="atom:w-full" />
+                </div>
+                break;
+
+            case FilterFieldType.Number:
+                <NumericInput TValue="double"
+                                Value="@GetDoubleValue()"
+                                ValueChanged="HandleDoubleValueChanged"
+                                Placeholder="@Localizer["DataGrid.FilterColumnEnterValue"]"
+                                Class="atom:w-full" />
+                break;
+
+            case FilterFieldType.Date or FilterFieldType.DateTime when FilterOperatorHelper.IsRangeOperator(editCondition.Operator):
+                <DateRangePicker Value="@GetDateRangeValue()"
+                                   ValueChanged="HandleDateRangeValueChanged"
+                                   Class="atom:w-full" />
+                break;
+
+            case FilterFieldType.Date or FilterFieldType.DateTime when editCondition.Operator is FilterOperator.InLast or FilterOperator.InNext:
+                <div class="atom:flex atom:items-center atom:gap-2">
+                    <NumericInput TValue="int"
+                                    Value="@GetInLastAmount()"
+                                    ValueChanged="HandleInLastAmountChanged"
+                                    Min="1"
+                                    Placeholder="@Localizer["DataGrid.FilterColumnAmount"]"
+                                    Class="atom:w-full" />
+                    <Select TValue="InLastPeriod"
+                              Value="@GetInLastPeriod()"
+                              ValueChanged="HandleInLastPeriodChanged"
+                              Options="@InLastPeriodOptions"
+                              Class="atom:w-full" />
+                </div>
+                break;
+
+            case FilterFieldType.Date or FilterFieldType.DateTime when FilterOperatorHelper.IsDatePresetOperator(editCondition.Operator):
+                <Select TValue="DatePreset"
+                          Value="@GetDatePreset()"
+                          ValueChanged="HandleDatePresetChanged"
+                          Options="@DatePresetOptions"
+                          Class="atom:w-full" />
+                break;
+
+            case FilterFieldType.Date or FilterFieldType.DateTime:
+                <DatePicker Value="@GetDateTimeValue()"
+                              ValueChanged="HandleDateTimeValueChanged"
+                              Placeholder="@Localizer["DataGrid.FilterColumnPickDate"]"
+                              Class="atom:w-full" />
+                break;
+
+            case FilterFieldType.Enum when editCondition.Operator is FilterOperator.In or FilterOperator.NotIn:
+                <MultiSelect TValue="string"
+                               Values="@GetMultiSelectValues()"
+                               ValuesChanged="HandleMultiSelectValuesChanged"
+                               Options="@(FilterOptions ?? Array.Empty<SelectOption<string>>())"
+                               Placeholder="@Localizer["DataGrid.FilterColumnSelectValues"]"
+                               Class="atom:w-full" />
+                break;
+
+            case FilterFieldType.Enum:
+                <Select TValue="string"
+                          Value="@GetStringValue()"
+                          ValueChanged="HandleStringValueChanged"
+                          Options="@(FilterOptions ?? Array.Empty<SelectOption<string>>())"
+                          Placeholder="@Localizer["DataGrid.FilterColumnSelectValue"]"
+                          Class="atom:w-full" />
+                break;
+        }
+    }
+
+    @* Action buttons *@
+    <div class="atom:flex atom:items-center atom:justify-end atom:gap-2">
+        @if (CurrentFilter != null)
+        {
+            <Button Variant="ButtonVariant.Ghost"
+                      Size="ButtonSize.Small"
+                      Type="ButtonType.Button"
+                      OnClick="HandleClear">
+                @Localizer["DataGrid.FilterColumnClear"]
+            </Button>
+        }
+        <Button Variant="ButtonVariant.Default"
+                  Size="ButtonSize.Small"
+                  Type="ButtonType.Submit">
+            @Localizer["DataGrid.FilterColumnApply"]
+        </Button>
+    </div>
+</form>

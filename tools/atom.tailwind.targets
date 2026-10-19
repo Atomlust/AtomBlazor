@@ -1,0 +1,57 @@
+<Project>
+  <!-- AtomBlazor Tailwind CSS 构建管线（自源项目 tools/tailwind.targets）： 构建期用 Tailwind v4 CLI 由输入 CSS 生成最终样式表。 输入：wwwroot/css/atom-input.css 输出：wwwroot/atomblazor.css 工具链解析顺序： 1. tools/tailwindcss(.exe) 独立二进制（Windows/Linux/macOS 三平台名； 被 .gitignore，需另行获取后放入 tools/）； 2. npx 执行 tailwindcss（no-install 模式，用仓库根 node_modules 里的官方 @tailwindcss/cli，npm install 后可用；Docker 构建见 AtomUpdate/src/AtomUpdate.Web/Dockerfile 的 node 阶段）。 无工具链环境（典型：本机未安装 Node.js，用 VS 直接编译 AtomUpdate 解决方案——AtomBlazor.Components 作为外部 ProjectReference 参与构建）： - 已有 atomblazor.css → 警告并跳过生成、沿用旧产物，构建不失败； - 无 atomblazor.css → 报错并提示如何提供工具链。 背景：早期版本直接 Exec npx，无 Node 环境下以退出码 9009 触发 MSB3073，本工程连同全部引用方（AtomUpdate.Web.Client → VS 报 "2 失败"）一起构建失败；故改为先探测、后执行、缺工具链时降级。 -->
+  <PropertyGroup>
+    <TailwindInput Condition="'$(TailwindInput)' == ''">wwwroot/css/atom-input.css</TailwindInput>
+    <TailwindOutput Condition="'$(TailwindOutput)' == ''">wwwroot/atomblazor.css</TailwindOutput>
+    <TailwindToolPath Condition="'$(TailwindToolPath)' == ''">$(MSBuildProjectDirectory)/../../tools</TailwindToolPath>
+  </PropertyGroup>
+
+  <!-- 必须在 SDK 对静态资源做指纹/压缩之前生成 CSS：BeforeTargets="Build" 运行过晚， 会使清单与 gzip 产物落后一个构建周期 -->
+  <Target Name="BuildTailwind" BeforeTargets="ResolveProjectStaticWebAssets">
+    <PropertyGroup>
+      <TailwindBinary Condition="$([MSBuild]::IsOSPlatform('Windows'))">$(TailwindToolPath)/tailwindcss.exe</TailwindBinary>
+      <TailwindBinary Condition="$([MSBuild]::IsOSPlatform('Linux'))">$(TailwindToolPath)/tailwindcss-linux</TailwindBinary>
+      <TailwindBinary Condition="$([MSBuild]::IsOSPlatform('OSX'))">$(TailwindToolPath)/tailwindcss-macos</TailwindBinary>
+      <!-- 与源项目的偏差：standalone 二进制下载不通时，使用仓库 npm 依赖中的官方 @tailwindcss/cli（npm install 后即存在），二者产物一致 -->
+    </PropertyGroup>
+
+    <!-- 探测 npx 是否可用：无 Node 的机器（如纯 VS 构建环境）没有 npx。 where 为 Windows cmd 内建命令；IgnoreExitCode 保证探测本身不产生错误， 只把结果通过 ExitCode 输出给属性判断。 -->
+    <PropertyGroup>
+      <TailwindNpxProbe Condition="$([MSBuild]::IsOSPlatform('Windows'))">where npx</TailwindNpxProbe>
+      <TailwindNpxProbe Condition="!$([MSBuild]::IsOSPlatform('Windows'))">command -v npx</TailwindNpxProbe>
+    </PropertyGroup>
+    <Exec Command="$(TailwindNpxProbe)" IgnoreExitCode="true" Condition="!Exists('$(TailwindBinary)')">
+      <Output TaskParameter="ExitCode" PropertyName="TailwindNpxExitCode" />
+    </Exec>
+    <PropertyGroup>
+      <TailwindNpmCli Condition="'$(TailwindNpxExitCode)' == '0'">npx --no-install tailwindcss</TailwindNpmCli>
+    </PropertyGroup>
+
+    <Message Text="正在构建 Tailwind CSS（$(TailwindInput)）..." Importance="high"
+             Condition="Exists('$(TailwindBinary)') Or '$(TailwindNpmCli)' != ''" />
+
+    <Exec Command="chmod +x $(TailwindBinary)"
+          Condition="!$([MSBuild]::IsOSPlatform('Windows')) And Exists('$(TailwindBinary)')"
+          ContinueOnError="true" />
+
+    <!-- 独立二进制路径：工具是显式放进 tools/ 的，失败即真实错误，严格处理 -->
+    <Exec Command="$(TailwindBinary) -i $(TailwindInput) -o $(TailwindOutput) --minify"
+          Condition="Exists('$(TailwindBinary)')"
+          WorkingDirectory="$(MSBuildProjectDirectory)" />
+
+    <!-- npx 路径：仅当探测确认环境中存在 npx 时才执行， 避免无 Node 环境下 Exec 以 9009 失败把整个构建拖垮 -->
+    <Exec Command="$(TailwindNpmCli) -i $(TailwindInput) -o $(TailwindOutput) --minify"
+          Condition="'$(TailwindNpmCli)' != ''"
+          WorkingDirectory="$(MSBuildProjectDirectory)" />
+
+    <Warning Condition="!Exists('$(TailwindBinary)') And '$(TailwindNpmCli)' == '' And Exists('$(TailwindOutput)')"
+              Text="未找到 Tailwind 工具链（tools/ 下无独立二进制，环境中无 npx），跳过 CSS 生成，沿用现有 $(TailwindOutput)。安装 Node.js 并在 AtomBlazor 根目录执行 npm install，或将 tailwindcss 独立二进制放入 tools/，即可恢复自动生成。" />
+    <Error Condition="!Exists('$(TailwindBinary)') And '$(TailwindNpmCli)' == '' And !Exists('$(TailwindOutput)')"
+           Text="未找到 Tailwind 构建工具：tools/ 下无独立二进制，环境中也没有 npx。请安装 Node.js 并在仓库根目录执行 npm install，或将 tailwindcss 独立二进制放入 tools/。" />
+
+    <!-- 干净检出时该生成物可能尚未存在，而 SDK 的默认 Content glob 已求值； 在静态资源发现前补入，避免重复项 -->
+    <ItemGroup>
+      <Content Include="$(TailwindOutput)" Exclude="@(Content)" Condition="Exists('$(TailwindOutput)')" />
+    </ItemGroup>
+  </Target>
+</Project>

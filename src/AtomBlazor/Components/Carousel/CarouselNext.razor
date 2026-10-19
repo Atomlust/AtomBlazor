@@ -1,0 +1,45 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@inject ILocalizer Localizer
+
+<button type="button"
+        class="@CssClass"
+        disabled="@(!Context?.CanGoNext)"
+        @onclick="HandleClick"
+        aria-label="@Localizer["Carousel.NextSlide"]"
+        @attributes="AdditionalAttributes">
+    <LucideIcon Name="arrow-right" Class="atom:h-4 atom:w-4 atom:rtl:rotate-180" />
+    <span class="atom:sr-only">@Localizer["Carousel.NextSlide"]</span>
+</button>
+
+@code {
+    [CascadingParameter]
+    public Carousel? Context { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置展开到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private Task HandleClick() => Context?.Next() ?? Task.CompletedTask;
+
+    private string PositionClass => Context?.Orientation == CarouselOrientation.Horizontal
+        ? "atom:-end-12 atom:top-1/2 atom:-translate-y-1/2"
+        : "atom:-bottom-12 atom:left-1/2 atom:-translate-x-1/2 atom:rotate-90";
+
+    private string CssClass => ClassNames.cn(
+        "atom:absolute atom:h-8 atom:w-8 atom:rounded-full",
+        // 按钮悬于幻灯片内容之上，焦点环不外加偏移、紧贴按钮边缘。
+        "atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring",
+        "atom:inline-flex atom:items-center atom:justify-center",
+        "atom:border atom:bg-background atom:shadow-sm",
+        "atom:hover:bg-accent atom:hover:text-accent-foreground",
+        "atom:disabled:pointer-events-none atom:disabled:opacity-50",
+        PositionClass,
+        Class
+    );
+}

@@ -1,0 +1,355 @@
+@page "/components/message"
+
+<PageTitle>@L.T("Message 消息 - Atom BlazorUI", "Message Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Message 消息组件", "Message Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("为对话式消息行排布头像、内容、头部与底部区域。", "Lays out avatar, content, header, and footer for conversational message rows.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-4">
+        <div class="space-y-3 rounded-lg border p-4 flex justify-center items-center">
+            <div class="flex w-full max-w-sm flex-col gap-6 py-12">
+                <Message Align="MessageAlign.End">
+                    <MessageAvatar>
+                        <Avatar>
+                            <AvatarFallback>ME</AvatarFallback>
+                        </Avatar>
+                    </MessageAvatar>
+                    <MessageContent>
+                        <Bubble Align="BubbleAlign.End" Variant="BubbleVariant.Default">
+                            <BubbleContent>@L.T("马上部署到生产环境。", "Deploying to prod real quick.")</BubbleContent>
+                        </Bubble>
+                    </MessageContent>
+                </Message>
+
+                <Message Align="MessageAlign.Start">
+                    <MessageAvatar>
+                        <Avatar>
+                            <AvatarFallback>CN</AvatarFallback>
+                        </Avatar>
+                    </MessageAvatar>
+                    <MessageContent>
+                        <Bubble Variant="BubbleVariant.Secondary">
+                            <BubbleContent>@L.T("已经下午 4:55 了，还是周五。", "It's 4:55 PM. On a Friday.")</BubbleContent>
+                        </Bubble>
+                    </MessageContent>
+                </Message>
+
+                <Message Align="MessageAlign.End">
+                    <MessageAvatar>
+                        <Avatar>
+                            <AvatarFallback>ME</AvatarFallback>
+                        </Avatar>
+                    </MessageAvatar>
+                    <MessageContent>
+                        <Bubble Align="BubbleAlign.End" Variant="BubbleVariant.Default">
+                            <BubbleContent>@L.T("就是一行代码的小改动。", "It's a one-line change.")</BubbleContent>
+                        </Bubble>
+                    </MessageContent>
+                </Message>
+
+                <MessageGroup>
+                    <Message Align="MessageAlign.Start">
+                        <MessageContent>
+                            <Bubble Variant="BubbleVariant.Secondary">
+                                <BubbleContent>@L.T("永远都是“一行代码的小改动”😭。", "It's always a one-line change 😭.")</BubbleContent>
+                            </Bubble>
+                        </MessageContent>
+                    </Message>
+                    <Message Align="MessageAlign.Start">
+                        <MessageAvatar>
+                            <Avatar>
+                                <AvatarFallback>CN</AvatarFallback>
+                            </Avatar>
+                        </MessageAvatar>
+                        <MessageContent>
+                            <Bubble Variant="BubbleVariant.Secondary">
+                                <BubbleContent>@L.T("好吧，我来看看。", "Alright, let me take a look.")</BubbleContent>
+                                <BubbleReactions aria-label="@(L.T("表情回应：点赞", "Reactions: thumbs up"))">
+                                    <span>👍</span>
+                                </BubbleReactions>
+                            </Bubble>
+                        </MessageContent>
+                    </Message>
+
+                    <Marker Variant="MarkerVariant.Separator" Class="mt-4">
+                        <MarkerContent>
+                            @L.T("生产环境宕机了", "Production went down")
+                        </MarkerContent>
+                    </Marker>
+
+                    <Marker role="status">
+                        @if (L.IsChinese)
+                        {
+                                                <text>
+                                                    <MarkerContent Class="atom:shimmer">
+                                <span class="font-medium">CN</span> 正在输入……
+                            </MarkerContent>
+                                                </text>
+}
+                        else
+                        {
+                                                <text>
+                                                    <MarkerContent Class="atom:shimmer">
+                                <span class="font-medium">CN</span> is typing...
+                            </MarkerContent>
+                                                </text>
+}
+                    </Marker>
+                </MessageGroup>
+            </div>
+        </div>
+    </div>
+
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本组合", "Basic Composition")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("用头像槽位与内容槽位搭建一条消息。", "Build a message using avatar and content slots.")
+            </p>
+        </div>
+        <div class="space-y-3 rounded-lg border p-4 flex justify-center items-center">
+            <div class="flex w-full max-w-sm flex-col gap-8 py-12 flex">
+                <Message>
+                    <MessageAvatar>
+                        <Avatar>
+                            <AvatarFallback>AI</AvatarFallback>
+                        </Avatar>
+                    </MessageAvatar>
+                    <MessageContent>
+                        <MessageHeader>@L.T("助手", "Assistant")</MessageHeader>
+                        <Bubble Variant="BubbleVariant.Secondary">
+                            <BubbleContent>@L.T("今天需要什么帮助？", "How can I help you today?")</BubbleContent>
+                        </Bubble>
+                    </MessageContent>
+                </Message>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Message/basic.txt"/>
+    </div>
+
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("对齐", "Alignment")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">Align</code> 区分发送方与接收方的消息行。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">Align</code> for sender and receiver rows.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-3 rounded-lg border p-4 flex justify-center items-center">
+            <div class="flex w-full max-w-sm flex-col gap-8 py-12 flex">
+                <Message Align="MessageAlign.Start">
+                    <MessageAvatar>
+                        <Avatar>
+                            <AvatarFallback>CN</AvatarFallback>
+                        </Avatar>
+                    </MessageAvatar>
+                    <MessageContent>
+                        <Bubble Variant="BubbleVariant.Secondary">
+                            <BubbleContent>@L.T("这条消息向起始侧对齐。", "This message is aligned to the start.")</BubbleContent>
+                        </Bubble>
+                    </MessageContent>
+                </Message>
+
+                <Message Align="MessageAlign.End">
+                    <MessageAvatar>
+                        <Avatar>
+                            <AvatarFallback>ME</AvatarFallback>
+                        </Avatar>
+                    </MessageAvatar>
+                    <MessageContent>
+                        <Bubble Align="BubbleAlign.End" Variant="BubbleVariant.Default">
+                            <BubbleContent>@L.T("这条消息向结束侧对齐。", "This message is aligned to the end.")</BubbleContent>
+                        </Bubble>
+                        <MessageFooter>@L.T("已送达", "Delivered")</MessageFooter>
+                    </MessageContent>
+                </Message>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Message/alignment.txt"/>
+    </div>
+
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("消息分组", "Message Group")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("把同一发送方连续发出的消息行分在一组。", "Group consecutive rows from the same sender.")
+            </p>
+        </div>
+        <div class="space-y-3 rounded-lg border p-4 flex justify-center items-center">
+            <div class="flex w-full max-w-sm flex-col gap-8 py-12 flex">
+                <MessageGroup>
+                    <Message>
+                        <MessageAvatar>
+                            <Avatar>
+                                <AvatarFallback>AI</AvatarFallback>
+                            </Avatar>
+                        </MessageAvatar>
+                        <MessageContent>
+                            <Bubble Variant="BubbleVariant.Secondary">
+                                <BubbleContent>@L.T("我查了部署日志。", "I checked the deployment logs.")</BubbleContent>
+                            </Bubble>
+                        </MessageContent>
+                    </Message>
+                    <Message>
+                        <MessageAvatar>
+                            <Avatar>
+                                <AvatarFallback>AI</AvatarFallback>
+                            </Avatar>
+                        </MessageAvatar>
+                        <MessageContent>
+                            <Bubble Variant="BubbleVariant.Secondary">
+                                <BubbleContent>@L.T("故障来自一个缺失的环境变量。", "The failure came from a missing env variable.")</BubbleContent>
+                            </Bubble>
+                            <MessageFooter>@L.T("2 分钟前已读", "Read 2m ago")</MessageFooter>
+                        </MessageContent>
+                    </Message>
+                </MessageGroup>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Message/group.txt"/>
+    </div>
+
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表情回应", "Reactions")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("表情回应可以放在任意气泡上，并可锚定在气泡边缘的上方或下方。", "Reactions can be put on any bubble, and can be anchored to the top or bottom of the bubble edge.")
+            </p>
+        </div>
+        <div class="space-y-3 rounded-lg border p-4 flex justify-center items-center">
+            <div class="flex w-full max-w-sm flex-col gap-8 py-12 flex">
+                <Message Align="MessageAlign.Start">
+                    <MessageAvatar>
+                        <Avatar>
+                            <AvatarFallback>CN</AvatarFallback>
+                        </Avatar>
+                    </MessageAvatar>
+                    <MessageContent>
+                        <Bubble Variant="BubbleVariant.Secondary">
+                            <BubbleContent>@L.T("不偏不倚", "Without choosing sides")</BubbleContent>
+                            <BubbleReactions Side="BubbleReactionsSide.Bottom" Align="BubbleReactionsAlign.End">
+                                <span>↘️</span>
+                            </BubbleReactions>
+                            <BubbleReactions Side="BubbleReactionsSide.Top" Align="BubbleReactionsAlign.End">
+                                <span>↗️</span>
+                            </BubbleReactions>
+                            <BubbleReactions Side="BubbleReactionsSide.Bottom" Align="BubbleReactionsAlign.Start">
+                                <span>↙️</span>
+                            </BubbleReactions>
+                            <BubbleReactions Side="BubbleReactionsSide.Top" Align="BubbleReactionsAlign.Start">
+                                <span>↖️</span>
+                            </BubbleReactions>
+                        </Bubble>
+                    </MessageContent>
+                </Message>
+                <Message Align="MessageAlign.Start">
+                    <MessageContent>
+                        <Bubble Variant="BubbleVariant.Secondary">
+                            <BubbleContent>@L.T("不偏不倚", "Without choosing sides")</BubbleContent>
+                            <BubbleReactions>
+                                <span>↘️</span>
+                            </BubbleReactions>
+                        </Bubble>
+                    </MessageContent>
+                </Message>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Message/reactions.txt"/>
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                @L.T("Message 只是布局容器；语义角色要放在它包含的内容上。", "Message is a layout wrapper; place semantic roles on the content it contains.")
+            </AccessibilityItem>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    消息底部区域里仅有图标的操作控件要用 <code>aria-label</code> 标注。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Label icon-only action controls in message footers with <code>aria-label</code>.
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    状态更新请配合使用带 <code>role="status"</code> 的标记。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Pair status updates with a marker using <code>role="status"</code>.
+                </AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件的属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <ApiReference ComponentName="Message">
+            <ApiParameter Name="Align" Type="MessageAlign" Default="Start">
+                @L.T("消息行的对齐方式。可选值：Start、End。", "Message row alignment. Options: Start, End.")
+            </ApiParameter>
+            <ApiParameter Name="Class" Type="string?">
+                @L.T("追加到消息根元素的额外 CSS 类。", "Additional CSS classes for the message root.")
+            </ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    应用到根 <code>&lt;div&gt;</code> 元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                </ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                </ApiParameter>
+                        </text>
+}
+        </ApiReference>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

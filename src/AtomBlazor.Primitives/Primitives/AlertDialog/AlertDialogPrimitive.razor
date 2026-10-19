@@ -1,0 +1,53 @@
+@namespace AtomBlazor.Primitives
+
+@*
+    AlertDialog 原语——一种需要用户明确确认的模态对话框。
+    它在 Dialog 原语基础上使用 role="alertdialog"，并禁止通过遮罩 / Esc 键关闭。
+*@
+
+<AtomBlazor.Primitives.DialogPrimitive Open="@Open"
+                                   OpenChanged="@OpenChanged"
+                                   DefaultOpen="@DefaultOpen"
+                                   OnOpenChange="@OnOpenChange"
+                                   Modal="true"
+                                   @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.DialogPrimitive>
+
+@code {
+    /// <summary>
+    /// 在警告对话框内渲染的子内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的附加 HTML 特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 控制警告对话框是否打开（受控模式）。
+    /// </summary>
+    [Parameter]
+    public bool? Open { get; set; }
+
+    /// <summary>
+    /// 打开状态变化时触发的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>
+    /// 非受控模式下的默认打开状态。
+    /// </summary>
+    [Parameter]
+    public bool DefaultOpen { get; set; } = false;
+
+    /// <summary>
+    /// 打开状态变化时触发的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OnOpenChange { get; set; }
+}

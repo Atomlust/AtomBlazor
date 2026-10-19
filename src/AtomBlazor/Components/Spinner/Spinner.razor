@@ -1,0 +1,66 @@
+@namespace AtomBlazor
+
+<svg class="@CssClass"
+     xmlns="http://www.w3.org/2000/svg"
+     fill="none"
+     viewBox="0 0 24 24"
+     role="status"
+     aria-label="@(AriaLabel ?? "Loading")"
+     @attributes="AdditionalAttributes">
+    <circle class="atom:opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4">
+    </circle>
+    <path class="atom:opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+    </path>
+</svg>
+
+@code {
+    /// <summary>
+    /// 加载指示器的尺寸。
+    /// </summary>
+    [Parameter]
+    public SpinnerSize Size { get; set; } = SpinnerSize.Default;
+
+    /// <summary>
+    /// 要应用到加载指示器上的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 加载指示器的无障碍标签。
+    /// 默认为 "Loading"。
+    /// </summary>
+    [Parameter]
+    public string? AriaLabel { get; set; }
+
+    /// <summary>
+    /// 要应用到加载指示器上的额外属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取加载指示器计算后的 CSS 类。
+    /// </summary>
+    private string CssClass => ClassNames.cn(
+        "atom:animate-spin",
+        Size switch
+        {
+            SpinnerSize.Small => "atom:h-4 atom:w-4",
+            SpinnerSize.Default => "atom:h-6 atom:w-6",
+            SpinnerSize.Large => "atom:h-10 atom:w-10",
+            _ => "atom:h-6 atom:w-6"
+        },
+        HasCustomColor ? null : "atom:text-muted-foreground",
+        Class
+    );
+
+    private bool HasCustomColor => !string.IsNullOrEmpty(Class) && Class.Contains("text-");
+}

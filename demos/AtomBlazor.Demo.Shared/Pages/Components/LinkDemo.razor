@@ -1,0 +1,219 @@
+@page "/components/link"
+
+<PageTitle>@L.T("Link 链接 - Atom BlazorUI", "Link - Atom BlazorUI")</PageTitle>
+
+<div class="max-w-4xl space-y-8">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">Link</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("用于正文内链接的样式化锚点。", "A styled anchor for a link inside text.")
+        </p>
+    </div>
+
+    <div class="rounded-r-lg border-s-4 border-primary bg-primary/5 p-4">
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                <strong>用 Link 还是 Button？</strong> 带
+                <code class="rounded bg-muted px-1 py-0.5 text-xs">Button</code> 与
+                <code class="rounded bg-muted px-1 py-0.5 text-xs">ButtonVariant.Link</code> 的按钮看起来像链接，
+                却保留了按钮的高度与内边距，因此会打断段落的节奏。
+                执行操作用按钮，做导航用这个。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                <strong>Link or Button?</strong> A
+                <code class="rounded bg-muted px-1 py-0.5 text-xs">Button</code> with
+                <code class="rounded bg-muted px-1 py-0.5 text-xs">ButtonVariant.Link</code> looks like
+                a link but keeps a button's height and padding, so it breaks the rhythm of a paragraph.
+                Use the button for an action, and this for navigation.
+            </p>
+                </text>
+}
+    </div>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("在段落中", "In a paragraph")</h2>
+        <div class="rounded-lg border p-6">
+            @* 段落里夹着 <Link> 组件，所以不能用 b 型整段 @if/else：Razor 在代码块里把
+               <Link> 当 HTML 空元素（RZ1042），改成把 <p> 留在标记层、只把文字段做二选一。 *@
+            <p class="text-sm leading-relaxed">
+                @L.T("链接停在文字基线上，因此不会改变周围行高。动手之前先读", "A link sits on the text baseline, so it does not change the line height around it. Read the")
+                <Link Href="/guides/rtl">@L.T("从右到左排版指南", "right-to-left guide")</Link>
+                @L.T("，再看看", "before you start, then look at")
+                <Link Href="/components/button">@L.T("按钮", "buttons")</Link>
+                @L.T("，了解导航与操作的区别。跨越换行的链接仍然只显示一个焦点环，", "for the difference between navigation and an action. A link that wraps across a line break still shows one focus ring for the whole")
+                <Link Href="/components/typography">@L.T("而不是每行一个环", "run of text rather than one ring per line")</Link>@L.T("。", ".")
+            </p>
+        </div>
+        <CodeBlock Source="Components/Link/basic.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("变体", "Variants")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">Inherit</code> 沿用周围文字的颜色，
+                    适合不该吸引目光的链接。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">Inherit</code> takes the
+                    surrounding text colour, for a link that should not pull the eye.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="flex flex-wrap items-center gap-6 rounded-lg border p-6 text-sm">
+            <Link Href="#">Default</Link>
+            <span class="text-muted-foreground">@L.T("在淡化文本之中：", "Inside muted text:") <Link Href="#" Variant="LinkVariant.Inherit">Inherit</Link></span>
+            <Link Href="#" Variant="LinkVariant.Muted">Muted</Link>
+            <Link Href="#" Variant="LinkVariant.Destructive">Destructive</Link>
+        </div>
+        <CodeBlock Source="Components/Link/variants.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("下划线", "Underline")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    默认在悬停与聚焦时显示下划线。
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">Always</code> 是成段文字里最稳妥的选择，
+                    因为仅靠颜色并不构成无障碍的提示。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Underlined on hover and focus by default.
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">Always</code> is the safest
+                    choice inside a block of text, because colour alone is not an accessible cue.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="flex flex-wrap items-center gap-6 rounded-lg border p-6 text-sm">
+            <Link Href="#" Underline="LinkUnderline.Hover">@L.T("悬停时（默认）", "On hover (default)")</Link>
+            <Link Href="#" Underline="LinkUnderline.Always">@L.T("始终", "Always")</Link>
+            <Link Href="#" Underline="LinkUnderline.None">@L.T("从不", "Never")</Link>
+        </div>
+        <CodeBlock Source="Components/Link/underline.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("在别处打开", "Opening elsewhere")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    带 <code class="rounded bg-muted px-1 py-0.5 text-xs">Target="_blank"</code>
+                    的链接会自动加上 <code class="rounded bg-muted px-1 py-0.5 text-xs">rel="noopener noreferrer"</code>，
+                    因此被打开的页面无法回指本页。图标后面带有屏幕阅读器提示，
+                    于是新标签页会被朗读出来，而不只是画出来。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    A link with <code class="rounded bg-muted px-1 py-0.5 text-xs">Target="_blank"</code>
+                    gets <code class="rounded bg-muted px-1 py-0.5 text-xs">rel="noopener noreferrer"</code>
+                    automatically, so the opened page cannot reach back into this one. The icon carries
+                    a screen-reader note, so the new tab is announced and not only drawn.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="flex flex-wrap items-center gap-6 rounded-lg border p-6 text-sm">
+            <Link Href="https://github.com/atom-blazor/atom" Target="_blank" ShowExternalIcon="true">
+                @L.T("在 GitHub 上查看 Atom BlazorUI", "Atom BlazorUI on GitHub")
+            </Link>
+            <Link Href="#" Disabled="true">@L.T("禁用", "Disabled")</Link>
+        </div>
+        <CodeBlock Source="Components/Link/external.txt" />
+    </section>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>禁用的链接会去掉 <code>href</code> 以及 tab 停靠点，因此既不会被跟随，也无法用键盘到达。</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>A disabled link drops its <code>href</code> and its tab stop, so it is neither followed nor reached by keyboard.</AccessibilityItem>
+                        </text>
+}
+            <AccessibilityItem>@L.T("外链图标后面跟着隐藏文本，因此目的地会被朗读出来。", "The external-link icon is followed by hidden text, so the destination is announced.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("焦点环跟随文字而不是方框，因此句中换行的链接仍然读作一个链接。", "The focus ring follows the text rather than a box, so a link that wraps mid-sentence reads as one link.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("悬停时的下划线在聚焦时同样生效，因此键盘用户得到与鼠标用户相同的提示。", "Underline on hover also applies on focus, so a keyboard user gets the same cue as a pointer user.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("移动到链接", "Move to the link"))"><Kbd>Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("打开链接", "Follow the link"))"><Kbd>Enter</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <LocalizationSection
+        Description="@(L.T("外链图标旁的屏幕阅读器提示文案可以配置。", "The screen-reader note beside the external-link icon is configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("Link.OpensInNewTab", "(opens in a new tab)", L.T("外链图标旁的隐藏文本。", "Hidden text beside the external-link icon")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""Link.OpensInNewTab"", ""(öffnet in einem neuen Tab)"");
+});")" />
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+        <ApiReference Since="v4" ComponentName="Link">
+            <ApiParameter Name="Href" Type="string?">@L.T("目标 URL。必填。", "The target URL. Required.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="Target / Rel" Type="string?">锚点的 target 与 rel。当 Target 为 <code>_blank</code> 时，rel 默认为 <code>noopener noreferrer</code>。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="Target / Rel" Type="string?">The anchor's target and rel. Rel defaults to <code>noopener noreferrer</code> when Target is <code>_blank</code>.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="Variant" Type="LinkVariant" Default="Default">@L.T("Default、Inherit、Muted 或 Destructive。", "Default, Inherit, Muted or Destructive.")</ApiParameter>
+            <ApiParameter Name="Underline" Type="LinkUnderline" Default="Hover">@L.T("Hover、Always 或 None。", "Hover, Always or None.")</ApiParameter>
+            <ApiParameter Name="ShowExternalIcon" Type="bool" Default="false">@L.T("在外链文字后追加一个带屏幕阅读器提示的外链图标。", "Appends an external-link icon with a screen-reader note.")</ApiParameter>
+            <ApiParameter Name="Disabled / OnClick" Type="bool / EventCallback&lt;MouseEventArgs&gt;" Default="false">@L.T("禁用状态与点击回调。", "Disabled state and click callback.")</ApiParameter>
+            <ApiParameter Name="ChildContent" Type="RenderFragment?">@L.T("链接文本。", "The link text.")</ApiParameter>
+            <ApiParameter Name="Class / AdditionalAttributes" Type="string? / Dictionary&lt;string, object&gt;?">@L.T("额外的 CSS 类与 HTML 属性。", "Additional CSS classes and HTML attributes.")</ApiParameter>
+        </ApiReference>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

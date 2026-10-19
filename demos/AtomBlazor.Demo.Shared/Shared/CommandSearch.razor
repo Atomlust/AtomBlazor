@@ -1,0 +1,258 @@
+@using AtomBlazor.Icons.Lucide
+@using AtomBlazor.Icons.Lucide.Data
+@using AtomBlazor.Icons.Heroicons
+@using AtomBlazor.Icons.Heroicons.Data
+@using AtomBlazor.Icons.Feather
+@using AtomBlazor.Icons.Feather.Data
+@using AtomBlazor.Icons.FontAwesome
+@using AtomBlazor.Icons.FontAwesome.Data
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.JSInterop
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<button type="button"
+        class="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground border rounded-md hover:bg-accent"
+        @onclick="OpenModal">
+    <LucideIcon Name="search" Size="16" />
+    <span class="hidden sm:inline">@L.T("搜索...", "Search...")</span>
+    <span class="hidden md:flex items-center gap-1 text-xs">
+        <Kbd>Ctrl</Kbd>
+        <Kbd>K</Kbd>
+    </span>
+</button>
+
+@if (_isOpen)
+{
+    <div class="fixed inset-0 z-50 flex items-start justify-center pt-[10vh]" @onkeydown="HandleKeyDown">
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @onclick="CloseModal"></div>
+
+        <div class="relative w-full max-w-2xl mx-4 z-10">
+            <AtomBlazor.Command Class="border rounded-lg shadow-2xl bg-background" OnValueChange="HandleCommandSelect">
+                <CommandInput Placeholder="@L.T("搜索基础构件、组件与图标...", "Search primitives, components, and icons...")" AutoFocus="true" />
+                <CommandList Class="max-h-[400px]">
+                    <CommandEmpty>
+                        <div class="flex flex-col items-center gap-2 py-6">
+                            <LucideIcon Name="search-x" Size="32" Class="text-muted-foreground" />
+                            <p class="text-sm text-muted-foreground">@L.T("未找到条目。", "No items found.")</p>
+                        </div>
+                    </CommandEmpty>
+
+                    <CommandVirtualizedGroup TItem="LibraryItem"
+                        Heading="@L.T("基础构件", "Primitives")"
+                        Items="primitives"
+                        ItemValue="@(item => item.Url)"
+                        ItemSearchText="@(item => item.Name)"
+                        MaxDisplayCount="0">
+                        <ItemTemplate Context="item">
+                            <LucideIcon Name="@item.Icon" Size="16" Class="mr-2 text-muted-foreground" />
+                            @item.Name
+                            <span class="ml-auto text-xs text-muted-foreground">@L.T("无样式", "Headless")</span>
+                        </ItemTemplate>
+                    </CommandVirtualizedGroup>
+
+                    <CommandSeparator />
+
+                    <CommandVirtualizedGroup TItem="ComponentCatalog.Entry"
+                        Heading="@L.T("组件", "Components")"
+                        Items="ComponentCatalog.DemoPages"
+                        ItemValue="@(item => item.Url)"
+                        ItemSearchText="@(item => item.Name)"
+                        MaxDisplayCount="0">
+                        <ItemTemplate Context="item">
+                            <LucideIcon Name="@item.Icon" Size="16" Class="mr-2 text-primary" />
+                            @item.Name
+                            <span class="ml-auto text-xs text-muted-foreground">@L.T("带样式", "Styled")</span>
+                        </ItemTemplate>
+                    </CommandVirtualizedGroup>
+
+                    <CommandSeparator />
+
+                    <CommandGroup Heading="@L.T("配方", "Recipes")">
+                        <CommandItem Value="/recipes/filterable-datagrid">@L.T("可筛选数据网格", "Filterable Data Grid")</CommandItem>
+                        <CommandItem Value="/recipes/mobile-shop">@L.T("移动端商城", "Mobile Shop")</CommandItem>
+                    </CommandGroup>
+                    <CommandSeparator />
+
+                    <CommandVirtualizedGroup TItem="string"
+                        Heading="@L.T("Lucide 图标", "Lucide Icons")"
+                        Items="allLucideIcons"
+                        ItemValue="@(name => $"/icons/lucide?search={name}")"
+                        ItemSearchText="@(name => name)"
+                        MaxDisplayCount="0"
+                        EnableLazyLoading="true">
+                        <ItemTemplate Context="iconName">
+                            <LucideIcon Name="@iconName" Size="16" Class="mr-2 text-blue-500" />
+                            @FormatIconName(iconName)
+                            <span class="ml-auto text-xs text-muted-foreground">Lucide</span>
+                        </ItemTemplate>
+                    </CommandVirtualizedGroup>
+
+                    <CommandSeparator />
+
+                    <CommandVirtualizedGroup TItem="string"
+                        Heading="@L.T("Heroicons 图标", "Heroicons")"
+                        Items="allHeroIcons"
+                        ItemValue="@(name => $"/icons/heroicons?search={name}")"
+                        ItemSearchText="@(name => name)"
+                        MaxDisplayCount="0"
+                        EnableLazyLoading="true">
+                        <ItemTemplate Context="iconName">
+                            <HeroIcon Name="@iconName" Size="16" Class="mr-2 text-indigo-500" />
+                            @FormatIconName(iconName)
+                            <span class="ml-auto text-xs text-muted-foreground">Heroicons</span>
+                        </ItemTemplate>
+                    </CommandVirtualizedGroup>
+
+                    <CommandSeparator />
+
+                    <CommandVirtualizedGroup TItem="string"
+                        Heading="@L.T("Feather 图标", "Feather Icons")"
+                        Items="allFeatherIcons"
+                        ItemValue="@(name => $"/icons/feather?search={name}")"
+                        ItemSearchText="@(name => name)"
+                        MaxDisplayCount="0"
+                        EnableLazyLoading="true">
+                        <ItemTemplate Context="iconName">
+                            <FeatherIcon Name="@iconName" Size="16" Class="mr-2 text-cyan-500" />
+                            @FormatIconName(iconName)
+                            <span class="ml-auto text-xs text-muted-foreground">Feather</span>
+                        </ItemTemplate>
+                    </CommandVirtualizedGroup>
+
+                    <CommandSeparator />
+
+                    <CommandVirtualizedGroup TItem="string"
+                        Heading="@L.T("Font Awesome 图标", "Font Awesome Icons")"
+                        Items="allFontAwesomeIcons"
+                        ItemValue="@(name => $"/icons/fontawesome?search={name}")"
+                        ItemSearchText="@(name => name)"
+                        MaxDisplayCount="0"
+                        EnableLazyLoading="true">
+                        <ItemTemplate Context="iconName">
+                            <FontAwesomeIcon Name="@iconName" Size="16" Class="mr-2 text-teal-500" />
+                            @FormatIconName(iconName)
+                            <span class="ml-auto text-xs text-muted-foreground">Font Awesome</span>
+                        </ItemTemplate>
+                    </CommandVirtualizedGroup>
+                </CommandList>
+            </AtomBlazor.Command>
+        </div>
+    </div>
+}
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private bool _isOpen;
+    private DotNetObjectReference<CommandSearch>? _dotNetRef;
+    private IJSObjectReference? _utilsModule;
+
+    // Primitives 清单（与源一致）
+    private static readonly LibraryItem[] primitives = new[]
+    {
+        new LibraryItem("Accordion", "/primitives/accordion", "layers"),
+        new LibraryItem("Checkbox", "/primitives/checkbox", "square-check"),
+        new LibraryItem("Collapsible", "/primitives/collapsible", "chevrons-up-down"),
+        new LibraryItem("Combobox", "/primitives/combobox", "text-cursor-input"),
+        new LibraryItem("DataGrid", "/primitives/datagrid", "table-2"),
+        new LibraryItem("Dialog", "/primitives/dialog", "app-window"),
+        new LibraryItem("Dropdown Menu", "/primitives/dropdown-menu", "chevron-down"),
+        new LibraryItem("Hover Card", "/primitives/hovercard", "square-mouse-pointer"),
+        new LibraryItem("Label", "/primitives/label", "tag"),
+        new LibraryItem("Popover", "/primitives/popover", "message-square"),
+        new LibraryItem("Radio Group", "/primitives/radio-group", "circle-dot"),
+        new LibraryItem("Select", "/primitives/select", "list"),
+        new LibraryItem("Sheet", "/primitives/sheet", "panel-right"),
+        new LibraryItem("Switch", "/primitives/switch", "toggle-left"),
+        new LibraryItem("Table", "/primitives/table", "table"),
+        new LibraryItem("Tabs", "/primitives/tabs", "folder"),
+        new LibraryItem("Tooltip", "/primitives/tooltip", "info"),
+    };
+
+    private static readonly string[] allLucideIcons = LucideIconData.GetAvailableIcons().OrderBy(x => x).ToArray();
+    private static readonly string[] allHeroIcons = HeroIconData.GetAvailableIcons(HeroIconVariant.Outline).OrderBy(x => x).ToArray();
+    private static readonly string[] allFeatherIcons = FeatherIconData.GetAvailableIcons().OrderBy(x => x).ToArray();
+    private static readonly string[] allFontAwesomeIcons = FontAwesomeIconData.GetAvailableIcons(FontAwesomeIconVariant.Solid).OrderBy(x => x).ToArray();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // 偏差：源此处无容错；本仓 SSR 预渲染阶段 JS 电路尚未建立，
+            // 沿用本件上一形态的 try/catch 写法兜住。
+            try
+            {
+                _dotNetRef = DotNetObjectReference.Create(this);
+                _utilsModule = await JS.InvokeAsync<IJSObjectReference>(
+                    "import", "./_content/AtomBlazor.Demo.Shared/js/demo-utils.js");
+                await _utilsModule.InvokeVoidAsync("registerGlobalSearch", _dotNetRef);
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            {
+                // 首屏渲染期间电路断开（JS 互操作必须容错）
+            }
+        }
+    }
+
+    [JSInvokable]
+    public void OpenSearch()
+    {
+        _isOpen = true;
+        StateHasChanged();
+    }
+
+    private void OpenModal()
+    {
+        _isOpen = true;
+    }
+
+    private void CloseModal()
+    {
+        _isOpen = false;
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            _isOpen = false;
+        }
+    }
+
+    private void HandleCommandSelect(string value)
+    {
+        if (!string.IsNullOrEmpty(value))
+        {
+            _isOpen = false;
+            NavigationManager.NavigateTo(value);
+        }
+    }
+
+    private static string FormatIconName(string iconName)
+    {
+        return string.Join(" ", iconName.Split('-').Select(word =>
+            char.ToUpper(word[0], System.Globalization.CultureInfo.InvariantCulture) + word.Substring(1)));
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_utilsModule != null)
+        {
+            try
+            {
+                await _utilsModule.InvokeVoidAsync("disposeGlobalSearch");
+                await _utilsModule.DisposeAsync();
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            {
+                // 电路已断开，忽略
+            }
+        }
+        _dotNetRef?.Dispose();
+    }
+
+    private record LibraryItem(string Name, string Url, string Icon);
+}

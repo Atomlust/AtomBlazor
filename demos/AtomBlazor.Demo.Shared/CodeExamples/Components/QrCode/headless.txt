@@ -1,0 +1,23 @@
+@using AtomBlazor.Primitives.QrCode
+
+@* QrEncoder returns geometry and nothing else - no colour, no size, no quiet zone.
+ Out-of-range reads come back light, so a renderer can walk the margin too. *@
+@code {
+ private static string AsAscii()
+ {
+ var code = QrEncoder.Encode("Atom BlazorUI", QrErrorCorrection.Low);
+ var builder = new StringBuilder();
+
+ for (var y = -2; y < code.Size + 2; y++)
+ {
+ for (var x = -4; x < code.Size + 4; x++)
+ {
+ builder.Append(code[x, y] ? "██" : " ");
+ }
+
+ builder.Append('\n');
+ }
+
+ return builder.ToString();
+ }
+}

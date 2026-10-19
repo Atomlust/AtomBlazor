@@ -1,0 +1,95 @@
+@namespace AtomBlazor
+@using AtomBlazor.Primitives.Utilities
+@inject IServiceProvider Services
+
+@*
+    抽屉关闭 - 激活时关闭抽屉。
+
+    默认渲染一个真正的 <button>，以便可通过键盘访问，并作为控件暴露给辅助技术。在 #507 之前，
+    这里是一个裸露的 <div @onclick>：当子元素恰好可聚焦时尚可工作，否则会静默失效。
+
+    当子元素本身已是控件（例如 Button）时，应设置 AsChild="true"，使子元素成为触发器，
+    而不是被嵌套在第二个按钮内部（这是无效的 HTML）。这与 DialogTrigger、SheetTrigger 和
+    PopoverTrigger 的用法一致。
+*@
+@if (AsChild)
+{
+    <CascadingValue Value="TriggerContext" Name="TriggerContext">
+        @ChildContent
+    </CascadingValue>
+}
+else
+{
+    <button type="button" class="@CssClass" @onclick="HandleClick" @attributes="AdditionalAttributes">
+        @ChildContent
+    </button>
+}
+
+@code {
+    [CascadingParameter]
+    public Drawer? Context { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 为 true 时，不渲染自身的按钮。子元素成为触发器，并接收级联的
+    /// <see cref="TriggerContext"/>，这正是 <c>Button</c> 之类的嵌套控件所消费的。
+    /// </summary>
+    /// <remarks>
+    /// 只要子元素本身已是控件，就应使用此选项。在控件周围保留为 false 会将按钮嵌套在按钮内，
+    /// 没有任何浏览器能可靠地渲染。不过，子元素必须读取该上下文：纯文本、图标或普通的
+    /// <c>button</c> 无法做到这一点，那样便没有任何东西能关闭抽屉，且 <c>Class</c> 也会无处生效。
+    /// 发生这种情况时，开发环境会记录一条警告。
+    /// </remarks>
+    [Parameter]
+    public bool AsChild { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    // #459：否则一旦该元素可聚焦，浏览器自身的轮廓就会出现。
+    private string? CssClass => ClassNames.cn(
+        "atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2",
+        Class);
+
+    private static readonly AsChildTriggerDescription diagnostic = new("DrawerClose", "close this drawer", "<button>");
+
+    // 上一次渲染所级联的上下文，保留它以便首次渲染后可查询是否有任何内容读取了它。
+    private TriggerContext? lastTriggerContext;
+
+    private TriggerContext TriggerContext => lastTriggerContext = new()
+    {
+        IsOpen = Context?.IsOpen ?? false,
+        Close = () => _ = Context?.SetOpen(false),
+    };
+
+    private async Task HandleClick()
+    {
+        if (Context != null)
+        {
+            await Context.SetOpen(false);
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            AsChildDiagnostics.WarnIfUnconsumed<DrawerClose>(Services, diagnostic, AsChild, lastTriggerContext, PageAttributes());
+        }
+    }
+
+    // 页面所设置的、而 AsChild 模式没有元素承载的内容：额外属性，以及 Class
+    // ——Class 在此处是一个参数，而非其中之一。
+    private IReadOnlyDictionary<string, object>? PageAttributes() =>
+        string.IsNullOrEmpty(Class)
+            ? AdditionalAttributes
+            : new Dictionary<string, object>(AdditionalAttributes ?? new Dictionary<string, object>()) { ["class"] = Class };
+}

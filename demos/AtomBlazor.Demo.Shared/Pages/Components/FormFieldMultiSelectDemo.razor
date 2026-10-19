@@ -1,0 +1,939 @@
+@page "/components/form-field-multi-select"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("FormFieldMultiSelect 表单多选 - Atom BlazorUI", "FormFieldMultiSelect Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <div class="flex items-center gap-3">
+                <h1 class="text-4xl font-bold tracking-tight">FormFieldMultiSelect</h1>
+                <span class="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20">v3</span>
+            </div>
+            <p class="text-xl text-muted-foreground">
+                @L.T("MultiSelect 的表单字段封装，内置标签、提示文本与错误信息。",
+                     "A form field wrapper for MultiSelect with built-in label, helper text, and error messages.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Which form component? -->
+    <div class="rounded-lg border border-dashed bg-muted/30 p-6 space-y-3">
+        <h2 class="text-lg font-semibold">@L.T("该用哪个表单组件？", "Which form component?")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <div class="space-y-2 text-sm text-muted-foreground">
+                <p><strong>文本输入</strong>（string、int、日期等）？ &rarr; <a href="/components/form-field-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldInput&lt;T&gt;</a></p>
+                <p><strong>多行文本</strong>？ &rarr; <a href="/components/form-field-textarea" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTextarea</a></p>
+                <p><strong>数字输入</strong>？ &rarr; <a href="/components/form-field-numeric-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldNumericInput</a></p>
+                <p><strong>货币输入</strong>？ &rarr; <a href="/components/form-field-currency-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCurrencyInput</a></p>
+                <p><strong>掩码输入</strong>（电话、社保号等）？ &rarr; <a href="/components/form-field-masked-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldMaskedInput</a></p>
+                <p><strong>OTP / 验证码</strong>？ &rarr; <a href="/components/form-field-input-otp" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldInputOTP</a></p>
+                <p><strong>日期选择器</strong>？ &rarr; <a href="/components/form-field-date-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldDatePicker</a></p>
+                <p><strong>日期区间选择器</strong>？ &rarr; <a href="/components/form-field-date-range-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldDateRangePicker</a></p>
+                <p><strong>时间选择器</strong>？ &rarr; <a href="/components/form-field-time-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTimePicker</a></p>
+                <p><strong>复选框</strong>？ &rarr; <a href="/components/form-field-checkbox" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCheckbox</a></p>
+                <p><strong>复选框组</strong>？ &rarr; <a href="/components/form-field-checkbox-group" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCheckboxGroup</a></p>
+                <p><strong>开关</strong>？ &rarr; <a href="/components/form-field-switch" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldSwitch</a></p>
+                <p><strong>单选组</strong>？ &rarr; <a href="/components/form-field-radio-group" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldRadioGroup</a></p>
+                <p><strong>下拉选择</strong>？ &rarr; <a href="/components/form-field-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldSelect</a></p>
+                <p><strong>原生 select</strong>？ &rarr; <a href="/components/form-field-native-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldNativeSelect</a></p>
+                <p><strong>可搜索选择</strong>？ &rarr; <a href="/components/form-field-combobox" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCombobox</a></p>
+                <p><strong>多选</strong>？ &rarr; <strong>FormFieldMultiSelect</strong>（当前页面）</p>
+                <p><strong>标签输入</strong>？ &rarr; <a href="/components/form-field-tag-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTagInput</a></p>
+                <p><strong>文件上传</strong>？ &rarr; <a href="/components/form-field-file-upload" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldFileUpload</a></p>
+            </div>
+                </text>
+}
+        else
+        {
+                <text>
+                    <div class="space-y-2 text-sm text-muted-foreground">
+                <p><strong>Text input</strong> (string, int, date, etc.)? &rarr; <a href="/components/form-field-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldInput&lt;T&gt;</a></p>
+                <p><strong>Textarea</strong>? &rarr; <a href="/components/form-field-textarea" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTextarea</a></p>
+                <p><strong>Numeric input</strong>? &rarr; <a href="/components/form-field-numeric-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldNumericInput</a></p>
+                <p><strong>Currency input</strong>? &rarr; <a href="/components/form-field-currency-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCurrencyInput</a></p>
+                <p><strong>Masked input</strong> (phone, SSN, etc.)? &rarr; <a href="/components/form-field-masked-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldMaskedInput</a></p>
+                <p><strong>OTP / verification code</strong>? &rarr; <a href="/components/form-field-input-otp" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldInputOTP</a></p>
+                <p><strong>Date picker</strong>? &rarr; <a href="/components/form-field-date-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldDatePicker</a></p>
+                <p><strong>Date range picker</strong>? &rarr; <a href="/components/form-field-date-range-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldDateRangePicker</a></p>
+                <p><strong>Time picker</strong>? &rarr; <a href="/components/form-field-time-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTimePicker</a></p>
+                <p><strong>Checkbox</strong>? &rarr; <a href="/components/form-field-checkbox" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCheckbox</a></p>
+                <p><strong>Checkbox group</strong>? &rarr; <a href="/components/form-field-checkbox-group" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCheckboxGroup</a></p>
+                <p><strong>Switch</strong>? &rarr; <a href="/components/form-field-switch" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldSwitch</a></p>
+                <p><strong>Radio group</strong>? &rarr; <a href="/components/form-field-radio-group" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldRadioGroup</a></p>
+                <p><strong>Select dropdown</strong>? &rarr; <a href="/components/form-field-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldSelect</a></p>
+                <p><strong>Native select</strong>? &rarr; <a href="/components/form-field-native-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldNativeSelect</a></p>
+                <p><strong>Searchable select</strong>? &rarr; <a href="/components/form-field-combobox" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCombobox</a></p>
+                <p><strong>Multi-select</strong>? &rarr; <strong>FormFieldMultiSelect</strong> (this page)</p>
+                <p><strong>Tag input</strong>? &rarr; <a href="/components/form-field-tag-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTagInput</a></p>
+                <p><strong>File upload</strong>? &rarr; <a href="/components/form-field-file-upload" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldFileUpload</a></p>
+            </div>
+                </text>
+}
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带标签、提示文本与搜索功能的多选框，选中项以标签形式展示。",
+                     "A multi-select with label, helper text, and search. Selected items appear as tags.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldMultiSelect Required="true" AriaLabel="@(L.T("编程语言", "Programming languages"))" TValue="string"
+                                  Options="_languages"
+                                  @bind-Values="_selectedLanguages"
+                                  Label="@(L.T("编程语言", "Programming languages"))"
+                                  Placeholder="@(L.T("选择语言……", "Select languages..."))"
+                                  SearchPlaceholder="@(L.T("搜索语言……", "Search languages..."))"
+                                  HelperText="@(L.T("选择你精通的所有语言。", "Select all languages you are proficient in."))"
+                                  MatchTriggerWidth="true"
+                                  InputClass="w-full" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+            <p class="text-sm"><span class="font-medium">@L.T("选中值：", "Selected values:")</span> <span class="font-mono">@(_selectedLanguages?.Any() == true ? string.Join(", ", _selectedLanguages) : L.T("（无）", "(none)"))</span></p>
+            <p class="text-sm"><span class="font-medium">@L.T("选中文本：", "Selected text:")</span> @(_selectedLanguages?.Any() == true ? string.Join(", ", _languages.GetTexts(_selectedLanguages)) : L.T("（无）", "(none)"))</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldMultiSelect/basic.txt" />
+    </div>
+
+    <!-- Compositional Mode -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("组合式模式", "Compositional Mode")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    想要完全控制条目渲染时，省略 <code class="text-xs bg-muted px-1 py-0.5 rounded">Options</code>，
+                    改为使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">MultiSelectItem</code> 子内容。
+                    搜索、全选、键盘导航与复选框指示的行为完全一致。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    For full control over item rendering, omit <code class="text-xs bg-muted px-1 py-0.5 rounded">Options</code>
+                    and use <code class="text-xs bg-muted px-1 py-0.5 rounded">MultiSelectItem</code> children instead.
+                    Search, Select All, keyboard navigation, and checkbox indicators work identically.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldMultiSelect TValue="string"
+                                  @bind-Values="_compositionalValues"
+                                  Label="@(L.T("权限", "Permissions"))"
+                                  Placeholder="@(L.T("选择权限……", "Select permissions..."))"
+                                  SearchPlaceholder="@(L.T("搜索……", "Search..."))"
+                                  ShowSelectAll="true"
+                                  SelectAllLabel="@(L.T("全选", "Select All"))"
+                                  HelperText="@(L.T("分配访问权限。", "Assign access permissions."))"
+                                  MatchTriggerWidth="true"
+                                  InputClass="w-full">
+                <MultiSelectItem Value="@("read")" Text="Read">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block h-2 w-2 rounded-full bg-green-500"></span>
+                        Read
+                    </div>
+                </MultiSelectItem>
+                <MultiSelectItem Value="@("write")" Text="Write">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block h-2 w-2 rounded-full bg-yellow-500"></span>
+                        Write
+                    </div>
+                </MultiSelectItem>
+                <MultiSelectItem Value="@("delete")" Text="Delete">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block h-2 w-2 rounded-full bg-red-500"></span>
+                        Delete
+                    </div>
+                </MultiSelectItem>
+                <MultiSelectItem Value="@("admin")" Text="Admin">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block h-2 w-2 rounded-full bg-purple-500"></span>
+                        Admin
+                    </div>
+                </MultiSelectItem>
+            </FormFieldMultiSelect>
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+            <p class="text-sm"><span class="font-medium">@L.T("选中值：", "Selected values:")</span> <span class="font-mono">@(_compositionalValues?.Any() == true ? string.Join(", ", _compositionalValues) : L.T("（无）", "(none)"))</span></p>
+            <p class="text-sm"><span class="font-medium">@L.T("选中文本：", "Selected text:")</span> @(_compositionalValues?.Any() == true ? string.Join(", ", _compositionalValues.Select(GetCompositionalLabel)) : L.T("（无）", "(none)"))</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldMultiSelect/compositional.txt" />
+    </div>
+
+    <!-- Non-String Value Types -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("非字符串值类型", "Non-String Value Types")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">TValue</code> 绑定到
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">IEnumerable&lt;int&gt;?</code> 这类非字符串类型，
+                    组件会自动处理转换。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">TValue</code> to bind to non-string types such as
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">IEnumerable&lt;int&gt;?</code>. The component handles
+                    conversion automatically.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldMultiSelect TValue="int"
+                                  Options="_permissions"
+                                  @bind-Values="_selectedPermissions"
+                                  Label="@(L.T("权限", "Permissions"))"
+                                  Placeholder="@(L.T("选择权限……", "Select permissions..."))"
+                                  SearchPlaceholder="@(L.T("搜索权限……", "Search permissions..."))"
+                                  HelperText="@(L.T("为该角色分配权限。", "Assign permissions to this role."))"
+                                  MatchTriggerWidth="true"
+                                  InputClass="w-full" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+            <p class="text-sm"><span class="font-medium">@L.T("选中值：", "Selected values:")</span> <span class="font-mono">@(_selectedPermissions?.Any() == true ? string.Join(", ", _selectedPermissions) : L.T("（无）", "(none)"))</span></p>
+            <p class="text-sm"><span class="font-medium">@L.T("选中文本：", "Selected text:")</span> @(_selectedPermissions?.Any() == true ? string.Join(", ", _permissions.GetTexts(_selectedPermissions)) : L.T("（无）", "(none)"))</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldMultiSelect/non-string.txt" />
+    </div>
+
+    <!-- Guid Values -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("Guid 值", "Guid Values")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    当条目使用唯一标识符时，可绑定到 <code class="text-xs bg-muted px-1 py-0.5 rounded">IEnumerable&lt;Guid&gt;?</code> 值。
+                    设置 <code class="text-xs bg-muted px-1 py-0.5 rounded">TValue="Guid"</code> 后，
+                    组件会处理序列化与比较。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Bind to <code class="text-xs bg-muted px-1 py-0.5 rounded">IEnumerable&lt;Guid&gt;?</code> values when your items use
+                    unique identifiers. Set <code class="text-xs bg-muted px-1 py-0.5 rounded">TValue="Guid"</code> and
+                    the component handles serialization and comparison.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldMultiSelect TValue="Guid"
+                                  Options="_projects"
+                                  @bind-Values="_selectedProjects"
+                                  Label="@(L.T("项目", "Projects"))"
+                                  Placeholder="@(L.T("选择项目……", "Select projects..."))"
+                                  SearchPlaceholder="@(L.T("搜索项目……", "Search projects..."))"
+                                  HelperText="@(L.T("选择要包含的项目。", "Choose projects to include."))"
+                                  MatchTriggerWidth="true"
+                                  InputClass="w-full" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+            <p class="text-sm"><span class="font-medium">@L.T("选中值：", "Selected values:")</span> <span class="font-mono">@(_selectedProjects?.Any() == true ? string.Join(", ", _selectedProjects) : L.T("（无）", "(none)"))</span></p>
+            <p class="text-sm"><span class="font-medium">@L.T("选中文本：", "Selected text:")</span> @(_selectedProjects?.Any() == true ? string.Join(", ", _projects.GetTexts(_selectedProjects)) : L.T("（无）", "(none)"))</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldMultiSelect/guid.txt" />
+    </div>
+
+    <!-- Without Select All -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("不带全选", "Without Select All")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowSelectAll="false"</code>
+                    隐藏全选选项。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowSelectAll="false"</code> to
+                    hide the Select All option.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldMultiSelect TValue="string"
+                                  Options="_technologies"
+                                  @bind-Values="_selectedTechnologies"
+                                  Label="@(L.T("技术栈", "Tech stack"))"
+                                  Placeholder="@(L.T("选择技术栈……", "Select technologies..."))"
+                                  SearchPlaceholder="@(L.T("搜索……", "Search..."))"
+                                  ShowSelectAll="false"
+                                  MaxDisplayTags="2"
+                                  MatchTriggerWidth="true"
+                                  InputClass="w-full" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+            <p class="text-sm"><span class="font-medium">@L.T("选中值：", "Selected values:")</span> <span class="font-mono">@(_selectedTechnologies?.Any() == true ? string.Join(", ", _selectedTechnologies) : L.T("（无）", "(none)"))</span></p>
+            <p class="text-sm"><span class="font-medium">@L.T("选中文本：", "Selected text:")</span> @(_selectedTechnologies?.Any() == true ? string.Join(", ", _technologies.GetTexts(_selectedTechnologies)) : L.T("（无）", "(none)"))</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldMultiSelect/without-select-all.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个禁用的多选表单字段，已预选若干值。",
+                     "A disabled multi-select form field with pre-selected values.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldMultiSelect TValue="string"
+                                  Options="_languages"
+                                  Values="@(new[] { "csharp", "typescript" })"
+                                  Label="@(L.T("必备技能", "Required skills"))"
+                                  HelperText="@(L.T("这些技能是担任该角色所必需的。", "These skills are required for this role."))"
+                                  MatchTriggerWidth="true"
+                                  InputClass="w-full"
+                                  Disabled="true" />
+        </div>
+        <CodeBlock Source="Components/FormFieldMultiSelect/disabled.txt" />
+    </div>
+
+    <!-- EditForm Integration -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("EditForm 集成", "EditForm Integration")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("在 EditForm 中，校验错误会自动显示。试试不选择任何技能直接提交。",
+                     "Validation errors display automatically inside an EditForm. Try submitting without selecting any skills.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <EditForm Model="_formModel" OnValidSubmit="HandleFormSubmit">
+                <DataAnnotationsValidator />
+                <div class="space-y-4">
+                    <FormFieldMultiSelect TValue="string"
+                                          Options="_languages"
+                                          @bind-Values="_formModel.Skills"
+                                          Label="@(L.T("技能", "Skills"))"
+                                          Placeholder="@(L.T("选择你的技能……", "Select your skills..."))"
+                                          SearchPlaceholder="@(L.T("搜索技能……", "Search skills..."))"
+                                          MatchTriggerWidth="true"
+                                          InputClass="w-full" />
+                    <Button Type="ButtonType.Submit">@L.T("提交", "Submit")</Button>
+                </div>
+            </EditForm>
+            @if (_formSubmitted)
+            {
+                <div class="mt-4 rounded-lg border border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800 p-4 space-y-1">
+                    <p class="text-sm font-medium text-green-800 dark:text-green-200">
+                        @L.T("已提交值：", "Submitted values:") <span class="font-mono">@(_formModel.Skills != null ? string.Join(", ", _formModel.Skills) : L.T("（无）", "(none)"))</span>
+                    </p>
+                    <p class="text-sm font-medium text-green-800 dark:text-green-200">
+                        @L.T("已提交文本：", "Submitted text:") @(_formModel.Skills != null ? string.Join(", ", _languages.GetTexts(_formModel.Skills)) : L.T("（无）", "(none)"))
+                    </p>
+                </div>
+            }
+        </div>
+        <CodeBlock Source="Components/FormFieldMultiSelect/edit-form.txt" />
+    </div>
+
+    <!-- Infinite Scroll (Options mode) -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("无限滚动", "Infinite Scroll")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">OnLoadMore</code> 与
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">IsLoading</code> 分批加载条目。
+                    本例有约 80 个带国旗的国家，每次载入 20 个。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">OnLoadMore</code> and
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">IsLoading</code> to load items in batches.
+                    This example has ~80 countries with flags, loading 20 at a time.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <FormFieldMultiSelect TValue="string"
+                                      Options="@_ffmsScrollCountries"
+                                      @bind-Values="_ffmsScrollSelected"
+                                      SearchQueryChanged="@HandleFfmsSearch"
+                                      OnLoadMore="@HandleFfmsLoadMore"
+                                      IsLoading="@_ffmsScrollIsLoading"
+                                      Label="@(L.T("国家", "Countries"))"
+                                      Placeholder="@(L.T("选中国家……", "Select countries..."))"
+                                      SearchPlaceholder="@(L.T("搜索国家……", "Search countries..."))"
+                                      EmptyMessage="@(_ffmsScrollIsLoading ? L.T("加载中……", "Loading...") : L.T("未找到国家。", "No countries found."))"
+                                      HelperText="@($"已显示 {_ffmsScrollCountries.Length} / {_allFfmsCountries.Length} 个国家。")"
+                                      MatchTriggerWidth="true"
+                                      InputClass="w-full" />
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <FormFieldMultiSelect TValue="string"
+                                      Options="@_ffmsScrollCountries"
+                                      @bind-Values="_ffmsScrollSelected"
+                                      SearchQueryChanged="@HandleFfmsSearch"
+                                      OnLoadMore="@HandleFfmsLoadMore"
+                                      IsLoading="@_ffmsScrollIsLoading"
+                                      Label="Countries"
+                                      Placeholder="Select countries..."
+                                      SearchPlaceholder="Search countries..."
+                                      EmptyMessage="@(_ffmsScrollIsLoading ? "Loading..." : "No countries found.")"
+                                      HelperText="@($"Showing {_ffmsScrollCountries.Length} of {_allFfmsCountries.Length} countries.")"
+                                      MatchTriggerWidth="true"
+                                      InputClass="w-full" />
+                        </text>
+}
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+            <p class="text-sm"><span class="font-medium">@L.T("已选择：", "Selected:")</span> <span class="font-mono">@(_ffmsScrollSelected?.Any() == true ? string.Join(", ", _ffmsScrollSelected) : L.T("（无）", "(none)"))</span></p>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm"><span class="font-medium">已载入：</span> @_ffmsScrollCountries.Length / @_allFfmsCountries.Length</p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm"><span class="font-medium">Loaded:</span> @_ffmsScrollCountries.Length of @_allFfmsCountries.Length</p>
+                        </text>
+}
+        </div>
+        <CodeBlock Source="Components/FormFieldMultiSelect/infinite-scroll.txt" />
+    </div>
+
+    <!-- Infinite Scroll (Compositional mode) -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("无限滚动（组合式）", "Infinite Scroll (Compositional)")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    无限滚动在组合式模式下同样可用。本例用 <code class="text-xs bg-muted px-1 py-0.5 rounded">MultiSelectItem</code> 子内容
+                    渲染约 80 个带国旗 emoji 的国家，每次载入 20 个。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Infinite scroll works with compositional mode too. This example renders ~80 countries with flag emojis
+                    using <code class="text-xs bg-muted px-1 py-0.5 rounded">MultiSelectItem</code> children, loading 20 at a time.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <FormFieldMultiSelect TValue="string"
+                                      @bind-Values="_ffmsCompScrollSelected"
+                                      SearchQueryChanged="@HandleFfmsCompSearch"
+                                      OnLoadMore="@HandleFfmsCompLoadMore"
+                                      IsLoading="@_ffmsCompScrollIsLoading"
+                                      Label="@(L.T("国家", "Countries"))"
+                                      Placeholder="@(L.T("选中国家……", "Select countries..."))"
+                                      SearchPlaceholder="@(L.T("搜索国家……", "Search countries..."))"
+                                      EmptyMessage="@(_ffmsCompScrollIsLoading ? L.T("加载中……", "Loading...") : L.T("未找到国家。", "No countries found."))"
+                                      HelperText="@($"已显示 {_ffmsCompScrollVisible.Length} / {_allFfmsCompCountries.Length} 个国家。")"
+                                      MatchTriggerWidth="true"
+                                      InputClass="w-full">
+                    @foreach (var c in _ffmsCompScrollVisible)
+                    {
+                        <MultiSelectItem Value="@c.Code" Text="@($"{c.Flag} {c.Name}")" />
+                    }
+                </FormFieldMultiSelect>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <FormFieldMultiSelect TValue="string"
+                                      @bind-Values="_ffmsCompScrollSelected"
+                                      SearchQueryChanged="@HandleFfmsCompSearch"
+                                      OnLoadMore="@HandleFfmsCompLoadMore"
+                                      IsLoading="@_ffmsCompScrollIsLoading"
+                                      Label="Countries"
+                                      Placeholder="Select countries..."
+                                      SearchPlaceholder="Search countries..."
+                                      EmptyMessage="@(_ffmsCompScrollIsLoading ? "Loading..." : "No countries found.")"
+                                      HelperText="@($"Showing {_ffmsCompScrollVisible.Length} of {_allFfmsCompCountries.Length} countries.")"
+                                      MatchTriggerWidth="true"
+                                      InputClass="w-full">
+                    @foreach (var c in _ffmsCompScrollVisible)
+                    {
+                        <MultiSelectItem Value="@c.Code" Text="@($"{c.Flag} {c.Name}")" />
+                    }
+                </FormFieldMultiSelect>
+                        </text>
+}
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50 space-y-1">
+            <p class="text-sm"><span class="font-medium">@L.T("已选择：", "Selected:")</span> <span class="font-mono">@(_ffmsCompScrollSelected?.Any() == true ? string.Join(", ", _ffmsCompScrollSelected) : L.T("（无）", "(none)"))</span></p>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm"><span class="font-medium">已载入：</span> @_ffmsCompScrollVisible.Length / @_allFfmsCompCountries.Length</p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm"><span class="font-medium">Loaded:</span> @_ffmsCompScrollVisible.Length of @_allFfmsCompCountries.Length</p>
+                        </text>
+}
+        </div>
+        <CodeBlock Source="Components/FormFieldMultiSelect/infinite-scroll-compositional.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("通过生成的 ID 自动把标签与输入框关联", "Automatically associates label with input via generated ID")</AccessibilityItem>
+            <AccessibilityItem>@L.T("通过 aria-describedby 关联描述文本", "Description linked via aria-describedby")</AccessibilityItem>
+            <AccessibilityItem>@L.T("校验错误以 aria-invalid 标示", "Validation errors displayed with aria-invalid")</AccessibilityItem>
+        </AriaAttributes>
+            <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可用的表单控件之间移动", "Move between enabled form controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("打开获得焦点的选择器", "Open the focused picker"))"><Kbd>Enter</Kbd> / <Kbd>Space</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在选项间导航", "Navigate options"))"><Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("选中当前聚焦的选项", "Choose the focused option"))"><Kbd>Enter</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭选择器", "Close the picker"))"><Kbd>Escape</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="FormFieldMultiSelect&lt;TValue&gt;">
+        <ApiParameter Name="ActiveClass" Type="string?">@L.T("活动选项的 CSS 类；会转发给内部的 MultiSelect。", "CSS classes for the active option; forwarded to the inner MultiSelect.")</ApiParameter>
+        <ApiParameter Name="Required" Type="bool" Default="false">@L.T("声明这是一个必选的多选。非空校验请使用模型验证。", "Announces a required selection. Enforce nonempty selection with model validation.")</ApiParameter>
+                <ApiParameter Name="Label" Type="string?" Default="null">
+                    @L.T("显示在多选框上方的标签文本。", "The label text displayed above the multi-select.")
+                </ApiParameter>
+                <ApiParameter Name="HelperText" Type="string?" Default="null">
+                    @L.T("显示在多选框下方的提示文本。出现错误时会被隐藏。", "Helper text displayed below the multi-select. Hidden during error state.")
+                </ApiParameter>
+                <ApiParameter Name="ErrorText" Type="string?" Default="null">
+                    @L.T("手动指定的错误文本。字段无效且设置了该值时，会取代自动生成的消息。", "Manual error text override. When the field is invalid and this is set, replaces auto-generated messages.")
+                </ApiParameter>
+                <ApiParameter Name="Orientation" Type="FieldOrientation" Default="Vertical">
+                    @L.T("字段的布局方向。", "Layout orientation of the field.")
+                </ApiParameter>
+                <ApiParameter Name="Options" Type="IEnumerable&lt;SelectOption&lt;TValue&gt;&gt;?" Default="null">
+                    @L.T("要显示的选项集合。提供时使用 Options 模式；为 null 时使用组合式模式与 ChildContent。", "Collection of options to display. When provided, uses Options mode. When null, uses Compositional mode with ChildContent.")
+                </ApiParameter>
+                <ApiParameter Name="Values" Type="IEnumerable&lt;TValue&gt;?" Default="null">
+                    @L.T("当前选中的值集合。使用 @bind-Values 进行双向绑定。", "The currently selected values. Use @bind-Values for two-way binding.")
+                </ApiParameter>
+                <ApiParameter Name="ValuesChanged" Type="EventCallback&lt;IEnumerable&lt;TValue&gt;?&gt;">
+                    @L.T("选中值发生变化时调用的回调。", "Callback invoked when the selected values change.")
+                </ApiParameter>
+                <ApiParameter Name="Placeholder" Type="string" Default="&quot;Select items...&quot;">
+                    @L.T("未选中任何条目时显示的占位文本。", "Placeholder text shown when no items are selected.")
+                </ApiParameter>
+                <ApiParameter Name="SearchPlaceholder" Type="string" Default="&quot;Search...&quot;">
+                    @L.T("搜索输入框中显示的占位文本。", "Placeholder text shown in the search input.")
+                </ApiParameter>
+                <ApiParameter Name="EmptyMessage" Type="string" Default="&quot;No results found.&quot;">
+                    @L.T("没有条目匹配搜索时显示的消息。", "Message displayed when no items match the search.")
+                </ApiParameter>
+                <ApiParameter Name="ShowSelectAll" Type="bool" Default="true">
+                    @L.T("是否显示全选选项。", "Whether to show the Select All option.")
+                </ApiParameter>
+                <ApiParameter Name="SelectAllLabel" Type="string" Default="&quot;Select All&quot;">
+                    @L.T("全选选项的标签。", "Label for the Select All option.")
+                </ApiParameter>
+                <ApiParameter Name="ClearLabel" Type="string" Default="&quot;Clear&quot;">
+                    @L.T("清除按钮的标签。", "Label for the Clear button.")
+                </ApiParameter>
+                <ApiParameter Name="CloseLabel" Type="string" Default="&quot;Close&quot;">
+                    @L.T("关闭按钮的标签。", "Label for the Close button.")
+                </ApiParameter>
+                <ApiParameter Name="MaxDisplayTags" Type="int" Default="3">
+                    @L.T("在显示「+N more」之前最多展示的标签数。", "Maximum number of tags to display before showing \"+N more\".")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("多选框是否被禁用。", "Whether the multi-select is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="MatchTriggerWidth" Type="bool" Default="false">
+                    @L.T("是否让下拉面板的宽度与触发元素一致。", "Whether to match the dropdown width to the trigger element width.")
+                </ApiParameter>
+                <ApiParameter Name="PopoverWidth" Type="string" Default="&quot;w-[300px]&quot;">
+                    @L.T("用于设定浮层内容宽度的 CSS 类。", "CSS class for the width of the popover content.")
+                </ApiParameter>
+                <ApiParameter Name="AutoClose" Type="bool" Default="true">
+                    @L.T("点击下拉框外部时是否关闭。", "Whether clicking outside the dropdown should close it.")
+                </ApiParameter>
+                <ApiParameter Name="InputClass" Type="string?" Default="null">
+                    @L.T("应用到内部 MultiSelect 元素上的额外 CSS 类。", "Additional CSS classes applied to the inner MultiSelect element.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到外层 Field 容器上的额外 CSS 类。", "Additional CSS classes applied to the outer Field container.")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                    @L.T("该控件的 ARIA 标签。", "ARIA label for the control.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?" Default="null">
+                    @L.T("组合式模式的内容。把 MultiSelectItem 组件作为子内容使用。", "Content for compositional mode. Use MultiSelectItem components as children.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private IEnumerable<string>? _selectedLanguages;
+    private IEnumerable<string>? _compositionalValues;
+    private IEnumerable<string>? _selectedTechnologies;
+    private IEnumerable<int>? _selectedPermissions;
+    private IEnumerable<Guid>? _selectedProjects;
+    private bool _formSubmitted;
+    private MultiSelectFormModel _formModel = new();
+
+    private readonly SelectOption<string>[] _languages =
+    [
+        new("csharp", "C#"),
+        new("typescript", "TypeScript"),
+        new("javascript", "JavaScript"),
+        new("python", "Python"),
+        new("java", "Java"),
+        new("go", "Go"),
+        new("rust", "Rust"),
+        new("php", "PHP")
+    ];
+
+    private readonly SelectOption<string>[] _technologies =
+    [
+        new("react", "React"),
+        new("vue", "Vue.js"),
+        new("angular", "Angular"),
+        new("blazor", "Blazor"),
+        new("nextjs", "Next.js"),
+        new("dotnet", ".NET"),
+        new("docker", "Docker")
+    ];
+
+    private readonly SelectOption<int>[] _permissions =
+    [
+        new(1, "Read"),
+        new(2, "Write"),
+        new(3, "Delete"),
+        new(4, "Admin"),
+        new(5, "Export")
+    ];
+
+    private readonly SelectOption<Guid>[] _projects =
+    [
+        new(Guid.Parse("a1b2c3d4-0001-0000-0000-000000000001"), "Alpha"),
+        new(Guid.Parse("a1b2c3d4-0002-0000-0000-000000000002"), "Beta"),
+        new(Guid.Parse("a1b2c3d4-0003-0000-0000-000000000003"), "Gamma"),
+        new(Guid.Parse("a1b2c3d4-0004-0000-0000-000000000004"), "Delta")
+    ];
+
+    private readonly Dictionary<string, string> _compositionalLabels = new()
+    {
+        ["read"] = "Read",
+        ["write"] = "Write",
+        ["delete"] = "Delete",
+        ["admin"] = "Admin"
+    };
+
+    private string GetCompositionalLabel(string value) =>
+        _compositionalLabels.GetValueOrDefault(value) ?? value;
+
+    private void HandleFormSubmit()
+    {
+        _formSubmitted = true;
+    }
+
+    protected override void OnInitialized()
+    {
+        InitFfmsScroll();
+        InitFfmsCompScroll();
+    }
+
+    // Infinite scroll (Options mode)
+    private IEnumerable<string>? _ffmsScrollSelected;
+    private SelectOption<string>[] _ffmsScrollCountries = Array.Empty<SelectOption<string>>();
+    private bool _ffmsScrollIsLoading;
+    private const int ffmsPageSize = 20;
+
+    private static readonly SelectOption<string>[] _allFfmsCountries =
+    [
+        new("AF", "\U0001F1E6\U0001F1EB Afghanistan"), new("AL", "\U0001F1E6\U0001F1F1 Albania"),
+        new("DZ", "\U0001F1E9\U0001F1FF Algeria"), new("AD", "\U0001F1E6\U0001F1E9 Andorra"),
+        new("AO", "\U0001F1E6\U0001F1F4 Angola"), new("AG", "\U0001F1E6\U0001F1EC Antigua and Barbuda"),
+        new("AR", "\U0001F1E6\U0001F1F7 Argentina"), new("AM", "\U0001F1E6\U0001F1F2 Armenia"),
+        new("AU", "\U0001F1E6\U0001F1FA Australia"), new("AT", "\U0001F1E6\U0001F1F9 Austria"),
+        new("AZ", "\U0001F1E6\U0001F1FF Azerbaijan"), new("BS", "\U0001F1E7\U0001F1F8 Bahamas"),
+        new("BH", "\U0001F1E7\U0001F1ED Bahrain"), new("BD", "\U0001F1E7\U0001F1E9 Bangladesh"),
+        new("BB", "\U0001F1E7\U0001F1E7 Barbados"), new("BY", "\U0001F1E7\U0001F1FE Belarus"),
+        new("BE", "\U0001F1E7\U0001F1EA Belgium"), new("BZ", "\U0001F1E7\U0001F1FF Belize"),
+        new("BJ", "\U0001F1E7\U0001F1EF Benin"), new("BT", "\U0001F1E7\U0001F1F9 Bhutan"),
+        new("BO", "\U0001F1E7\U0001F1F4 Bolivia"), new("BA", "\U0001F1E7\U0001F1E6 Bosnia and Herzegovina"),
+        new("BW", "\U0001F1E7\U0001F1FC Botswana"), new("BR", "\U0001F1E7\U0001F1F7 Brazil"),
+        new("BN", "\U0001F1E7\U0001F1F3 Brunei"), new("BG", "\U0001F1E7\U0001F1EC Bulgaria"),
+        new("BF", "\U0001F1E7\U0001F1EB Burkina Faso"), new("BI", "\U0001F1E7\U0001F1EE Burundi"),
+        new("KH", "\U0001F1F0\U0001F1ED Cambodia"), new("CM", "\U0001F1E8\U0001F1F2 Cameroon"),
+        new("CA", "\U0001F1E8\U0001F1E6 Canada"), new("TD", "\U0001F1F9\U0001F1E9 Chad"),
+        new("CL", "\U0001F1E8\U0001F1F1 Chile"), new("CN", "\U0001F1E8\U0001F1F3 China"),
+        new("CO", "\U0001F1E8\U0001F1F4 Colombia"), new("CR", "\U0001F1E8\U0001F1F7 Costa Rica"),
+        new("HR", "\U0001F1ED\U0001F1F7 Croatia"), new("CU", "\U0001F1E8\U0001F1FA Cuba"),
+        new("CY", "\U0001F1E8\U0001F1FE Cyprus"), new("CZ", "\U0001F1E8\U0001F1FF Czech Republic"),
+        new("DK", "\U0001F1E9\U0001F1F0 Denmark"), new("DO", "\U0001F1E9\U0001F1F4 Dominican Republic"),
+        new("EC", "\U0001F1EA\U0001F1E8 Ecuador"), new("EG", "\U0001F1EA\U0001F1EC Egypt"),
+        new("SV", "\U0001F1F8\U0001F1FB El Salvador"), new("EE", "\U0001F1EA\U0001F1EA Estonia"),
+        new("ET", "\U0001F1EA\U0001F1F9 Ethiopia"), new("FI", "\U0001F1EB\U0001F1EE Finland"),
+        new("FR", "\U0001F1EB\U0001F1F7 France"), new("DE", "\U0001F1E9\U0001F1EA Germany"),
+        new("GH", "\U0001F1EC\U0001F1ED Ghana"), new("GR", "\U0001F1EC\U0001F1F7 Greece"),
+        new("GT", "\U0001F1EC\U0001F1F9 Guatemala"), new("HT", "\U0001F1ED\U0001F1F9 Haiti"),
+        new("HN", "\U0001F1ED\U0001F1F3 Honduras"), new("HU", "\U0001F1ED\U0001F1FA Hungary"),
+        new("IS", "\U0001F1EE\U0001F1F8 Iceland"), new("IN", "\U0001F1EE\U0001F1F3 India"),
+        new("ID", "\U0001F1EE\U0001F1E9 Indonesia"), new("IR", "\U0001F1EE\U0001F1F7 Iran"),
+        new("IQ", "\U0001F1EE\U0001F1F6 Iraq"), new("IE", "\U0001F1EE\U0001F1EA Ireland"),
+        new("IL", "\U0001F1EE\U0001F1F1 Israel"), new("IT", "\U0001F1EE\U0001F1F9 Italy"),
+        new("JM", "\U0001F1EF\U0001F1F2 Jamaica"), new("JP", "\U0001F1EF\U0001F1F5 Japan"),
+        new("JO", "\U0001F1EF\U0001F1F4 Jordan"), new("KZ", "\U0001F1F0\U0001F1FF Kazakhstan"),
+        new("KE", "\U0001F1F0\U0001F1EA Kenya"), new("KR", "\U0001F1F0\U0001F1F7 South Korea"),
+        new("KW", "\U0001F1F0\U0001F1FC Kuwait"), new("LV", "\U0001F1F1\U0001F1FB Latvia"),
+        new("LB", "\U0001F1F1\U0001F1E7 Lebanon"), new("LY", "\U0001F1F1\U0001F1FE Libya"),
+        new("LT", "\U0001F1F1\U0001F1F9 Lithuania"), new("LU", "\U0001F1F1\U0001F1FA Luxembourg"),
+        new("MY", "\U0001F1F2\U0001F1FE Malaysia"), new("MX", "\U0001F1F2\U0001F1FD Mexico"),
+        new("MA", "\U0001F1F2\U0001F1E6 Morocco"), new("NP", "\U0001F1F3\U0001F1F5 Nepal"),
+        new("NL", "\U0001F1F3\U0001F1F1 Netherlands"), new("NZ", "\U0001F1F3\U0001F1FF New Zealand"),
+        new("NG", "\U0001F1F3\U0001F1EC Nigeria"), new("NO", "\U0001F1F3\U0001F1F4 Norway"),
+        new("PK", "\U0001F1F5\U0001F1F0 Pakistan"), new("PA", "\U0001F1F5\U0001F1E6 Panama"),
+        new("PE", "\U0001F1F5\U0001F1EA Peru"), new("PH", "\U0001F1F5\U0001F1ED Philippines"),
+        new("PL", "\U0001F1F5\U0001F1F1 Poland"), new("PT", "\U0001F1F5\U0001F1F9 Portugal"),
+        new("RO", "\U0001F1F7\U0001F1F4 Romania"), new("SA", "\U0001F1F8\U0001F1E6 Saudi Arabia"),
+        new("SG", "\U0001F1F8\U0001F1EC Singapore"), new("ZA", "\U0001F1FF\U0001F1E6 South Africa"),
+        new("ES", "\U0001F1EA\U0001F1F8 Spain"), new("SE", "\U0001F1F8\U0001F1EA Sweden"),
+        new("CH", "\U0001F1E8\U0001F1ED Switzerland"), new("TH", "\U0001F1F9\U0001F1ED Thailand"),
+        new("TR", "\U0001F1F9\U0001F1F7 Turkey"), new("UA", "\U0001F1FA\U0001F1E6 Ukraine"),
+        new("AE", "\U0001F1E6\U0001F1EA United Arab Emirates"), new("GB", "\U0001F1EC\U0001F1E7 United Kingdom"),
+        new("US", "\U0001F1FA\U0001F1F8 United States"), new("VN", "\U0001F1FB\U0001F1F3 Vietnam"),
+    ];
+
+    private string _ffmsCurrentQuery = string.Empty;
+
+    private void InitFfmsScroll()
+    {
+        _ffmsScrollCountries = _allFfmsCountries.Take(ffmsPageSize).ToArray();
+    }
+
+    private SelectOption<string>[] GetFilteredFfmsCountries(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return _allFfmsCountries;
+        }
+
+        return _allFfmsCountries
+            .Where(c => c.Text.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+    }
+
+    private async Task HandleFfmsSearch(string query)
+    {
+        _ffmsScrollIsLoading = true;
+        _ffmsCurrentQuery = query;
+        // BL0012（.NET 11）：事件处理器触发的重渲染由框架自动完成，此处的显式 StateHasChanged 无需保留。
+
+        await Task.Delay(200);
+
+        var filtered = GetFilteredFfmsCountries(query);
+        _ffmsScrollCountries = filtered.Take(ffmsPageSize).ToArray();
+        _ffmsScrollIsLoading = false;
+    }
+
+    private async Task HandleFfmsLoadMore()
+    {
+        _ffmsScrollIsLoading = true;
+        // BL0012（.NET 11）：事件处理器触发的重渲染由框架自动完成，此处的显式 StateHasChanged 无需保留。
+
+        await Task.Delay(300);
+
+        var filtered = GetFilteredFfmsCountries(_ffmsCurrentQuery);
+        var nextCount = _ffmsScrollCountries.Length + ffmsPageSize;
+        _ffmsScrollCountries = filtered.Take(nextCount).ToArray();
+        _ffmsScrollIsLoading = false;
+    }
+
+    // Infinite scroll (Compositional mode)
+    private IEnumerable<string>? _ffmsCompScrollSelected;
+    private FfmsCountryInfo[] _ffmsCompScrollVisible = Array.Empty<FfmsCountryInfo>();
+    private bool _ffmsCompScrollIsLoading;
+    private string _ffmsCompCurrentQuery = string.Empty;
+
+    private record FfmsCountryInfo(string Code, string Name, string Flag);
+
+    private static readonly FfmsCountryInfo[] _allFfmsCompCountries =
+    [
+        new("AF", "Afghanistan", "\U0001F1E6\U0001F1EB"), new("AL", "Albania", "\U0001F1E6\U0001F1F1"),
+        new("DZ", "Algeria", "\U0001F1E9\U0001F1FF"), new("AD", "Andorra", "\U0001F1E6\U0001F1E9"),
+        new("AO", "Angola", "\U0001F1E6\U0001F1F4"), new("AG", "Antigua and Barbuda", "\U0001F1E6\U0001F1EC"),
+        new("AR", "Argentina", "\U0001F1E6\U0001F1F7"), new("AM", "Armenia", "\U0001F1E6\U0001F1F2"),
+        new("AU", "Australia", "\U0001F1E6\U0001F1FA"), new("AT", "Austria", "\U0001F1E6\U0001F1F9"),
+        new("AZ", "Azerbaijan", "\U0001F1E6\U0001F1FF"), new("BS", "Bahamas", "\U0001F1E7\U0001F1F8"),
+        new("BH", "Bahrain", "\U0001F1E7\U0001F1ED"), new("BD", "Bangladesh", "\U0001F1E7\U0001F1E9"),
+        new("BB", "Barbados", "\U0001F1E7\U0001F1E7"), new("BY", "Belarus", "\U0001F1E7\U0001F1FE"),
+        new("BE", "Belgium", "\U0001F1E7\U0001F1EA"), new("BZ", "Belize", "\U0001F1E7\U0001F1FF"),
+        new("BJ", "Benin", "\U0001F1E7\U0001F1EF"), new("BT", "Bhutan", "\U0001F1E7\U0001F1F9"),
+        new("BO", "Bolivia", "\U0001F1E7\U0001F1F4"), new("BA", "Bosnia and Herzegovina", "\U0001F1E7\U0001F1E6"),
+        new("BW", "Botswana", "\U0001F1E7\U0001F1FC"), new("BR", "Brazil", "\U0001F1E7\U0001F1F7"),
+        new("BN", "Brunei", "\U0001F1E7\U0001F1F3"), new("BG", "Bulgaria", "\U0001F1E7\U0001F1EC"),
+        new("BF", "Burkina Faso", "\U0001F1E7\U0001F1EB"), new("BI", "Burundi", "\U0001F1E7\U0001F1EE"),
+        new("KH", "Cambodia", "\U0001F1F0\U0001F1ED"), new("CM", "Cameroon", "\U0001F1E8\U0001F1F2"),
+        new("CA", "Canada", "\U0001F1E8\U0001F1E6"), new("TD", "Chad", "\U0001F1F9\U0001F1E9"),
+        new("CL", "Chile", "\U0001F1E8\U0001F1F1"), new("CN", "China", "\U0001F1E8\U0001F1F3"),
+        new("CO", "Colombia", "\U0001F1E8\U0001F1F4"), new("CR", "Costa Rica", "\U0001F1E8\U0001F1F7"),
+        new("HR", "Croatia", "\U0001F1ED\U0001F1F7"), new("CU", "Cuba", "\U0001F1E8\U0001F1FA"),
+        new("CY", "Cyprus", "\U0001F1E8\U0001F1FE"), new("CZ", "Czech Republic", "\U0001F1E8\U0001F1FF"),
+        new("DK", "Denmark", "\U0001F1E9\U0001F1F0"), new("DO", "Dominican Republic", "\U0001F1E9\U0001F1F4"),
+        new("EC", "Ecuador", "\U0001F1EA\U0001F1E8"), new("EG", "Egypt", "\U0001F1EA\U0001F1EC"),
+        new("SV", "El Salvador", "\U0001F1F8\U0001F1FB"), new("EE", "Estonia", "\U0001F1EA\U0001F1EA"),
+        new("ET", "Ethiopia", "\U0001F1EA\U0001F1F9"), new("FI", "Finland", "\U0001F1EB\U0001F1EE"),
+        new("FR", "France", "\U0001F1EB\U0001F1F7"), new("DE", "Germany", "\U0001F1E9\U0001F1EA"),
+        new("GH", "Ghana", "\U0001F1EC\U0001F1ED"), new("GR", "Greece", "\U0001F1EC\U0001F1F7"),
+        new("GT", "Guatemala", "\U0001F1EC\U0001F1F9"), new("HT", "Haiti", "\U0001F1ED\U0001F1F9"),
+        new("HN", "Honduras", "\U0001F1ED\U0001F1F3"), new("HU", "Hungary", "\U0001F1ED\U0001F1FA"),
+        new("IS", "Iceland", "\U0001F1EE\U0001F1F8"), new("IN", "India", "\U0001F1EE\U0001F1F3"),
+        new("ID", "Indonesia", "\U0001F1EE\U0001F1E9"), new("IR", "Iran", "\U0001F1EE\U0001F1F7"),
+        new("IQ", "Iraq", "\U0001F1EE\U0001F1F6"), new("IE", "Ireland", "\U0001F1EE\U0001F1EA"),
+        new("IL", "Israel", "\U0001F1EE\U0001F1F1"), new("IT", "Italy", "\U0001F1EE\U0001F1F9"),
+        new("JM", "Jamaica", "\U0001F1EF\U0001F1F2"), new("JP", "Japan", "\U0001F1EF\U0001F1F5"),
+        new("JO", "Jordan", "\U0001F1EF\U0001F1F4"), new("KZ", "Kazakhstan", "\U0001F1F0\U0001F1FF"),
+        new("KE", "Kenya", "\U0001F1F0\U0001F1EA"), new("KR", "South Korea", "\U0001F1F0\U0001F1F7"),
+        new("KW", "Kuwait", "\U0001F1F0\U0001F1FC"), new("LV", "Latvia", "\U0001F1F1\U0001F1FB"),
+        new("LB", "Lebanon", "\U0001F1F1\U0001F1E7"), new("LY", "Libya", "\U0001F1F1\U0001F1FE"),
+        new("LT", "Lithuania", "\U0001F1F1\U0001F1F9"), new("LU", "Luxembourg", "\U0001F1F1\U0001F1FA"),
+        new("MY", "Malaysia", "\U0001F1F2\U0001F1FE"), new("MX", "Mexico", "\U0001F1F2\U0001F1FD"),
+        new("MA", "Morocco", "\U0001F1F2\U0001F1E6"), new("NP", "Nepal", "\U0001F1F3\U0001F1F5"),
+        new("NL", "Netherlands", "\U0001F1F3\U0001F1F1"), new("NZ", "New Zealand", "\U0001F1F3\U0001F1FF"),
+        new("NG", "Nigeria", "\U0001F1F3\U0001F1EC"), new("NO", "Norway", "\U0001F1F3\U0001F1F4"),
+        new("PK", "Pakistan", "\U0001F1F5\U0001F1F0"), new("PA", "Panama", "\U0001F1F5\U0001F1E6"),
+        new("PE", "Peru", "\U0001F1F5\U0001F1EA"), new("PH", "Philippines", "\U0001F1F5\U0001F1ED"),
+        new("PL", "Poland", "\U0001F1F5\U0001F1F1"), new("PT", "Portugal", "\U0001F1F5\U0001F1F9"),
+        new("RO", "Romania", "\U0001F1F7\U0001F1F4"), new("SA", "Saudi Arabia", "\U0001F1F8\U0001F1E6"),
+        new("SG", "Singapore", "\U0001F1F8\U0001F1EC"), new("ZA", "South Africa", "\U0001F1FF\U0001F1E6"),
+        new("ES", "Spain", "\U0001F1EA\U0001F1F8"), new("SE", "Sweden", "\U0001F1F8\U0001F1EA"),
+        new("CH", "Switzerland", "\U0001F1E8\U0001F1ED"), new("TH", "Thailand", "\U0001F1F9\U0001F1ED"),
+        new("TR", "Turkey", "\U0001F1F9\U0001F1F7"), new("UA", "Ukraine", "\U0001F1FA\U0001F1E6"),
+        new("AE", "United Arab Emirates", "\U0001F1E6\U0001F1EA"), new("GB", "United Kingdom", "\U0001F1EC\U0001F1E7"),
+        new("US", "United States", "\U0001F1FA\U0001F1F8"), new("VN", "Vietnam", "\U0001F1FB\U0001F1F3"),
+    ];
+
+    private void InitFfmsCompScroll()
+    {
+        _ffmsCompScrollVisible = _allFfmsCompCountries.Take(ffmsPageSize).ToArray();
+    }
+
+    private FfmsCountryInfo[] GetFilteredFfmsCompCountries(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return _allFfmsCompCountries;
+        }
+
+        return _allFfmsCompCountries
+            .Where(c => c.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
+                     || c.Code.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+    }
+
+    private async Task HandleFfmsCompSearch(string query)
+    {
+        _ffmsCompScrollIsLoading = true;
+        _ffmsCompCurrentQuery = query;
+        // BL0012（.NET 11）：事件处理器触发的重渲染由框架自动完成，此处的显式 StateHasChanged 无需保留。
+
+        await Task.Delay(200);
+
+        var filtered = GetFilteredFfmsCompCountries(query);
+        _ffmsCompScrollVisible = filtered.Take(ffmsPageSize).ToArray();
+        _ffmsCompScrollIsLoading = false;
+    }
+
+    private async Task HandleFfmsCompLoadMore()
+    {
+        _ffmsCompScrollIsLoading = true;
+        // BL0012（.NET 11）：事件处理器触发的重渲染由框架自动完成，此处的显式 StateHasChanged 无需保留。
+
+        await Task.Delay(300);
+
+        var filtered = GetFilteredFfmsCompCountries(_ffmsCompCurrentQuery);
+        var nextCount = _ffmsCompScrollVisible.Length + ffmsPageSize;
+        _ffmsCompScrollVisible = filtered.Take(nextCount).ToArray();
+        _ffmsCompScrollIsLoading = false;
+    }
+
+    private class MultiSelectFormModel
+    {
+        [Required(ErrorMessage = "Please select at least one skill.")]
+        public IEnumerable<string>? Skills { get; set; }
+    }
+}

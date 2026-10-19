@@ -1,0 +1,126 @@
+@namespace AtomBlazor.Primitives
+@implements IDisposable
+
+@* Tabs 基元根组件——headless，仅承载行为、不含样式 *@
+<div @attributes="AdditionalAttributes">
+    <CascadingValue Value="@_context" IsFixed="false">
+        @ChildContent
+    </CascadingValue>
+</div>
+
+@code {
+    private TabsContext _context = new();
+    private UseControllableState<string?> _state = null!;
+
+    /// <summary>
+    /// 在 Tabs 上下文内渲染的子内容。
+    /// 通常包含 TabsList 与 TabsContent 组件。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 控制哪个标签页处于激活状态（受控模式）。
+    /// 为 null 时由标签页自行管理状态（非受控模式）。
+    /// </summary>
+    [Parameter]
+    public string? Value { get; set; }
+
+    /// <summary>
+    /// 激活标签页变化时调用的事件回调。
+    /// 配合 @bind-Value 使用即可实现双向绑定。
+    /// </summary>
+    [Parameter]
+    public EventCallback<string?> ValueChanged { get; set; }
+
+    /// <summary>
+    /// 非受控模式下的初始激活标签页值。
+    /// </summary>
+    [Parameter]
+    public string? DefaultValue { get; set; }
+
+    /// <summary>
+    /// 激活标签页变化时调用的事件回调。
+    /// 以参数形式接收新的激活标签页值。
+    /// </summary>
+    [Parameter]
+    public EventCallback<string?> OnValueChange { get; set; }
+
+    /// <summary>
+    /// 标签页的排列方向（水平或垂直）。
+    /// 默认值为水平。
+    /// </summary>
+    [Parameter]
+    public TabsOrientation Orientation { get; set; } = TabsOrientation.Horizontal;
+
+    /// <summary>
+    /// 标签页的激活模式（聚焦即激活或点击才激活）。
+    /// 默认值为自动激活。
+    /// </summary>
+    [Parameter]
+    public TabsActivationMode ActivationMode { get; set; } = TabsActivationMode.Automatic;
+
+    /// <summary>
+    /// 要应用到根 div 元素的额外属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    protected override void OnInitialized()
+    {
+        // 初始化可控状态
+        _state = new UseControllableState<string?>(DefaultValue)
+        {
+            ControlledValue = Value,
+            OnValueChanged = ValueChanged,
+            IsControlled = ValueChanged.HasDelegate
+        };
+
+        // 将初始状态同步到上下文
+        _context.State.ActiveValue = _state.Value;
+        _context.State.Orientation = Orientation;
+        _context.State.ActivationMode = ActivationMode;
+
+        // 订阅上下文状态变化
+        _context.OnStateChanged += HandleContextStateChanged;
+    }
+
+    protected override void OnParametersSet()
+    {
+        // 受控值发生变化时更新它
+        if (_state.IsControlled && Value != _state.ControlledValue)
+        {
+            _state.ControlledValue = Value;
+            _context.State.ActiveValue = Value;
+        }
+
+        // 更新排列方向与激活模式
+        _context.State.Orientation = Orientation;
+        _context.State.ActivationMode = ActivationMode;
+    }
+
+    private void HandleContextStateChanged()
+    {
+        // 上下文状态变化时（例如来自 TabsTrigger），
+        // 更新可控状态
+        var newActiveValue = _context.State.ActiveValue;
+
+        if (_state.Value != newActiveValue)
+        {
+            _ = _state.SetValueAsync(newActiveValue);
+
+            // 若提供了额外回调则一并调用
+            if (OnValueChange.HasDelegate)
+            {
+                _ = OnValueChange.InvokeAsync(newActiveValue);
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        _context.OnStateChanged -= HandleContextStateChanged;
+    }
+}

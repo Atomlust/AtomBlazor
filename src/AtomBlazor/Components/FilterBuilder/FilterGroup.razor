@@ -1,0 +1,82 @@
+@namespace AtomBlazor
+
+<div class="@GroupCssClass" role="group" aria-label="@GroupAriaLabel" @attributes="AdditionalAttributes">
+    @* Group header: operator toggle + remove button *@
+    <div class="@HeaderCssClass">
+        <div class="atom:flex atom:items-center atom:gap-2">
+            @if (IsRoot)
+            {
+                <span class="atom:text-xs atom:font-medium atom:text-muted-foreground atom:uppercase atom:tracking-wider">@Localizer["FilterBuilder.Where"]</span>
+            }
+            <Select TValue="LogicalOperator"
+                      Value="@Group.Operator"
+                      ValueChanged="HandleOperatorChanged"
+                      Options="@logicalOperatorOptions"
+                      Class="atom:w-[80px]" />
+        </div>
+        @if (!IsRoot)
+        {
+            <Button Variant="ButtonVariant.Ghost"
+                      Size="ButtonSize.IconSmall"
+                      OnClick="HandleRemoveGroup"
+                      Class="atom:shrink-0 atom:text-muted-foreground atom:hover:text-destructive"
+                      aria-label="@Localizer["FilterBuilder.RemoveGroup"]">
+                <svg class="atom:h-4 atom:w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </Button>
+        }
+    </div>
+
+    @* Conditions *@
+    <div class="@ConditionsCssClass">
+        @foreach (var condition in Group.Conditions)
+        {
+            <FilterCondition @key="condition.Id"
+                               Condition="@condition"
+                               OnRemove="@(() => RemoveCondition(condition))"
+                               OnChanged="HandleChanged" />
+        }
+
+        @* Nested groups *@
+        @foreach (var nestedGroup in Group.Groups)
+        {
+            <FilterGroup @key="nestedGroup"
+                           Group="@nestedGroup"
+                           Depth="@(Depth + 1)"
+                           IsRoot="false"
+                           OnRemove="@(() => RemoveGroup(nestedGroup))" />
+        }
+    </div>
+
+    @* Action buttons *@
+    <div class="atom:flex atom:items-center atom:gap-2">
+        <Button Variant="ButtonVariant.Ghost"
+                  Size="ButtonSize.Small"
+                  OnClick="AddCondition"
+                  Disabled="@(Context?.IsAtConditionLimit == true)"
+                  Class="atom:text-muted-foreground atom:hover:text-foreground">
+            <svg class="atom:h-4 atom:w-4 atom:me-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            @Localizer["FilterBuilder.AddCondition"]
+        </Button>
+
+        @if (Context != null && Depth < Context.MaxDepth)
+        {
+            <Button Variant="ButtonVariant.Ghost"
+                      Size="ButtonSize.Small"
+                      OnClick="AddGroup"
+                      Disabled="@(Context.IsAtConditionLimit)"
+                      Class="atom:text-muted-foreground atom:hover:text-foreground">
+                <svg class="atom:h-4 atom:w-4 atom:me-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                @Localizer["FilterBuilder.AddGroup"]
+            </Button>
+        }
+    </div>
+</div>

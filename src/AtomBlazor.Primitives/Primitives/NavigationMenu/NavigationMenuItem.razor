@@ -1,0 +1,40 @@
+@namespace AtomBlazor.Primitives
+
+<li data-nav-item @attributes="AdditionalAttributes">
+    <CascadingValue Value="itemContext" IsFixed="true">
+        @ChildContent
+    </CascadingValue>
+</li>
+
+@code {
+    private NavigationMenuItemContext itemContext = null!;
+
+    [CascadingParameter]
+    private NavigationMenuContext? MenuContext { get; set; }
+
+    /// <summary>
+    /// 子内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 本菜单项的唯一标识符。
+    /// </summary>
+    [Parameter]
+    public string? Value { get; set; }
+
+    /// <summary>
+    /// 应用于根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 单项上下文，向 Components 层公开。
+    /// </summary>
+    public NavigationMenuItemContext ItemContext => itemContext;
+
+    protected override void OnInitialized() =>
+        itemContext = new NavigationMenuItemContext(MenuContext!, Value ?? Guid.NewGuid().ToString("N"));
+}

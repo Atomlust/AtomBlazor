@@ -1,0 +1,58 @@
+@page "/components/notification-badge"
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("Notification Badge 通知徽标 - Atom BlazorUI", "Notification Badge - Atom BlazorUI")</PageTitle>
+<div class="max-w-4xl space-y-8">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Notification Badge 通知徽标", "Notification Badge")</h1>
+        <p class="text-xl text-muted-foreground">@L.T("在图标或控件上叠加数量或活动圆点。与内联 Badge 不同，它装饰的是既有内容。", "Overlay a count or activity dot on an icon or control. Unlike an inline Badge, this decorates existing content.")</p>
+    </div>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("实时通知计数", "Live notification count")</h2>
+        <div class="rounded-lg border p-6 space-y-4">
+            <div class="flex flex-wrap items-center gap-10 py-4">
+                <NotificationBadge Count="unread"><Button Variant="ButtonVariant.Outline" Size="ButtonSize.Icon" aria-label="@(L.T("将消息标记为已读", "Mark messages read"))" OnClick="@(() => unread = 0)"><LucideIcon Name="mail" Size="22" /></Button></NotificationBadge>
+                <Button Variant="ButtonVariant.Outline" OnClick="@(() => unread++)">@L.T("添加通知", "Add notification")</Button>
+            </div>
+            <p class="text-sm text-muted-foreground">@L.T("点击邮件按钮即可清零计数。零值默认隐藏。", "Click the mail button to clear the count. Zero is hidden by default.")</p>
+        </div>
+        <CodeBlock Source="Components/NotificationBadge/basic.txt" />
+    </section>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("溢出、零值与圆点", "Overflow, zero and dot")</h2>
+        <div class="rounded-lg border p-6 space-y-4">
+            <div class="flex flex-wrap gap-10 py-4">
+                <div class="space-y-3"><NotificationBadge Count="128" Maximum="99"><LucideIcon Name="mail" Size="24" /></NotificationBadge><p class="text-sm text-muted-foreground">@L.T("溢出计数", "Overflow count")</p></div>
+                <div class="space-y-3"><NotificationBadge Count="0" ShowZero="true" Variant="BadgeVariant.Secondary"><LucideIcon Name="bell" Size="24" /></NotificationBadge><p class="text-sm text-muted-foreground">@L.T("可见的零值", "Visible zero")</p></div>
+                <div class="space-y-3"><NotificationBadge Dot="true" AriaLabel="@(L.T("账户有新动态", "New account activity"))"><LucideIcon Name="user" Size="24" /></NotificationBadge><p class="text-sm text-muted-foreground">@L.T("活动圆点", "Activity dot")</p></div>
+            </div>
+        </div>
+        <CodeBlock Source="Components/NotificationBadge/states.txt" />
+    </section>
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("即使可见计数被截断，徽标的状态文本仍暴露完整计数。如需自定义描述，请提供 AriaLabel。", "The badge exposes a status with the full count even when the visible count is capped. Supply AriaLabel for a custom description.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("徽标本身不增加 tab 停靠点。请为被装饰的按钮或链接提供无障碍名称。", "The badge adds no tab stop. Give an accessible name to the decorated button or link.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可交互控件之间移动", "Move between interactive controls"))"><Kbd>Tab / Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("激活获得焦点的按钮", "Activate a focused button"))"><Kbd>Enter / Space</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+        <ApiReference Since="v4" ComponentName="NotificationBadge">
+            <ApiParameter Name="Count / Maximum / ShowZero / Dot" Type="int? / int / bool / bool" Default="null / 99 / false / false">@L.T("计数显示、溢出上限、零值可见性与圆点模式。Dot 与 Count 相互独立。", "Count display, overflow cap, zero visibility and dot mode. Dot is independent of Count.")</ApiParameter>
+            <ApiParameter Name="Position / Variant" Type="BadgeDotPosition / BadgeVariant" Default="TopRight / Destructive">@L.T("角位与徽标配色。", "Corner and badge palette.")</ApiParameter>
+            <ApiParameter Name="AriaLabel / ChildContent / BadgeClass" Type="string? / RenderFragment / string?">@L.T("无障碍描述、被装饰的内容与徽标 CSS 覆盖。视觉标签被截断时，无障碍朗读的计数依然完整。", "Accessible description, decorated content and badge CSS overrides. The accessible count remains complete when the visual label is capped.")</ApiParameter>
+            <ApiParameter Name="Class / AdditionalAttributes" Type="string? / Dictionary&lt;string, object&gt;?">@L.T("应用到根元素的额外 CSS 类与 HTML 属性。", "Additional root CSS classes and HTML attributes.")</ApiParameter>
+        </ApiReference>
+    </section>
+</div>
+
+@code {
+    private int unread = 4;
+
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

@@ -1,0 +1,179 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@inject ILocalizer Localizer
+
+<div class="@RootClass" style="@ConstraintStyle" data-dock-group="@GroupNode.Id">
+    <div class="@StripClass"
+         @onpointerdown="HandleStripPointerDown">
+        <div @ref="stripRef"
+             role="tablist"
+             aria-orientation="horizontal"
+             class="atom:flex atom:min-w-0 atom:flex-1 atom:items-stretch atom:overflow-hidden atom-dock-tabstrip"
+             data-dock-tabstrip="@GroupNode.Id">
+            @foreach (var panelId in GroupNode.PanelIds)
+            {
+                var panel = Dock.GetPanel(panelId);
+                if (panel is null)
+                {
+                    continue;
+                }
+
+                var isActive = GroupNode.ActivePanelId == panelId;
+                var isHidden = overflowPanelIds.Contains(panelId);
+                <div role="tab"
+                     id="@TabDomId(panel.Id)"
+                     aria-selected="@(isActive ? "true" : "false")"
+                     aria-controls="@PanelDomId(panel.Id)"
+                     tabindex="@(isActive ? 0 : -1)"
+                     class="@TabClass(isActive, isHidden)"
+                     title="@panel.Title"
+                     data-dock-tab="@panel.Id"
+                     @ref="tabRefs[panel.Id]"
+                     @onkeydown="e => HandleTabKeyDown(panel, e)"
+                     @onpointerdown="e => HandleTabPointerDown(panel, e)"
+                     @onpointerdown:stopPropagation="true"
+                     @onclick="() => Dock.ActivatePanel(GroupNode, panel.Id)"
+                     @oncontextmenu="e => HandleTabContextMenu(panel, e)"
+                     @oncontextmenu:preventDefault="true"
+                     @oncontextmenu:stopPropagation="true">
+                    @if (panel.Icon is not null)
+                    {
+                        <span class="atom:flex atom:h-3.5 atom:w-3.5 atom:shrink-0 atom:items-center atom:justify-center">@panel.Icon</span>
+                    }
+                    <span class="atom:truncate">@panel.Title</span>
+                    @if (Dock.IsPinned(panel.Id))
+                    {
+                        <span class="atom:flex atom:h-3.5 atom:w-3.5 atom:shrink-0 atom:items-center atom:justify-center" aria-hidden="true">
+                            <LucideIcon Name="pin" Size="11" />
+                        </span>
+                    }
+                    @if (panel.CanClose)
+                    {
+                        <button type="button"
+                                class="@CloseClass()"
+                                aria-label="@Localizer["Dock.CloseTab", panel.Title]"
+                                title="@Localizer["Dock.CloseTab", panel.Title]"
+                                @onclick="() => Dock.ClosePanelAsync(panel.Id)"
+                                @onclick:stopPropagation="true"
+                                @onpointerdown:stopPropagation="true">
+                            <LucideIcon Name="x" Size="11" />
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+
+        @if (overflowPanelIds.Count > 0 || !IsFloating)
+        {
+            <div class="atom:flex atom:shrink-0 atom:items-center atom:gap-0.5 atom:px-1" @onpointerdown:stopPropagation="true">
+                @if (overflowPanelIds.Count > 0)
+                {
+                    <DropdownMenu>
+                        <AtomBlazor.DropdownMenuTrigger AsChild="false"
+                                               Class="atom:inline-flex atom:h-6 atom:items-center atom:justify-center atom:gap-0.5 atom:rounded-sm atom:px-1 atom:text-muted-foreground atom:transition-colors atom:hover:bg-foreground/10 atom:hover:text-foreground"
+                                               aria-label="@Localizer["Dock.ShowHiddenTabs", overflowPanelIds.Count]"
+                                               title="@Localizer["Dock.ShowHiddenTabs", overflowPanelIds.Count]">
+                            <LucideIcon Name="ellipsis" Size="14" />
+                            <span class="atom:text-[10px] atom:font-medium atom:leading-none">@overflowPanelIds.Count</span>
+                        </AtomBlazor.DropdownMenuTrigger>
+                        <AtomBlazor.DropdownMenuContent Align="PopoverAlign.End" Class="atom:min-w-[10rem] atom:max-w-[16rem]">
+                            @foreach (var hiddenId in overflowPanelIds)
+                            {
+                                var hiddenPanel = Dock.GetPanel(hiddenId);
+                                if (hiddenPanel is null)
+                                {
+                                    continue;
+                                }
+
+                                <AtomBlazor.DropdownMenuItem Class="atom:pe-1" OnClick="() => Dock.ActivatePanel(GroupNode, hiddenPanel.Id)">
+                                    <div class="atom:flex atom:w-full atom:items-center atom:gap-2">
+                                        @if (hiddenPanel.Icon is not null)
+                                        {
+                                            <span class="atom:flex atom:h-3.5 atom:w-3.5 atom:shrink-0 atom:items-center atom:justify-center">@hiddenPanel.Icon</span>
+                                        }
+                                        <span class="atom:truncate">@hiddenPanel.Title</span>
+                                        @if (hiddenPanel.CanClose)
+                                        {
+                                            <button type="button"
+                                                    class="atom:ms-auto atom:inline-flex atom:h-5 atom:w-5 atom:shrink-0 atom:items-center atom:justify-center atom:rounded-sm atom:text-muted-foreground atom:transition-colors atom:hover:bg-foreground/10 atom:hover:text-foreground"
+                                                    aria-label="@Localizer["Dock.CloseTab", hiddenPanel.Title]"
+                                                    title="@Localizer["Dock.CloseTab", hiddenPanel.Title]"
+                                                    @onclick="() => Dock.ClosePanelAsync(hiddenPanel.Id)"
+                                                    @onclick:stopPropagation="true">
+                                                <LucideIcon Name="x" Size="11" />
+                                            </button>
+                                        }
+                                    </div>
+                                </AtomBlazor.DropdownMenuItem>
+                            }
+                        </AtomBlazor.DropdownMenuContent>
+                    </DropdownMenu>
+                }
+
+                @if (!IsFloating)
+                {
+                    <button type="button"
+                            class="atom:inline-flex atom:h-6 atom:w-6 atom:items-center atom:justify-center atom:rounded-sm atom:text-muted-foreground atom:transition-colors atom:hover:bg-foreground/10 atom:hover:text-foreground"
+                            aria-label="@(IsMaximized ? Localizer["Dock.RestorePanelGroup"] : Localizer["Dock.MaximizePanelGroup"])"
+                            title="@(IsMaximized ? Localizer["Dock.RestorePanelGroup"] : Localizer["Dock.MaximizePanelGroup"])"
+                            @onclick="() => Dock.ToggleMaximize(GroupNode)"
+                            @onpointerdown:stopPropagation="true">
+                        <LucideIcon Name="@(IsMaximized ? "minimize-2" : "maximize-2")" Size="14" />
+                    </button>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="atom:relative atom:min-h-0 atom:flex-1 atom:overflow-auto atom:bg-background">
+        @foreach (var panelId in GroupNode.PanelIds)
+        {
+            var panel = Dock.GetPanel(panelId);
+            if (panel is null)
+            {
+                continue;
+            }
+
+            var isActive = GroupNode.ActivePanelId == panelId;
+            <div role="tabpanel"
+                 id="@PanelDomId(panelId)"
+                 aria-labelledby="@TabDomId(panelId)"
+                 tabindex="0"
+                 class="@(isActive ? "atom:h-full" : "atom:hidden")"
+                 @key="panelId">
+                @panel.ChildContent
+            </div>
+        }
+    </div>
+
+    <ContextMenu @ref="tabMenu">
+        <AtomBlazor.ContextMenuContent>
+            @if (contextPanel is not null)
+            {
+                var panel = contextPanel;
+                var pinned = Dock.IsPinned(panel.Id);
+                <AtomBlazor.ContextMenuItem Disabled="@(!panel.CanClose)" OnClick="() => Dock.ClosePanelAsync(panel.Id)">
+                    <Icon><LucideIcon Name="x" Size="16" /></Icon>
+                    <ChildContent>@Localizer["Dock.Close"]</ChildContent>
+                </AtomBlazor.ContextMenuItem>
+                <AtomBlazor.ContextMenuItem Disabled="@(!GroupNode.PanelIds.Any(id => id != panel.Id && Dock.GetPanel(id)?.CanClose == true))" OnClick="() => Dock.CloseOtherPanelsInGroupAsync(panel.Id)">
+                    <Icon><LucideIcon Name="list-x" Size="16" /></Icon>
+                    <ChildContent>@Localizer["Dock.CloseOtherTabs"]</ChildContent>
+                </AtomBlazor.ContextMenuItem>
+                <AtomBlazor.ContextMenuItem Disabled="@(!GroupNode.PanelIds.Any(id => !Dock.IsPinned(id) && Dock.GetPanel(id)?.CanClose == true))" OnClick="() => Dock.CloseAllButPinnedPanelsInGroupAsync(panel.Id)">
+                    <Icon><LucideIcon Name="pin" Size="16" /></Icon>
+                    <ChildContent>@Localizer["Dock.CloseAllButPinned"]</ChildContent>
+                </AtomBlazor.ContextMenuItem>
+                <AtomBlazor.ContextMenuItem Disabled="@(GroupNode.PanelIds.All(id => Dock.GetPanel(id)?.CanClose != true))" OnClick="() => Dock.CloseAllPanelsInGroupAsync(panel.Id)">
+                    <Icon><LucideIcon Name="circle-x" Size="16" /></Icon>
+                    <ChildContent>@Localizer["Dock.CloseAllTabs"]</ChildContent>
+                </AtomBlazor.ContextMenuItem>
+                <AtomBlazor.ContextMenuSeparator />
+                <AtomBlazor.ContextMenuItem OnClick="() => Dock.TogglePinAsync(panel.Id)">
+                    <Icon><LucideIcon Name="@(pinned ? "pin-off" : "pin")" Size="16" /></Icon>
+                    <ChildContent>@(pinned ? Localizer["Dock.UnpinTab"] : Localizer["Dock.PinTab"])</ChildContent>
+                </AtomBlazor.ContextMenuItem>
+            }
+        </AtomBlazor.ContextMenuContent>
+    </ContextMenu>
+</div>

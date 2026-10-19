@@ -1,0 +1,745 @@
+@page "/components/pagination"
+
+<PageTitle>@L.T("Pagination 分页组件 - Atom BlazorUI", "Pagination Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Pagination 分页组件", "Pagination Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("提供页码导航与上一页、下一页按钮的分页组件，也可选用地托管状态。", "Pagination with page navigation, previous and next controls, and optional state management.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本示例", "Basic Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个简单的分页组件，用手动状态管理来渲染页码。", "A simple pagination component with page numbers using manual state management.")
+            </p>
+        </div>
+        <Pagination>
+            <PaginationContent>
+                <PaginationItem>
+                    <PaginationPrevious OnClick="@(() => GoToPage(_currentPage - 1))" Disabled="@(_currentPage <= 1)" />
+                </PaginationItem>
+                @for (int i = 1; i <= 5; i++)
+                {
+                    var page = i;
+                    <PaginationItem>
+                        <PaginationLink IsActive="@(_currentPage == page)" OnClick="@(() => GoToPage(page))">@(page)</PaginationLink>
+                    </PaginationItem>
+                }
+                <PaginationItem>
+                    <PaginationNext OnClick="@(() => GoToPage(_currentPage + 1))" Disabled="@(_currentPage >= 5)" />
+                </PaginationItem>
+            </PaginationContent>
+        </Pagination>
+        <p class="text-sm text-muted-foreground text-center">@L.T("当前页：", "Current page:") @_currentPage</p>
+
+        <CodeBlock Source="Components/Pagination/basic.txt" />
+    </div>
+
+    <!-- With Ellipsis -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带省略号", "With Ellipsis")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("页码范围很大时用省略号折叠。", "Show ellipsis for large page ranges.")
+            </p>
+        </div>
+        <Pagination>
+            <PaginationContent>
+                <PaginationItem>
+                    <PaginationPrevious />
+                </PaginationItem>
+                <PaginationItem>
+                    <PaginationLink IsActive="true">1</PaginationLink>
+                </PaginationItem>
+                <PaginationItem>
+                    <PaginationLink>2</PaginationLink>
+                </PaginationItem>
+                <PaginationItem>
+                    <PaginationEllipsis />
+                </PaginationItem>
+                <PaginationItem>
+                    <PaginationLink>9</PaginationLink>
+                </PaginationItem>
+                <PaginationItem>
+                    <PaginationLink>10</PaginationLink>
+                </PaginationItem>
+                <PaginationItem>
+                    <PaginationNext />
+                </PaginationItem>
+            </PaginationContent>
+        </Pagination>
+
+        <CodeBlock Source="Components/Pagination/ellipsis.txt" />
+    </div>
+
+    <!-- State-Managed Pagination -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("状态托管分页", "State-Managed Pagination")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="bg-muted px-1 py-0.5 rounded">PaginationState</code> 自动托管分页状态。
+                    导航按钮会自动启用/禁用并同步更新状态。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="bg-muted px-1 py-0.5 rounded">PaginationState</code> for automatic state management.
+                    Navigation buttons automatically enable/disable and update state.
+                </p>
+                        </text>
+}
+        </div>
+        <Pagination State="@_paginationState"
+                    OnPageChanged="HandlePageChanged"
+                    Class="flex items-center justify-between">
+            <PaginationInfo />
+            <PaginationContent>
+                <PaginationItem>
+                    <PaginationFirst />
+                </PaginationItem>
+                <PaginationItem>
+                    <PaginationPrevious ShowText="false" />
+                </PaginationItem>
+                <PaginationItem>
+                    <PaginationPageDisplay />
+                </PaginationItem>
+                <PaginationItem>
+                    <PaginationNext ShowText="false" />
+                </PaginationItem>
+                <PaginationItem>
+                    <PaginationLast />
+                </PaginationItem>
+            </PaginationContent>
+        </Pagination>
+
+        <CodeBlock Source="Components/Pagination/state-managed.txt" />
+    </div>
+
+    <!-- Full Table Pagination Style -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表格分页样式", "Table Pagination Style")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带页大小选择器的完整分页，适合数据表格使用。", "Full-featured pagination with page size selector, ideal for data tables.")
+            </p>
+        </div>
+        <Pagination State="@_tablePaginationState"
+                    PageSizes="@(new[] { 5, 10, 20, 50 })"
+                    OnPageChanged="HandleTablePageChanged"
+                    OnPageSizeChanged="HandleTablePageSizeChanged"
+                    Class="flex items-center justify-between px-2 py-4 border rounded-lg">
+            <PaginationInfo />
+            <PaginationContent Class="flex items-center gap-6 lg:gap-8">
+                <PaginationPageSizeSelector />
+                <div class="flex items-center gap-2">
+                    <PaginationPageDisplay />
+                    <div class="flex items-center gap-1">
+                        <PaginationItem><PaginationFirst /></PaginationItem>
+                        <PaginationItem><PaginationPrevious ShowText="false" /></PaginationItem>
+                        <PaginationItem><PaginationNext ShowText="false" /></PaginationItem>
+                        <PaginationItem><PaginationLast /></PaginationItem>
+                    </div>
+                </div>
+            </PaginationContent>
+        </Pagination>
+
+        <CodeBlock Source="Components/Pagination/table-style.txt" />
+    </div>
+
+    <!-- Customized Labels -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义标签", "Customized Labels")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("自定义标签与文案格式，用于国际化或其他使用场景。", "Customize labels and formats for internationalization or different use cases.")
+            </p>
+        </div>
+        <Pagination State="@_customPaginationState"
+                    Class="flex items-center justify-between px-2 py-4 border rounded-lg">
+            <PaginationInfo Format="@(L.T("第 {0} 至 {1} 项（共 {2} 项）", "Items {0} to {1} (Total: {2})"))" EmptyText="@(L.T("暂无数据", "No data available"))" />
+            <PaginationContent Class="flex items-center gap-4">
+                <PaginationPageSizeSelector Label="@(L.T("每页条数", "Items per page"))" ShowLabel="true" />
+                <PaginationPageDisplay Format="{0} / {1}" />
+                <div class="flex items-center gap-1">
+                    <PaginationItem><PaginationFirst /></PaginationItem>
+                    <PaginationItem><PaginationPrevious ShowText="false" /></PaginationItem>
+                    <PaginationItem><PaginationNext ShowText="false" /></PaginationItem>
+                    <PaginationItem><PaginationLast /></PaginationItem>
+                </div>
+            </PaginationContent>
+        </Pagination>
+
+        <CodeBlock Source="Components/Pagination/custom-labels.txt" />
+    </div>
+
+    <!-- Simple Mode -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("简洁模式", "Simple Mode")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    只用 <code class="bg-muted px-1 py-0.5 rounded">TotalPages</code> 与 <code class="bg-muted px-1 py-0.5 rounded">CurrentPage</code> 一行写完分页，
+                    标准布局会自动渲染 —— 不需要任何子组件。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="bg-muted px-1 py-0.5 rounded">TotalPages</code> and <code class="bg-muted px-1 py-0.5 rounded">CurrentPage</code> for a one-liner pagination
+                    that auto-renders the standard layout — no child components needed.
+                </p>
+                        </text>
+}
+        </div>
+        <Pagination TotalPages="10" @bind-CurrentPage="_simplePage" OnPageChanged="HandleSimplePageChanged" />
+        <p class="text-sm text-muted-foreground">@L.T("当前页：", "Current page:") @_simplePage</p>
+
+        <CodeBlock Source="Components/Pagination/simple-mode.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>根 <code class="text-xs bg-muted px-1 py-0.5 rounded">Pagination</code> 渲染出一个 <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;nav&gt;</code> 元素，带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="navigation"</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label="pagination"</code></AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>The root <code class="text-xs bg-muted px-1 py-0.5 rounded">Pagination</code> renders a <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;nav&gt;</code> element with <code class="text-xs bg-muted px-1 py-0.5 rounded">role="navigation"</code> and <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label="pagination"</code></AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>当前页链接用 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-current="page"</code> 标示所在页</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Active page links use <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-current="page"</code> to indicate the current page</AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>禁用的导航按钮使用原生 <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code> 属性</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Disabled navigation buttons use the native <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code> attribute</AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>省略号元素带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-hidden="true"</code>，并配一段供辅助技术朗读的 <code class="text-xs bg-muted px-1 py-0.5 rounded">sr-only</code> "More pages" 文本</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Ellipsis elements use <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-hidden="true"</code> with a <code class="text-xs bg-muted px-1 py-0.5 rounded">sr-only</code> "More pages" label for assistive technologies</AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>只有图标的导航按钮包含供辅助技术朗读的 <code class="text-xs bg-muted px-1 py-0.5 rounded">sr-only</code> 文本标签</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Icon-only navigation buttons include <code class="text-xs bg-muted px-1 py-0.5 rounded">sr-only</code> text labels for assistive technologies</AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("激活获得焦点的分页按钮", "Activate the focused pagination button"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在分页控件之间移动焦点", "Move focus between pagination controls"))">
+                <Kbd>Tab</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件的属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="Pagination">
+                <ApiParameter Name="State" Type="PaginationState?" Default="null">
+                    @L.T("可选的分页状态，用于自动托管状态。提供后，子组件会自动接入这份状态。", "Optional pagination state for automatic state management. When provided, child components automatically wire up to this state.")
+                </ApiParameter>
+                <ApiParameter Name="TotalPages" Type="int?" Default="null">
+                    @L.T("页数总数的简写设置。设置后且 ChildContent 为 null 时，自动渲染标准的上一页/页码/下一页布局。", "Shorthand total number of pages. When set and ChildContent is null, auto-renders the standard prev/pages/next layout.")
+                </ApiParameter>
+                <ApiParameter Name="CurrentPage" Type="int" Default="1">
+                    @L.T("当前页码（从 1 开始）。简洁模式下与 TotalPages 配合使用。支持双向绑定。", "Current page number (1-based). Used with TotalPages for simple mode. Supports two-way binding.")
+                </ApiParameter>
+                <ApiParameter Name="PageSizes" Type="int[]" Default="10, 20, 50, 100">
+                    @L.T("页大小选择器可供选择的页大小。", "Available page size options for the page size selector.")
+                </ApiParameter>
+                <ApiParameter Name="OnPageChanged" Type="EventCallback<int>">
+                    @L.T("当前页发生变化时调用的回调。", "Callback invoked when the current page changes.")
+                </ApiParameter>
+                <ApiParameter Name="OnPageSizeChanged" Type="EventCallback<int>">
+                    @L.T("页大小发生变化时调用的回调。", "Callback invoked when the page size changes.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到根 nav 元素上的额外 CSS 类。", "Additional CSS classes for the root nav element.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?" Default="null">
+                    @L.T("自定义子内容。为 null 且设置了 TotalPages 时，自动渲染默认布局。", "Custom child content. When null and TotalPages is set, renders the default layout automatically.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                    <text>
+                        应用到根 <code>&lt;nav&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </text>
+                    }
+                    else
+                    {
+                    <text>
+                        Additional HTML attributes applied to the root <code>&lt;nav&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="PaginationContent">
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("列表容器的额外 CSS 类。", "Additional CSS classes for the list container.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?" Default="null">
+                    @L.T("渲染在列表内部的分页条目。", "The pagination items to render inside the list.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                    <text>
+                        应用到根 <code>&lt;ul&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </text>
+                    }
+                    else
+                    {
+                    <text>
+                        Additional HTML attributes applied to the root <code>&lt;ul&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="PaginationItem">
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("列表条目包裹层的额外 CSS 类。", "Additional CSS classes for the list item wrapper.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?" Default="null">
+                    @L.T("渲染在该条目内部的分页控件。", "The pagination control to render inside the item.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                    <text>
+                        应用到根 <code>&lt;li&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </text>
+                    }
+                    else
+                    {
+                    <text>
+                        Additional HTML attributes applied to the root <code>&lt;li&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="PaginationLink">
+                <ApiParameter Name="IsActive" Type="bool" Default="false">
+                    @L.T("该链接是否代表当前激活的页面。为 true 时会设置 aria-current=\"page\"。", "Whether this link represents the current active page. Sets aria-current=\"page\" when true.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("该链接是否被禁用。", "Whether the link is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="Href" Type="string?" Default="null">
+                    @L.T("可选的 URL。设置后渲染成超链接元素而不是按钮。", "Optional URL. When set, renders as an anchor element instead of a button.")
+                </ApiParameter>
+                <ApiParameter Name="Size" Type="PaginationLinkSize" Default="Icon">
+                    @L.T("尺寸变体。可选值：Default、Icon。", "Size variant. Options: Default, Icon.")
+                </ApiParameter>
+                <ApiParameter Name="OnClick" Type="EventCallback">
+                    @L.T("链接的点击处理器。", "Click handler for the link.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("额外 CSS 类。", "Additional CSS classes.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?" Default="null">
+                    @L.T("渲染在链接内部的内容（通常是页码）。", "Content to render inside the link (typically a page number).")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                    <text>
+                        应用到根 <code>&lt;button&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </text>
+                    }
+                    else
+                    {
+                    <text>
+                        Additional HTML attributes applied to the root <code>&lt;button&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="PaginationEllipsis">
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("省略号指示器的额外 CSS 类。", "Additional CSS classes for the ellipsis indicator.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                    <text>
+                        应用到根 <code>&lt;span&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </text>
+                    }
+                    else
+                    {
+                    <text>
+                        Additional HTML attributes applied to the root <code>&lt;span&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="PaginationFirst">
+                <ApiParameter Name="Disabled" Type="bool?" Default="null">
+                    @L.T("显式禁用该按钮。为 null 时根据分页状态自动判定。", "Explicitly disable the button. When null, automatically determined from pagination state.")
+                </ApiParameter>
+                <ApiParameter Name="OnClick" Type="EventCallback">
+                    @L.T("自定义点击处理器。使用分页状态时，导航会自动完成。", "Custom click handler. When using pagination state, navigation is automatic.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("额外 CSS 类。", "Additional CSS classes.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                    <text>
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </text>
+                    }
+                    else
+                    {
+                    <text>
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="PaginationPrevious">
+                <ApiParameter Name="ShowText" Type="bool" Default="true">
+                    @L.T("图标旁是否显示文字标签。", "Whether to show the text label alongside the icon.")
+                </ApiParameter>
+                <ApiParameter Name="Text" Type="string" Default="Previous">
+                    @L.T("按钮标签的自定义文案。", "Custom text for the button label.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool?" Default="null">
+                    @L.T("显式禁用该按钮。为 null 时根据分页状态自动判定。", "Explicitly disable the button. When null, automatically determined from pagination state.")
+                </ApiParameter>
+                <ApiParameter Name="Size" Type="PaginationLinkSize" Default="Default">
+                    @L.T("分页链接的尺寸。", "Size of the pagination link.")
+                </ApiParameter>
+                <ApiParameter Name="Href" Type="string?" Default="null">
+                    @L.T("可选的 URL。设置后渲染成超链接元素。", "Optional URL. When set, renders as an anchor element.")
+                </ApiParameter>
+                <ApiParameter Name="OnClick" Type="EventCallback">
+                    @L.T("自定义点击处理器。使用分页状态时，导航会自动完成。", "Custom click handler. When using pagination state, navigation is automatic.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("额外 CSS 类。", "Additional CSS classes.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                    <text>
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </text>
+                    }
+                    else
+                    {
+                    <text>
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="PaginationNext">
+                <ApiParameter Name="ShowText" Type="bool" Default="true">
+                    @L.T("图标旁是否显示文字标签。", "Whether to show the text label alongside the icon.")
+                </ApiParameter>
+                <ApiParameter Name="Text" Type="string" Default="Next">
+                    @L.T("按钮标签的自定义文案。", "Custom text for the button label.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool?" Default="null">
+                    @L.T("显式禁用该按钮。为 null 时根据分页状态自动判定。", "Explicitly disable the button. When null, automatically determined from pagination state.")
+                </ApiParameter>
+                <ApiParameter Name="Size" Type="PaginationLinkSize" Default="Default">
+                    @L.T("分页链接的尺寸。", "Size of the pagination link.")
+                </ApiParameter>
+                <ApiParameter Name="Href" Type="string?" Default="null">
+                    @L.T("可选的 URL。设置后渲染成超链接元素。", "Optional URL. When set, renders as an anchor element.")
+                </ApiParameter>
+                <ApiParameter Name="OnClick" Type="EventCallback">
+                    @L.T("自定义点击处理器。使用分页状态时，导航会自动完成。", "Custom click handler. When using pagination state, navigation is automatic.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("额外 CSS 类。", "Additional CSS classes.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                    <text>
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </text>
+                    }
+                    else
+                    {
+                    <text>
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="PaginationLast">
+                <ApiParameter Name="Disabled" Type="bool?" Default="null">
+                    @L.T("显式禁用该按钮。为 null 时根据分页状态自动判定。", "Explicitly disable the button. When null, automatically determined from pagination state.")
+                </ApiParameter>
+                <ApiParameter Name="OnClick" Type="EventCallback">
+                    @L.T("自定义点击处理器。使用分页状态时，导航会自动完成。", "Custom click handler. When using pagination state, navigation is automatic.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("额外 CSS 类。", "Additional CSS classes.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                    <text>
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </text>
+                    }
+                    else
+                    {
+                    <text>
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="PaginationInfo">
+                <ApiParameter Name="Format" Type="string" Default="Showing {0}-{1} of {2}">
+                    @L.T("显示条目区间的格式串。用 {0} 表示起始，{1} 表示结束，{2} 表示总数。", "Format string for displaying item range. Use {0} for start, {1} for end, {2} for total.")
+                </ApiParameter>
+                <ApiParameter Name="EmptyText" Type="string" Default="No items">
+                    @L.T("没有条目时显示的文案。", "Text to display when there are no items.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("额外 CSS 类。", "Additional CSS classes.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?" Default="null">
+                    @L.T("未使用分页状态时要显示的自定义内容。", "Custom content to display when not using pagination state.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                    <text>
+                        应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </text>
+                    }
+                    else
+                    {
+                    <text>
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="PaginationPageDisplay">
+                <ApiParameter Name="Format" Type="string" Default="Page {0} of {1}">
+                    @L.T("显示页码信息的格式串。用 {0} 表示当前页，{1} 表示总页数。", "Format string for displaying page info. Use {0} for current page, {1} for total pages.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("额外 CSS 类。", "Additional CSS classes.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?" Default="null">
+                    @L.T("未使用分页状态时要显示的自定义内容。", "Custom content to display when not using pagination state.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                    <text>
+                        应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </text>
+                    }
+                    else
+                    {
+                    <text>
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="PaginationPageSizeSelector">
+                <ApiParameter Name="ShowLabel" Type="bool" Default="true">
+                    @L.T("是否显示标签文字。", "Whether to show the label text.")
+                </ApiParameter>
+                <ApiParameter Name="Label" Type="string" Default="Rows per page">
+                    @L.T("页大小选择器的标签文案。", "Label text for the page size selector.")
+                </ApiParameter>
+                <ApiParameter Name="PageSizes" Type="int[]?" Default="null">
+                    @L.T("覆盖上下文中提供的页大小。为 null 时使用父级 Pagination 的 PageSizes。", "Override page sizes from context. When null, uses the parent Pagination's PageSizes.")
+                </ApiParameter>
+                <ApiParameter Name="TriggerClass" Type="string?" Default="null">
+                    @L.T("Select 触发器元素的 CSS 类。", "CSS class for the Select trigger element.")
+                </ApiParameter>
+                <ApiParameter Name="OnPageSizeChanged" Type="EventCallback<int>">
+                    @L.T("页大小发生变化时的自定义回调。", "Custom callback when page size changes.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("额外 CSS 类。", "Additional CSS classes.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                    <text>
+                        应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </text>
+                    }
+                    else
+                    {
+                    <text>
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+
+    <LocalizationSection
+        Description="@(L.T("分页的导航、页大小与信息展示标签均可配置。", "Pagination navigation, page size, and info display labels are configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("Pagination", "Pagination", L.T("导航地标的无障碍标签。", "Aria label for the navigation landmark")),
+            new("Previous", "Previous", L.T("上一页按钮的标签。", "Label for the previous page button")),
+            new("Next", "Next", L.T("下一页按钮的标签。", "Label for the next page button")),
+            new("MorePages", "More pages", L.T("省略号指示器的无障碍标签。", "Aria label for the ellipsis indicator")),
+            new("GoToFirstPage", "Go to first page", L.T("首页按钮的无障碍标签。", "Aria label for the first page button")),
+            new("GoToLastPage", "Go to last page", L.T("末页按钮的无障碍标签。", "Aria label for the last page button")),
+            new("RowsPerPage", "Rows per page", L.T("页大小选择器的标签。", "Label for the page size selector")),
+            new("ShowingFormat", "Showing {0}-{1} of {2}", L.T("信息展示的格式串。", "Format string for the info display")),
+            new("PageFormat", "Page {0} of {1}", L.T("页码展示的格式串。", "Format string for the page number display")),
+            new("NoItems", "No items", L.T("没有条目时显示的内容。", "Shown when there are no items")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""Pagination.Previous"", ""Zurück"");
+    localizer.Set(""Pagination.Next"", ""Weiter"");
+    localizer.Set(""Pagination.RowsPerPage"", ""Zeilen pro Seite"");
+});")" />
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private int _currentPage = 1;
+    private int _simplePage = 1;
+
+    private void HandleSimplePageChanged(int page)
+    {
+        _simplePage = page;
+        // BL0012（.NET 11）：事件处理器触发的重渲染由框架自动完成，此处的显式 StateHasChanged 无需保留。
+    }
+
+    // 状态托管分页
+    private PaginationState _paginationState = new()
+    {
+        CurrentPage = 1,
+        PageSize = 10,
+        TotalItems = 100
+    };
+
+    // 表格样式分页
+    private PaginationState _tablePaginationState = new()
+    {
+        CurrentPage = 1,
+        PageSize = 10,
+        TotalItems = 253
+    };
+
+    // 自定义标签分页
+    private PaginationState _customPaginationState = new()
+    {
+        CurrentPage = 1,
+        PageSize = 20,
+        TotalItems = 500
+    };
+
+    private void GoToPage(int page)
+    {
+        if (page >= 1 && page <= 5)
+        {
+            _currentPage = page;
+        }
+    }
+
+    private void HandlePageChanged(int page)
+    {
+        // 状态已自动更新
+        // BL0012（.NET 11）：事件处理器触发的重渲染由框架自动完成，此处的显式 StateHasChanged 无需保留。
+    }
+
+    private void HandleTablePageChanged(int page)
+    {
+        // BL0012（.NET 11）：事件处理器触发的重渲染由框架自动完成，此处的显式 StateHasChanged 无需保留。
+    }
+
+    private void HandleTablePageSizeChanged(int pageSize)
+    {
+        // BL0012（.NET 11）：事件处理器触发的重渲染由框架自动完成，此处的显式 StateHasChanged 无需保留。
+    }
+}

@@ -1,0 +1,51 @@
+<div class="flex items-center gap-2">
+    @foreach (var id in closedPanels)
+    {
+        <Button Size="ButtonSize.Small" Variant="ButtonVariant.Outline"
+                  OnClick="() => Reopen(id)">
+            Reopen @titles[id]
+        </Button>
+    }
+</div>
+
+<div class="h-[420px] rounded-lg border">
+    <Dock @ref="dock" OnPanelClosed="OnPanelClosed">
+        <DockPanel Id="document" Title="Document" Region="DockZone.Center">
+            <div class="p-4">Document body</div>
+        </DockPanel>
+        <DockPanel Id="comments" Title="Comments" Region="DockZone.Right">
+            <div class="p-4">Comments</div>
+        </DockPanel>
+        <DockPanel Id="history" Title="History" Region="DockZone.Bottom">
+            <div class="p-4">Revision history</div>
+        </DockPanel>
+    </Dock>
+</div>
+
+@code {
+    private Dock? dock;
+    private readonly List<string> closedPanels = new();
+    private readonly Dictionary<string, string> titles = new()
+    {
+        ["document"] = "Document",
+        ["comments"] = "Comments",
+        ["history"] = "History",
+    };
+
+    private void OnPanelClosed(string id)
+    {
+        if (!closedPanels.Contains(id))
+        {
+            closedPanels.Add(id);
+        }
+    }
+
+    private async Task Reopen(string id)
+    {
+        closedPanels.Remove(id);
+        if (dock is not null)
+        {
+            await dock.OpenPanelAsync(id);
+        }
+    }
+}

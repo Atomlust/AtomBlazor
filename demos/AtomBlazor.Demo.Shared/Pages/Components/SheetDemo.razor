@@ -1,0 +1,673 @@
+@page "/components/sheet"
+<PageTitle>@L.T("Sheet 侧滑面板 - Atom BlazorUI", "Sheet Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Sheet 侧滑面板", "Sheet")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("从视口边缘滑入的侧边面板——非常适合表单、筛选与详情。", "Side panels that slide in from a viewport edge — ideal for forms, filters and details.")
+        </p>
+    </div>
+
+    <div class="space-y-6">
+        <!-- Basic Usage -->
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+                <p class="text-muted-foreground">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            由 <code>SheetTrigger</code>、<code>SheetContent</code> 与
+                            <code>SheetHeader</code>（含 <code>SheetTitle</code> 和 <code>SheetDescription</code>）以及
+                            <code>SheetFooter</code> 组合而成。使用 <code>SheetClose</code> 渲染关闭按钮。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Build a <code>Sheet</code> from <code>SheetTrigger</code>, <code>SheetContent</code>,
+                            <code>SheetHeader</code> (with <code>SheetTitle</code> and <code>SheetDescription</code>) and
+                            <code>SheetFooter</code>. Use <code>SheetClose</code> to render a dismiss button.
+                        </text>
+                    }
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <Sheet>
+                    <AtomBlazor.SheetTrigger>
+                        <Button>@L.T("打开面板", "Open Sheet")</Button>
+                    </AtomBlazor.SheetTrigger>
+                    <AtomBlazor.SheetContent>
+                        <SheetHeader>
+                            <AtomBlazor.SheetTitle>@L.T("设置", "Settings")</AtomBlazor.SheetTitle>
+                            <AtomBlazor.SheetDescription>@L.T("管理你的偏好设置。", "Manage your preferences.")</AtomBlazor.SheetDescription>
+                        </SheetHeader>
+                        <div class="py-4 text-sm text-muted-foreground">
+                            @L.T("侧滑面板从视口边缘滑入，非常适合表单与筛选场景。", "Side panels slide in from a viewport edge and are great for forms and filters.")
+                        </div>
+                        <SheetFooter>
+                            <AtomBlazor.SheetClose>
+                                <Button Variant="ButtonVariant.Outline">@L.T("关闭", "Close")</Button>
+                            </AtomBlazor.SheetClose>
+                            <Button>@L.T("保存", "Save")</Button>
+                        </SheetFooter>
+                    </AtomBlazor.SheetContent>
+                </Sheet>
+            </div>
+
+            <CodeBlock Source="Components/Sheet/basic.txt" />
+        </section>
+
+        <!-- Sides -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("方向", "Sides")</h2>
+            <p class="text-muted-foreground">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        面板默认从右侧滑入。用 <code>Side</code> 选择方向：
+                        <code>Left</code>、<code>Right</code>、<code>Top</code> 或 <code>Bottom</code>。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Sheets slide in from the right by default. Pick a side with <code>Side</code>:
+                        <code>Left</code>, <code>Right</code>, <code>Top</code> or <code>Bottom</code>.
+                    </text>
+                }
+            </p>
+
+            <div class="flex flex-wrap gap-4 rounded-lg border bg-card p-6">
+                <Sheet Side="SheetSide.Left">
+                    <AtomBlazor.SheetTrigger><Button Variant="ButtonVariant.Outline">@L.T("左侧", "Left")</Button></AtomBlazor.SheetTrigger>
+                    <AtomBlazor.SheetContent><SheetHeader><AtomBlazor.SheetTitle>@L.T("左侧", "Left")</AtomBlazor.SheetTitle></SheetHeader></AtomBlazor.SheetContent>
+                </Sheet>
+                <Sheet Side="SheetSide.Right">
+                    <AtomBlazor.SheetTrigger><Button Variant="ButtonVariant.Outline">@L.T("右侧", "Right")</Button></AtomBlazor.SheetTrigger>
+                    <AtomBlazor.SheetContent><SheetHeader><AtomBlazor.SheetTitle>@L.T("右侧", "Right")</AtomBlazor.SheetTitle></SheetHeader></AtomBlazor.SheetContent>
+                </Sheet>
+                <Sheet Side="SheetSide.Top">
+                    <AtomBlazor.SheetTrigger><Button Variant="ButtonVariant.Outline">@L.T("顶部", "Top")</Button></AtomBlazor.SheetTrigger>
+                    <AtomBlazor.SheetContent><SheetHeader><AtomBlazor.SheetTitle>@L.T("顶部", "Top")</AtomBlazor.SheetTitle></SheetHeader></AtomBlazor.SheetContent>
+                </Sheet>
+                <Sheet Side="SheetSide.Bottom">
+                    <AtomBlazor.SheetTrigger><Button Variant="ButtonVariant.Outline">@L.T("底部", "Bottom")</Button></AtomBlazor.SheetTrigger>
+                    <AtomBlazor.SheetContent><SheetHeader><AtomBlazor.SheetTitle>@L.T("底部", "Bottom")</AtomBlazor.SheetTitle></SheetHeader></AtomBlazor.SheetContent>
+                </Sheet>
+            </div>
+
+            <CodeBlock Source="Components/Sheet/sides.txt" />
+        </section>
+
+    <!-- AsChild Pattern -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("AsChild 模式", "AsChild Pattern")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("使用 AsChild 将触发器与你自己的带样式 Button 组件组合起来。", "Use AsChild to compose triggers with your own styled Button components.")
+        </p>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- Without AsChild -->
+            <div class="space-y-3 p-4 border rounded-lg">
+                <h3 class="text-lg font-medium">@L.T("不使用 AsChild", "Without AsChild")</h3>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("SheetTrigger 会渲染它自己的按钮并带内联类。", "SheetTrigger renders its own button with inline classes.")
+                </p>
+                <Sheet>
+                    <AtomBlazor.SheetTrigger AsChild="false" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                        @L.T("打开面板", "Open Sheet")
+                    </AtomBlazor.SheetTrigger>
+                    <AtomBlazor.SheetContent>
+                        <SheetHeader>
+                            <AtomBlazor.SheetTitle>@L.T("不使用 AsChild", "Without AsChild")</AtomBlazor.SheetTitle>
+                            <AtomBlazor.SheetDescription>@L.T("触发器使用内联 CSS 类。", "Uses inline CSS classes on trigger.")</AtomBlazor.SheetDescription>
+                        </SheetHeader>
+                    </AtomBlazor.SheetContent>
+                </Sheet>
+            </div>
+
+            <!-- With AsChild -->
+            <div class="space-y-3 p-4 border rounded-lg">
+                <h3 class="text-lg font-medium">@L.T("使用 AsChild", "With AsChild")</h3>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("按钮通过 TriggerContext 接收触发行为。", "Button receives trigger behavior via TriggerContext.")
+                </p>
+                <Sheet>
+                    <AtomBlazor.SheetTrigger>
+                        <Button Variant="ButtonVariant.Outline">
+                            <LucideIcon Name="menu" Size="16" />
+                            @L.T("打开菜单", "Open Menu")
+                        </Button>
+                    </AtomBlazor.SheetTrigger>
+                    <AtomBlazor.SheetContent Side="SheetSide.Left">
+                        <SheetHeader>
+                            <AtomBlazor.SheetTitle>@L.T("使用 AsChild", "With AsChild")</AtomBlazor.SheetTitle>
+                            <AtomBlazor.SheetDescription>@L.T("由 Button 组件样式的触发器。", "Button component styled trigger.")</AtomBlazor.SheetDescription>
+                        </SheetHeader>
+                        <SheetFooter>
+                            <AtomBlazor.SheetClose>
+                                <Button Variant="ButtonVariant.Outline">@L.T("关闭", "Close")</Button>
+                            </AtomBlazor.SheetClose>
+                        </SheetFooter>
+                    </AtomBlazor.SheetContent>
+                </Sheet>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Sheet/as-child.txt" />
+    </div>
+
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("方向：顶部", "Side: Top")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("从屏幕顶部滑入的面板。", "A sheet that slides in from the top of the screen.")
+        </p>
+
+        <Sheet Side="SheetSide.Top">
+            <AtomBlazor.SheetTrigger>
+                <Button Variant="ButtonVariant.Outline">@L.T("从顶部打开", "Open from Top")</Button>
+            </AtomBlazor.SheetTrigger>
+
+            <AtomBlazor.SheetContent>
+                <SheetHeader>
+                    <AtomBlazor.SheetTitle>@L.T("通知", "Notifications")</AtomBlazor.SheetTitle>
+                    <AtomBlazor.SheetDescription>
+                        @L.T("查看你最近的通知与更新。", "View your recent notifications and updates.")
+                    </AtomBlazor.SheetDescription>
+                </SheetHeader>
+
+                <div class="py-4 space-y-4">
+                    <div class="flex items-start gap-4 pb-4 border-b">
+                        <div class="w-2 h-2 mt-2 rounded-full bg-blue-500"></div>
+                        <div class="flex-1">
+                            <p class="text-sm font-medium">@L.T("来自 John 的新消息", "New message from John")</p>
+                            <p class="text-sm text-muted-foreground">@L.T("2 分钟前", "2 minutes ago")</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4 pb-4 border-b">
+                        <div class="w-2 h-2 mt-2 rounded-full bg-green-500"></div>
+                        <div class="flex-1">
+                            <p class="text-sm font-medium">@L.T("你的部署已完成", "Your deployment is complete")</p>
+                            <p class="text-sm text-muted-foreground">@L.T("15 分钟前", "15 minutes ago")</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="w-2 h-2 mt-2 rounded-full bg-gray-400"></div>
+                        <div class="flex-1">
+                            <p class="text-sm font-medium">@L.T("系统维护已排期", "System maintenance scheduled")</p>
+                            <p class="text-sm text-muted-foreground">@L.T("1 小时前", "1 hour ago")</p>
+                        </div>
+                    </div>
+                </div>
+            </AtomBlazor.SheetContent>
+        </Sheet>
+
+        <CodeBlock Source="Components/Sheet/side-top.txt" />
+    </div>
+
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("方向：底部", "Side: Bottom")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("从屏幕底部滑入的面板。", "A sheet that slides in from the bottom of the screen.")
+        </p>
+
+        <Sheet Side="SheetSide.Bottom">
+            <AtomBlazor.SheetTrigger>
+                <Button Variant="ButtonVariant.Outline">@L.T("从底部打开", "Open from Bottom")</Button>
+            </AtomBlazor.SheetTrigger>
+
+            <AtomBlazor.SheetContent>
+                <SheetHeader>
+                    <AtomBlazor.SheetTitle>@L.T("Cookie 设置", "Cookie Settings")</AtomBlazor.SheetTitle>
+                    <AtomBlazor.SheetDescription>
+                        @L.T("管理你的 Cookie 偏好设置。", "Manage your cookie preferences.")
+                    </AtomBlazor.SheetDescription>
+                </SheetHeader>
+
+                <div class="py-4 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="space-y-0.5">
+                            <label class="text-sm font-medium">@L.T("严格必要", "Strictly Necessary")</label>
+                            <p class="text-xs text-muted-foreground">
+                                @L.T("这些 Cookie 对网站正常运行必不可少。", "These cookies are essential for the website to function.")
+                            </p>
+                        </div>
+                        <input type="checkbox" checked disabled class="h-4 w-4" />
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="space-y-0.5">
+                            <label class="text-sm font-medium">@L.T("功能性 Cookie", "Functional Cookies")</label>
+                            <p class="text-xs text-muted-foreground">
+                                @L.T("这些 Cookie 可启用增强功能。", "These cookies enable enhanced functionality.")
+                            </p>
+                        </div>
+                        <input type="checkbox" class="h-4 w-4" />
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="space-y-0.5">
+                            <label class="text-sm font-medium">@L.T("性能 Cookie", "Performance Cookies")</label>
+                            <p class="text-xs text-muted-foreground">
+                                @L.T("这些 Cookie 有助于提升性能。", "These cookies help improve performance.")
+                            </p>
+                        </div>
+                        <input type="checkbox" class="h-4 w-4" />
+                    </div>
+                </div>
+
+                <SheetFooter>
+                    <Button>@L.T("保存偏好设置", "Save Preferences")</Button>
+                </SheetFooter>
+            </AtomBlazor.SheetContent>
+        </Sheet>
+
+        <CodeBlock Source="Components/Sheet/side-bottom.txt" />
+    </div>
+
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("方向：左侧", "Side: Left")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("从屏幕左侧滑入的面板。", "A sheet that slides in from the left side of the screen.")
+        </p>
+
+        <Sheet Side="SheetSide.Left">
+            <AtomBlazor.SheetTrigger>
+                <Button Variant="ButtonVariant.Outline">@L.T("从左侧打开", "Open from Left")</Button>
+            </AtomBlazor.SheetTrigger>
+
+            <AtomBlazor.SheetContent>
+                <SheetHeader>
+                    <AtomBlazor.SheetTitle>@L.T("导航菜单", "Navigation Menu")</AtomBlazor.SheetTitle>
+                    <AtomBlazor.SheetDescription>
+                        @L.T("浏览应用的各个板块。", "Browse through the application sections.")
+                    </AtomBlazor.SheetDescription>
+                </SheetHeader>
+
+                <div class="py-4 space-y-2">
+                    <a href="#" class="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">
+                        @L.T("仪表盘", "Dashboard")
+                    </a>
+                    <a href="#" class="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">
+                        @L.T("项目", "Projects")
+                    </a>
+                    <a href="#" class="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">
+                        @L.T("团队", "Team")
+                    </a>
+                    <a href="#" class="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">
+                        @L.T("设置", "Settings")
+                    </a>
+                    <div class="pt-2 border-t">
+                        <a href="#" class="block px-3 py-2 rounded-md hover:bg-accent text-sm font-medium">
+                            @L.T("帮助与支持", "Help & Support")
+                        </a>
+                    </div>
+                </div>
+            </AtomBlazor.SheetContent>
+        </Sheet>
+
+        <CodeBlock Source="Components/Sheet/side-left.txt" />
+    </div>
+
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("受控面板", "Controlled Sheet")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("使用 @bind-Open 以编程方式控制面板状态。", "Control the sheet state programmatically using @bind-Open.")
+        </p>
+
+        <div class="flex gap-2">
+            <button @onclick="() => isSheetOpen = true"
+                    class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                @L.T("打开面板", "Open Sheet")
+            </button>
+        </div>
+
+        <Sheet @bind-Open="isSheetOpen">
+            <AtomBlazor.SheetContent>
+                <SheetHeader>
+                    <AtomBlazor.SheetTitle>@L.T("受控面板", "Controlled Sheet")</AtomBlazor.SheetTitle>
+                    <AtomBlazor.SheetDescription>
+                        @L.T("该面板的打开状态由父组件控制。", "This sheet's open state is controlled from the parent component.")
+                    </AtomBlazor.SheetDescription>
+                </SheetHeader>
+
+                <div class="py-4">
+                    <p class="text-sm mb-4">
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                面板处于打开状态：<strong>@isSheetOpen</strong>
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Sheet is open: <strong>@isSheetOpen</strong>
+                            </text>
+                        }
+                    </p>
+                    <p class="text-sm text-muted-foreground">
+                        @L.T("你可以通过编程方式控制该面板何时打开与关闭。", "You can programmatically control when this sheet opens and closes.")
+                    </p>
+                </div>
+
+                <SheetFooter>
+                    <button @onclick="() => isSheetOpen = false"
+                            class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                        @L.T("关闭", "Close")
+                    </button>
+                </SheetFooter>
+            </AtomBlazor.SheetContent>
+        </Sheet>
+
+        <CodeBlock Source="Components/Sheet/controlled.txt" />
+    </div>
+
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("自定义宽度", "Custom Width")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("使用 Class 参数自定义面板宽度。", "Customize the sheet width using the Class parameter.")
+        </p>
+
+        <Sheet>
+            <AtomBlazor.SheetTrigger>
+                <Button Variant="ButtonVariant.Outline">@L.T("打开宽面板", "Open Wide Sheet")</Button>
+            </AtomBlazor.SheetTrigger>
+
+            <AtomBlazor.SheetContent Class="w-[400px] sm:w-[540px]">
+                <SheetHeader>
+                    <AtomBlazor.SheetTitle>@L.T("宽面板", "Wide Sheet")</AtomBlazor.SheetTitle>
+                    <AtomBlazor.SheetDescription>
+                        @L.T("该面板使用了自定义宽度类。", "This sheet uses a custom width class.")
+                    </AtomBlazor.SheetDescription>
+                </SheetHeader>
+
+                <div class="py-4">
+                    <p class="text-sm">
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                你可以通过向 SheetContent 组件传递额外的类来自定义面板宽度。
+                                本例使用 <code class="bg-muted px-1 py-0.5 rounded text-xs">w-[400px] sm:w-[540px]</code>，
+                                而不是默认的 <code class="bg-muted px-1 py-0.5 rounded text-xs">w-3/4 sm:max-w-sm</code>。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                You can customize the sheet width by passing additional classes to the SheetContent component.
+                                This example uses <code class="bg-muted px-1 py-0.5 rounded text-xs">w-[400px] sm:w-[540px]</code>
+                                instead of the default <code class="bg-muted px-1 py-0.5 rounded text-xs">w-3/4 sm:max-w-sm</code>.
+                            </text>
+                        }
+                    </p>
+                </div>
+            </AtomBlazor.SheetContent>
+        </Sheet>
+
+        <CodeBlock Source="Components/Sheet/custom-width.txt" />
+    </div>
+
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("不可关闭", "Non-Dismissible")</h2>
+        <p class="text-sm text-muted-foreground">
+            @if (L.IsChinese)
+            {
+                <text>
+                    在 <code class="bg-muted px-1 py-0.5 rounded">Sheet</code> 上设置 <code class="bg-muted px-1 py-0.5 rounded">Modal="false"</code>，可防止点击遮罩或按 Escape 时关闭面板。
+                    若只需阻止点击遮罩关闭，请改为在 <code class="bg-muted px-1 py-0.5 rounded">SheetContent</code> 上设置 <code class="bg-muted px-1 py-0.5 rounded">CloseOnOverlayClick="false"</code>。
+                </text>
+            }
+            else
+            {
+                <text>
+                    Set <code class="bg-muted px-1 py-0.5 rounded">Modal="false"</code> on <code class="bg-muted px-1 py-0.5 rounded">Sheet</code> to prevent the sheet from closing when the backdrop is clicked or Escape is pressed.
+                    For overlay-click-only prevention, use <code class="bg-muted px-1 py-0.5 rounded">CloseOnOverlayClick="false"</code> on <code class="bg-muted px-1 py-0.5 rounded">SheetContent</code> instead.
+                </text>
+            }
+        </p>
+
+        <Sheet Modal="false">
+            <AtomBlazor.SheetTrigger>
+                <Button Variant="ButtonVariant.Outline">@L.T("打开面板", "Open Sheet")</Button>
+            </AtomBlazor.SheetTrigger>
+
+            <AtomBlazor.SheetContent>
+                <SheetHeader>
+                    <AtomBlazor.SheetTitle>@L.T("不可关闭", "Non-Dismissible")</AtomBlazor.SheetTitle>
+                    <AtomBlazor.SheetDescription>
+                        @L.T("点击遮罩或按 Escape 不会关闭该面板，请使用下方按钮。", "Clicking the backdrop or pressing Escape will not close this sheet. Use the button below.")
+                    </AtomBlazor.SheetDescription>
+                </SheetHeader>
+                <SheetFooter>
+                    <AtomBlazor.SheetClose>
+                        <Button>@L.T("知道了", "Got it")</Button>
+                    </AtomBlazor.SheetClose>
+                </SheetFooter>
+            </AtomBlazor.SheetContent>
+        </Sheet>
+
+        <CodeBlock Source="Components/Sheet/non-dismissible.txt" />
+    </div>
+
+        <AccessibilityList>
+            <AriaAttributes>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            渲染时带 <code>role="dialog"</code> 与 <code>aria-modal="true"</code>，供屏幕阅读器识别
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Renders with <code>role="dialog"</code> and <code>aria-modal="true"</code> for screen readers
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <code>aria-labelledby</code> 自动关联到 SheetTitle
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code>aria-labelledby</code> automatically linked to SheetTitle
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <code>aria-describedby</code> 自动关联到 SheetDescription
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code>aria-describedby</code> automatically linked to SheetDescription
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>@L.T("面板打开时焦点被限制在面板内部", "Focus is trapped within the sheet when open")</AccessibilityItem>
+                <AccessibilityItem>@L.T("面板打开时锁定页面滚动", "Body scroll is locked when sheet is open")</AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            动画遵循 <code>prefers-reduced-motion</code> 设置
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Respects <code>prefers-reduced-motion</code> for animations
+                        </text>
+                    }
+                </AccessibilityItem>
+            </AriaAttributes>
+            <KeyboardNavigation>
+                <KeyboardShortcutItem Description="@(L.T("关闭面板", "Close the sheet"))">
+                    <Kbd>Escape</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("在元素间移动焦点", "Move focus between elements"))">
+                    <Kbd>Tab</Kbd>
+                </KeyboardShortcutItem>
+            </KeyboardNavigation>
+        </AccessibilityList>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+                <p class="text-muted-foreground">@L.T("组件的属性与参数。", "Component properties and parameters.")</p>
+            </div>
+            <div class="space-y-4">
+                <ApiReference ComponentName="Sheet">
+                    <ApiParameter Name="Open" Type="bool?" Default="null">
+                        @L.T("控制面板是否打开（受控模式）。为 null 时自行管理状态。", "Controls whether the sheet is open (controlled mode). When null, manages its own state.")
+                    </ApiParameter>
+                    <ApiParameter Name="OpenChanged" Type="EventCallback&lt;bool&gt;">
+                        @L.T("打开状态改变时调用的事件回调。", "Event callback invoked when the open state changes.")
+                    </ApiParameter>
+                    <ApiParameter Name="DefaultOpen" Type="bool" Default="false">
+                        @L.T("非受控模式下的默认打开状态。", "Default open state when in uncontrolled mode.")
+                    </ApiParameter>
+                    <ApiParameter Name="Side" Type="SheetSide" Default="SheetSide.Right">
+                        @L.T("面板滑入所来自的视口边缘。", "The viewport edge the sheet slides in from.")
+                    </ApiParameter>
+                    <ApiParameter Name="Modal" Type="bool" Default="true">
+                        @L.T("面板能否通过点击外部或按 Escape 关闭。", "Whether the sheet can be dismissed by clicking outside or pressing Escape.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("子内容，通常是一个 SheetTrigger 与一个 SheetContent。", "The child content, typically a SheetTrigger and SheetContent.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到根元素的额外 HTML 属性。", "Additional HTML attributes applied to the root element.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="SheetTrigger">
+                    <ApiParameter Name="AsChild" Type="bool" Default="false">
+                        @L.T("为 true 时不渲染自己的按钮，而是级联 TriggerContext 给子组件。", "When true, does not render its own button; cascades TriggerContext to a child.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在触发器内部显示的内容。", "The content to display inside the trigger.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到触发器元素的额外 HTML 属性。", "Additional HTML attributes applied to the trigger element.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="SheetContent">
+                    <ApiParameter Name="Class" Type="string?">
+                        @L.T("为内容容器追加的额外 CSS 类。", "Additional CSS classes for the content container.")
+                    </ApiParameter>
+
+                <ApiParameter Name="Side" Type="SheetSide?" Default="null">
+                    @L.T("覆盖来自父级 Sheet 组件的方向。", "Override the side from the parent Sheet component.")
+                </ApiParameter>
+                <ApiParameter Name="ShowClose" Type="bool" Default="true">
+                    @L.T("是否显示关闭按钮（X 图标）。", "Whether to show the close button (X icon).")
+                </ApiParameter>
+                <ApiParameter Name="CloseOnOverlayClick" Type="bool" Default="true">
+                    @L.T("点击遮罩是否会关闭面板。", "Whether clicking the backdrop overlay should close the sheet.")
+                </ApiParameter>
+                <ApiParameter Name="CloseOnEscape" Type="bool" Default="true">
+                    @L.T("按 Escape 是否会关闭面板。", "Whether pressing Escape should close the sheet.")
+                </ApiParameter>
+                <ApiParameter Name="TrapFocus" Type="bool" Default="true">
+                    @L.T("是否在面板内部设置焦点陷阱。", "Whether to trap focus within the sheet.")
+                </ApiParameter>
+                <ApiParameter Name="LockScroll" Type="bool" Default="true">
+                    @L.T("面板打开时是否锁定页面滚动。", "Whether to lock body scroll when sheet is open.")
+                </ApiParameter>
+
+                <ApiParameter Name="InitialFocus" Type="FocusTrapInitialFocus" Default="FocusTrapInitialFocus.FirstFocusable">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            面板打开时焦点陷阱聚焦的目标。<code>FirstFocusable</code> 聚焦第一个可 Tab 的后代元素，
+                            <code>Container</code> 聚焦面板自身，<code>None</code> 不移动焦点。
+                            携带 <code>data-autofocus</code> 的元素优先于此设置。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            What the focus trap focuses on open. <code>FirstFocusable</code> focuses the first tabbable descendant, <code>Container</code> focuses the sheet itself, <code>None</code> moves nothing. An element carrying <code>data-autofocus</code> wins over this.
+                        </text>
+                    }
+                </ApiParameter>
+                <ApiParameter Name="InitialFocusElement" Type="ElementReference?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            打开时要聚焦的显式元素，优先于 <code>InitialFocus</code> 与 <code>data-autofocus</code>。
+                            若该元素不在面板内部则被忽略。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            An explicit element to focus on open, beating both <code>InitialFocus</code> and <code>data-autofocus</code>. Ignored when it is not inside the sheet.
+                        </text>
+                    }
+                </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("面板主体内容。", "The sheet body content.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到内容容器的额外 HTML 属性。", "Additional HTML attributes applied to the content container.")
+                    </ApiParameter>
+                </ApiReference>
+
+            <ApiReference ComponentName="SheetClose">
+                <ApiParameter Name="AsChild" Type="bool" Default="true">
+                    @L.T("为 true 时把关闭行为传递给子组件，而不是渲染自己的按钮。", "When true, passes close behavior to child components instead of rendering its own button.")
+                </ApiParameter>
+                <ApiParameter Name="PreventClose" Type="bool" Default="false">
+                    @L.T("为 true 时阻止默认关闭行为，仅调用 OnClick 处理。", "When true, prevents the default close behavior. Only the OnClick handler is invoked.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            应用到组件根元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+            </div>
+        </section>
+    </div>
+
+    <LocalizationSection
+        Description="@(L.T("面板关闭按钮的 aria 标签是可配置的。", "The sheet close button aria label is configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("Close", "Close", L.T("关闭按钮的无障碍标签。", "Aria label for the close button")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""Sheet.Close"", ""Schließen"");
+});")" />
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private bool isSheetOpen = false;
+}

@@ -1,0 +1,203 @@
+@page "/components/form-field-date-input"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("FormFieldDateInput 表单日期输入 - Atom BlazorUI", "FormFieldDateInput Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">FormFieldDateInput</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("DateInput 的表单字段封装，内置标签、提示文本与错误信息。",
+                 "A form field wrapper for DateInput with built-in label, helper text, and error messages.")
+        </p>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("日、月、年各自是独立的段，顺序跟随当前区域设置。",
+                     "Day, month and year are separate segments, in your culture's order.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldDateInput @bind-Value="_startDate"
+                                  Label="@(L.T("开始日期", "Start date"))"
+                                  HelperText="@(L.T("逐段输入，或使用方向键调整。", "Type each part, or use the arrow keys."))" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Value:")</p>
+            <p class="text-sm font-mono">@(_startDate?.ToString("yyyy-MM-dd") ?? L.T("（无）", "(none)"))</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldDateInput/basic.txt" />
+    </div>
+
+    <!-- Bounds -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("取值边界与日历", "Bounds and Calendar")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">MinDate</code> 与
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">MaxDate</code> 都是闭区间。
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowCalendar</code> 会追加一个选择器按钮。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">MinDate</code> and
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">MaxDate</code> are inclusive.
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowCalendar</code> adds a picker button.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldDateInput @bind-Value="_bookingDate"
+                                  Label="@(L.T("预约日期", "Booking date"))"
+                                  HelperText="@(L.T("限未来 30 天之内。", "Within the next 30 days."))"
+                                  MinDate="DateTime.Today"
+                                  MaxDate="DateTime.Today.AddDays(30)"
+                                  ShowCalendar="true" />
+        </div>
+        <CodeBlock Source="Components/FormFieldDateInput/bounds.txt" />
+    </div>
+
+    <!-- Validation -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("校验", "Validation")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("在 EditForm 中，校验错误会自动显示。留空提交即可看到一条。",
+                     "Validation errors display automatically inside an EditForm. Submit with the field empty to see one.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <EditForm Model="_formModel" OnValidSubmit="HandleFormSubmit">
+                <DataAnnotationsValidator />
+                <div class="space-y-4">
+                    <FormFieldDateInput @bind-Value="_formModel.StartDate"
+                                          Label="@(L.T("开始日期", "Start date"))"
+                                          HelperText="@(L.T("必填。", "Required."))" />
+                    <Button Type="ButtonType.Submit">@L.T("提交", "Submit")</Button>
+                </div>
+            </EditForm>
+            @if (_formSubmitted)
+            {
+                <div class="mt-4 rounded-lg border border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800 p-4">
+                    <p class="text-sm font-medium text-green-800 dark:text-green-200">
+                        @L.T("已提交：", "Submitted:") @_formModel.StartDate?.ToString("yyyy-MM-dd")
+                    </p>
+                </div>
+            }
+        </div>
+        <CodeBlock Source="Components/FormFieldDateInput/editform.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("一个禁用的日期输入表单字段。", "A disabled date input form field.")</p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldDateInput Value="DateTime.Today"
+                                  Label="@(L.T("创建日期", "Created"))"
+                                  HelperText="@(L.T("记录创建时写入，不可修改。", "Set when the record was created."))"
+                                  Disabled="true" />
+        </div>
+        <CodeBlock Source="Components/FormFieldDateInput/disabled.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>标签通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">for</code> 关联到第一个段</AccessibilityItem>
+                <AccessibilityItem>提示与错误文本通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code> 关联</AccessibilityItem>
+                <AccessibilityItem>每个段都是一个 <code class="text-xs bg-muted px-1 py-0.5 rounded">spinbutton</code>，会上报自己的值与边界</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Label associated with the first segment through <code class="text-xs bg-muted px-1 py-0.5 rounded">for</code></AccessibilityItem>
+                <AccessibilityItem>Helper and error text linked with <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code></AccessibilityItem>
+                <AccessibilityItem>Each segment is a <code class="text-xs bg-muted px-1 py-0.5 rounded">spinbutton</code> reporting its own value and bounds</AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可用的表单控件之间移动", "Move between enabled form controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在各段之间移动", "Move between segments"))"><Kbd>ArrowLeft</Kbd> / <Kbd>ArrowRight</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("增减当前聚焦的段", "Increase or decrease the focused segment"))"><Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="FormFieldDateInput">
+                <ApiParameter Name="Label" Type="string?" Default="null">@L.T("标签文本。", "The label text.")</ApiParameter>
+                <ApiParameter Name="HelperText" Type="string?" Default="null">@L.T("输入框下方的提示文本。", "Helper text below the input.")</ApiParameter>
+                <ApiParameter Name="ErrorText" Type="string?" Default="null">@L.T("手动指定的错误文本。", "Manual error text override.")</ApiParameter>
+                <ApiParameter Name="Value" Type="DateTime?" Default="null">@L.T("所选的日期。使用 @bind-Value。", "The selected date. Use @bind-Value.")</ApiParameter>
+                <ApiParameter Name="ValueChanged" Type="EventCallback&lt;DateTime?&gt;">@L.T("日期发生变化时的回调。", "Callback when the date changes.")</ApiParameter>
+                <ApiParameter Name="Culture" Type="CultureInfo?" Default="null">@L.T("段的顺序与分隔符。默认使用当前区域设置。", "Segment order and separators. Defaults to the current culture.")</ApiParameter>
+                <ApiParameter Name="MinDate" Type="DateTime?" Default="null">@L.T("可选的最早日期，闭区间。", "Earliest selectable date, inclusive.")</ApiParameter>
+                <ApiParameter Name="MaxDate" Type="DateTime?" Default="null">@L.T("可选的最晚日期，闭区间。", "Latest selectable date, inclusive.")</ApiParameter>
+                <ApiParameter Name="ShowCalendar" Type="bool" Default="false">@L.T("是否显示日历选择按钮。", "Show a calendar picker button.")</ApiParameter>
+                <ApiParameter Name="ReadOnly" Type="bool" Default="false">@L.T("各段是否只读。", "Whether the segments are read-only.")</ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("输入框是否被禁用。", "Whether the input is disabled.")</ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">@L.T("该字段是否为必填。", "Whether the field is required.")</ApiParameter>
+                <ApiParameter Name="Orientation" Type="FieldOrientation" Default="Vertical">@L.T("标签相对控件的摆放位置。", "Label placement relative to the control.")</ApiParameter>
+                <ApiParameter Name="InputClass" Type="string?" Default="null">@L.T("内部日期输入框的 CSS 类。", "CSS classes for the inner date input.")</ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private DateTime? _startDate;
+    private DateTime? _bookingDate;
+    private readonly FormModel _formModel = new();
+    private bool _formSubmitted;
+
+    private void HandleFormSubmit() => _formSubmitted = true;
+
+    private sealed class FormModel
+    {
+        [Required(ErrorMessage = "A start date is required.")]
+        public DateTime? StartDate { get; set; }
+    }
+}

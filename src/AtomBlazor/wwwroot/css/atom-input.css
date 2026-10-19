@@ -1,0 +1,1273 @@
+/* AtomBlazor Components - 预编译 Tailwind CSS 入口 */
+
+/* 本库发出的每个 Tailwind 工具类都带 `atom:` 前缀（如 `.atom\:flex`、
+   `.atom\:sm\:hidden`），并落入独立的 `atom-utilities` 级联层。自带 Tailwind
+   构建的使用者因此永远不会与本文件产出同名类，两套构建无法在同一元素
+   上争抢（#496）。使用者传入的 `Class="..."` 值不带前缀；`ClassNames.cn`
+   会先剥掉前缀再与本库令牌合并，所以使用者的 `p-6` 仍然替换本库的
+   `atom:p-4`，语义不变。
+
+   级联层顺序：`theme`、`base`、`components` 属使用者自有层，在此声明
+   是为了让在本文件之后加载的使用者样式表，仍把自身的 preflight 排在
+   其工具类之下。本文件先加载时，`atom-utilities` 位于使用者的
+   `utilities` 之下，故同一元素上使用者的类无需 `cn` 即可胜出。
+   `atom` 层最后声明，是本库手写组件 CSS（下面那些高特异性的属性
+   选择器规则）的专用优先级层——它们需要压过使用者的 Tailwind
+   工具类与 preflight 重置。
+   Preflight 刻意不带前缀、由双方共享：
+   它是元素选择器而非类，两套构建里完全一致。 */
+@layer properties, theme, base, components, atom-utilities, utilities, atom;
+
+@import 'tailwindcss/theme.css' layer(theme) prefix(atom);
+@import 'tailwindcss/preflight.css' layer(base);
+@import 'tailwindcss/utilities.css' layer(atom-utilities) prefix(atom);
+/* tw-animate.css 使用 @utility（Tailwind v4 的源指令），不能被嵌套进某个层。
+   此处按不带层的方式导入；它的工具类会带上前缀，并与其余工具类一起
+   落入 `atom-utilities`。
+   若 tw-animate 中确有必须胜出的规则，应使用数据属性双写技巧，
+   或者放进下面的 @layer atom 里。 */
+@import './tw-animate.css';
+@import './theme-design.css';
+
+/* OKLCH 主题调色板：[data-base-color] / [data-primary-color] / .dark 选择器。
+   独立文件仍随静态资源一起发布，宿主页面也可按原版用法单独 link；
+ 打进本构建产物是为了让预编译 atomblazor.css 自带主题令牌（验收项）。 */
+@import './themes.css';
+
+/* 暗色模式通过在 <html> 上加 .dark 类切换（而非跟随系统）——
+   theme-init.js 在首次绘制前切换，theme.js 负责之后的每一次变更。
+   Tailwind v4 的 `dark:` 默认走 `@media (prefers-color-scheme: dark)`，
+   不加本变体的话所有 `atom:dark:` 工具类都会跟随操作系统、完全无视开关：
+   亮色机器上的暗色主题应用会保持亮色徽章和输入框（#559）。 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* 扫描源：组件目录（Razor 文件）。
+   Primitives 自带少量字面工具类（Menubar 遮罩、Sortable 活动区域、
+   Table 焦点环），各图标包各有一处（缺失图标回退）；它们都不单独
+   发布样式表，故一并在此扫描。 */
+@source "../../Components";
+@source "../../../AtomBlazor.Primitives/Primitives";
+@source "../../../AtomBlazor.Icons.Lucide/Components";
+@source "../../../AtomBlazor.Icons.Heroicons/Components";
+@source "../../../AtomBlazor.Icons.Feather/Components";
+@source "../../../AtomBlazor.Icons.FontAwesome/Components";
+
+/* 安全清单：把 chat 工具类显式 inline，好让预编译 CSS 的使用者直接套用
+   （组件源里只用到它们的变体形态）。 */
+@source inline("atom:shimmer atom:scroll-fade-x");
+
+/* 组件结构变量与默认主题令牌 */
+/* Alert 默认色让使用者可以直接套一份原样的 tweakcn/shadcn 主题，
+   无需定义本库专属的 --alert-* 变量。使用者主题里不带层的 :root
+   会通过 CSS 级联自动覆盖这些 @layer base 里的值。 */
+@layer base {
+  :root {
+    color-scheme: light;
+    --sidebar-width: 16rem;
+    --sidebar-width-mobile: 18rem;
+    --sidebar-width-icon: 3rem;
+
+    /* ── Sidebar 菜单按钮 ── */
+    --sidebar-menu-button-height: auto;
+    --sidebar-menu-button-px: 0.5rem;
+    --sidebar-menu-button-py: 0.375rem;
+    --sidebar-menu-button-font-size: 0.875rem;
+    --sidebar-menu-button-line-height: 1.25rem;
+    --sidebar-menu-button-font-size-sm: 0.75rem;
+    --sidebar-menu-button-line-height-sm: 1rem;
+    --sidebar-menu-button-font-size-lg: 1rem;
+    --sidebar-menu-button-line-height-lg: 1.5rem;
+    --sidebar-menu-button-font-weight: 400;
+    --sidebar-menu-button-active-font-weight: 500;
+    --sidebar-menu-button-active-bg: var(--sidebar-accent);
+    --sidebar-menu-button-active-color: var(--sidebar-accent-foreground);
+    --sidebar-menu-button-active-shadow: none;
+    --sidebar-menu-button-radius: 0.375rem;
+    --sidebar-menu-button-gap: 0.5rem;
+    --sidebar-menu-button-icon-size: 1rem;
+    --sidebar-menu-button-collapsed-size: 2rem;
+    --sidebar-menu-button-collapsed-padding: 0.5rem;
+    --sidebar-menu-button-collapsed-padding-lg: 0.75rem;
+
+    /* ── Sidebar 分组 ── */
+    --sidebar-group-py: 0.5rem;
+    --sidebar-group-px: 0.5rem;
+
+    /* ── Sidebar 分组标签 ── */
+    --sidebar-group-label-height: 2rem;
+    --sidebar-group-label-px: 0.5rem;
+    --sidebar-group-label-font-size: 0.75rem;
+    --sidebar-group-label-line-height: 1rem;
+    --sidebar-group-label-font-weight: 500;
+    --sidebar-group-label-radius: 0.375rem;
+    --sidebar-group-label-icon-size: 1rem;
+
+    /* ── Sidebar 菜单 ── */
+    --sidebar-menu-gap: 0.25rem;
+
+    /* ── Sidebar 页眉 ── */
+    --sidebar-header-py: 0.5rem;
+    --sidebar-header-px: 0.5rem;
+    --sidebar-header-gap: 0.5rem;
+
+    /* ── Sidebar 页眉内容 ── */
+    --sidebar-header-content-gap: 0.5rem;
+    --sidebar-header-content-py: 0.5rem;
+    --sidebar-header-content-px: 0.5rem;
+
+    /* ── Sidebar 页脚 ── */
+    --sidebar-footer-py: 0.5rem;
+    --sidebar-footer-px: 0.5rem;
+    --sidebar-footer-gap: 0.5rem;
+
+    /* ── Sidebar 内容 ── */
+    --sidebar-content-py: 0.5rem;
+    --sidebar-content-px: 0.5rem;
+    --sidebar-content-gap: 0.5rem;
+
+    /* ── Sidebar 菜单徽章 ── */
+    --sidebar-badge-height: 1.25rem;
+    --sidebar-badge-min-width: 1.25rem;
+    --sidebar-badge-px: 0.25rem;
+    --sidebar-badge-font-size: 0.75rem;
+    --sidebar-badge-line-height: 1rem;
+    --sidebar-badge-font-weight: 500;
+    --sidebar-badge-radius: 0.375rem;
+    --sidebar-badge-right: 0.25rem;
+    --sidebar-badge-bg: transparent;
+    --sidebar-badge-color: var(--sidebar-foreground);
+
+    /* ── Sidebar 子菜单 ── */
+    --sidebar-sub-mx: 0.875rem;
+    --sidebar-sub-px: 0.625rem;
+    --sidebar-sub-py: 0.125rem;
+    --sidebar-sub-gap: 0.25rem;
+
+    /* ── Sidebar 子菜单按钮 ── */
+    --sidebar-sub-button-height: 1.75rem;
+    --sidebar-sub-button-px: 0.5rem;
+    --sidebar-sub-button-gap: 0.5rem;
+    --sidebar-sub-button-radius: 0.375rem;
+    --sidebar-sub-button-font-size: 0.875rem;
+    --sidebar-sub-button-line-height: 1.25rem;
+    --sidebar-sub-button-font-size-sm: 0.75rem;
+    --sidebar-sub-button-line-height-sm: 1rem;
+    --sidebar-sub-button-icon-size: 1rem;
+
+    /* Alert 默认色——在使用者自己的主题里覆盖即可定制 */
+    --alert-success: oklch(0.55 0.20 142);
+    --alert-success-foreground: oklch(0.30 0.09 142);
+    --alert-success-bg: oklch(0.993 0.003 142);
+    --alert-info: oklch(0.50 0.20 255);
+    --alert-info-foreground: oklch(0.30 0.10 255);
+    --alert-info-bg: oklch(0.993 0.003 255);
+    --alert-warning: oklch(0.68 0.18 55);
+    --alert-warning-foreground: oklch(0.35 0.10 55);
+    --alert-warning-bg: oklch(0.995 0.003 55);
+    --alert-danger: var(--destructive, oklch(0.55 0.22 27));
+    --alert-danger-foreground: var(--destructive-foreground, oklch(0.30 0.12 27));
+    --alert-danger-bg: oklch(0.993 0.003 27);
+  }
+
+  .dark {
+    color-scheme: dark;
+    --alert-success: oklch(0.60 0.18 142);
+    --alert-success-foreground: oklch(0.90 0.06 142);
+    --alert-success-bg: oklch(0.18 0.008 142);
+    --alert-info: oklch(0.55 0.18 255);
+    --alert-info-foreground: oklch(0.90 0.05 255);
+    --alert-info-bg: oklch(0.18 0.008 255);
+    --alert-warning: oklch(0.65 0.16 55);
+    --alert-warning-foreground: oklch(0.92 0.06 55);
+    --alert-warning-bg: oklch(0.19 0.008 55);
+    --alert-danger: var(--destructive, oklch(0.55 0.20 27));
+    --alert-danger-foreground: var(--destructive-foreground, oklch(0.90 0.06 27));
+    --alert-danger-bg: oklch(0.18 0.008 27);
+  }
+}
+
+/* Tailwind v4 的 CSS-first 主题配置。
+   使用 @theme inline，让 var() 引用在工具类的调用点解析。 */
+@theme inline {
+  /* 颜色 */
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-alert-success: var(--alert-success);
+  --color-alert-success-foreground: var(--alert-success-foreground);
+  --color-alert-success-bg: var(--alert-success-bg);
+  --color-alert-info: var(--alert-info);
+  --color-alert-info-foreground: var(--alert-info-foreground);
+  --color-alert-info-bg: var(--alert-info-bg);
+  --color-alert-warning: var(--alert-warning);
+  --color-alert-warning-foreground: var(--alert-warning-foreground);
+  --color-alert-warning-bg: var(--alert-warning-bg);
+  --color-alert-danger: var(--alert-danger);
+  --color-alert-danger-foreground: var(--alert-danger-foreground);
+  --color-alert-danger-bg: var(--alert-danger-bg);
+
+  /* 字体 */
+  --font-sans: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  --font-serif: var(--font-serif, ui-serif, Georgia, serif);
+  --font-mono: var(--font-mono, ui-monospace, monospace);
+
+  /* 圆角半径 */
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-sm: calc(var(--radius) * 0.6);
+
+  /* 字距（letter-spacing）——相对于使用者主题里的 --tracking-normal */
+  --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
+  --tracking-tight: calc(var(--tracking-normal) - 0.025em);
+  --tracking-normal: var(--tracking-normal);
+  --tracking-wide: calc(var(--tracking-normal) + 0.025em);
+  --tracking-wider: calc(var(--tracking-normal) + 0.05em);
+  --tracking-widest: calc(var(--tracking-normal) + 0.1em);
+}
+
+/* 全局主题默认值。这些是重置而非覆盖，因此放在 `base` 层，
+   border/background 工具类按正常优先级就能赢过它们。它们绝不能进入
+   `@layer atom`：一旦成为 atom 层的子层，通配 `*` 选择器会压过所有
+   border-* 工具类（层优先级不看特异性），把所有边框颜色拍平成
+   --border——见 #398。 */
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  /* 上面的 `*` 规则是 shadcn 的默认值，仅靠它并不够。使用者运行自己的
+     Tailwind 构建时，会把他们自己的 preflight 写进同一个 `base` 层，
+     而 preflight 的 `border: 0 solid` 会把 border-color 重置为
+     `currentColor`。两个 `*` 选择器、同层、同特异性——所以谁后链接
+     谁赢；当后链接的是他们时，本库每一条边框都会变成近黑色
+     （#527）。
+
+     改用 class 属性匹配可以在特异性上一锤定音（0,1,0 对 preflight 的
+     0,0,0），这是链接顺序改变不了的。它必须留在 `base`：从任何后置层
+     发出都会压过使用者自己的 `border-*` 工具类，那不过是 #398 的回归
+     换了个方向。且它只匹配本库自己的带前缀类，所以永远不会碰到
+     使用者的标记。
+
+     任何真实边框色依然能胜出——本库的 `atom:border-accent` 和使用者的
+     `border-red-500` 都位于 `base` 之上的工具层里。 */
+  [class*="atom:border"] {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    letter-spacing: var(--tracking-normal, 0);
+  }
+}
+
+/* 所有组件的 utility/component 层块都放在 `@layer atom` 之内，好在与使用者
+   Tailwind 产物的同级层竞争中胜出。内部这些 @layer 声明（base/components/
+   utilities）会成为 atom 层的子层。 */
+@layer atom {
+
+/* Select/Combobox/DropdownMenu 的键盘导航视觉反馈所必需 */
+@layer components {
+  [role="option"][data-focused="true"] {
+    background-color: var(--accent);
+    color: var(--accent-foreground);
+  }
+}
+
+/* 本库 Sidebar 根元素的可见性——需要压过使用者的 Tailwind 级联。
+   Sidebar 的 <aside> 用 `hidden md:flex` 工具类在移动端隐藏、桌面端显示，
+   但这些工具类会随样式表加载顺序与使用者规则打平甚至落败（#308 中
+   实测到的那个 bug）。@layer atom 里这条更高特异性的属性选择器
+   无论顺序如何都是权威。 */
+@layer components {
+  aside[data-variant][data-side] { display: none; }
+  @media (min-width: 768px) {
+    aside[data-variant][data-side] { display: flex; }
+  }
+}
+
+/* ── Sidebar 组件的布局/尺寸改由 CSS 变量驱动 ──
+   以可定制变量取代硬编码的 Tailwind 工具类。
+   使用者只需在 :root 或某个外层元素上设置这些变量即可覆盖。 */
+@layer components {
+  /* ── 菜单按钮 ── */
+  [data-sidebar="menu-button"] {
+    padding: var(--sidebar-menu-button-py) var(--sidebar-menu-button-px);
+    font-size: var(--sidebar-menu-button-font-size);
+    line-height: var(--sidebar-menu-button-line-height);
+    border-radius: var(--sidebar-menu-button-radius);
+    gap: var(--sidebar-menu-button-gap);
+    height: var(--sidebar-menu-button-height);
+    font-weight: var(--sidebar-menu-button-font-weight);
+  }
+
+  [data-sidebar="menu-button"][data-size="sm"] {
+    font-size: var(--sidebar-menu-button-font-size-sm);
+    line-height: var(--sidebar-menu-button-line-height-sm);
+  }
+
+  [data-sidebar="menu-button"][data-size="lg"] {
+    font-size: var(--sidebar-menu-button-font-size-lg);
+    line-height: var(--sidebar-menu-button-line-height-lg);
+  }
+
+  [data-sidebar="menu-button"] > svg {
+    width: var(--sidebar-menu-button-icon-size);
+    height: var(--sidebar-menu-button-icon-size);
+  }
+
+  [data-sidebar="menu-button"][data-active="true"] {
+    font-weight: var(--sidebar-menu-button-active-font-weight);
+    background-color: var(--sidebar-menu-button-active-bg);
+    color: var(--sidebar-menu-button-active-color);
+    box-shadow: var(--sidebar-menu-button-active-shadow);
+  }
+
+  /* 菜单按钮——图标折叠模式 */
+  [data-collapsible="icon"] [data-sidebar="menu-button"] {
+    width: var(--sidebar-menu-button-collapsed-size);
+    height: var(--sidebar-menu-button-collapsed-size);
+    padding: var(--sidebar-menu-button-collapsed-padding);
+    gap: 0;
+  }
+
+  [data-collapsible="icon"] [data-sidebar="menu-button"][data-size="lg"] {
+    padding: var(--sidebar-menu-button-collapsed-padding-lg);
+  }
+
+  /* ── 分组 ── */
+  [data-sidebar="group"] {
+    padding: var(--sidebar-group-py) var(--sidebar-group-px);
+  }
+
+  [data-collapsible="icon"] [data-sidebar="group"] {
+    padding: 0;
+  }
+
+  /* ── 分组标签 ── */
+  [data-sidebar="group-label"] {
+    height: var(--sidebar-group-label-height);
+    padding-left: var(--sidebar-group-label-px);
+    padding-right: var(--sidebar-group-label-px);
+    font-size: var(--sidebar-group-label-font-size);
+    line-height: var(--sidebar-group-label-line-height);
+    font-weight: var(--sidebar-group-label-font-weight);
+    border-radius: var(--sidebar-group-label-radius);
+  }
+
+  [data-sidebar="group-label"] > svg {
+    width: var(--sidebar-group-label-icon-size);
+    height: var(--sidebar-group-label-icon-size);
+  }
+
+  [data-collapsible="icon"] [data-sidebar="group-label"] {
+    margin-top: calc(-1 * var(--sidebar-group-label-height));
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  /* ── 菜单 ── */
+  [data-sidebar="menu"] {
+    gap: var(--sidebar-menu-gap);
+  }
+
+  /* ── 页眉 ── */
+  [data-sidebar="header"] {
+    padding: var(--sidebar-header-py) var(--sidebar-header-px);
+    gap: var(--sidebar-header-gap);
+  }
+
+  /* ── 页眉内容 ── */
+  [data-sidebar="header-content"] {
+    gap: var(--sidebar-header-content-gap);
+    padding: var(--sidebar-header-content-py) var(--sidebar-header-content-px);
+  }
+
+  [data-collapsible="icon"] [data-sidebar="header-content"] {
+    padding: 0;
+  }
+
+  /* ── 页脚 ── */
+  [data-sidebar="footer"] {
+    padding: var(--sidebar-footer-py) var(--sidebar-footer-px);
+    gap: var(--sidebar-footer-gap);
+  }
+
+  /* ── 内容 ── */
+  [data-sidebar="content"] {
+    padding: var(--sidebar-content-py) var(--sidebar-content-px);
+    gap: var(--sidebar-content-gap);
+  }
+
+  /* ── 菜单徽章 ── */
+  [data-sidebar="menu-badge"] {
+    height: var(--sidebar-badge-height);
+    min-width: var(--sidebar-badge-min-width);
+    padding-left: var(--sidebar-badge-px);
+    padding-right: var(--sidebar-badge-px);
+    font-size: var(--sidebar-badge-font-size);
+    line-height: var(--sidebar-badge-line-height);
+    font-weight: var(--sidebar-badge-font-weight);
+    border-radius: var(--sidebar-badge-radius);
+    right: var(--sidebar-badge-right);
+    background-color: var(--sidebar-badge-bg);
+    color: var(--sidebar-badge-color);
+  }
+
+  /* ── 子菜单 ── */
+  [data-sidebar="menu-sub"] {
+    margin-left: var(--sidebar-sub-mx);
+    margin-right: var(--sidebar-sub-mx);
+    padding-left: var(--sidebar-sub-px);
+    padding-right: var(--sidebar-sub-px);
+    padding-top: var(--sidebar-sub-py);
+    padding-bottom: var(--sidebar-sub-py);
+    gap: var(--sidebar-sub-gap);
+  }
+
+  /* ── 子菜单按钮 ── */
+  [data-sidebar="menu-sub-button"] {
+    height: var(--sidebar-sub-button-height);
+    padding-left: var(--sidebar-sub-button-px);
+    padding-right: var(--sidebar-sub-button-px);
+    gap: var(--sidebar-sub-button-gap);
+    border-radius: var(--sidebar-sub-button-radius);
+    font-size: var(--sidebar-sub-button-font-size);
+    line-height: var(--sidebar-sub-button-line-height);
+  }
+
+  [data-sidebar="menu-sub-button"][data-size="sm"] {
+    font-size: var(--sidebar-sub-button-font-size-sm);
+    line-height: var(--sidebar-sub-button-line-height-sm);
+  }
+
+  [data-sidebar="menu-sub-button"] > svg {
+    width: var(--sidebar-sub-button-icon-size);
+    height: var(--sidebar-sub-button-icon-size);
+  }
+}
+
+/* DataGrid 主题化——所有视觉状态（边框、悬停、选中、固定列
+   背景）都落在这一节的 CSS 里，C# 只处理结构（内边距、对齐、
+   z-index、分隔线）。这一分工避免了 Tailwind 工具类与 CSS
+   覆盖之间的冲突。
+
+   底边框放在单元格（而不是行）上，这样在粘性/固定单元格下仍然
+   可见；box-shadow 因此可以专门留给焦点环。 */
+@layer utilities {
+  /* ── 单元格边框 ──
+     每个单元格都带底边框，保证粘性单元格下边框仍然可见。 */
+  .atom\:group\/row > td,
+  .atom\:group\/row > th {
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── 固定列背景 ──
+     固定单元格继承所在行的背景，以形成不透明的粘性覆盖。 */
+  .atom\:group\/row > [data-pinned] {
+    background-color: inherit;
+  }
+
+  /* ── 悬停 ──
+     对所有表体单元格施加同样的不透明着色——固定列与非固定列完全一致。 */
+  .atom\:group\/row:hover > td {
+    background-color: color-mix(in oklab, var(--muted) 50%, var(--background));
+  }
+
+  /* ── 选中 ──
+     所有表体单元格使用不透明 muted 色。排在悬停之后，靠源码顺序胜出。
+     行本身也获得该背景，这样 <tr>（bg-background）就不会在粘性单元格
+     下方透出来，成为一条可见的白线。 */
+  .atom\:group\/row[aria-selected="true"] {
+    background-color: var(--muted);
+  }
+
+  .atom\:group\/row[aria-selected="true"] > td {
+    background-color: var(--muted);
+  }
+}
+
+/* DataGrid 键盘导航——焦点环按单元格逐格绘制。
+   每个单元格通过 inset box-shadow 渲染自己的上/下环段，因此固定
+   （粘性）单元格与普通单元格上的焦点环表现一致。
+
+   聚焦行只在 :focus 时使用 position: relative + z-index，让焦点环绘制
+   在相邻行之上。绝不能长期设置 position: relative，因为 Chromium 有个
+   bug：<tr> 上的 position: relative 会在
+   border-collapse: collapse 下隐藏单元格边框。 */
+@layer utilities {
+  [role="row"][tabindex="0"]:focus {
+    position: relative;
+    z-index: 10;
+  }
+
+  [role="row"][tabindex="0"]:focus > [role="gridcell"] {
+    box-shadow: inset 0 2px 0 0 var(--ring), inset 0 -2px 0 0 var(--ring);
+  }
+
+  [role="row"][tabindex="0"]:focus > [role="gridcell"]:first-child {
+    box-shadow: inset 2px 0 0 0 var(--ring), inset 0 2px 0 0 var(--ring), inset 0 -2px 0 0 var(--ring);
+  }
+
+  [role="row"][tabindex="0"]:focus > [role="gridcell"]:last-child {
+    box-shadow: inset -2px 0 0 0 var(--ring), inset 0 2px 0 0 var(--ring), inset 0 -2px 0 0 var(--ring);
+  }
+
+  [role="row"][tabindex="0"]:focus > [role="gridcell"]:only-child {
+    box-shadow: inset 2px 0 0 0 var(--ring), inset -2px 0 0 0 var(--ring), inset 0 2px 0 0 var(--ring), inset 0 -2px 0 0 var(--ring);
+  }
+}
+
+
+
+@layer utilities {
+  /* Accordion/Collapsible 用的 grid 动画工具类 */
+  .atom\:grid-rows-\[0fr\] {
+    grid-template-rows: 0fr;
+  }
+
+  .atom\:grid-rows-\[1fr\] {
+    grid-template-rows: 1fr;
+  }
+
+  .atom\:data-\[state\=open\]\:grid-rows-\[1fr\][data-state="open"] {
+    grid-template-rows: 1fr;
+  }
+
+  .atom\:transition-\[grid-template-rows\] {
+    transition-property: grid-template-rows;
+    transition-timing-function: var(--tw-ease, var(--atom-default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--atom-default-transition-duration));
+  }
+}
+
+/* AspectRatio 组件——内容包装层铺满父容器，子元素再铺满包装层 */
+/* 放进 utilities 层以获得更高特异性 */
+@layer utilities {
+  .aspect-ratio-content {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .aspect-ratio-content > * {
+    width: 100% !important;
+    height: 100% !important;
+  }
+}
+
+/* 富文本编辑器——无头模式下的 Quill.js 样式 */
+@layer components {
+  /* 容器样式——无头模式没有 .ql-snow 类 */
+  [data-slot="rich-text-editor"] .ql-container {
+    font-family: inherit;
+    font-size: inherit;
+  }
+
+  /* 编辑区内容 */
+  [data-slot="rich-text-editor"] .ql-editor {
+    min-height: inherit;
+    padding: 0.75rem;
+    color: var(--foreground);
+    outline: none;
+  }
+
+  /* 占位文本样式 */
+  [data-slot="rich-text-editor"] .ql-editor.ql-blank::before {
+    color: var(--muted-foreground) !important;
+    font-style: normal;
+    left: 0.75rem;
+    right: 0.75rem;
+    pointer-events: none;
+  }
+
+  /* 禁用态 */
+  [data-slot="rich-text-editor"].opacity-50 .ql-editor {
+    cursor: not-allowed;
+  }
+
+  /* 行内格式——加固浏览器默认表现 */
+  [data-slot="rich-text-editor"] .ql-editor strong,
+  [data-slot="rich-text-editor"] .ql-editor b {
+    font-weight: 700;
+  }
+
+  [data-slot="rich-text-editor"] .ql-editor em,
+  [data-slot="rich-text-editor"] .ql-editor i {
+    font-style: italic;
+  }
+
+  [data-slot="rich-text-editor"] .ql-editor u {
+    text-decoration: underline;
+  }
+
+  [data-slot="rich-text-editor"] .ql-editor s {
+    text-decoration: line-through;
+  }
+
+  /* 列表 */
+  [data-slot="rich-text-editor"] .ql-editor ul,
+  [data-slot="rich-text-editor"] .ql-editor ol {
+    padding-inline-start: 1.5em;
+    margin: 0.5em 0;
+  }
+
+  [data-slot="rich-text-editor"] .ql-editor ul {
+    list-style-type: disc;
+  }
+
+  [data-slot="rich-text-editor"] .ql-editor ol {
+    list-style-type: decimal;
+  }
+
+  [data-slot="rich-text-editor"] .ql-editor li {
+    margin: 0.25em 0;
+  }
+
+  /* 代码块——Quill 用的是 .ql-code-block 类，不是 <pre> */
+  [data-slot="rich-text-editor"] .ql-editor .ql-code-block-container {
+    background-color: var(--muted);
+    padding: 0.75em 1em;
+    border-radius: 0.375rem;
+    overflow-x: auto;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 0.875em;
+    margin: 0.5em 0;
+  }
+
+  [data-slot="rich-text-editor"] .ql-editor .ql-code-block {
+    font-family: inherit;
+  }
+
+  /* 链接 */
+  [data-slot="rich-text-editor"] .ql-editor a {
+    color: var(--primary);
+    text-decoration: underline;
+  }
+
+  [data-slot="rich-text-editor"] .ql-editor a:hover {
+    text-decoration: none;
+  }
+
+  /* 段落 */
+  [data-slot="rich-text-editor"] .ql-editor p {
+    margin: 0.5em 0;
+  }
+
+  [data-slot="rich-text-editor"] .ql-editor p:first-child {
+    margin-top: 0;
+  }
+
+  [data-slot="rich-text-editor"] .ql-editor p:last-child {
+    margin-bottom: 0;
+  }
+}
+
+/* Timeline 右对齐内容 */
+@layer components {
+  [data-timeline-end] {
+    text-align: end;
+  }
+
+  /* 纵向 flex 容器（TimelineContent）：子元素右对齐 */
+  [data-timeline-end] > :where(.atom\:flex-col) {
+    align-items: flex-end;
+    padding-inline-start: 0;
+    padding-inline-end: 0.5rem;
+  }
+
+  /* 横向 flex 容器（TimelineHeader）：条目靠右排列 */
+  [data-timeline-end] :where(.atom\:flex:not(.atom\:flex-col)) {
+    justify-content: flex-end;
+  }
+}
+
+/* 富文本编辑器——必须压过 Tailwind preflight 的块级格式 */
+@layer utilities {
+  /* 标题——需要 !important 才能压过 Tailwind preflight 的重置 */
+  [data-slot="rich-text-editor"] .ql-editor h1 {
+    font-size: 2em !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0.5em !important;
+  }
+
+  [data-slot="rich-text-editor"] .ql-editor h2 {
+    font-size: 1.5em !important;
+    font-weight: 600 !important;
+    line-height: 1.3 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0.5em !important;
+  }
+
+  [data-slot="rich-text-editor"] .ql-editor h3 {
+    font-size: 1.25em !important;
+    font-weight: 600 !important;
+    line-height: 1.4 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0.5em !important;
+  }
+
+  /* 引用块——需要 !important 才能压过 Tailwind preflight 的重置 */
+  [data-slot="rich-text-editor"] .ql-editor blockquote {
+    border-inline-start: 4px solid var(--border) !important;
+    padding-inline-start: 1em !important;
+    margin: 0.5em 0 !important;
+    color: var(--muted-foreground) !important;
+    font-style: italic !important;
+  }
+
+  /* 表格——quill.core.css 不带层，会给单元格画上黑色 1px 边框，
+     所以带主题的边框必须在层内用 !important 才能胜出。 */
+  [data-slot="rich-text-editor"] .ql-editor table {
+    border-collapse: collapse;
+    margin: 0.5em 0;
+  }
+
+  [data-slot="rich-text-editor"] .ql-editor td {
+    border: 1px solid var(--border) !important;
+    padding: 0.375rem 0.5rem !important;
+    vertical-align: top;
+  }
+
+  /* 行内代码 */
+  [data-slot="rich-text-editor"] .ql-editor code {
+    background-color: var(--muted);
+    border-radius: 0.25rem;
+    padding: 0.125em 0.3em;
+    font-size: 0.875em;
+  }
+
+  /* 图片永不溢出编辑区 */
+  [data-slot="rich-text-editor"] .ql-editor img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* NativeSelect 下拉箭头——Tailwind v4 无法从任意值类中提取出来的内联 SVG */
+[data-atom-native-select] {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: 1rem;
+  background-position: right 0.5rem center;
+}
+
+/* DateRangePicker 响应式布局——桌面端（≥640px）。
+   双写 data 属性选择器给出 0,2,0 的特异性，无论源码顺序如何都能压过单类的
+   Tailwind 工具类（0,1,0），把这些规则留在层体系之内。 */
+@layer utilities {
+  @media (min-width: 40rem) {
+    [data-drp][data-drp] {
+      width: auto;
+    }
+
+    [data-drp-body][data-drp-body] {
+      flex-direction: row;
+    }
+
+    [data-drp-presets][data-drp-presets] {
+      /* 为绝对定位的内层滚动列提供定位上下文 */
+      position: relative;
+      overflow-x: visible;
+      border-bottom-width: 0;
+      border-inline-end-style: var(--tw-border-style);
+      border-inline-end-width: 1px;
+      min-width: 140px;
+      padding: 0;
+    }
+
+    /* 桌面端隐藏移动端的 select */
+    [data-drp-presets][data-drp-presets] > [data-drp-presets-select] {
+      display: none;
+    }
+
+    /* 内层滚动列填满侧栏，独立于日历滚动 */
+    [data-drp-presets][data-drp-presets] > [data-drp-presets-inner] {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      gap: calc(var(--atom-spacing) * 1);
+      padding: calc(var(--atom-spacing) * 3);
+    }
+
+    [data-drp-presets-label][data-drp-presets-label] {
+      display: block;
+    }
+
+    [data-drp-calendar][data-drp-calendar] {
+      padding: calc(var(--atom-spacing) * 3);
+    }
+
+    [data-drp-mobile-nav][data-drp-mobile-nav] {
+      display: none;
+    }
+
+    [data-drp-desktop-spacer][data-drp-desktop-spacer] {
+      display: block;
+    }
+
+    [data-drp-calendar-2][data-drp-calendar-2] {
+      display: block;
+      padding: calc(var(--atom-spacing) * 3);
+    }
+
+    [data-drp-cell][data-drp-cell] {
+      flex: none;
+    }
+
+    [data-drp-preset-btn][data-drp-preset-btn] {
+      flex-shrink: 0;
+      white-space: normal;
+    }
+
+    [data-drp-day-btn][data-drp-day-btn] {
+      width: calc(var(--atom-spacing) * 9);
+    }
+  }
+}
+
+/* 全局禁用动画——在 <html> 上加 class="atom-no-animate" 即可关闭
+   过渡与装饰性动画。
+
+   循环播放的状态指示器属于例外：转圈（.animate-spin）与脉冲（.animate-pulse）
+   表达的是正在进行的工作，不是装饰，冻住它们会歪曲状态；因此本库带前缀的
+   形态与使用者不带前缀的裸形态都在例外之列。需要让其他动画也免于冻结时，
+   加 .atom-animate-keep。 */
+@layer utilities {
+  .atom-no-animate *:not(.animate-spin, .atom\:animate-spin, .animate-pulse, .atom\:animate-pulse, .atom-animate-keep),
+  .atom-no-animate *:not(.animate-spin, .atom\:animate-spin, .animate-pulse, .atom\:animate-pulse, .atom-animate-keep)::before,
+  .atom-no-animate *:not(.animate-spin, .atom\:animate-spin, .animate-pulse, .atom\:animate-pulse, .atom-animate-keep)::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+} /* @layer atom 结束 */
+
+/* 无障碍——尊重使用者的减少动效偏好。
+   刻意保持不带层（UNLAYERED），任何带层规则都无法击败它。 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@layer atom {
+
+/* DynamicForm——横向布局的标签宽度由 CSS 变量控制 */
+@layer components {
+  [data-orientation="horizontal"] > [data-slot="field-label"] {
+    min-width: var(--atom-label-width, auto);
+  }
+}
+
+/* Gantt——时间朝哪个方向走，箭头又朝哪个方向指。
+
+   条形、底纹与表头都用逻辑偏移定位，
+   所以在从右到左的页面里它们会自动镜像。有两件事做不到：
+   重复渐变需要物理方向，所以方向在这里被点名一次。
+   而 SVG 坐标系并不随页面翻转，若箭头仍然朝右，
+   它就指向了时间的反方向；把整个覆盖层一起镜像后，
+   折角与箭头也会随之转过来。 */
+@layer utilities {
+  [data-slot="gantt"] {
+    --atom-gantt-flow: right;
+  }
+
+  [dir="rtl"] [data-slot="gantt"] {
+    --atom-gantt-flow: left;
+  }
+
+  [dir="rtl"] [data-slot="gantt"] [data-gantt-links] {
+    transform: scaleX(-1);
+  }
+}
+
+/* Sortable——为组件树之外生成的 ghost/fallback 元素提供全局样式 */
+@layer utilities {
+  .sortable-ghost {
+    visibility: hidden;
+  }
+
+  .sortable-fallback {
+    opacity: 1 !important;
+  }
+}
+
+/* DashboardGrid——引导线背景由 ::before 伪元素渲染。
+   JS 读取浏览器实际的计算列宽，以构建完全对齐的 SVG 遮罩。
+   行高是固定的，因此不存在取整误差。 */
+@layer components {
+  .atom-guide-background-grid::before {
+    content: '';
+    position: absolute;
+    top: var(--atom-grid-pad-top, 0px);
+    right: var(--atom-grid-pad-right, 0px);
+    bottom: var(--atom-grid-pad-bottom, 0px);
+    left: var(--atom-grid-pad-left, 0px);
+    pointer-events: none;
+    z-index: 0;
+    background-color: color-mix(in oklch, var(--foreground) 8%, transparent);
+    -webkit-mask-image: var(--atom-dashboard-guide-svg);
+    mask-image: var(--atom-dashboard-guide-svg);
+    -webkit-mask-size: var(--atom-dashboard-cell-w) var(--atom-dashboard-cell-h);
+    mask-size: var(--atom-dashboard-cell-w) var(--atom-dashboard-cell-h);
+    -webkit-mask-repeat: repeat;
+    mask-repeat: repeat;
+  }
+
+  /* JS 压缩完初始布局之前，先隐藏各挂件 */
+  [data-positioned="false"] > [data-widget-id] {
+    visibility: hidden;
+  }
+
+  /* 可编辑网格中当前挂件的焦点环。
+     通过设置 Tailwind 的 ring 变量，让焦点环与既有的 shadow-sm
+     工具类叠加，而不是把它替换掉。 */
+  [data-editable="true"] [data-widget-id]:focus {
+    --tw-ring-offset-shadow: 0 0 0 2px var(--background);
+    --tw-ring-shadow: 0 0 0 4px var(--ring);
+    z-index: 10;
+  }
+
+  /* 拖拽/缩放过程中挂件上的活动边框 */
+  [data-dragging="true"],
+  [data-resizing="true"] {
+    outline: 2px dashed var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+} /* @layer atom 结束 */
+
+/* 原生 <dialog> 渲染路径（OverlayRenderingStrategy.Native）。
+   刻意放在 @layer atom 之外（并置于 @layer components，位于 atom-utilities 之下），
+   好让组件自身的 Tailwind 类（atom:p-6、atom:max-w-lg、atom:border、
+   atom:bg-background、atom:shadow-lg）覆盖这些重置默认值。showModal() 会把
+   dialog 送进 top layer（原生焦点陷阱、背景 inert 与 ::backdrop 遮罩）；
+   定位用的是与 JS 路径相同的一组 fixed 居中规则，这里无需再写 margin/inset。 */
+@layer components {
+  dialog[data-state] {
+    max-height: calc(100dvh - 2rem);
+    overflow: auto;
+    padding: 0;
+    color: var(--foreground);
+    background: var(--background);
+    /* 重置 UA 默认的不透明边框，但保留主题边框色，这样 Tailwind 的
+       `border` 工具类就能产出与 JS 路径一致的细边框（那边读的是
+       var(--border)）；不做这一步的话边框会退回 currentColor，
+       在深色背景上会亮得刺眼。 */
+    border: 0 solid var(--border);
+  }
+
+  dialog[data-state="open"]::backdrop {
+    background: rgb(0 0 0 / 0.8);
+    backdrop-filter: blur(2px);
+  }
+
+  dialog[data-state="open"] {
+    outline: none;
+  }
+}
+
+/* Alert 倒计时条动画。keyframes 不受级联层约束，
+   因此保持在顶层。 */
+@keyframes atom-alert-countdown {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+/* Chat 系组件（Attachment/Marker/Message）的工具类。@utility 不能嵌套进
+   某个层；它们会带上 `atom:` 前缀，并像 tw-animate 的产物那样落入
+   `atom-utilities` 层。 */
+
+/* 进行中状态的渐变文字扫掠动画（如上传中的附件标题、
+   "正在输入…"标记）。 */
+@utility shimmer {
+  color: transparent;
+  background: linear-gradient(
+      90deg,
+      var(--muted-foreground) 0%,
+      var(--foreground) 50%,
+      var(--muted-foreground) 100%
+    )
+    0 0 / 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: atom-shimmer 2s linear infinite;
+}
+
+/* 滚动容器左右两端的渐隐遮罩
+   （如附件分组行）。 */
+@utility scroll-fade-x {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 1.5rem,
+    black calc(100% - 1.5rem),
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 1.5rem,
+    black calc(100% - 1.5rem),
+    transparent
+  );
+}
+
+@keyframes atom-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+/* 原生滚动面使用与本库 ScrollArea 滑块相同的主题令牌。
+   作用域限定在本库的 overflow 工具类上，宿主页滚动条仍保持自行启用。 */
+@layer atom {
+  :where([class*="atom:overflow-"]) {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  :where([class*="atom:overflow-"])::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  :where([class*="atom:overflow-"])::-webkit-scrollbar-track,
+  :where([class*="atom:overflow-"])::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  :where([class*="atom:overflow-"])::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border: 2px solid transparent;
+    border-radius: 9999px;
+    background-clip: padding-box;
+  }
+}
+
+/* ---------------------------------------------------------------------------------------------
+   Blazor Server 重连对话框
+   ---------------------------------------------------------------------------------------------
+   Blazor 由宿主页里的静态 HTML 驱动这个对话框：给页面准备一个
+   id="components-reconnect-modal" 的元素，框架会在它上面切换状态类。缺这个
+   元素时，框架会自绘遮罩并注入自己的样式表，也就是多数 Server 应用
+   默认带着的那个无样式白盒。
+
+   这个对话框不能是 Blazor 组件——电路已经断开，无从渲染任何东西。库能做
+   的是给这段标记上样式；因为这里每一处颜色都是主题变量，对话框在亮色与
+   暗色下都会自动跟随应用主题，无需任何配置。
+
+   刻意放在 `components` 层而不是 `atom` 层：标记属消费者的宿主页，他们自己
+   的工具类位于更高的层，必须能在不靠 !important 的前提下胜出。勿提升这些
+   规则——那会把覆盖权从他们手里拿走。
+
+   框架设置的状态，全部打在模态元素上：
+     components-reconnect-show           正在尝试重连
+     components-reconnect-retrying       叠加于 `show` 之上，表示正在为重试做倒计时
+     components-reconnect-paused         电路已暂停
+     components-reconnect-hide           已重连
+     components-reconnect-failed         已放弃重连
+     components-reconnect-resume-failed  已放弃恢复
+     components-reconnect-rejected       服务端拒绝，页面必须重新加载
+   ------------------------------------------------------------------------------------------- */
+@layer components {
+  #components-reconnect-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background-color: color-mix(in oklab, var(--background) 72%, transparent);
+    backdrop-filter: blur(4px);
+    color: var(--foreground);
+    font-family: inherit;
+  }
+
+  #components-reconnect-modal.components-reconnect-show,
+  #components-reconnect-modal.components-reconnect-retrying,
+  #components-reconnect-modal.components-reconnect-paused,
+  #components-reconnect-modal.components-reconnect-failed,
+  #components-reconnect-modal.components-reconnect-resume-failed,
+  #components-reconnect-modal.components-reconnect-rejected {
+    display: flex;
+  }
+
+  #components-reconnect-modal.components-reconnect-hide {
+    display: none;
+  }
+
+  #components-reconnect-modal .atom-reconnect-dialog {
+    width: 100%;
+    max-width: 24rem;
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius, 0.5rem);
+    background-color: var(--popover, var(--card, var(--background)));
+    color: var(--popover-foreground, var(--card-foreground, var(--foreground)));
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    text-align: center;
+    animation: atom-reconnect-in 150ms ease-out;
+  }
+
+  #components-reconnect-modal .atom-reconnect-heading {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  #components-reconnect-modal .atom-reconnect-text,
+  #components-reconnect-modal .atom-reconnect-attempt {
+    margin: 0.5rem 0 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--muted-foreground, var(--foreground));
+  }
+
+  #components-reconnect-modal .atom-reconnect-attempt {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* 转圈只属于仍在重试的状态。 */
+  #components-reconnect-modal .atom-reconnect-spinner {
+    display: none;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin: 0 auto 0.75rem;
+    border: 2px solid color-mix(in oklab, var(--foreground) 20%, transparent);
+    border-top-color: var(--primary, var(--foreground));
+    border-radius: 9999px;
+    animation: atom-reconnect-spin 700ms linear infinite;
+  }
+
+  #components-reconnect-modal.components-reconnect-show .atom-reconnect-spinner,
+  #components-reconnect-modal.components-reconnect-retrying .atom-reconnect-spinner {
+    display: block;
+  }
+
+  #components-reconnect-modal .atom-reconnect-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-top: 1.25rem;
+  }
+
+  #components-reconnect-modal .atom-reconnect-actions:empty,
+  #components-reconnect-modal.components-reconnect-show .atom-reconnect-actions,
+  #components-reconnect-modal.components-reconnect-retrying .atom-reconnect-actions {
+    display: none;
+  }
+
+  #components-reconnect-modal .atom-reconnect-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.25rem;
+    padding: 0 1rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius, 0.5rem);
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  #components-reconnect-modal .atom-reconnect-button:hover {
+    background-color: color-mix(in oklab, var(--primary) 90%, black);
+  }
+
+  #components-reconnect-modal .atom-reconnect-button:focus-visible {
+    outline: 2px solid var(--ring, var(--primary));
+    outline-offset: 2px;
+  }
+
+  #components-reconnect-modal .atom-reconnect-button[data-variant='secondary'] {
+    border-color: var(--border);
+    background-color: transparent;
+    color: var(--foreground);
+  }
+
+  #components-reconnect-modal .atom-reconnect-button[data-variant='secondary']:hover {
+    background-color: var(--accent, color-mix(in oklab, var(--foreground) 8%, transparent));
+  }
+
+  /* 一块标记服务所有状态。`data-when` 列出元素归属的状态，其余隐藏。
+     `retrying` 叠加于 `show`，故 `show` 专属文案须在倒计时启动时退场，
+     否则两条消息会同屏出现。 */
+  #components-reconnect-modal [data-when] {
+    display: none;
+  }
+
+  #components-reconnect-modal.components-reconnect-show:not(.components-reconnect-retrying) [data-when~='show'],
+  #components-reconnect-modal.components-reconnect-retrying [data-when~='retrying'],
+  #components-reconnect-modal.components-reconnect-paused [data-when~='paused'],
+  #components-reconnect-modal.components-reconnect-failed [data-when~='failed'],
+  #components-reconnect-modal.components-reconnect-resume-failed [data-when~='resume-failed'],
+  #components-reconnect-modal.components-reconnect-rejected [data-when~='rejected'] {
+    display: revert;
+  }
+
+  @keyframes atom-reconnect-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes atom-reconnect-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.98);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #components-reconnect-modal .atom-reconnect-dialog {
+      animation: none;
+    }
+
+    #components-reconnect-modal .atom-reconnect-spinner {
+      animation-duration: 2s;
+    }
+  }
+}

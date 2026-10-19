@@ -1,0 +1,129 @@
+@namespace AtomBlazor
+@using System.Globalization
+
+<div id="@PanelElementId" class="@CssClass" style="@MergedStyle" data-atom-resizable-panel="@PanelIndexAttribute" data-atom-resizable-group="@Group?.GroupId" @attributes="@InlineStyleMerge.WithoutStyle(AdditionalAttributes)">
+    @ChildContent
+</div>
+
+@code {
+    [CascadingParameter]
+    private ResizablePanelGroup? Group { get; set; }
+
+    /// <summary>
+    /// 面板的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 默认尺寸（百分比 0-100）。
+    /// </summary>
+    [Parameter]
+    public double DefaultSize { get; set; } = 50;
+
+    /// <summary>
+    /// 最小尺寸（百分比 0-100）。
+    /// </summary>
+    [Parameter]
+    public double MinSize { get; set; } = 10;
+
+    /// <summary>
+    /// 最大尺寸（百分比 0-100）。
+    /// </summary>
+    [Parameter]
+    public double MaxSize { get; set; } = 100;
+
+    /// <summary>
+    /// 面板是否可折叠。
+    /// </summary>
+    /// <remarks>
+    /// 可折叠的面板可以被一路拖到合拢：低于 <see cref="MinSize"/> 的一半时
+    /// 吸附到零，返程时再在 <see cref="MinSize"/> 处重新张开。没有这个标志，
+    /// 面板就会像其他面板一样停在 <see cref="MinSize"/>。该标志曾被声明却
+    /// 无处读取，因此完全没有任何效果。
+    /// </remarks>
+    [Parameter]
+    public bool Collapsible { get; set; }
+
+    /// <summary>
+    /// 要附加应用的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用于根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private int _panelIndex = -1;
+
+    private bool IsHorizontal => Group?.GetDirection() == ResizableDirection.Horizontal;
+
+    /// <summary>
+    /// 一个稳定的 id，让本面板前面的手柄能通过 <c>aria-controls</c> 命名它。
+    /// 在面板注册之前为 null，这样宁可省略属性
+    /// 也不输出一个半成品的 id。
+    /// </summary>
+    private string? PanelElementId => Group is not null && _panelIndex >= 0
+        ? Group.PanelElementId(_panelIndex)
+        : null;
+
+    // 渲染成 data 属性，让拖拽循环无需往返即可寻址本元素。
+    // 在面板注册之前为 null，宁可省略属性也不输出 "-1"。
+    private string? PanelIndexAttribute => _panelIndex >= 0
+        ? _panelIndex.ToString(CultureInfo.InvariantCulture)
+        : null;
+
+    private double CurrentSize
+    {
+        get
+        {
+            if (Group != null && _panelIndex >= 0)
+            {
+                return Group.GetPanelSize(_panelIndex);
+            }
+            return DefaultSize;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        if (Group != null)
+        {
+            _panelIndex = Group.RegisterPanel(DefaultSize, MinSize, MaxSize, Collapsible);
+        }
+    }
+
+    /// <summary>
+    /// 面板自身的 flex 尺寸在前、使用者的样式在后，因此传入的 <c>style</c>
+    /// 是叠加而不是替换。
+    /// </summary>
+    /// <remarks>
+    /// 属性展开（splat）过去会覆盖 flex-basis 与最小/最大边界——正是构成
+    /// 面板可伸缩性的全部东西。
+    /// </remarks>
+    private string? MergedStyle => InlineStyleMerge.Merge(Style, AdditionalAttributes);
+
+    private string Style
+    {
+        get
+        {
+            var size = CurrentSize.ToString("F2", CultureInfo.InvariantCulture);
+
+            // 可折叠面板必须能够抵达零，所以 CSS 下限不能是 MinSize
+            // ——它是 snaps 越过的那个点，而不是硬边界。
+            var min = (Collapsible ? 0 : MinSize).ToString(CultureInfo.InvariantCulture);
+            var max = MaxSize.ToString(CultureInfo.InvariantCulture);
+            return IsHorizontal
+                ? $"flex: 1 0 {size}%; min-width: {min}%; max-width: {max}%; overflow: auto;"
+                : $"flex: 1 0 {size}%; min-height: {min}%; max-height: {max}%; overflow: auto;";
+        }
+    }
+
+    private string CssClass => ClassNames.cn(
+        "atom:relative",
+        Class
+    );
+}

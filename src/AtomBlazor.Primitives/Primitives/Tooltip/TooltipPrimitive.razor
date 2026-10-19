@@ -1,0 +1,240 @@
+@namespace AtomBlazor.Primitives
+@using Microsoft.Extensions.Logging
+@implements IDisposable
+@inject ILogger<TooltipPrimitive> Logger
+
+@* Tooltip 基元根组件——headless，只负责行为，不负责任何样式 *@
+<CascadingValue Value="@_context" IsFixed="false">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    private TooltipContext _context = new();
+    private UseControllableState<bool> _state = null!;
+    private System.Timers.Timer? _showTimer;
+    private System.Timers.Timer? _hideTimer;
+    private bool _disposed;
+    private bool _deprecationWarningLogged;
+
+    /// <summary>
+    /// 已废弃：此参数不再产生任何效果。外层包裹 div 已被移除，
+    /// 以配合组合布局（例如 ButtonGroup）的正确样式。将在后续主版本中删除。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 已废弃：此参数不再产生任何效果。外层包裹 div 已被移除，
+    /// 以配合组合布局（例如 ButtonGroup）的正确样式。将在后续主版本中删除。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 在 Tooltip 容器内渲染的子内容，通常包含 TooltipTrigger 与 TooltipContent。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 控制气泡是否展开（受控模式）。为 null 时组件自行管理状态（非受控模式）。
+    /// </summary>
+    [Parameter]
+    public bool? Open { get; set; }
+
+    /// <summary>
+    /// 开合状态变化时调用的事件回调，配合 <c>@bind-Open</c> 实现双向绑定。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>
+    /// 非受控模式下的默认展开状态。
+    /// </summary>
+    [Parameter]
+    public bool DefaultOpen { get; set; } = false;
+
+    /// <summary>
+    /// 展开前的延时（毫秒），默认 700。
+    /// </summary>
+    [Parameter]
+    public int DelayDuration { get; set; } = 700;
+
+    /// <summary>
+    /// 鼠标移出后收起前的延时（毫秒），默认 0（立即收起）。
+    /// </summary>
+    [Parameter]
+    public int HideDelay { get; set; } = 0;
+
+    /// <summary>
+    /// 气泡的放置方位，默认 "top"。可带 "-start"/"-end" 后缀指定对齐。
+    /// </summary>
+    [Parameter]
+    public string Placement { get; set; } = "top";
+
+    protected override void OnInitialized()
+    {
+        // 初始化可控状态
+        _state = new UseControllableState<bool>(DefaultOpen)
+        {
+            ControlledValue = Open.HasValue ? Open.Value : DefaultOpen,
+            OnValueChanged = OpenChanged,
+            IsControlled = OpenChanged.HasDelegate
+        };
+
+        // 以收起态初始化上下文（此刻还不与 _state.Value 同步）
+        _context.State.IsOpen = false;
+        _context.State.Placement = Placement;
+
+        // 订阅上下文状态变化
+        _context.OnStateChanged += HandleContextStateChanged;
+
+        // 初始即为展开态时，按延时流程落地
+        if (_state.Value)
+        {
+            _ = SetOpenWithDelayAsync(true);
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        // 用到已废弃参数时告警（每个组件实例只记一次）
+        if (!_deprecationWarningLogged && (Class is not null || AdditionalAttributes is { Count: > 0 }))
+        {
+            Logger.LogWarning("Tooltip: 参数 'Class' 与 'AdditionalAttributes' 已废弃且不再产生任何效果。" +
+                "包裹 div 已移除，以支持组合布局（例如 ButtonGroup）的正确样式。" +
+                "这两个参数将在后续主版本中删除。");
+            _deprecationWarningLogged = true;
+        }
+
+        // 受控值变化时跟进
+        if (_state.IsControlled && Open.HasValue)
+        {
+            _state.ControlledValue = Open.Value;
+            _context.State.IsOpen = Open.Value;
+        }
+
+        // 方位变化时跟进
+        if (_context.State.Placement != Placement)
+        {
+            _context.SetPlacement(Placement);
+        }
+    }
+
+    private void HandleContextStateChanged()
+    {
+        // 上下文状态变化（例如来自 TooltipTrigger）时，先捕获意图并立即复位状态，
+        // 避免气泡过早渲染。
+        var intentOpen = _context.State.IsOpen;
+
+        // 收起意图且有尚未触发的展开定时器时，立即取消
+        if (!intentOpen && _showTimer != null)
+        {
+            CancelTimers();
+            return;
+        }
+
+        if (intentOpen != _state.Value)
+        {
+            // 立即复位上下文状态（延时会稍后更新它）
+            _context.State.IsOpen = _state.Value;
+
+            // 实际开合前先等待延时
+            _ = SetOpenWithDelayAsync(intentOpen);
+        }
+    }
+
+    private async Task SetOpenWithDelayAsync(bool open)
+    {
+        // 取消所有待触发的定时器
+        CancelTimers();
+
+        if (open)
+        {
+            // 展开延时
+            if (DelayDuration > 0)
+            {
+                _showTimer = new System.Timers.Timer(DelayDuration);
+                _showTimer.Elapsed += async (sender, e) =>
+                {
+                    await InvokeAsync(async () =>
+                    {
+                        // 状态与上下文一并更新
+                        _context.State.IsOpen = true;
+                        await _state.SetValueAsync(true);
+                        StateHasChanged();
+                    });
+
+                    _showTimer?.Dispose();
+                    _showTimer = null;
+                };
+                _showTimer.AutoReset = false;
+                _showTimer.Start();
+            }
+            else
+            {
+                // 立即展开
+                _context.State.IsOpen = true;
+                await _state.SetValueAsync(true);
+                StateHasChanged();
+            }
+        }
+        else
+        {
+            // 收起延时
+            if (HideDelay > 0)
+            {
+                _hideTimer = new System.Timers.Timer(HideDelay);
+                _hideTimer.Elapsed += async (sender, e) =>
+                {
+                    await InvokeAsync(async () =>
+                    {
+                        // 状态与上下文一并更新
+                        _context.State.IsOpen = false;
+                        await _state.SetValueAsync(false);
+                        StateHasChanged();
+                    });
+
+                    _hideTimer?.Dispose();
+                    _hideTimer = null;
+                };
+                _hideTimer.AutoReset = false;
+                _hideTimer.Start();
+            }
+            else
+            {
+                // 立即收起
+                _context.State.IsOpen = false;
+                await _state.SetValueAsync(false);
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void CancelTimers()
+    {
+        if (_showTimer != null)
+        {
+            _showTimer.Stop();
+            _showTimer.Dispose();
+            _showTimer = null;
+        }
+
+        if (_hideTimer != null)
+        {
+            _hideTimer.Stop();
+            _hideTimer.Dispose();
+            _hideTimer = null;
+        }
+    }
+
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            CancelTimers();
+            _context.OnStateChanged -= HandleContextStateChanged;
+            _disposed = true;
+        }
+    }
+}

@@ -1,0 +1,1696 @@
+@page "/components/timeline"
+
+<PageTitle>@L.T("Timeline 时间线 - Atom BlazorUI", "Timeline Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Timeline 时间线", "Timeline Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("以垂直时间线的形式展示事件，包含图标、连接线与内容。", "Displays a vertical timeline of events with icons, connectors, and content.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Default -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("默认样式", "Default")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("基础时间线，每个条目都包含标题、说明与日期。", "A basic timeline with title, description, and date for each item.")
+            </p>
+        </div>
+        <div class="border rounded-lg p-6">
+            <Timeline>
+                <TimelineItem>
+                    <TimeContent>
+                        <TimelineTime Class="text-right pr-4">@L.T("2024 年 1 月", "Jan 2024")</TimelineTime>
+                    </TimeContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("项目启动", "Project Kickoff")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("为新产品的发布做初步规划并组建团队。", "Initial planning and team formation for the new product launch.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+
+                <TimelineItem>
+                    <TimeContent>
+                        <TimelineTime Class="text-right pr-4">@L.T("2024 年 3 月", "Mar 2024")</TimelineTime>
+                    </TimeContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("设计阶段", "Design Phase")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("完成了所有核心功能的线框图与设计系统。", "Completed wireframes and design system for all core features.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+
+                <TimelineItem ShowConnector="false">
+                    <TimeContent>
+                        <TimelineTime Class="text-right pr-4">@L.T("2024 年 6 月", "Jun 2024")</TimelineTime>
+                    </TimeContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("Beta 发布", "Beta Release")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("向早期采用者发布 Beta 版本以收集反馈。", "Launched beta version to early adopters for feedback.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+            </Timeline>
+        </div>
+        <CodeBlock Source="Components/Timeline/default.txt" />
+    </div>
+
+    <!-- Shorthand -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("简写形式", "Shorthand")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        简单条目可直接使用 <code class="bg-muted px-1 py-0.5 rounded">Title</code>、<code class="bg-muted px-1 py-0.5 rounded">Time</code> 与 <code class="bg-muted px-1 py-0.5 rounded">Description</code> 参数，无需组合子组件。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Use <code class="bg-muted px-1 py-0.5 rounded">Title</code>, <code class="bg-muted px-1 py-0.5 rounded">Time</code>, and <code class="bg-muted px-1 py-0.5 rounded">Description</code> parameters for simple entries without composing sub-components.
+                    </p>
+                </text>
+            }
+        </div>
+        <div class="border rounded-lg p-6">
+            <Timeline>
+                <TimelineItem Title="@(L.T("项目启动", "Project Kickoff"))" Time="@(L.T("2024 年 1 月", "Jan 2024"))" Description="@(L.T("为新产品的发布做初步规划并组建团队。", "Initial planning and team formation for the new product launch."))" />
+                <TimelineItem Title="@(L.T("设计阶段", "Design Phase"))" Time="@(L.T("2024 年 3 月", "Mar 2024"))" Description="@(L.T("完成了所有核心功能的线框图与设计系统。", "Completed wireframes and design system for all core features."))" />
+                <TimelineItem Title="@(L.T("Beta 发布", "Beta Release"))" Time="@(L.T("2024 年 6 月", "Jun 2024"))" Description="@(L.T("向早期采用者发布 Beta 版本以收集反馈。", "Launched beta version to early adopters for feedback."))" ShowConnector="false" />
+            </Timeline>
+        </div>
+        <CodeBlock Source="Components/Timeline/shorthand.txt" />
+    </div>
+
+    <!-- Heading Levels & Composition -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            @if (L.IsChinese)
+            {
+                <text>
+                    <h2 class="text-2xl font-semibold">标题级别与组合</h2>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <h2 class="text-2xl font-semibold">Heading Levels &amp; Composition</h2>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        在 <code class="bg-muted px-1 py-0.5 rounded">TimelineTitle</code> 上使用 <code class="bg-muted px-1 py-0.5 rounded">As</code> 参数可控制标题元素，组合子组件则能搭建带副标题的丰富标题区域。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Use the <code class="bg-muted px-1 py-0.5 rounded">As</code> parameter on <code class="bg-muted px-1 py-0.5 rounded">TimelineTitle</code> to control the heading element, and compose sub-components for rich title areas with subtitles.
+                    </p>
+                </text>
+            }
+        </div>
+        <div class="border rounded-lg p-6">
+            <Timeline Align="TimelineAlign.Left">
+                @* Simple heading level override *@
+                <TimelineItem Status="TimelineStatus.Completed">
+                    <IconContent>
+                        <TimelineIcon Color="TimelineColor.Primary">
+                            <LucideIcon Name="rocket" Size="16" />
+                        </TimelineIcon>
+                    </IconContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle As="h4">@L.T("项目启动", "Project Kickoff")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("为新产品的发布做初步规划并组建团队。", "Initial planning and team formation for the new product launch.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+
+                @* Title + subtitle composition *@
+                <TimelineItem Status="TimelineStatus.Completed">
+                    <IconContent>
+                        <TimelineIcon Color="TimelineColor.Primary">
+                            <LucideIcon Name="git-merge" Size="16" />
+                        </TimelineIcon>
+                    </IconContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <div class="flex flex-col">
+                                <TimelineTitle As="h4">@L.T("设计阶段完成", "Design Phase Complete")</TimelineTitle>
+                                <TypographyMuted>@L.T("由 Matthew Taylor 评审", "Reviewed by Matthew Taylor")</TypographyMuted>
+                            </div>
+                            <TimelineDescription>@L.T("完成了所有核心功能的线框图与设计系统。", "Completed wireframes and design system for all core features.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+
+                @* Multi-line subtitle with additional context *@
+                <TimelineItem Status="TimelineStatus.InProgress" ShowConnector="false">
+                    <IconContent>
+                        <TimelineIcon Color="TimelineColor.Accent">
+                            <LucideIcon Name="code" Size="16" />
+                        </TimelineIcon>
+                    </IconContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <div class="flex flex-col">
+                                <TimelineTitle As="h4">@L.T("开发冲刺第 3 轮", "Development Sprint 3")</TimelineTitle>
+                                <div class="flex items-center gap-2">
+                                    <TypographyMuted>@L.T("已分配给前端团队", "Assigned to frontend team")</TypographyMuted>
+                                    <Badge Variant="BadgeVariant.Outline" Class="text-xs">@L.T("进行中", "In Progress")</Badge>
+                                </div>
+                            </div>
+                            <TimelineDescription>@L.T("为仪表盘模块构建并测试核心功能。", "Building and testing core features for the dashboard module.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+            </Timeline>
+        </div>
+        <CodeBlock Source="Components/Timeline/heading-composition.txt" />
+    </div>
+
+    <!-- Rich Content -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("富内容", "Rich Content")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("当内容较高（例如卡片、图片或详细说明）时，连接线会自动拉伸以适配高度。", "Connector lines dynamically stretch to match the height of large content such as cards, images, or detailed descriptions.")
+            </p>
+        </div>
+        <div class="border rounded-lg p-6">
+            <Timeline Align="TimelineAlign.Left">
+                <TimelineItem Status="TimelineStatus.Completed">
+                    <IconContent>
+                        <TimelineIcon Color="TimelineColor.Primary">
+                            <LucideIcon Name="check" Size="16" />
+                        </TimelineIcon>
+                    </IconContent>
+                    <ChildContent>
+                        <div class="border rounded-lg shadow-sm overflow-hidden">
+                            <div class="p-4 space-y-3">
+                                <div>
+                                    <h3 class="text-lg font-bold">@L.T("功能实现", "Feature Implementation")</h3>
+                                    <p class="text-sm text-muted-foreground">@L.T("新增仪表盘分析模块。", "Added new dashboard analytics module.")</p>
+                                </div>
+                                <p class="text-sm">
+                                    @L.T("本次更新引入了一个完整的分析仪表盘，支持实时数据可视化、交互式图表与可自定义的小部件。用户现在可以跟踪关键绩效指标、观察长期趋势，并以多种格式导出报告。", "This update introduces a comprehensive analytics dashboard with real-time data visualization, interactive charts, and customizable widgets. Users can now track key performance indicators, monitor trends over time, and export reports in multiple formats.")
+                                </p>
+                                <div class="flex gap-2">
+                                    <Button Size="ButtonSize.Small">@L.T("查看详情", "View Details")</Button>
+                                    <Button Size="ButtonSize.Small" Variant="ButtonVariant.Outline">@L.T("忽略", "Dismiss")</Button>
+                                </div>
+                            </div>
+                        </div>
+                    </ChildContent>
+                </TimelineItem>
+
+                <TimelineItem Status="TimelineStatus.Completed" ConnectorStyle="TimelineConnectorStyle.Dashed">
+                    <IconContent>
+                        <TimelineIcon Color="TimelineColor.Primary">
+                            <LucideIcon Name="check" Size="16" />
+                        </TimelineIcon>
+                    </IconContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("首次提交", "Initial commit")</TimelineTitle>
+                                <TimelineTime Class="text-xs">@L.T("2 小时前", "2 hours ago")</TimelineTime>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("搭建项目结构。", "Set up project structure.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+
+                <TimelineItem Status="TimelineStatus.Completed">
+                    <IconContent>
+                        <TimelineIcon Color="TimelineColor.Accent">
+                            <LucideIcon Name="image" Size="16" />
+                        </TimelineIcon>
+                    </IconContent>
+                    <ChildContent>
+                        <div class="border rounded-lg shadow-sm overflow-hidden">
+                            <div class="bg-muted h-32 flex items-center justify-center">
+                                <LucideIcon Name="image" Size="48" Class="text-muted-foreground/50" />
+                            </div>
+                            <div class="p-4 space-y-2">
+                                <h3 class="text-lg font-bold">@L.T("设计稿已上传", "Design Mockups Uploaded")</h3>
+                                <p class="text-sm text-muted-foreground">
+                                    @L.T("设计团队上传了 12 张新的结账流程改版设计稿，覆盖移动端、平板与桌面三种断点。", "The design team uploaded 12 new mockups for the checkout flow redesign, covering mobile, tablet, and desktop breakpoints.")
+                                </p>
+                            </div>
+                        </div>
+                    </ChildContent>
+                </TimelineItem>
+
+                <TimelineItem Status="TimelineStatus.Pending" ShowConnector="false">
+                    <IconContent>
+                        <TimelineIcon Color="TimelineColor.Muted" Status="TimelineStatus.Pending">
+                            <LucideIcon Name="circle-dashed" Size="16" />
+                        </TimelineIcon>
+                    </IconContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("代码评审", "Code Review")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("等待团队负责人评审。", "Awaiting review from the team lead.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+            </Timeline>
+        </div>
+        <CodeBlock Source="Components/Timeline/rich-content.txt" />
+    </div>
+
+    <!-- Status Variants -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("状态变体", "Status Variants")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("时间线条目的状态可显示为已完成、进行中或待处理，并配以相应的连接线样式。", "Timeline items can show completed, in-progress, or pending status with appropriate connector styling.")
+            </p>
+        </div>
+        <div class="border rounded-lg p-6">
+            <Timeline>
+                <TimelineItem Status="TimelineStatus.Completed">
+                    <TimeContent>
+                        <TimelineTime Class="text-right pr-4">@L.T("第 1 步", "Step 1")</TimelineTime>
+                    </TimeContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("订单已提交", "Order Placed")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("订单已确认，正在处理中。", "Your order has been confirmed and is being processed.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+
+                <TimelineItem Status="TimelineStatus.Completed">
+                    <TimeContent>
+                        <TimelineTime Class="text-right pr-4">@L.T("第 2 步", "Step 2")</TimelineTime>
+                    </TimeContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("支付已确认", "Payment Confirmed")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("支付已成功处理。", "Payment has been successfully processed.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+
+                <TimelineItem Status="TimelineStatus.InProgress">
+                    <TimeContent>
+                        <TimelineTime Class="text-right pr-4">@L.T("第 3 步", "Step 3")</TimelineTime>
+                    </TimeContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("配送中", "Shipping")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("包裹正在送往收货地址的途中。", "Your package is on its way to the delivery address.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+
+                <TimelineItem Status="TimelineStatus.Pending" ShowConnector="false">
+                    <TimeContent>
+                        <TimelineTime Class="text-right pr-4">@L.T("第 4 步", "Step 4")</TimelineTime>
+                    </TimeContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("已送达", "Delivered")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("包裹将送达您的门口。", "Package will be delivered to your doorstep.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+            </Timeline>
+        </div>
+        <CodeBlock Source="Components/Timeline/status-variants.txt" />
+    </div>
+
+    <!-- Color Variants -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("颜色变体", "Color Variants")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("图标提供五种颜色主题：Primary、Secondary、Muted、Accent 与 Destructive。", "Five color themes for icons: Primary, Secondary, Muted, Accent, and Destructive.")
+            </p>
+        </div>
+        <div class="border rounded-lg p-6">
+            <Timeline>
+                <TimelineItem IconColor="TimelineColor.Primary">
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("主色", "Primary")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("默认的主色主题。", "Default primary color theme.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+
+                <TimelineItem IconColor="TimelineColor.Secondary">
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("次要色", "Secondary")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("用于备选样式的次要色。", "Secondary color for alternative styling.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+
+                <TimelineItem IconColor="TimelineColor.Accent">
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("强调色", "Accent")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("用于高亮条目的强调色。", "Accent color for highlighted items.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+
+                <TimelineItem IconColor="TimelineColor.Destructive" ShowConnector="false">
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("危险色", "Destructive")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("用于警告或错误的危险色。", "Destructive color for warnings or errors.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+            </Timeline>
+        </div>
+        <CodeBlock Source="Components/Timeline/color-variants.txt" />
+    </div>
+
+    <!-- Size Variants -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("尺寸变体", "Size Variants")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("三种尺寸，用于控制条目间距与图标大小。", "Three sizes controlling the gap spacing between items and icon dimensions.")
+            </p>
+        </div>
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Small -->
+            <div class="border rounded-lg p-4">
+                <p class="text-sm font-medium mb-4">@L.T("小号", "Small")</p>
+                <Timeline Size="TimelineSize.Small">
+                    <TimelineItem IconSize="TimelineSize.Small">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("事件 A", "Event A")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem IconSize="TimelineSize.Small">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("事件 B", "Event B")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem IconSize="TimelineSize.Small" ShowConnector="false">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("事件 C", "Event C")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                </Timeline>
+            </div>
+
+            <!-- Medium -->
+            <div class="border rounded-lg p-4">
+                <p class="text-sm font-medium mb-4">@L.T("中号（默认）", "Medium (Default)")</p>
+                <Timeline Size="TimelineSize.Medium">
+                    <TimelineItem IconSize="TimelineSize.Medium">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("事件 A", "Event A")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem IconSize="TimelineSize.Medium">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("事件 B", "Event B")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem IconSize="TimelineSize.Medium" ShowConnector="false">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("事件 C", "Event C")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                </Timeline>
+            </div>
+
+            <!-- Large -->
+            <div class="border rounded-lg p-4">
+                <p class="text-sm font-medium mb-4">@L.T("大号", "Large")</p>
+                <Timeline Size="TimelineSize.Large">
+                    <TimelineItem IconSize="TimelineSize.Large">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("事件 A", "Event A")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem IconSize="TimelineSize.Large">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("事件 B", "Event B")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem IconSize="TimelineSize.Large" ShowConnector="false">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("事件 C", "Event C")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                </Timeline>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Timeline/sizes.txt" />
+    </div>
+
+    <!-- With Custom Icons -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("使用自定义图标", "With Custom Icons")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("通过 IconContent 渲染片段，用自定义图标替换默认的圆点指示器。", "Replace the default dot indicator with custom icons using the IconContent render fragment.")
+            </p>
+        </div>
+        <div class="border rounded-lg p-6">
+            <Timeline>
+                <TimelineItem Status="TimelineStatus.Completed">
+                    <IconContent>
+                        <TimelineIcon Color="TimelineColor.Primary">
+                            <LucideIcon Name="check" Size="16" />
+                        </TimelineIcon>
+                    </IconContent>
+                    <TimeContent>
+                        <TimelineTime Class="text-right pr-4">@L.T("上午 9:00", "9:00 AM")</TimelineTime>
+                    </TimeContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("代码评审已通过", "Code Review Approved")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("所有评审意见都已处理并通过。", "All review comments have been addressed and approved.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+
+                <TimelineItem Status="TimelineStatus.Completed">
+                    <IconContent>
+                        <TimelineIcon Color="TimelineColor.Primary">
+                            <LucideIcon Name="git-merge" Size="16" />
+                        </TimelineIcon>
+                    </IconContent>
+                    <TimeContent>
+                        <TimelineTime Class="text-right pr-4">@L.T("上午 10:30", "10:30 AM")</TimelineTime>
+                    </TimeContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("分支已合并", "Branch Merged")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("功能分支已合并进 main。", "Feature branch merged into main.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+
+                <TimelineItem Status="TimelineStatus.InProgress">
+                    <IconContent>
+                        <TimelineIcon Color="TimelineColor.Accent">
+                            <LucideIcon Name="rocket" Size="16" />
+                        </TimelineIcon>
+                    </IconContent>
+                    <TimeContent>
+                        <TimelineTime Class="text-right pr-4">@L.T("上午 11:00", "11:00 AM")</TimelineTime>
+                    </TimeContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("正在部署到生产环境", "Deploying to Production")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("部署流水线正在运行。", "Deployment pipeline is running.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+
+                <TimelineItem Status="TimelineStatus.Pending" ShowConnector="false">
+                    <IconContent>
+                        <TimelineIcon Color="TimelineColor.Muted" Status="TimelineStatus.Pending">
+                            <LucideIcon Name="circle-check" Size="16" />
+                        </TimelineIcon>
+                    </IconContent>
+                    <TimeContent>
+                        <TimelineTime Class="text-right pr-4">@L.T("待处理", "Pending")</TimelineTime>
+                    </TimeContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("健康检查", "Health Check")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("确认所有服务都运行正常。", "Verify all services are running correctly.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+            </Timeline>
+        </div>
+        <CodeBlock Source="Components/Timeline/custom-icons.txt" />
+    </div>
+
+    <!-- Custom Connector Colors -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义连接线颜色", "Custom Connector Colors")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("连接线颜色可以独立于图标颜色单独指定。", "Override the connector line color independently from the icon color.")
+            </p>
+        </div>
+        <div class="border rounded-lg p-6">
+            <Timeline>
+                <TimelineItem IconColor="TimelineColor.Primary" ConnectorColor="TimelineColor.Accent">
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("强调色连接线", "Accent Connector")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("这个条目使用强调色的连接线。", "This item uses an accent-colored connector line.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+
+                <TimelineItem IconColor="TimelineColor.Destructive" ConnectorColor="TimelineColor.Destructive">
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("危险色连接线", "Destructive Connector")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("图标与连接线都使用危险色。", "Both icon and connector use the destructive color.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+
+                <TimelineItem IconColor="TimelineColor.Secondary" ShowConnector="false">
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("无连接线", "No Connector")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("最后一个条目隐藏了自己的连接线。", "The last item hides its connector line.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+            </Timeline>
+        </div>
+        <CodeBlock Source="Components/Timeline/connector-colors.txt" />
+    </div>
+
+    <!-- Layout Alignment -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("布局对齐", "Layout Alignment")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("通过 Center（默认）、Left、Right 或 Alternate 对齐方式控制布局。", "Control the layout with Center (default), Left, Right, or Alternate alignment.")
+            </p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- Left -->
+            <div class="border rounded-lg p-6">
+                <p class="text-sm font-medium mb-4">@L.T("左侧", "Left")</p>
+                <Timeline Align="TimelineAlign.Left">
+                    <TimelineItem>
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineHeader>
+                                    <TimelineTitle>@L.T("设计", "Design")</TimelineTitle>
+                                </TimelineHeader>
+                                <TimelineDescription>@L.T("制作线框图与设计稿。", "Created wireframes and mockups.")</TimelineDescription>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem>
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineHeader>
+                                    <TimelineTitle>@L.T("开发", "Development")</TimelineTitle>
+                                </TimelineHeader>
+                                <TimelineDescription>@L.T("构建核心功能。", "Built the core features.")</TimelineDescription>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem ShowConnector="false">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineHeader>
+                                    <TimelineTitle>@L.T("上线", "Launch")</TimelineTitle>
+                                </TimelineHeader>
+                                <TimelineDescription>@L.T("发布到生产环境。", "Released to production.")</TimelineDescription>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                </Timeline>
+            </div>
+
+            <!-- Right -->
+            <div class="border rounded-lg p-6">
+                <p class="text-sm font-medium mb-4">@L.T("右侧", "Right")</p>
+                <Timeline Align="TimelineAlign.Right">
+                    <TimelineItem>
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineHeader>
+                                    <TimelineTitle>@L.T("设计", "Design")</TimelineTitle>
+                                </TimelineHeader>
+                                <TimelineDescription>@L.T("制作线框图与设计稿。", "Created wireframes and mockups.")</TimelineDescription>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem>
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineHeader>
+                                    <TimelineTitle>@L.T("开发", "Development")</TimelineTitle>
+                                </TimelineHeader>
+                                <TimelineDescription>@L.T("构建核心功能。", "Built the core features.")</TimelineDescription>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem ShowConnector="false">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineHeader>
+                                    <TimelineTitle>@L.T("上线", "Launch")</TimelineTitle>
+                                </TimelineHeader>
+                                <TimelineDescription>@L.T("发布到生产环境。", "Released to production.")</TimelineDescription>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                </Timeline>
+            </div>
+        </div>
+
+        <!-- Alternate -->
+        <div class="border rounded-lg p-6">
+            <p class="text-sm font-medium mb-4">@L.T("交替", "Alternate")</p>
+            <Timeline Align="TimelineAlign.Alternate">
+                <TimelineItem>
+                    <TimeContent>
+                        <TimelineTime Class="text-right pr-4">@L.T("2024 年第一季度", "Q1 2024")</TimelineTime>
+                    </TimeContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("规划", "Planning")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("明确项目范围与里程碑。", "Defined the project scope and milestones.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+                <TimelineItem>
+                    <TimeContent>
+                        <TimelineTime Class="text-left pl-4">@L.T("2024 年第二季度", "Q2 2024")</TimelineTime>
+                    </TimeContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("设计", "Design")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("完成设计系统与原型。", "Completed design system and prototypes.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+                <TimelineItem>
+                    <TimeContent>
+                        <TimelineTime Class="text-right pr-4">@L.T("2024 年第三季度", "Q3 2024")</TimelineTime>
+                    </TimeContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("开发", "Development")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("构建并测试了所有核心功能。", "Built and tested all core features.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+                <TimelineItem ShowConnector="false">
+                    <TimeContent>
+                        <TimelineTime Class="text-left pl-4">@L.T("2024 年第四季度", "Q4 2024")</TimelineTime>
+                    </TimeContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("上线", "Launch")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("产品已面向公众发布。", "Released the product to the public.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+            </Timeline>
+        </div>
+        <CodeBlock Source="Components/Timeline/layout-alignment.txt" />
+    </div>
+
+    <!-- Icon Variants -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("图标变体", "Icon Variants")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("图标可以显示为 Solid（实心）或 Outline（描边）两种变体。", "Icons can be displayed as Solid (filled) or Outline (bordered) variants.")
+            </p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- Solid -->
+            <div class="border rounded-lg p-6">
+                <p class="text-sm font-medium mb-4">@L.T("实心（默认）", "Solid (Default)")</p>
+                <Timeline Align="TimelineAlign.Left">
+                    <TimelineItem IconVariant="TimelineIconVariant.Solid">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineHeader>
+                                    <TimelineTitle>@L.T("实心 主色", "Solid Primary")</TimelineTitle>
+                                </TimelineHeader>
+                                <TimelineDescription>@L.T("填充背景配以对比色文字。", "Filled background with contrasting text.")</TimelineDescription>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem IconVariant="TimelineIconVariant.Solid" IconColor="TimelineColor.Destructive" ShowConnector="false">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineHeader>
+                                    <TimelineTitle>@L.T("实心 危险色", "Solid Destructive")</TimelineTitle>
+                                </TimelineHeader>
+                                <TimelineDescription>@L.T("适用于所有颜色变体。", "Works with all color variants.")</TimelineDescription>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                </Timeline>
+            </div>
+
+            <!-- Outline -->
+            <div class="border rounded-lg p-6">
+                <p class="text-sm font-medium mb-4">@L.T("描边", "Outline")</p>
+                <Timeline Align="TimelineAlign.Left">
+                    <TimelineItem IconVariant="TimelineIconVariant.Outline">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineHeader>
+                                    <TimelineTitle>@L.T("描边 主色", "Outline Primary")</TimelineTitle>
+                                </TimelineHeader>
+                                <TimelineDescription>@L.T("边框样式，背景透明。", "Bordered style with transparent background.")</TimelineDescription>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem IconVariant="TimelineIconVariant.Outline" IconColor="TimelineColor.Destructive" ShowConnector="false">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineHeader>
+                                    <TimelineTitle>@L.T("描边 危险色", "Outline Destructive")</TimelineTitle>
+                                </TimelineHeader>
+                                <TimelineDescription>@L.T("适用于所有颜色变体。", "Works with all color variants.")</TimelineDescription>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                </Timeline>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Timeline/icon-variants.txt" />
+    </div>
+
+    <!-- Connector Styles -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("连接线样式", "Connector Styles")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("连接线可以是 Solid（实线）、Dashed（虚线）或 Dotted（点线）。", "Connector lines can be Solid, Dashed, or Dotted.")
+            </p>
+        </div>
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Solid -->
+            <div class="border rounded-lg p-6">
+                <p class="text-sm font-medium mb-4">@L.T("实线（默认）", "Solid (Default)")</p>
+                <Timeline Align="TimelineAlign.Left">
+                    <TimelineItem ConnectorStyle="TimelineConnectorStyle.Solid">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("第 1 步", "Step 1")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem ConnectorStyle="TimelineConnectorStyle.Solid" ShowConnector="false">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("第 2 步", "Step 2")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                </Timeline>
+            </div>
+
+            <!-- Dashed -->
+            <div class="border rounded-lg p-6">
+                <p class="text-sm font-medium mb-4">@L.T("虚线", "Dashed")</p>
+                <Timeline Align="TimelineAlign.Left">
+                    <TimelineItem ConnectorStyle="TimelineConnectorStyle.Dashed">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("第 1 步", "Step 1")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem ConnectorStyle="TimelineConnectorStyle.Dashed" ShowConnector="false">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("第 2 步", "Step 2")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                </Timeline>
+            </div>
+
+            <!-- Dotted -->
+            <div class="border rounded-lg p-6">
+                <p class="text-sm font-medium mb-4">@L.T("点线", "Dotted")</p>
+                <Timeline Align="TimelineAlign.Left">
+                    <TimelineItem ConnectorStyle="TimelineConnectorStyle.Dotted">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("第 1 步", "Step 1")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem ConnectorStyle="TimelineConnectorStyle.Dotted" ShowConnector="false">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("第 2 步", "Step 2")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                </Timeline>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Timeline/connector-styles.txt" />
+    </div>
+
+    <!-- Connector Fit -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("连接线贴合", "Connector Fit")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        控制连接线在图标之间的贴合方式。<code class="text-xs bg-muted px-1 py-0.5 rounded">Spaced</code>（默认）会留出一圈细小间隙；<code class="text-xs bg-muted px-1 py-0.5 rounded">Connected</code> 则让线条直接贴住每个图标。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Control how the connector line fits between icons. <code class="text-xs bg-muted px-1 py-0.5 rounded">Spaced</code> (default) leaves a small ring gap; <code class="text-xs bg-muted px-1 py-0.5 rounded">Connected</code> makes the line touch each icon directly.
+                    </p>
+                </text>
+            }
+        </div>
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- Spaced -->
+            <div class="border rounded-lg p-6">
+                <p class="text-sm font-medium mb-4">@L.T("留有空隙（默认）", "Spaced (Default)")</p>
+                <Timeline Align="TimelineAlign.Left" ConnectorFit="TimelineConnectorFit.Spaced">
+                    <TimelineItem>
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineHeader>
+                                    <TimelineTitle>@L.T("设计", "Design")</TimelineTitle>
+                                </TimelineHeader>
+                                <TimelineDescription>@L.T("制作线框图与设计稿。", "Created wireframes and mockups.")</TimelineDescription>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem>
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineHeader>
+                                    <TimelineTitle>@L.T("开发", "Development")</TimelineTitle>
+                                </TimelineHeader>
+                                <TimelineDescription>@L.T("构建核心功能。", "Built the core features.")</TimelineDescription>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem ShowConnector="false">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineHeader>
+                                    <TimelineTitle>@L.T("上线", "Launch")</TimelineTitle>
+                                </TimelineHeader>
+                                <TimelineDescription>@L.T("发布到生产环境。", "Released to production.")</TimelineDescription>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                </Timeline>
+            </div>
+
+            <!-- Connected -->
+            <div class="border rounded-lg p-6">
+                <p class="text-sm font-medium mb-4">@L.T("紧贴连接", "Connected")</p>
+                <Timeline Align="TimelineAlign.Left" ConnectorFit="TimelineConnectorFit.Connected">
+                    <TimelineItem>
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineHeader>
+                                    <TimelineTitle>@L.T("设计", "Design")</TimelineTitle>
+                                </TimelineHeader>
+                                <TimelineDescription>@L.T("制作线框图与设计稿。", "Created wireframes and mockups.")</TimelineDescription>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem>
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineHeader>
+                                    <TimelineTitle>@L.T("开发", "Development")</TimelineTitle>
+                                </TimelineHeader>
+                                <TimelineDescription>@L.T("构建核心功能。", "Built the core features.")</TimelineDescription>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem ShowConnector="false">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineHeader>
+                                    <TimelineTitle>@L.T("上线", "Launch")</TimelineTitle>
+                                </TimelineHeader>
+                                <TimelineDescription>@L.T("发布到生产环境。", "Released to production.")</TimelineDescription>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                </Timeline>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Timeline/connector-fit.txt" />
+    </div>
+
+    <!-- Custom Connector Height -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义连接线高度", "Custom Connector Height")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">ConnectorClass</code> 参数配合 Tailwind 工具类自定义连接线高度。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Use the <code class="text-xs bg-muted px-1 py-0.5 rounded">ConnectorClass</code> parameter to customize the connector height with Tailwind utility classes.
+                    </p>
+                </text>
+            }
+        </div>
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Default -->
+            <div class="border rounded-lg p-6">
+                <p class="text-sm font-medium mb-4">@L.T("默认（min-h-8）", "Default (min-h-8)")</p>
+                <Timeline Align="TimelineAlign.Left">
+                    <TimelineItem>
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("事件 A", "Event A")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem>
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("事件 B", "Event B")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem ShowConnector="false">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("事件 C", "Event C")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                </Timeline>
+            </div>
+
+            <!-- min-h-12 -->
+            <div class="border rounded-lg p-6">
+                <p class="text-sm font-medium mb-4">ConnectorClass="min-h-12"</p>
+                <Timeline Align="TimelineAlign.Left">
+                    <TimelineItem ConnectorClass="min-h-12">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("事件 A", "Event A")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem ConnectorClass="min-h-12">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("事件 B", "Event B")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem ShowConnector="false">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("事件 C", "Event C")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                </Timeline>
+            </div>
+
+            <!-- min-h-16 -->
+            <div class="border rounded-lg p-6">
+                <p class="text-sm font-medium mb-4">ConnectorClass="min-h-16"</p>
+                <Timeline Align="TimelineAlign.Left">
+                    <TimelineItem ConnectorClass="min-h-16">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("事件 A", "Event A")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem ConnectorClass="min-h-16">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("事件 B", "Event B")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem ShowConnector="false">
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle>@L.T("事件 C", "Event C")</TimelineTitle>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                </Timeline>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Timeline/connector-height.txt" />
+    </div>
+
+    <!-- Loading State -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("加载状态", "Loading State")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("条目可以在图标上显示脉冲动画，表示正在加载。", "Items can display a pulse animation on their icon to indicate a loading state.")
+            </p>
+        </div>
+        <div class="border rounded-lg p-6">
+            <Timeline Align="TimelineAlign.Left">
+                <TimelineItem Status="TimelineStatus.Completed">
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("数据已获取", "Data Fetched")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("已成功从数据库读取记录。", "Successfully retrieved records from the database.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+                <TimelineItem Loading="true" Status="TimelineStatus.InProgress">
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("处理中", "Processing")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("正在运行数据转换流水线……", "Running data transformation pipeline...")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+                <TimelineItem Status="TimelineStatus.Pending" ShowConnector="false">
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("导出", "Export")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("等待生成最终报告。", "Waiting to generate the final report.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+            </Timeline>
+        </div>
+        <CodeBlock Source="Components/Timeline/loading.txt" />
+    </div>
+
+    <!-- Collapsible Items -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("可折叠条目", "Collapsible Items")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("条目可以带一段可折叠的详情内容，展开或收起。", "Items can have collapsible detail content that expands and collapses.")
+            </p>
+        </div>
+        <div class="border rounded-lg p-6">
+            <Timeline Align="TimelineAlign.Left">
+                <TimelineItem IsCollapsible="true" DefaultOpen="true">
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("v2.0 版本发布", "v2.0 Release")</TimelineTitle>
+                            </TimelineHeader>
+                        </TimelineContent>
+                    </ChildContent>
+                    <DetailContent>
+                        <TimelineContent>
+                            <TimelineDescription>
+                                @L.T("重大版本发布，含破坏性变更。新增组件 API、提升性能，并更新了设计令牌。迁移指南可在文档中找到。", "Major release with breaking changes. Includes new component API, improved performance, and updated design tokens. Migration guide available in the docs.")
+                            </TimelineDescription>
+                            <div class="mt-3 space-y-2 text-sm">
+                                <p><strong>@L.T("破坏性变更：", "Breaking Changes:")</strong></p>
+                                <ul class="list-disc list-inside space-y-1 text-muted-foreground">
+                                    <li>@L.T("把", "Renamed") <code class="text-xs bg-muted px-1 py-0.5 rounded">ButtonType</code> @L.T("重命名为", "to") <code class="text-xs bg-muted px-1 py-0.5 rounded">ButtonVariant</code></li>
+                                    <li>@L.T("移除了已弃用的", "Removed deprecated") <code class="text-xs bg-muted px-1 py-0.5 rounded">InputBase.OnChange</code> @L.T("回调", "callback")</li>
+                                    <li>@L.T("主题令牌重新组织——自定义主题需要更新", "Theme tokens restructured — custom themes need updating")</li>
+                                </ul>
+                                <p><strong>@L.T("新增功能：", "New Features:")</strong></p>
+                                <ul class="list-disc list-inside space-y-1 text-muted-foreground">
+                                    <li>@L.T("支持可折叠条目的 Timeline 组件", "Timeline component with collapsible items")</li>
+                                    <li>@L.T("DataTable 支持列宽调整与列固定", "DataTable column resizing and pinning")</li>
+                                    <li>@L.T("Toast 通知可堆叠", "Toast notification stacking")</li>
+                                    <li>@L.T("自动检测深色模式", "Dark mode auto-detection")</li>
+                                </ul>
+                            </div>
+                        </TimelineContent>
+                    </DetailContent>
+                </TimelineItem>
+                <TimelineItem IsCollapsible="true" DefaultOpen="false">
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("v1.5 补丁", "v1.5 Patch")</TimelineTitle>
+                            </TimelineHeader>
+                        </TimelineContent>
+                    </ChildContent>
+                    <DetailContent>
+                        <TimelineContent>
+                            <TimelineDescription>
+                                @L.T("修复滑块组件的缺陷，改善日期选择器的无障碍体验，并针对大数据集做了性能优化。", "Bug fixes for slider component, improved accessibility on date picker, and performance optimizations for large data sets.")
+                            </TimelineDescription>
+                            <div class="mt-3 space-y-2 text-sm">
+                                <p><strong>@L.T("缺陷修复：", "Bug Fixes:")</strong></p>
+                                <ul class="list-disc list-inside space-y-1 text-muted-foreground">
+                                    <li>@L.T("修复滑块拇指无法吸附到步进值的问题", "Fixed slider thumb not snapping to step values")</li>
+                                    <li>@L.T("修复 RTL 模式下日期选择器的键盘导航", "Resolved date picker keyboard navigation in RTL mode")</li>
+                                    <li>@L.T("修正在靠近视口边缘时工具提示的定位", "Corrected tooltip positioning near viewport edges")</li>
+                                </ul>
+                                <p><strong>@L.T("性能：", "Performance:")</strong></p>
+                                <ul class="list-disc list-inside space-y-1 text-muted-foreground">
+                                    <li>@L.T("DataTable 上万行数据改用虚拟滚动渲染", "Virtualized rendering for DataTable with 10,000+ rows")</li>
+                                    <li>@L.T("借助 tree-shaking 改进把包体积缩小 15%", "Reduced bundle size by 15% with tree-shaking improvements")</li>
+                                </ul>
+                            </div>
+                        </TimelineContent>
+                    </DetailContent>
+                </TimelineItem>
+                <TimelineItem IsCollapsible="true" DefaultOpen="false" ShowConnector="false">
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("v1.0 首个正式版", "v1.0 Initial Release")</TimelineTitle>
+                            </TimelineHeader>
+                        </TimelineContent>
+                    </ChildContent>
+                    <DetailContent>
+                        <TimelineContent>
+                            <TimelineDescription>
+                                @L.T("首个稳定版本，提供 20 多个组件、深色模式支持以及完整的文档。", "First stable release with 20+ components, dark mode support, and comprehensive documentation.")
+                            </TimelineDescription>
+                            <div class="mt-3 space-y-2 text-sm">
+                                <p><strong>@L.T("包含的组件：", "Included Components:")</strong></p>
+                                <ul class="list-disc list-inside space-y-1 text-muted-foreground">
+                                    <li>Button, Input, Select, Checkbox, Radio, Switch</li>
+                                    <li>Dialog, Drawer, Toast, Tooltip, Popover</li>
+                                    <li>DataTable, Tabs, Accordion, Timeline</li>
+                                    <li>Avatar, Badge, Card, Separator, Skeleton</li>
+                                </ul>
+                            </div>
+                        </TimelineContent>
+                    </DetailContent>
+                </TimelineItem>
+            </Timeline>
+        </div>
+        <CodeBlock Source="Components/Timeline/collapsible.txt" />
+    </div>
+
+    <!-- Custom Styling -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义样式", "Custom Styling")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("在 Timeline 的各子组件上使用 Class 参数，可以做出独特的外观。", "Use the Class parameter on Timeline sub-components to create unique looks.")
+            </p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- Card Style -->
+            <div class="border rounded-lg p-6">
+                <p class="text-sm font-medium mb-4">@L.T("卡片风格", "Card Style")</p>
+                <Timeline Align="TimelineAlign.Left">
+                    <TimelineItem Status="TimelineStatus.Completed">
+                        <IconContent>
+                            <TimelineIcon Color="TimelineColor.Primary">
+                                <LucideIcon Name="package" Size="16" />
+                            </TimelineIcon>
+                        </IconContent>
+                        <ChildContent>
+                            <TimelineContent Class="border rounded-lg p-3 shadow-sm">
+                                <TimelineHeader>
+                                    <TimelineTitle>@L.T("订单已发货", "Order Shipped")</TimelineTitle>
+                                </TimelineHeader>
+                                <TimelineDescription>@L.T("包裹已通过快递发出。", "Your package is on its way via express delivery.")</TimelineDescription>
+                                <TimelineTime Class="text-xs mt-1">@L.T("2 小时前", "2 hours ago")</TimelineTime>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem Status="TimelineStatus.Completed">
+                        <IconContent>
+                            <TimelineIcon Color="TimelineColor.Primary">
+                                <LucideIcon Name="credit-card" Size="16" />
+                            </TimelineIcon>
+                        </IconContent>
+                        <ChildContent>
+                            <TimelineContent Class="border rounded-lg p-3 shadow-sm">
+                                <TimelineHeader>
+                                    <TimelineTitle>@L.T("支付已处理", "Payment Processed")</TimelineTitle>
+                                </TimelineHeader>
+                                <TimelineDescription>@L.T("已成功向尾号 4242 的卡片扣款。", "Successfully charged to card ending in 4242.")</TimelineDescription>
+                                <TimelineTime Class="text-xs mt-1">@L.T("5 小时前", "5 hours ago")</TimelineTime>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem Status="TimelineStatus.Completed" ShowConnector="false">
+                        <IconContent>
+                            <TimelineIcon Color="TimelineColor.Primary">
+                                <LucideIcon Name="shopping-cart" Size="16" />
+                            </TimelineIcon>
+                        </IconContent>
+                        <ChildContent>
+                            <TimelineContent Class="border rounded-lg p-3 shadow-sm">
+                                <TimelineHeader>
+                                    <TimelineTitle>@L.T("订单已提交", "Order Placed")</TimelineTitle>
+                                </TimelineHeader>
+                                <TimelineDescription>@L.T("共 3 件商品，合计 $127.00。", "3 items totalling $127.00.")</TimelineDescription>
+                                <TimelineTime Class="text-xs mt-1">@L.T("昨天", "Yesterday")</TimelineTime>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                </Timeline>
+            </div>
+
+            <!-- Minimal Style -->
+            <div class="border rounded-lg p-6">
+                <p class="text-sm font-medium mb-4">@L.T("极简风格", "Minimal Style")</p>
+                <Timeline Align="TimelineAlign.Left" Size="TimelineSize.Small">
+                    <TimelineItem IconSize="TimelineSize.Small" ConnectorStyle="TimelineConnectorStyle.Dashed">
+                        <IconContent>
+                            <TimelineIcon Size="TimelineSize.Small" Color="TimelineColor.Accent" Variant="TimelineIconVariant.Outline">
+                                <LucideIcon Name="file-plus" Size="12" />
+                            </TimelineIcon>
+                        </IconContent>
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle Class="text-sm">@L.T("已创建拉取请求", "Created pull request") <span class="text-primary font-mono">#42</span></TimelineTitle>
+                                <TimelineTime Class="text-xs">@L.T("10 分钟前", "10 min ago")</TimelineTime>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem IconSize="TimelineSize.Small" ConnectorStyle="TimelineConnectorStyle.Dashed">
+                        <IconContent>
+                            <TimelineIcon Size="TimelineSize.Small" Color="TimelineColor.Primary" Variant="TimelineIconVariant.Outline">
+                                <LucideIcon Name="message-square" Size="12" />
+                            </TimelineIcon>
+                        </IconContent>
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle Class="text-sm">@L.T("留下了一条评审评论", "Left a review comment")</TimelineTitle>
+                                <TimelineTime Class="text-xs">@L.T("25 分钟前", "25 min ago")</TimelineTime>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem IconSize="TimelineSize.Small" ConnectorStyle="TimelineConnectorStyle.Dashed">
+                        <IconContent>
+                            <TimelineIcon Size="TimelineSize.Small" Color="TimelineColor.Primary" Variant="TimelineIconVariant.Outline">
+                                <LucideIcon Name="git-commit-horizontal" Size="12" />
+                            </TimelineIcon>
+                        </IconContent>
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle Class="text-sm">@L.T("推送了 3 个提交到", "Pushed 3 commits to") <span class="font-mono text-primary">main</span></TimelineTitle>
+                                <TimelineTime Class="text-xs">@L.T("1 小时前", "1 hour ago")</TimelineTime>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                    <TimelineItem IconSize="TimelineSize.Small" ShowConnector="false">
+                        <IconContent>
+                            <TimelineIcon Size="TimelineSize.Small" Color="TimelineColor.Muted" Variant="TimelineIconVariant.Outline">
+                                <LucideIcon Name="git-branch" Size="12" />
+                            </TimelineIcon>
+                        </IconContent>
+                        <ChildContent>
+                            <TimelineContent>
+                                <TimelineTitle Class="text-sm">@L.T("已创建分支", "Created branch") <span class="font-mono text-primary">feat/timeline</span></TimelineTitle>
+                                <TimelineTime Class="text-xs">@L.T("2 小时前", "2 hours ago")</TimelineTime>
+                            </TimelineContent>
+                        </ChildContent>
+                    </TimelineItem>
+                </Timeline>
+            </div>
+        </div>
+
+        <!-- Custom Colors -->
+        <div class="border rounded-lg p-6">
+            <p class="text-sm font-medium mb-4">@L.T("自定义颜色", "Custom Colors")</p>
+            <Timeline Align="TimelineAlign.Left">
+                <TimelineItem>
+                    <IconContent>
+                        <TimelineIcon Class="bg-blue-500 text-white">
+                            <LucideIcon Name="pencil" Size="16" />
+                        </TimelineIcon>
+                    </IconContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("草稿已创建", "Draft Created")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("新的博客文章草稿已保存。", "New blog post draft saved.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+                <TimelineItem>
+                    <IconContent>
+                        <TimelineIcon Class="bg-amber-500 text-white">
+                            <LucideIcon Name="eye" Size="16" />
+                        </TimelineIcon>
+                    </IconContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("评审中", "Under Review")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("已提交给编辑评审。", "Submitted for editorial review.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+                <TimelineItem>
+                    <IconContent>
+                        <TimelineIcon Class="bg-emerald-500 text-white">
+                            <LucideIcon Name="check" Size="16" />
+                        </TimelineIcon>
+                    </IconContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("已通过", "Approved")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("内容已由编辑批准。", "Content approved by the editor.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+                <TimelineItem ShowConnector="false">
+                    <IconContent>
+                        <TimelineIcon Class="bg-purple-500 text-white">
+                            <LucideIcon Name="globe" Size="16" />
+                        </TimelineIcon>
+                    </IconContent>
+                    <ChildContent>
+                        <TimelineContent>
+                            <TimelineHeader>
+                                <TimelineTitle>@L.T("已发布", "Published")</TimelineTitle>
+                            </TimelineHeader>
+                            <TimelineDescription>@L.T("文章已在网站上线。", "Post is now live on the website.")</TimelineDescription>
+                        </TimelineContent>
+                    </ChildContent>
+                </TimelineItem>
+            </Timeline>
+        </div>
+        <CodeBlock Source="Components/Timeline/custom-styling.txt" />
+    </div>
+
+    <!-- Empty State -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("空状态", "Empty State")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("没有提供任何条目时，会显示一段回退提示。", "When no items are provided, a fallback message is displayed.")
+            </p>
+        </div>
+        <div class="border rounded-lg p-6">
+            <Timeline />
+        </div>
+        <CodeBlock Source="Components/Timeline/empty.txt" />
+    </div>
+
+    <!-- Accessibility -->
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        使用语义化 HTML：有序列表（&lt;ol&gt;）与列表项（&lt;li&gt;），保证结构正确。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Uses semantic HTML with ordered list (&lt;ol&gt;) and list items (&lt;li&gt;) for proper structure.
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        时间线容器带有供屏幕阅读器使用的 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code>。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        The timeline container includes an <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> for screen readers.
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        时间线标题使用 &lt;h3&gt; 元素，以保证文档大纲与标题层级正确。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Timeline titles use &lt;h3&gt; for proper document outline and heading hierarchy.
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        日期请使用 &lt;time&gt; 元素，便于机器读取。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Use the &lt;time&gt; element for machine-readable dates.
+                    </text>
+                }
+            </AccessibilityItem>
+        </AriaAttributes>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="Timeline">
+                <ApiParameter Name="Size" Type="TimelineSize" Default="Medium">
+                    @L.T("控制条目之间的间距（Small、Medium、Large）。", "Controls gap spacing between items (Small, Medium, Large).")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("时间线容器的附加 CSS 类。", "Additional CSS classes for the timeline container.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            应用到根 <code>&lt;ol&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Additional HTML attributes applied to the root <code>&lt;ol&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="TimelineItem">
+                <ApiParameter Name="Status" Type="TimelineStatus" Default="Completed">
+                    @L.T("当前状态（Completed、InProgress、Pending）。", "Current status (Completed, InProgress, Pending).")
+                </ApiParameter>
+                <ApiParameter Name="IconColor" Type="TimelineColor" Default="Primary">
+                    @L.T("图标的颜色主题（Primary、Secondary、Muted、Accent、Destructive）。", "Color theme for the icon (Primary, Secondary, Muted, Accent, Destructive).")
+                </ApiParameter>
+                <ApiParameter Name="ConnectorColor" Type="TimelineColor?" Default="null">
+                    @L.T("连接线的显式颜色。为 null 时，颜色由 Status 推导。", "Explicit color for the connector line. When null, color is derived from Status.")
+                </ApiParameter>
+                <ApiParameter Name="ShowConnector" Type="bool" Default="true">
+                    @L.T("是否显示该条目下方的竖直连接线。", "Whether to show the vertical connector line below this item.")
+                </ApiParameter>
+                <ApiParameter Name="ConnectorClass" Type="string?">
+                    @L.T("连接线的附加 CSS 类，可用于自定义高度（例如 \"min-h-16\"）。", "Additional CSS classes for the connector line. Use to customize height (e.g., \"min-h-16\").")
+                </ApiParameter>
+                <ApiParameter Name="IconSize" Type="TimelineSize" Default="Medium">
+                    @L.T("图标指示器的大小。", "Size of the icon indicator.")
+                </ApiParameter>
+                <ApiParameter Name="IconContent" Type="RenderFragment?">
+                    @L.T("用于替换默认图标的自定义图标内容。", "Custom icon content to replace the default icon.")
+                </ApiParameter>
+                <ApiParameter Name="TimeContent" Type="RenderFragment?">
+                    @L.T("显示在左侧列的日期/时间内容。", "Time/date content displayed in the left column.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            应用到根 <code>&lt;li&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Additional HTML attributes applied to the root <code>&lt;li&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="Sub-Components">
+                <ApiParameter Name="TimelineIcon" Type="Component">
+                    @L.T("圆形的图标指示器。属性：Color、Size、Status、ChildContent。", "Circular icon indicator. Props: Color, Size, Status, ChildContent.")
+                </ApiParameter>
+                <ApiParameter Name="TimelineConnector" Type="Component">
+                    @L.T("条目之间的竖直线条。属性：Status、Color、Class。", "Vertical line between items. Props: Status, Color, Class.")
+                </ApiParameter>
+                <ApiParameter Name="TimelineContent" Type="Component">
+                    @L.T("内容区域的 Flex 容器。属性：Class、ChildContent。", "Flex container for the content area. Props: Class, ChildContent.")
+                </ApiParameter>
+                <ApiParameter Name="TimelineHeader" Type="Component">
+                    @L.T("包含标题与时间的头部区域。属性：Class、ChildContent。", "Header section containing title and time. Props: Class, ChildContent.")
+                </ApiParameter>
+                <ApiParameter Name="TimelineTitle" Type="Component">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            用于条目标题的语义化标题元素（&lt;h3&gt;）。属性：Class、ChildContent。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Semantic heading (&lt;h3&gt;) for the item title. Props: Class, ChildContent.
+                        </text>
+                    }
+                </ApiParameter>
+                <ApiParameter Name="TimelineDescription" Type="Component">
+                    @L.T("用于条目说明文字的段落。属性：Class、ChildContent。", "Paragraph for item description text. Props: Class, ChildContent.")
+                </ApiParameter>
+                <ApiParameter Name="TimelineTime" Type="Component">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            用于日期的语义化 &lt;time&gt; 元素。属性：Class、ChildContent。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Semantic &lt;time&gt; element for dates. Props: Class, ChildContent.
+                        </text>
+                    }
+                </ApiParameter>
+                <ApiParameter Name="TimelineEmpty" Type="Component">
+                    @L.T("没有任何条目时显示的回退内容。属性：Class、ChildContent。", "Fallback displayed when no items exist. Props: Class, ChildContent.")
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+
+    <LocalizationSection
+        Description="@(L.T("时间线的 aria 标签可以配置。", "The timeline aria label is configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("Timeline", "Timeline", L.T("时间线容器的无障碍标签。", "Aria label for the timeline container")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""Timeline.Timeline"", ""Zeitleiste"");
+});")" />
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

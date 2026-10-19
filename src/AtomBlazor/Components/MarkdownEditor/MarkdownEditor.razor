@@ -1,0 +1,137 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@inject ILocalizer Localizer
+
+@*
+    Markdown 编辑器组件，带工具栏与预览功能。
+    设计灵感来自 GitHub 的评论编辑器。
+*@
+
+<div class="@ContainerCssClass" data-slot="markdown-editor" @attributes="AdditionalAttributes">
+    <Tabs DefaultValue="write" OnValueChange="HandleTabChange">
+        @* 含标签页与工具栏的头部 *@
+        <div class="atom:flex atom:flex-wrap atom:items-center atom:justify-between atom:gap-2 atom:px-3 atom:py-2 atom:border-b atom:border-input atom:bg-muted/40">
+            @* 编写/预览标签页 —— GitHub 风格的方框标签 *@
+            <div class="atom:inline-flex atom:items-center atom:rounded-md atom:border atom:border-input atom:bg-muted/60 atom:p-0.5">
+                <AtomBlazor.TabsTrigger Value="write"
+                             Class="@GetTabClass("write")"
+                             Disabled="@Disabled">Write</AtomBlazor.TabsTrigger>
+                <AtomBlazor.TabsTrigger Value="preview"
+                             Class="@GetTabClass("preview")"
+                             Disabled="@Disabled">Preview</AtomBlazor.TabsTrigger>
+            </div>
+
+            @* 工具栏 —— 仅在编写模式下可见 *@
+            @if (_activeTab == "write")
+            {
+                <div class="atom:flex atom:items-center atom:gap-1 atom:ms-auto">
+                    @* 标题下拉菜单 *@
+                    <DropdownMenu>
+                        <AtomBlazor.DropdownMenuTrigger AsChild>
+                            <Button Variant="ButtonVariant.Ghost"
+                                    Size="ButtonSize.IconSmall"
+                                    AriaLabel="@Localizer["MarkdownEditor.SelectHeadingLevel"]"
+                                    Disabled="@Disabled"
+                                    Class="atom:h-7 atom:w-7">
+                                <LucideIcon Name="pilcrow" Size="14" />
+                            </Button>
+                        </AtomBlazor.DropdownMenuTrigger>
+                        <AtomBlazor.DropdownMenuContent Align="PopoverAlign.Start" Class="atom:w-40">
+                            <DropdownMenuLabel>Text Style</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <AtomBlazor.DropdownMenuItem OnClick="@(() => ApplyHeading(0))">
+                                <LucideIcon Name="pilcrow" Size="14" Class="atom:me-2" />
+                                Normal
+                            </AtomBlazor.DropdownMenuItem>
+                            <AtomBlazor.DropdownMenuItem OnClick="@(() => ApplyHeading(1))">
+                                <LucideIcon Name="heading-1" Size="14" Class="atom:me-2" />
+                                Heading 1
+                            </AtomBlazor.DropdownMenuItem>
+                            <AtomBlazor.DropdownMenuItem OnClick="@(() => ApplyHeading(2))">
+                                <LucideIcon Name="heading-2" Size="14" Class="atom:me-2" />
+                                Heading 2
+                            </AtomBlazor.DropdownMenuItem>
+                            <AtomBlazor.DropdownMenuItem OnClick="@(() => ApplyHeading(3))">
+                                <LucideIcon Name="heading-3" Size="14" Class="atom:me-2" />
+                                Heading 3
+                            </AtomBlazor.DropdownMenuItem>
+                        </AtomBlazor.DropdownMenuContent>
+                    </DropdownMenu>
+
+                    @* 文本格式化按钮 *@
+                    <ButtonGroup>
+                        <Button Variant="ButtonVariant.Ghost"
+                                Size="ButtonSize.IconSmall"
+                                AriaLabel="@Localizer["MarkdownEditor.Bold"]"
+                                OnClick="ApplyBold"
+                                Disabled="@Disabled"
+                                Class="atom:h-7 atom:w-7">
+                            <LucideIcon Name="bold" Size="14" />
+                        </Button>
+                        <Button Variant="ButtonVariant.Ghost"
+                                Size="ButtonSize.IconSmall"
+                                AriaLabel="@Localizer["MarkdownEditor.Italic"]"
+                                OnClick="ApplyItalic"
+                                Disabled="@Disabled"
+                                Class="atom:h-7 atom:w-7">
+                            <LucideIcon Name="italic" Size="14" />
+                        </Button>
+                        <Button Variant="ButtonVariant.Ghost"
+                                Size="ButtonSize.IconSmall"
+                                AriaLabel="@Localizer["MarkdownEditor.Underline"]"
+                                OnClick="ApplyUnderline"
+                                Disabled="@Disabled"
+                                Class="atom:h-7 atom:w-7">
+                            <LucideIcon Name="underline" Size="14" />
+                        </Button>
+                    </ButtonGroup>
+
+                    <ButtonGroupSeparator />
+
+                    @* 列表格式化按钮 *@
+                    <ButtonGroup>
+                        <Button Variant="ButtonVariant.Ghost"
+                                Size="ButtonSize.IconSmall"
+                                AriaLabel="@Localizer["MarkdownEditor.BulletList"]"
+                                OnClick="ApplyBulletList"
+                                Disabled="@Disabled"
+                                Class="atom:h-7 atom:w-7">
+                            <LucideIcon Name="list" Size="14" />
+                        </Button>
+                        <Button Variant="ButtonVariant.Ghost"
+                                Size="ButtonSize.IconSmall"
+                                AriaLabel="@Localizer["MarkdownEditor.NumberedList"]"
+                                OnClick="ApplyNumberedList"
+                                Disabled="@Disabled"
+                                Class="atom:h-7 atom:w-7">
+                            <LucideIcon Name="list-ordered" Size="14" />
+                        </Button>
+                    </ButtonGroup>
+                </div>
+            }
+        </div>
+
+        @* 内容区 *@
+        <AtomBlazor.TabsContent Value="write" Class="atom:mt-0">
+            <textarea @ref="_textareaRef"
+                      id="@Id"
+                      class="@TextareaCssClass"
+                      style="@MinHeightStyle"
+                      value="@Value"
+                      placeholder="@Placeholder"
+                      disabled="@Disabled"
+                      aria-label="@AriaLabel"
+                      aria-describedby="@AriaDescribedBy"
+                      aria-invalid="@(AriaInvalid?.ToString().ToLower())"
+                      @oninput="HandleInput"
+                      @onkeydown="HandleKeyDown"
+                      @onkeydown:preventDefault="_shouldPreventKeydown"></textarea>
+        </AtomBlazor.TabsContent>
+
+        <AtomBlazor.TabsContent Value="preview" Class="atom:mt-0">
+            <div class="@PreviewCssClass" style="@MinHeightStyle">
+                @((MarkupString)RenderedHtml)
+            </div>
+        </AtomBlazor.TabsContent>
+    </Tabs>
+</div>

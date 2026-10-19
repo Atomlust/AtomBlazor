@@ -1,0 +1,71 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@inject ILocalizer Localizer
+
+@*
+    ResponsiveNavTrigger 组件，用于切换移动端导航。
+    默认显示汉堡菜单图标，仅在移动端可见。
+*@
+
+<button type="button" class="@GetClasses()" @onclick="HandleClick" @attributes="AdditionalAttributes">
+    @if (ChildContent != null)
+    {
+        @ChildContent
+    }
+    else
+    {
+        <LucideIcon Name="menu" Size="20" />
+        <span class="atom:sr-only">@Localizer["ResponsiveNav.ToggleMenu"]</span>
+    }
+</button>
+
+@code {
+    [CascadingParameter]
+    private ResponsiveNavContext? Context { get; set; }
+
+    /// <summary>
+    /// 触发按钮的自定义内容。
+    /// 未提供时默认显示汉堡菜单图标。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 自定义行为的点击处理器。
+    /// </summary>
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    /// <summary>
+    /// 附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private async Task HandleClick(MouseEventArgs e)
+    {
+        if (Context != null)
+        {
+            Context.Toggle();
+        }
+
+        if (OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync(e);
+        }
+    }
+
+    private string GetClasses()
+    {
+        return ClassNames.cn(
+            "atom:inline-flex atom:items-center atom:justify-center atom:rounded-md atom:p-2 atom:text-foreground atom:hover:bg-accent atom:hover:text-accent-foreground atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2 atom:md:hidden",
+            Class
+        );
+    }
+}

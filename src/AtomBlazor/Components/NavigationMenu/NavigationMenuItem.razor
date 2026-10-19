@@ -1,0 +1,140 @@
+@namespace AtomBlazor
+
+@*
+    Navigation Menu Item——导航菜单中的单个条目。
+    可包含一个触发器（用于下拉）或一个链接。
+*@
+
+<li class="@CssClass" @attributes="AdditionalAttributes">
+    <CascadingValue Value="@this" IsFixed="true">
+        @ChildContent
+    </CascadingValue>
+</li>
+
+@code {
+    private NavigationMenuTrigger? _trigger;
+    private NavigationMenuContent? _content;
+
+    /// <summary>
+    /// 对父级导航菜单的引用。
+    /// </summary>
+    [CascadingParameter]
+    public NavigationMenu? Menu { get; set; }
+
+    /// <summary>
+    /// 菜单项的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 本菜单项的唯一标识符。
+    /// </summary>
+    [Parameter]
+    public string? Value { get; set; }
+
+    /// <summary>
+    /// 要应用到条目上的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取本条目当前是否打开。
+    /// </summary>
+    internal bool IsOpen
+    {
+        get => Menu?.ActiveItem == Value;
+        set
+        {
+            if (Menu != null)
+            {
+                Menu.ActiveItem = value ? Value : null;
+            }
+        }
+    }
+
+    /// <summary>
+ /// 为焦点管理登记触发器组件。
+    /// </summary>
+    internal void RegisterTrigger(NavigationMenuTrigger trigger)
+    {
+        _trigger = trigger;
+    }
+
+    /// <summary>
+ /// 为焦点管理登记内容组件。
+    /// </summary>
+    internal void RegisterContent(NavigationMenuContent content)
+    {
+        _content = content;
+    }
+
+    /// <summary>
+    /// 聚焦触发器元素。
+    /// </summary>
+    internal async Task FocusTriggerAsync()
+    {
+        if (_trigger != null)
+        {
+            await _trigger.FocusAsync();
+        }
+    }
+
+    /// <summary>
+    /// 聚焦内容中的第一个条目。
+    /// </summary>
+    internal async Task FocusFirstContentItemAsync()
+    {
+        if (_content != null)
+        {
+            await _content.FocusFirstItemAsync();
+        }
+    }
+
+    /// <summary>
+    /// 键盘打开时，请内容在其下一次渲染后聚焦自己的第一个条目。
+    /// </summary>
+    internal void FocusFirstContentItemOnOpen() => _content?.FocusFirstItemOnNextRender();
+
+    /// <summary>
+    /// 切换本菜单项的打开状态。
+    /// </summary>
+    internal void Toggle()
+    {
+        IsOpen = !IsOpen;
+    }
+
+    /// <summary>
+    /// 启动定时器，在短暂延迟后关闭菜单。
+    /// 委托给父级菜单的共享定时器。
+    /// </summary>
+    internal void StartCloseTimer()
+    {
+        Menu?.StartCloseTimer();
+    }
+
+    /// <summary>
+    /// 取消一切挂起的关闭定时器。
+    /// 委托给父级菜单的共享定时器。
+    /// </summary>
+    internal void CancelCloseTimer()
+    {
+        Menu?.CancelCloseTimer();
+    }
+
+    /// <summary>
+    /// 获取条目计算出的 CSS 类串。
+    /// </summary>
+    private string CssClass => ClassNames.cn(
+        "atom:relative",
+        IsOpen ? "atom:z-50" : null,
+        Class
+    );
+}

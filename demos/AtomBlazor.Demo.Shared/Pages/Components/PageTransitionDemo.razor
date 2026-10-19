@@ -1,0 +1,48 @@
+@page "/components/page-transition"
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("Page Transition 页面过渡 - Atom BlazorUI", "Page Transition - Atom BlazorUI")</PageTitle>
+<div class="max-w-4xl space-y-8">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Page Transition 页面过渡", "Page Transition")</h1>
+        <p class="text-xl text-muted-foreground">@L.T("当 NavigationManager 报告位置变化时，为进入的内容播放动画。", "Animate incoming content when NavigationManager reports a location change.")</p>
+    </div>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("导航预览", "Navigation preview")</h2>
+        <div class="rounded-lg border p-6 space-y-4">
+<div class="flex gap-3">
+    <a href="/components/page-transition?preview=overview" class="text-primary underline">@L.T("概览预览", "Overview preview")</a>
+    <a href="/components/page-transition?preview=activity" class="text-primary underline">@L.T("动态预览", "Activity preview")</a>
+</div>
+<PageTransition Preset="MotionPreset.SlideUp" Duration="350">
+    <div class="rounded-lg bg-muted p-6 space-y-2">
+        <h3 class="font-semibold">@(Preview == "activity" ? L.T("动态", "Activity") : L.T("概览", "Overview"))</h3>
+        <p>@(Preview == "activity" ? L.T("一次设计评审已完成，一个新的里程碑已发布。", "A design review was completed and a new milestone was published.") : L.T("你的工作区有三个进行中的项目和两个即将到来的里程碑。", "Your workspace has three active projects and two upcoming milestones."))</p>
+    </div>
+</PageTransition>
+<p class="text-sm text-muted-foreground">@L.T("这些链接会改变 URL，同时让包装组件保持挂载。在应用中，请把 PageTransition 包裹在布局主体或 RouteView 外层。", "These links change the URL while keeping the wrapper mounted. In an application, place PageTransition around the layout body or RouteView.")</p>
+        </div>
+        <CodeBlock Source="Components/PageTransition/basic.txt" />
+    </section>
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("动画遵循减少动态效果偏好。该组件不替代路由，也不处理页面标题、滚动位置或焦点。", "Animations honor reduced motion. The component does not replace routing or handle page titles, scroll position or focus.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("使用普通链接，并在应用路由中配合 FocusOnNavigate 等页面焦点策略。", "Use normal links and a page focus strategy such as FocusOnNavigate in the application router.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("聚焦导航链接", "Focus a navigation link"))"><Kbd>Tab / Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("跳转到已聚焦的链接", "Navigate to the focused link"))"><Kbd>Enter</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+<ApiReference Since="v4" ComponentName="PageTransition"><ApiParameter Name="Preset" Type="MotionPreset" Default="Fade">@L.T("进入时使用的动画。把该组件包裹在布局主体或 RouteView 外层，使其在导航之间保持挂载。", "The incoming animation. Place the component around the layout body or RouteView so it remains mounted across navigation.")</ApiParameter><ApiParameter Name="Duration / Enabled / Class / ChildContent" Type="int / bool / string? / RenderFragment?" Default="250 / true / null / null">@L.T("动画时长（毫秒）、启用开关、包装样式与进入的内容。首次交互渲染不会播放动画。", "Animation duration in milliseconds, enablement, wrapper styles and incoming content. The first interactive render does not animate.")</ApiParameter></ApiReference>
+    </section>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "preview")] public string? Preview { get; set; }
+
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

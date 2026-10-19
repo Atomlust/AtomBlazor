@@ -1,0 +1,84 @@
+@namespace AtomBlazor.Primitives
+@using System.ComponentModel
+@implements IDisposable
+
+<FloatingPortal IsOpen="@(Sub.IsOpen && Sub.TriggerElement.HasValue)" AnchorElement="@Sub.TriggerElement"
+                  PortalId="@Sub.ContentId" Side="@Side" Align="PopoverAlign.Start" Offset="@Offset"
+                  Strategy="PositioningStrategy.Fixed" ForceMount="false" ZIndex="@ZIndex"
+                  SideElementId="@Sub.ContentId" RestoreFocusToId="@Sub.TriggerId"
+                  RestoreFocusOnClose="@Sub.RestoreFocus" Keyboard="@Keyboard" Dismiss="@Dismiss"
+                  OnDismiss="@HandleDismiss">
+    <div @attributes="AdditionalAttributes" id="@Sub.ContentId" role="menu" tabindex="-1"
+         aria-labelledby="@Sub.TriggerId" data-state="@(Sub.IsOpen ? "open" : "closed")">
+        <CascadingValue Value="Dropdown" IsFixed="true">
+            <CascadingValue Value="ContextMenu" IsFixed="true">
+                <CascadingValue Value="Menubar" IsFixed="true">
+                    <CascadingValue Value="Sub.ChildScope" IsFixed="true">
+                        @ChildContent
+                    </CascadingValue>
+                </CascadingValue>
+            </CascadingValue>
+        </CascadingValue>
+    </div>
+</FloatingPortal>
+
+@code {
+    [CascadingParameter] private MenuSub Sub { get; set; } = null!;
+    [CascadingParameter] private DropdownMenuContext? Dropdown { get; set; }
+    [CascadingParameter] private ContextMenuPrimitive? ContextMenu { get; set; }
+    [CascadingParameter] private MenubarMenuContext? Menubar { get; set; }
+    /// <summary>嵌套的菜单项。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>偏好的放置方向侧。对于从右到左的布局请设为 Left。</summary>
+    [Parameter] public PopoverSide Side { get; set; } = PopoverSide.Right;
+    /// <summary>距触发器的距离（像素）。</summary>
+    [Parameter] public int Offset { get; set; } = 2;
+    /// <summary>层叠顺序。默认值为 60。</summary>
+    [Parameter] public int ZIndex { get; set; } = 60;
+    /// <summary>方向键导航是否循环。默认值为 true。</summary>
+    [Parameter] public bool Loop { get; set; } = true;
+    /// <summary>附加的 HTML 属性。</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    private DotNetObjectReference<MenuSubContent>? reference;
+    private bool disposed;
+
+    protected override void OnParametersSet()
+    {
+        if (Sub is null) { throw new InvalidOperationException("Submenu content requires a submenu."); }
+    }
+
+    private FloatingKeyboardOptions Keyboard => new()
+    {
+        Kind = FloatingKeyboardKind.Menu,
+        ContentId = Sub.ContentId,
+        CallbackRef = reference ??= DotNetObjectReference.Create(this),
+        Mode = "submenu",
+        Loop = Loop,
+        InitialFocus = Sub.FocusOnOpen ? "first" : null
+    };
+
+    private FloatingDismissOptions Dismiss => new()
+    {
+        ContentId = Sub.ContentId,
+        TriggerId = Sub.TriggerId,
+        OnOutsideInteraction = true
+    };
+
+    private void HandleDismiss(FloatingDismissReason reason)
+    {
+        if (!disposed && reason == FloatingDismissReason.OutsideInteraction) { Sub.Close(false); }
+    }
+
+    /// <summary>处理 Escape 键以及返回父菜单的方向键。</summary>
+    [JSInvokable, EditorBrowsable(EditorBrowsableState.Never)]
+    public void JsOnEscapeKey()
+    {
+        if (!disposed) { Sub.Close(true); }
+    }
+
+    public void Dispose()
+    {
+        disposed = true;
+        reference?.Dispose();
+    }
+}

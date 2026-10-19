@@ -1,0 +1,338 @@
+@page "/components/stepper"
+
+<PageTitle>@L.T("Stepper 步骤条 - Atom BlazorUI", "Stepper - Atom BlazorUI")</PageTitle>
+
+<div class="max-w-4xl space-y-8">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Stepper 步骤条", "Stepper")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("展示用户在一组步骤中所处的位置，并可选地展示当前步骤的内容。", "Shows where a person is in a sequence of steps, and optionally the content of the active step.")
+        </p>
+    </div>
+
+    <div class="rounded-r-lg border-l-4 border-primary bg-primary/5 p-4">
+        @if (L.IsChinese)
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    <strong>步骤条还是 Form Wizard？</strong> 步骤条只是一个纯粹的指示器：不承载表单、
+                    不做校验，也不渲染导航按钮。若需要带逐步校验和内置返回与下一步按钮的多步表单，请使用
+                    <a href="/components/form-wizard" class="text-primary underline hover:no-underline">Form Wizard</a>。
+                </p>
+            </text>
+        }
+        else
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    <strong>Stepper or Form Wizard?</strong> The stepper is a plain indicator: it holds no
+                    form, validates nothing, and renders no navigation buttons. For a multi-step form with
+                    per-step validation and built-in Back and Next buttons, use
+                    <a href="/components/form-wizard" class="text-primary underline hover:no-underline">Form Wizard</a>.
+                </p>
+            </text>
+        }
+    </div>
+
+    <!-- Basic -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基础", "Basic")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        绑定 <code class="rounded bg-muted px-1 py-0.5 text-xs">ActiveStep</code>，
+                        并用你自己的控件来移动它。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Bind <code class="rounded bg-muted px-1 py-0.5 text-xs">ActiveStep</code> and move
+                        it from your own controls.
+                    </p>
+                </text>
+            }
+        </div>
+        <div class="space-y-6 rounded-lg border p-6">
+            <Stepper @bind-ActiveStep="basicStep">
+                <Step Title="@(L.T("购物车", "Cart"))" />
+                <Step Title="@(L.T("地址", "Address"))" />
+                <Step Title="@(L.T("支付", "Payment"))" />
+                <Step Title="@(L.T("完成", "Done"))" />
+            </Stepper>
+            <div class="flex items-center gap-2">
+                <Button Variant="ButtonVariant.Outline"
+                          Disabled="@(basicStep == 0)"
+                          OnClick="@(() => basicStep--)">
+                    @L.T("返回", "Back")
+                </Button>
+                <Button Disabled="@(basicStep == 3)" OnClick="@(() => basicStep++)">
+                    @L.T("下一步", "Next")
+                </Button>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Stepper/basic.txt" />
+    </section>
+
+    <!-- Clickable with descriptions and icons -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("可点击、带图标", "Clickable, with icons")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        <code class="rounded bg-muted px-1 py-0.5 text-xs">Clickable="true"</code> 会把
+                        每个步骤标记变成一个按钮，并用图标替代步骤序号。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        <code class="rounded bg-muted px-1 py-0.5 text-xs">Clickable="true"</code> turns
+                        each marker into a button. An icon replaces the step number.
+                    </p>
+                </text>
+            }
+        </div>
+        <div class="space-y-3 rounded-lg border p-6">
+            <Stepper @bind-ActiveStep="clickableStep" Clickable="true">
+                <Step Title="@(L.T("账户", "Account"))" Description="@(L.T("姓名与邮箱", "Name and email"))" Icon="user" />
+                <Step Title="@(L.T("套餐", "Plan"))" Description="@(L.T("选择一个档位", "Pick a tier"))" Icon="credit-card" />
+                <Step Title="@(L.T("确认", "Review"))" Description="@(L.T("检查并确认", "Check and confirm"))" Icon="check-check" />
+            </Stepper>
+            <p role="status" class="text-sm text-muted-foreground">
+                @L.F("第 {0} 步，共 3 步。", "Step {0} of 3.", clickableStep + 1)
+            </p>
+        </div>
+        <CodeBlock Source="Components/Stepper/clickable.txt" />
+    </section>
+
+    <!-- With content -->
+    <section class="space-y-4">
+        <span id="step" class="block scroll-mt-20" aria-hidden="true"></span>
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("步骤内容", "Step content")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带子内容的步骤会在该步骤激活时渲染其内容；没有子内容的步骤只贡献它的标签。", "A step with child content renders it while the step is active. A step without any contributes only its label.")
+            </p>
+        </div>
+        <div class="space-y-3 rounded-lg border p-6">
+            <Stepper @bind-ActiveStep="contentStep" Clickable="true">
+                <Step Title="@(L.T("地址", "Address"))">
+                    <div class="space-y-2">
+                        <p class="text-sm font-medium">@L.T("订单要寄到哪里？", "Where should the order go?")</p>
+                        <p class="text-sm text-muted-foreground">
+                            @L.T("这个面板只在第一个步骤激活时渲染。", "This panel only renders while the first step is active.")
+                        </p>
+                    </div>
+                </Step>
+                <Step Title="@(L.T("支付", "Payment"))">
+                    <div class="space-y-2">
+                        <p class="text-sm font-medium">@L.T("你希望用什么方式付款？", "How would you like to pay?")</p>
+                        <p class="text-sm text-muted-foreground">
+                            @L.T("每个步骤各自拥有自己的内容。", "Each step owns its own content.")
+                        </p>
+                    </div>
+                </Step>
+                <Step Title="@(L.T("完成", "Done"))">
+                    <p class="text-sm font-medium">@L.T("到这里就全部完成了。", "That is everything.")</p>
+                </Step>
+            </Stepper>
+        </div>
+        <CodeBlock Source="Components/Stepper/with-content.txt" />
+    </section>
+
+    <!-- Vertical -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("垂直", "Vertical")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("指示条沿起始侧向下排布，内容显示在旁边。适合窄列或步骤很多的长流程。", "The indicator runs down the leading side, with the content beside it. This suits a narrow column or a long run of steps.")
+            </p>
+        </div>
+        <div class="rounded-lg border p-6">
+            <Stepper @bind-ActiveStep="verticalStep"
+                       Orientation="StepperOrientation.Vertical"
+                       Clickable="true">
+                <Step Title="@(L.T("上传", "Upload"))" Description="@(L.T("添加源文件", "Add the source file"))">
+                    <p class="text-sm text-muted-foreground">@L.T("拖入一个 CSV 文件即可开始。", "Drop a CSV file to start.")</p>
+                </Step>
+                <Step Title="@(L.T("映射列", "Map columns"))" Description="@(L.T("匹配字段", "Match the fields"))">
+                    <p class="text-sm text-muted-foreground">@L.T("把每一列与一个字段匹配。", "Match each column to a field.")</p>
+                </Step>
+                <Step Title="@(L.T("导入", "Import"))" Description="@(L.T("写入数据行", "Write the rows"))">
+                    <p class="text-sm text-muted-foreground">@L.T("一切就绪，可以导入了。", "Everything is ready to import.")</p>
+                </Step>
+            </Stepper>
+        </div>
+        <CodeBlock Source="Components/Stepper/vertical.txt" />
+    </section>
+
+    <!-- States -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("状态", "States")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        位于当前步骤之前的步骤视为已完成。用
+                        <code class="rounded bg-muted px-1 py-0.5 text-xs">State</code> 可以覆盖这一判定，
+                        错误或被跳过的步骤就是这样展示的。被禁用的步骤无法点击。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        A step behind the active one counts as completed. Set
+                        <code class="rounded bg-muted px-1 py-0.5 text-xs">State</code> to override that,
+                        which is how an error or a skipped step is shown. A disabled step cannot be clicked.
+                    </p>
+                </text>
+            }
+        </div>
+        <div class="rounded-lg border p-6">
+            <Stepper ActiveStep="2" Clickable="true">
+                <Step Title="@(L.T("已收集", "Collected"))" />
+                <Step Title="@(L.T("已拒绝", "Rejected"))" State="StepState.Error" />
+                <Step Title="@(L.T("审核中", "In review"))" />
+                <Step Title="@(L.T("额外检查", "Extra checks"))" Optional="true" State="StepState.Skipped" />
+                <Step Title="@(L.T("已归档", "Archived"))" Disabled="true" />
+            </Stepper>
+        </div>
+        <CodeBlock Source="Components/Stepper/states.txt" />
+    </section>
+
+    <section class="space-y-4" data-testid="conditional-steps">
+        <h2 class="text-2xl font-semibold">@L.T("条件步骤", "Conditional steps")</h2>
+        <p>@L.T("当可选步骤被插入或移除时，步骤按当前的标记顺序排列。", "Steps follow their current markup order when optional steps are inserted or removed.")</p>
+        <Button OnClick="@(() => includeReview = !includeReview)">@L.T("切换显示审核步骤", "Toggle review step")</Button>
+<Stepper ActiveStep="0" data-testid="conditional-stepper">
+    <Step Title="@(L.T("详情", "Details"))" />
+    @if (includeReview)
+    {
+        <Step Title="@(L.T("审核", "Review"))" />
+    }
+    <Step Title="@(L.T("结束", "Finish"))" />
+</Stepper>
+        <CodeBlock Source="Components/Stepper/conditional.txt" />
+    </section>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("步骤条是一个有序列表，读屏软件会播报步骤总数以及当前是第几步。", "The indicator is an ordered list, so a screen reader announces how many steps there are and which one this is.")</AccessibilityItem>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>当前激活的步骤带有 <code>aria-current="step"</code>。</AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>The active step carries <code>aria-current="step"</code>.</AccessibilityItem>
+                </text>
+            }
+            <AccessibilityItem>@L.T("每个步骤都会附加一段隐藏文本，说明它的位置；当状态为已完成、错误或已跳过时还会说明状态。状态从不只靠颜色表达。", "Each step adds hidden text with its position, and its state when that state is completed, error or skipped. State is never colour alone.")</AccessibilityItem>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>连接线是 <code>aria-hidden</code> 的，因为它们本身不承载任何信息。</AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>Connectors are <code>aria-hidden</code>, because they carry no information of their own.</AccessibilityItem>
+                </text>
+            }
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在步骤标记之间移动（设置 Clickable 时）", "Move between step markers, when Clickable is set"))"><Kbd>Tab / Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("激活当前聚焦的步骤", "Activate the focused step"))"><Kbd>Enter / Space</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <LocalizationSection
+        Description="@(L.T("步骤条的名称以及每个步骤播报的文本都可以配置。", "The indicator's name and the text announced for each step are configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("Stepper.Progress", "Progress", L.T("步骤列表的可访问名称。", "Accessible name for the step list")),
+            new("Stepper.StepPosition", "Step {0} of {1}", L.T("每个步骤上的隐藏位置文本。", "Hidden position text on each step")),
+            new("Stepper.Optional", "Optional", L.T("可选步骤标题下方的提示。", "Hint under an optional step's title")),
+            new("Stepper.Completed", "Completed", L.T("已完成步骤上的隐藏状态文本。", "Hidden state text on a completed step")),
+            new("Stepper.Error", "Error", L.T("处于错误状态的步骤上的隐藏状态文本。", "Hidden state text on a step in error")),
+            new("Stepper.Skipped", "Skipped", L.T("已跳过步骤上的隐藏状态文本。", "Hidden state text on a skipped step")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""Stepper.Progress"", ""Fortschritt"");
+    localizer.Set(""Stepper.StepPosition"", ""Schritt {0} von {1}"");
+});")" />
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+
+        <ApiReference Since="v4" ComponentName="Stepper">
+            @if (L.IsChinese)
+            {
+                <text>
+                    <ApiParameter Name="ActiveStep / ActiveStepChanged" Type="int / EventCallback&lt;int&gt;" Default="0">从零开始计数的当前步骤索引。支持 <code>@@bind-ActiveStep</code>。没有绑定时，它就是初始步骤。</ApiParameter>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <ApiParameter Name="ActiveStep / ActiveStepChanged" Type="int / EventCallback&lt;int&gt;" Default="0">The zero-based active step. Supports <code>@@bind-ActiveStep</code>. Without a binding this is the initial step.</ApiParameter>
+                </text>
+            }
+            <ApiParameter Name="Orientation" Type="StepperOrientation" Default="Horizontal">@L.T("水平或垂直。", "Horizontal or Vertical.")</ApiParameter>
+            <ApiParameter Name="Clickable" Type="bool" Default="false">@L.T("把每个步骤标记变成按钮。", "Makes each step marker a button.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?"><code>Step</code> 子元素。</ApiParameter>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">The <code>Step</code> children.</ApiParameter>
+                </text>
+            }
+            <ApiParameter Name="Class / IndicatorClass / ContentClass" Type="string?">@L.T("作用于根元素、步骤列表与内容区域的额外 CSS 类。", "Additional CSS classes for the root, the step list and the content area.")</ApiParameter>
+            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">@L.T("应用于根元素的额外 HTML 属性。", "Additional HTML attributes for the root element.")</ApiParameter>
+        </ApiReference>
+
+        <ApiReference Since="v4" ComponentName="Step">
+            <ApiParameter Name="Title" Type="string">@L.T("指示条中的标签。必填。", "The label in the indicator. Required.")</ApiParameter>
+            <ApiParameter Name="Description" Type="string?">@L.T("标题下方的次要文本。", "Secondary text under the title.")</ApiParameter>
+            <ApiParameter Name="Icon" Type="string?">@L.T("用于步骤标记的 Lucide 图标名，用来替代步骤序号。", "A Lucide icon name for the marker, in place of the step number.")</ApiParameter>
+            <ApiParameter Name="State" Type="StepState?">@L.T("覆盖按位置推导出的状态。可选 Pending、Active、Completed、Error 或 Skipped。", "Overrides the state derived from position. Pending, Active, Completed, Error or Skipped.")</ApiParameter>
+            <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("阻止通过点击激活。", "Blocks activation by click.")</ApiParameter>
+            <ApiParameter Name="Optional" Type="bool" Default="false">@L.T("在标题下方添加一条提示。", "Adds a hint under the title.")</ApiParameter>
+            <ApiParameter Name="ChildContent" Type="RenderFragment?">@L.T("该步骤激活时渲染的内容。", "Content rendered while this step is active.")</ApiParameter>
+            <ApiParameter Name="Class / AdditionalAttributes" Type="string? / Dictionary&lt;string, object&gt;?">@L.T("作用于内容包裹层的额外 CSS 类与 HTML 属性。", "Additional CSS classes and HTML attributes for the content wrapper.")</ApiParameter>
+        </ApiReference>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private bool includeReview;
+    private int basicStep;
+    private int clickableStep;
+    private int contentStep;
+    private int verticalStep;
+}

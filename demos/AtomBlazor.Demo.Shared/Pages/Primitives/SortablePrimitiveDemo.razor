@@ -1,0 +1,376 @@
+@page "/primitives/sortable"
+<PageTitle>@L.T("Sortable 可排序原语 - Atom BlazorUI", "Sortable Primitive - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Sortable 可排序原语", "Sortable Primitive")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("无样式、可访问的拖放排序原语，由 Sortable.js 驱动。提供全部行为，但不强加任何布局或样式。", "Unstyled, accessible drag-and-drop sortable primitive powered by Sortable.js. Provides all the behavior without imposing layout or styling.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <!-- Basic List -->
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基础无头原语", "Basic Headless Primitive")</h2>
+                <p class="text-muted-foreground">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            这个原语提供拖放行为、ARIA 属性与实时播报，但不带任何样式。请通过
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">class</code> 应用你自己的类。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            The primitive provides drag-and-drop behavior, ARIA attributes, and live
+                            announcements without any styling. Apply your own classes via
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">class</code>.
+                        </text>
+                    }
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 max-w-md">
+                <AtomBlazor.Primitives.SortablePrimitive TItem="string"
+                                                                 Items="@_basicItems"
+                                                                 AriaLabel="@(L.T("可排序任务列表", "Sortable task list"))"
+                                                                 KeyboardAnnouncements="keyboardAnnouncements"
+                                                                 OnUpdate="@((args) => MoveWithin(_basicItems, args))"
+                                                                 class="space-y-2">
+                    <ItemTemplate Context="item">
+                        <div class="flex items-center gap-3 rounded-md border px-4 py-3 text-sm cursor-grab active:cursor-grabbing">
+                            <span>@item</span>
+                        </div>
+                    </ItemTemplate>
+                </AtomBlazor.Primitives.SortablePrimitive>
+            </div>
+
+            <CodeBlock Source="Primitives/Sortable/basic.txt" />
+        </section>
+
+        <!-- Handle -->
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("使用拖拽手柄", "With Drag Handle")</h2>
+                <p class="text-muted-foreground">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">Handle</code> 参数可以把拖拽限制到特定的子元素。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Use the <code class="text-xs bg-muted px-1 py-0.5 rounded">Handle</code> parameter to
+                            restrict dragging to a specific child element.
+                        </text>
+                    }
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 max-w-md">
+                <AtomBlazor.Primitives.SortablePrimitive TItem="string"
+                                                                 Items="@_handleItems"
+                                                                 Handle=".drag-handle"
+                                                                 AriaLabel="@(L.T("带拖拽手柄的可排序列表", "Sortable list with drag handle"))"
+                                                                 OnUpdate="@((args) => MoveWithin(_handleItems, args))"
+                                                                 class="space-y-2">
+                    <ItemTemplate Context="item">
+                        <div class="flex items-center gap-3 rounded-md border px-4 py-3 text-sm">
+                            <span class="drag-handle cursor-grab active:cursor-grabbing">&#x2630;</span>
+                            <span class="flex-1">@item</span>
+                        </div>
+                    </ItemTemplate>
+                </AtomBlazor.Primitives.SortablePrimitive>
+            </div>
+
+            <CodeBlock Source="Primitives/Sortable/handle.txt" />
+        </section>
+
+        <!-- Connected Lists -->
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("互联列表", "Connected Lists")</h2>
+                <p class="text-muted-foreground">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            让多个实例使用同一个
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">Group</code> 名称，条目即可在它们之间移动。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Give multiple instances the same
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">Group</code> name to allow
+                            items to move between them.
+                        </text>
+                    }
+                </p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <p class="text-sm font-medium">@L.T("待选", "Available")</p>
+                    <AtomBlazor.Primitives.SortablePrimitive TItem="string"
+                                                                     Items="@_available"
+                                                                     Group="@_transferGroup"
+                                                                     AriaLabel="@(L.T("待选条目", "Available items"))"
+                                                                     OnUpdate="@((args) => MoveWithin(_available, args))"
+                                                                     OnRemove="@((args) => MoveAcross(_available, _selected, args))"
+                                                                     class="min-h-20 space-y-2 rounded-md border border-dashed p-2">
+                        <ItemTemplate Context="item">
+                            <div class="rounded-md border px-3 py-2 text-sm cursor-grab active:cursor-grabbing">
+                                @item
+                            </div>
+                        </ItemTemplate>
+                    </AtomBlazor.Primitives.SortablePrimitive>
+                </div>
+
+                <div class="space-y-2">
+                    <p class="text-sm font-medium">@L.T("已选", "Selected")</p>
+                    <AtomBlazor.Primitives.SortablePrimitive TItem="string"
+                                                                     Items="@_selected"
+                                                                     Group="@_transferGroup"
+                                                                     AriaLabel="@(L.T("已选条目", "Selected items"))"
+                                                                     OnUpdate="@((args) => MoveWithin(_selected, args))"
+                                                                     OnRemove="@((args) => MoveAcross(_selected, _available, args))"
+                                                                     class="min-h-20 space-y-2 rounded-md border border-dashed p-2">
+                        <ItemTemplate Context="item">
+                            <div class="rounded-md border px-3 py-2 text-sm cursor-grab active:cursor-grabbing">
+                                @item
+                            </div>
+                        </ItemTemplate>
+                    </AtomBlazor.Primitives.SortablePrimitive>
+                </div>
+            </div>
+
+            <CodeBlock Source="Primitives/Sortable/connected.txt" />
+        </section>
+
+        <AccessibilityList>
+            <AriaAttributes>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            容器元素上带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="list"</code>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="list"</code> on the container element
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">AriaLabel</code> 参数提供
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> via the
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">AriaLabel</code> parameter
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            一个视觉隐藏的 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="status"</code>
+                            实时区域会向读屏软件播报每一次移动
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Visually-hidden <code class="text-xs bg-muted px-1 py-0.5 rounded">role="status"</code>
+                            live region announces each move to screen readers
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @L.T("每个条目都会被自动包裹在一个带 key 的容器中，以保证 Blazor diff 稳定。", "Each item is automatically wrapped in a keyed container for stable Blazor diffing")
+                </AccessibilityItem>
+            </AriaAttributes>
+            <KeyboardNavigation>
+                <KeyboardShortcutItem Description="@(L.T("空格或 Enter 拾取与放下条目；方向键移动它；Escape 取消。Ctrl+Left/Right 在互联列表之间转移。", "Space or Enter picks up and drops an item; arrow keys move it; Escape cancels. Ctrl+Left/Right transfers between connected lists."))">
+                    <Kbd>Mouse / Touch</Kbd>
+                </KeyboardShortcutItem>
+            </KeyboardNavigation>
+        </AccessibilityList>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("组件的属性与参数。", "Component properties and parameters.")
+                </p>
+            </div>
+
+            <ApiReference ComponentName="Sortable&lt;TItem&gt;">
+                <ApiParameter Name="KeyboardAnnouncements" Type="IReadOnlyDictionary&lt;string, string&gt;?" Default="null">@L.T("覆盖 Cancelled、Unchanged、MoveFailed、Transferred、TransferRejected、TransferFailed、PickedUp、Disabled 与 Position 消息。PickedUp 与 Position 中用 {0} 和 {1} 表示位置/数量。缺少的键使用英文默认值。", "Override Cancelled, Unchanged, MoveFailed, Transferred, TransferRejected, TransferFailed, PickedUp, Disabled and Position messages. Use {0} and {1} for position/count in PickedUp and Position. Missing keys use English defaults.")</ApiParameter>
+                <ApiParameter Name="ItemTemplate" Type="RenderFragment&lt;TItem&gt;?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            用于显示每个条目的渲染片段。<code>context</code> 变量
+                            提供数据项。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Render fragment used to display each item. The <code>context</code> variable
+                            provides the data item.
+                        </text>
+                    }
+                </ApiParameter>
+                <ApiParameter Name="Items" Type="IList&lt;TItem&gt;">
+                    @L.T("要渲染并允许重排的条目列表。", "The list of items to render and reorder.")
+                </ApiParameter>
+                <ApiParameter Name="OnUpdate" Type="EventCallback&lt;(int OldIndex, int NewIndex)&gt;">
+                    @L.T("条目在本列表内被重排时触发。", "Raised when an item is reordered within this list.")
+                </ApiParameter>
+                <ApiParameter Name="OnRemove" Type="EventCallback&lt;(int OldIndex, int NewIndex)&gt;">
+                    @L.T("条目被移出本列表进入某个互联列表时触发。", "Raised when an item is moved out of this list into a connected list.")
+                </ApiParameter>
+                <ApiParameter Name="OnAdd" Type="EventCallback&lt;(int OldIndex, int NewIndex)&gt;">
+                    @L.T("来自互联列表的条目被放入本列表时触发。", "Raised when an item from a connected list is dropped into this list.")
+                </ApiParameter>
+                <ApiParameter Name="Id" Type="string" Default="auto">
+                    @L.T("可排序容器的 HTML 元素 id。默认自动生成。", "HTML element id for the sortable container. Auto-generated by default.")
+                </ApiParameter>
+                <ApiParameter Name="Group" Type="string" Default="auto">
+                    @L.T("Sortable.js 组名。使用相同名称的列表可以交换条目。默认取唯一自动生成的值（独立列表）。", "Sortable.js group name. Lists sharing the same name can exchange items. Defaults to a unique auto-generated value (isolated list).")
+                </ApiParameter>
+                <ApiParameter Name="Pull" Type="string?" Default="null">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            Pull 行为：<code>"clone"</code> 复制条目；<code>null</code> 移动条目。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Pull behaviour: <code>"clone"</code> copies items; <code>null</code> moves them.
+                        </text>
+                    }
+                </ApiParameter>
+                <ApiParameter Name="Put" Type="bool" Default="true">
+                    @L.T("是否允许把互联列表中的条目放入本列表。", "Whether items from connected lists can be dropped into this one.")
+                </ApiParameter>
+                <ApiParameter Name="Sort" Type="bool" Default="true">
+                    @L.T("是否允许重排本列表内的条目。", "Whether items within this list can be reordered.")
+                </ApiParameter>
+                <ApiParameter Name="Handle" Type="string" Default='""'>
+                    @L.T("拖拽手柄元素的 CSS 选择器。只有该元素会发起拖拽。", "CSS selector for the drag-handle element. Only that element initiates a drag.")
+                </ApiParameter>
+                <ApiParameter Name="Filter" Type="string?" Default="null">
+                    @L.T("不可拖拽的子元素的 CSS 选择器。", "CSS selector for child elements that cannot be dragged.")
+                </ApiParameter>
+                <ApiParameter Name="ForceFallback" Type="bool" Default="true">
+                    @L.T("使用软件 fallback 渲染器代替原生 HTML5 拖放。", "Use the software fallback renderer instead of native HTML5 drag-and-drop.")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            暴露在容器上的可访问标签，即 <code>aria-label</code>。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Accessible label exposed as <code>aria-label</code> on the container.
+                        </text>
+                    }
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            应用到容器元素的额外 HTML 属性（例如 <code>class</code>、<code>style</code>）。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Additional HTML attributes applied to the container element (e.g. <code>class</code>, <code>style</code>).
+                        </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+        </section>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private static readonly IReadOnlyDictionary<string, string> keyboardAnnouncements = new Dictionary<string, string>
+    {
+        ["Cancelled"] = "Task move cancelled.",
+        ["PickedUp"] = "Picked up task {0} of {1}."
+    };
+
+    // ── Shared helper ────────────────────────────────────────────────────────
+
+    private static void MoveWithin<T>(List<T> list, (int OldIndex, int NewIndex) args)
+    {
+        var item = list[args.OldIndex];
+        list.RemoveAt(args.OldIndex);
+        list.Insert(args.NewIndex, item);
+    }
+
+    private static void MoveAcross<T>(List<T> source, List<T> target, (int OldIndex, int NewIndex) args)
+    {
+        var item = source[args.OldIndex];
+        source.RemoveAt(args.OldIndex);
+        target.Insert(args.NewIndex, item);
+    }
+
+    // ── Basic list ────────────────────────────────────────────────────────────
+
+    private List<string> _basicItems =
+    [
+        "Design mockups",
+        "Set up project",
+        "Implement authentication",
+        "Write unit tests",
+        "Deploy to staging",
+    ];
+
+    // ── Handle list ───────────────────────────────────────────────────────────
+
+    private List<string> _handleItems =
+    [
+        "Dashboard",
+        "Analytics",
+        "Reports",
+        "Settings",
+        "Users",
+    ];
+
+    // ── Connected lists ──────────────────────────────────────────────────────
+
+    private readonly string _transferGroup = Guid.NewGuid().ToString();
+    private List<string> _available = ["React", "Vue", "Angular", "Svelte", "Solid"];
+    private List<string> _selected = ["Blazor"];
+}

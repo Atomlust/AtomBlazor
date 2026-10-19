@@ -1,0 +1,38 @@
+@namespace AtomBlazor
+
+@HeadingFragment
+
+@code {
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 用于标题的 HTML 元素标签。
+    /// 默认值为 "h2"。
+    /// </summary>
+    [Parameter]
+    public string As { get; set; } = "h2";
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string CssClass => ClassNames.cn(
+        "atom:text-lg atom:font-semibold atom:leading-none atom:tracking-tight",
+        Class
+    );
+
+    private RenderFragment HeadingFragment => builder =>
+    {
+        builder.OpenElement(0, As);
+        builder.AddAttribute(1, "class", CssClass);
+        builder.AddMultipleAttributes(2, AdditionalAttributes);
+        builder.AddContent(3, ChildContent);
+        builder.CloseElement();
+    };
+}

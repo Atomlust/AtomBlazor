@@ -1,0 +1,248 @@
+@page "/components/toggle"
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("Toggle 切换按钮 - Atom BlazorUI", "Toggle Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Toggle 切换按钮组件", "Toggle Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("一个只有开启与关闭两种状态的按钮。", "A two-state button that can be either on or off.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个简单的切换按钮。", "A simple toggle button.")
+            </p>
+        </div>
+        <Toggle @bind-Pressed="_isPressed">
+            <LucideIcon Name="bold" Class="h-4 w-4" />
+        </Toggle>
+        <p class="text-sm text-muted-foreground">@L.F("按下状态：{0}", "Pressed: {0}", _isPressed)</p>
+        <CodeBlock Source="Components/Toggle/basic.txt" />
+    </div>
+
+    <!-- Variants -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("样式变体", "Variants")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("Toggle 有 default 与 outline 两种变体。", "Toggle comes in default and outline variants.")
+            </p>
+        </div>
+        <div class="flex gap-4">
+            <Toggle Variant="ToggleVariant.Default">
+                <LucideIcon Name="bold" Class="h-4 w-4" />
+            </Toggle>
+            <Toggle Variant="ToggleVariant.Outline">
+                <LucideIcon Name="italic" Class="h-4 w-4" />
+            </Toggle>
+        </div>
+        <CodeBlock Source="Components/Toggle/variants.txt" />
+    </div>
+
+    <!-- Sizes -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("尺寸", "Sizes")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("Toggle 有 small、default 与 large 三种尺寸。", "Toggle comes in small, default, and large sizes.")
+            </p>
+        </div>
+        <div class="flex items-center gap-4">
+            <Toggle Size="ToggleSize.Small">
+                <LucideIcon Name="bold" Class="h-3 w-3" />
+            </Toggle>
+            <Toggle Size="ToggleSize.Default">
+                <LucideIcon Name="bold" Class="h-4 w-4" />
+            </Toggle>
+            <Toggle Size="ToggleSize.Large">
+                <LucideIcon Name="bold" Class="h-5 w-5" />
+            </Toggle>
+        </div>
+        <CodeBlock Source="Components/Toggle/sizes.txt" />
+    </div>
+
+    <!-- With Text -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带文字", "With Text")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("Toggle 可以同时包含图标与文字。", "Toggle can include both icon and text.")
+            </p>
+        </div>
+        <Toggle Variant="ToggleVariant.Outline">
+            <LucideIcon Name="italic" Class="h-4 w-4 mr-2" />
+            @L.T("斜体", "Italic")
+        </Toggle>
+        <CodeBlock Source="Components/Toggle/with-text.txt" />
+    </div>
+
+    <!-- Bookmark Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("书签示例", "Bookmark Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("按下后外观随之变化的切换按钮，可显示填充图标状态。", "A toggle that changes appearance when pressed, showing filled icon state.")
+            </p>
+        </div>
+        <div class="flex gap-4 items-center">
+            <Toggle @bind-Pressed="_isBookmarked" Variant="ToggleVariant.Outline">
+                <LucideIcon Name="bookmark"
+                            Class="h-4 w-4 mr-2"
+                            Color="@(_isBookmarked ? "#3b82f6" : "currentColor")"
+                            Fill="@(_isBookmarked ? "#3b82f6" : "none")" />
+                @L.T("书签", "Bookmark")
+            </Toggle>
+            <span class="text-sm text-muted-foreground">@(_isBookmarked ? L.T("已加书签", "Bookmarked") : L.T("未加书签", "Not bookmarked"))</span>
+        </div>
+        <CodeBlock Source="Components/Toggle/bookmark.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("Toggle 可以禁用。", "Toggle can be disabled.")
+            </p>
+        </div>
+        <Toggle Disabled="true">
+            <LucideIcon Name="underline" Class="h-4 w-4" />
+        </Toggle>
+        <CodeBlock Source="Components/Toggle/disabled.txt" />
+    </div>
+
+    <!-- Toggle Group -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("切换按钮组", "Toggle Group")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("把多个切换按钮组合起来，实现单选或多选。", "Group multiple toggles together for single or multiple selection.")
+            </p>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <p class="text-sm mb-2">@L.T("单选：", "Single selection:")</p>
+                <AtomBlazor.ToggleGroup TValue="string" @bind-Value="_alignment" Variant="ToggleVariant.Outline">
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("left")">
+                        <LucideIcon Name="align-left" Class="h-4 w-4" />
+                    </AtomBlazor.ToggleGroupItem>
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("center")">
+                        <LucideIcon Name="align-center" Class="h-4 w-4" />
+                    </AtomBlazor.ToggleGroupItem>
+                    <AtomBlazor.ToggleGroupItem TValue="string" Value="@("right")">
+                        <LucideIcon Name="align-right" Class="h-4 w-4" />
+                    </AtomBlazor.ToggleGroupItem>
+                </AtomBlazor.ToggleGroup>
+                <p class="text-sm text-muted-foreground mt-2">@L.F("已选择：{0}", "Selected: {0}", _alignment ?? "none")</p>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Toggle/group.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text><code>aria-pressed</code> 表示切换按钮的开/关状态</text>
+                }
+                else
+                {
+                    <text><code>aria-pressed</code> indicates the toggle's on/off state</text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>@L.T("被禁用的切换按钮会被辅助技术播报为不可用", "Disabled toggles are announced as unavailable by assistive technologies")</AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>键盘聚焦时会出现焦点环（<code>focus-visible:ring-2</code>）</text>
+                }
+                else
+                {
+                    <text>Focus ring appears on keyboard focus (<code>focus-visible:ring-2</code>)</text>
+                }
+            </AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("按顺序聚焦各个切换按钮", "Focus toggles in sequence"))">
+                <Kbd>Tab</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("切换按下状态", "Toggle pressed state"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件的属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="Toggle">
+                <ApiParameter Name="Pressed" Type="bool" Default="false">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            按下状态。支持用 <code>@@bind-Pressed</code> 进行双向绑定。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            The pressed state. Supports two-way binding with <code>@@bind-Pressed</code>.
+                        </text>
+                    }
+                </ApiParameter>
+                <ApiParameter Name="DefaultPressed" Type="bool" Default="false">
+                    @L.T("非受控模式下的初始按下状态。", "Initial pressed state when in uncontrolled mode.")
+                </ApiParameter>
+                <ApiParameter Name="Variant" Type="ToggleVariant" Default="Default">
+                    @L.T("视觉样式。可选值：Default、Outline。", "Visual style. Options: Default, Outline.")
+                </ApiParameter>
+                <ApiParameter Name="Size" Type="ToggleSize" Default="Default">
+                    @L.T("按钮尺寸。可选值：Small、Default、Large。", "Button size. Options: Small, Default, Large.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("禁用该切换按钮。", "Disables the toggle.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("追加到切换按钮上的额外 CSS 类。", "Additional CSS classes for the toggle button.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            应用到组件根元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private bool _isPressed;
+    private bool _isBookmarked;
+    private string? _alignment = "center";
+}

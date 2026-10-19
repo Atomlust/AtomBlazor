@@ -1,0 +1,93 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<div class="atom:relative" @attributes="AdditionalAttributes">
+    <div @ref="_containerRef"
+         data-tag-input-container
+         class="@ContainerCssClass"
+         aria-label="@AriaLabel"
+         aria-disabled="@(Disabled ? "true" : null)">
+
+        @if (_currentTags.Count > 0)
+        {
+            @foreach (var tag in _currentTags)
+            {
+                @if (TagTemplate is not null)
+                {
+                    <div @key="tag" class="atom:contents">
+                        @TagTemplate(tag)
+                    </div>
+                }
+                else
+                {
+                    <Badge @key="tag" Variant="@TagBadgeVariant" Class="atom:gap-1 atom:shrink-0">
+                        @tag
+                        @if (!Disabled)
+                        {
+                            <button type="button"
+                                    class="atom:ms-0.5 atom:rounded-full atom:outline-none atom:focus-visible:ring-1 atom:focus-visible:ring-ring atom:hover:bg-secondary-foreground/20"
+                                    aria-label="@Localizer["TagInput.RemoveTag", tag]"
+                                    @onclick="GetRemoveHandler(tag)"
+                                    @onclick:stopPropagation="true">
+                                <LucideIcon Name="x" Size="12" Class="atom:h-3 atom:w-3" />
+                            </button>
+                        }
+                    </Badge>
+                }
+            }
+        }
+
+        <input @ref="_inputRef"
+               type="text"
+               class="@InputCssClass"
+               value="@_inputText"
+               placeholder="@EffectivePlaceholder"
+               disabled="@Disabled"
+               aria-label="@(AriaLabel ?? "Add tag")"
+               aria-autocomplete="@(HasSuggestions ? "list" : null)"
+               aria-expanded="@(_suggestionsOpen ? "true" : null)"
+               aria-controls="@(_suggestionsOpen ? $"{_instanceId}-suggestions" : null)"
+               aria-activedescendant="@ActiveDescendantId"
+               @oninput="HandleInput"
+               @onfocus="HandleFocus"
+               @onblur="HandleBlur" />
+
+        @if (Clearable && _currentTags.Count > 0 && !Disabled)
+        {
+            <button type="button"
+                    class="atom:ms-auto atom:shrink-0 atom:rounded-sm atom:opacity-70 atom:hover:opacity-100 atom:focus:outline-none atom:focus-visible:ring-1 atom:focus-visible:ring-ring"
+                    aria-label="@Localizer["TagInput.ClearAllTags"]"
+                    @onclick="ClearAll"
+                    @onclick:stopPropagation="true">
+                <LucideIcon Name="x" Size="14" Class="atom:h-3.5 atom:w-3.5" />
+            </button>
+        }
+    </div>
+
+    @if (_suggestionsOpen && _filteredSuggestions.Count > 0)
+    {
+        <div class="atom:absolute atom:inset-x-0 atom:top-full atom:z-50 atom:mt-1 atom:rounded-md atom:border atom:border-input atom:bg-popover atom:p-1 atom:shadow-md atom:max-h-48 atom:overflow-y-auto">
+            <ul id="@($"{_instanceId}-suggestions")"
+                role="listbox"
+                aria-label="@Localizer["TagInput.TagSuggestions"]">
+                @for (int i = 0; i < _filteredSuggestions.Count; i++)
+                {
+                    var suggestion = _filteredSuggestions[i];
+                    var index = i;
+                    var isActive = _suggestionIndex == index;
+                    <li @key="suggestion"
+                        id="@($"{_instanceId}-suggestion-{index}")"
+                        role="option"
+                        aria-selected="@isActive.ToString().ToLower()"
+                        class="@SuggestionItemCssClass(isActive)"
+                        @onmousedown="() => SelectSuggestion(suggestion)"
+                        @onmousedown:preventDefault="true">
+                        @suggestion
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+</div>

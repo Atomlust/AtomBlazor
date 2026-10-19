@@ -1,0 +1,50 @@
+@namespace AtomBlazor
+
+@*
+    带样式的面板关闭组件封装。
+    渲染一个用于关闭面板的按钮。
+*@
+
+<AtomBlazor.Primitives.SheetClose
+    AsChild="@AsChild"
+    OnClick="@OnClick"
+    PreventClose="@PreventClose"
+    @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.SheetClose>
+
+@code {
+    /// <summary>
+    /// 在关闭按钮内显示的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 为 true 时，关闭组件不会渲染自身的按钮元素。
+    /// 取而代之的是，它通过 TriggerContext 将触发器行为传递给子组件。
+    /// 当你希望自定义组件（例如 Button）充当关闭按钮时使用。
+    /// </summary>
+    [Parameter]
+    public bool AsChild { get; set; } = true;
+
+    /// <summary>
+    /// 自定义点击处理程序。在面板关闭后调用。
+    /// </summary>
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    /// <summary>
+    /// 是否阻止默认的关闭行为。
+    /// 为 true 时，仅调用 OnClick 处理程序。
+    /// 默认值为 false（点击时关闭面板）。
+    /// </summary>
+    [Parameter]
+    public bool PreventClose { get; set; } = false;
+
+    /// <summary>
+    /// 应用到关闭按钮的额外属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}

@@ -1,0 +1,63 @@
+@namespace AtomBlazor
+@inject ILocalizer Localizer
+
+<div class="@CssClass" @attributes="AdditionalAttributes">
+    @if (Context?.State != null)
+    {
+        var state = Context.State;
+        @if (state.TotalItems > 0)
+        {
+            <span>@string.Format(EffectiveFormat, state.FirstItemIndex, state.LastItemIndex, state.TotalItems)</span>
+        }
+        else
+        {
+            <span>@EffectiveEmptyText</span>
+        }
+    }
+    else
+    {
+        @ChildContent
+    }
+</div>
+
+@code {
+    [CascadingParameter]
+    private PaginationContext? Context { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 显示条目区间的格式串。{0} 为起始、{1} 为结束、{2} 为总数。
+    /// 未提供时回退到本地化默认值。
+    /// </summary>
+    [Parameter]
+    public string? Format { get; set; }
+
+    private string EffectiveFormat => Format ?? Localizer["Pagination.ShowingFormat"];
+
+    /// <summary>
+    /// 没有条目时显示的文本。未提供时回退到本地化默认值。
+    /// </summary>
+    [Parameter]
+    public string? EmptyText { get; set; }
+
+    private string EffectiveEmptyText => EmptyText ?? Localizer["Pagination.NoItems"];
+
+    /// <summary>
+    /// 不使用分页状态时显示的自定义内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private string CssClass => ClassNames.cn(
+        "atom:flex-1 atom:text-sm atom:text-muted-foreground",
+        Class
+    );
+}

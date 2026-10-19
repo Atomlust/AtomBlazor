@@ -1,0 +1,663 @@
+@page "/guides/animations"
+@inject ToastService ToastService
+
+<PageTitle>@L.T("动画 - Atom BlazorUI", "Animations - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("动画", "Animations")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("为浮层与交互组件提供平滑的进、出场动画，由 tw-animate-css 驱动。", "Smooth enter and exit animations for overlay and interactive components, powered by tw-animate-css.")
+        </p>
+    </div>
+
+    <div class="space-y-6">
+
+        <!-- Overview -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("概览", "Overview")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        AtomBlazor 使用 <strong>tw-animate-css</strong> 为浮层与交互组件提供动画。
+                        动画内置于带样式的 Components 层并自动生效 —— 无需任何配置。
+                        Dialog、Sheet、Popover、Select、Toast 等组件在打开与关闭时默认都会播放动画。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        AtomBlazor uses <strong>tw-animate-css</strong> to provide animations for overlay and interactive components.
+                        Animations are built into the styled Components layer and activate automatically &mdash; no configuration needed.
+                        Components like Dialog, Sheet, Popover, Select, and Toast all animate by default when they open and close.
+                    </p>
+                </text>
+            }
+            <p class="text-muted-foreground leading-relaxed">
+                @L.T("动画系统会自动遵循无障碍偏好设置，并在全局与单组件两个层级都提供关闭或自定义动画的逃生口。", "The animation system respects accessibility preferences automatically and provides escape hatches for disabling or customizing animations at both the global and per-component level.")
+            </p>
+        </section>
+
+        <!-- How It Works -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("工作原理", "How It Works")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        每个带动画的组件都使用一个 <code class="text-xs bg-muted px-1 py-0.5 rounded">data-state</code> 属性，
+                        在 <code class="text-xs bg-muted px-1 py-0.5 rounded">"open"</code> 与
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">"closed"</code> 之间切换。Tailwind CSS 工具类
+                        会根据该属性有条件地应用动画。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        Each animated component uses a <code class="text-xs bg-muted px-1 py-0.5 rounded">data-state</code> attribute
+                        that toggles between <code class="text-xs bg-muted px-1 py-0.5 rounded">"open"</code> and
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">"closed"</code>. Tailwind CSS utility classes
+                        conditionally apply animations based on this attribute.
+                    </p>
+                </text>
+            }
+            <div class="rounded-lg border bg-muted/50 p-4">
+                <pre class="text-sm overflow-x-auto"><code>&lt;!-- What the component markup looks like internally --&gt;
+&lt;div data-state="open"
+     class="data-[state=open]:animate-in data-[state=closed]:animate-out
+            data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0
+            data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95"&gt;
+    ...
+&lt;/div&gt;</code></pre>
+            </div>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">animate-in</code> 类会触发一个 CSS
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">enter</code> 关键帧动画，它从 CSS 自定义属性读取参数：
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        The <code class="text-xs bg-muted px-1 py-0.5 rounded">animate-in</code> class triggers a CSS
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">enter</code> keyframe animation that reads from CSS custom properties:
+                    </p>
+                </text>
+            }
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm border-collapse">
+                    <thead>
+                        <tr class="border-b">
+                            <th class="text-left py-2 px-3 font-medium">@L.T("工具类", "Utility Class")</th>
+                            <th class="text-left py-2 px-3 font-medium">@L.T("CSS 自定义属性", "CSS Custom Property")</th>
+                            <th class="text-left py-2 px-3 font-medium">@L.T("效果", "Effect")</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-muted-foreground">
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">fade-in-0</code></td>
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">--tw-enter-opacity: 0</code></td>
+                            <td class="py-2 px-3">@L.T("从透明淡入到不透明", "Fade from transparent to opaque")</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">zoom-in-95</code></td>
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">--tw-enter-scale: 0.95</code></td>
+                            <td class="py-2 px-3">@L.T("从 95% 缩放到 100%", "Scale from 95% to 100%")</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">slide-in-from-top-2</code></td>
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">--tw-enter-translate-y: -0.5rem</code></td>
+                            <td class="py-2 px-3">@L.T("从上方滑入", "Slide in from above")</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">slide-in-from-bottom-2</code></td>
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">--tw-enter-translate-y: 0.5rem</code></td>
+                            <td class="py-2 px-3">@L.T("从下方滑入", "Slide in from below")</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        Popover、DropdownMenu、Select 这类浮层组件还会使用
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">data-side</code> 属性，让滑动方向
+                        与实际摆放位置一致。在触发器下方展开的下拉菜单会从顶部滑入，反之亦然。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        Floating components like Popover, DropdownMenu, and Select also use a
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">data-side</code> attribute to make the slide direction
+                        match the actual placement. A dropdown that opens below the trigger slides in from the top, and vice versa.
+                    </p>
+                </text>
+            }
+        </section>
+
+        <!-- Animation Types -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("动画类型", "Animation Types")</h2>
+            <p class="text-muted-foreground leading-relaxed">
+                @L.T("库中使用四种不同的动画类型，可在下方逐一体验。", "The library uses four distinct animation types. Try each one below.")
+            </p>
+
+            <!-- Fade + Zoom -->
+            <div class="p-6 border rounded-lg bg-card space-y-3">
+                <div class="space-y-1">
+                    <p class="text-sm font-semibold">@L.T("淡入 + 缩放", "Fade + Zoom")</p>
+                    <p class="text-xs text-muted-foreground">@L.T("内容淡入的同时从 95% 缩放到 100%。Dialog 与 AlertDialog 使用。", "Content fades in while scaling from 95% to 100%. Used by Dialog and AlertDialog.")</p>
+                </div>
+                <Dialog @bind-Open="dialogOpen">
+                    <AtomBlazor.DialogTrigger>
+                        <Button Variant="ButtonVariant.Outline">@L.T("打开对话框", "Open Dialog")</Button>
+                    </AtomBlazor.DialogTrigger>
+                    <AtomBlazor.DialogContent>
+                        <DialogHeader>
+                            <AtomBlazor.DialogTitle>@L.T("淡入 + 缩放", "Fade + Zoom")</AtomBlazor.DialogTitle>
+                            <AtomBlazor.DialogDescription>@L.T("这个对话框从屏幕中央淡入并缩放出现。", "This dialog fades and zooms into view from the center of the screen.")</AtomBlazor.DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <AtomBlazor.DialogClose>
+                                <Button>@L.T("关闭", "Close")</Button>
+                            </AtomBlazor.DialogClose>
+                        </DialogFooter>
+                    </AtomBlazor.DialogContent>
+                </Dialog>
+            </div>
+
+            <!-- Slide from Edge -->
+            <div class="p-6 border rounded-lg bg-card space-y-3">
+                <div class="space-y-1">
+                    <p class="text-sm font-semibold">@L.T("从边缘滑入", "Slide from Edge")</p>
+                    <p class="text-xs text-muted-foreground">@L.T("通宽或通高的面板从屏幕边缘滑入。Sheet 使用。", "Full-width or full-height panel slides in from a screen edge. Used by Sheet.")</p>
+                </div>
+                <div class="flex gap-2 flex-wrap">
+                    <Sheet @bind-Open="sheetRightOpen">
+                        <AtomBlazor.SheetTrigger>
+                            <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small">@L.T("右侧", "Right")</Button>
+                        </AtomBlazor.SheetTrigger>
+                        <AtomBlazor.SheetContent Side="SheetSide.Right">
+                            <SheetHeader>
+                                <AtomBlazor.SheetTitle>@L.T("从右侧滑入的面板", "Sheet from Right")</AtomBlazor.SheetTitle>
+                                <AtomBlazor.SheetDescription>@L.T("从右侧边缘滑入。", "Slides in from the right edge.")</AtomBlazor.SheetDescription>
+                            </SheetHeader>
+                        </AtomBlazor.SheetContent>
+                    </Sheet>
+                    <Sheet @bind-Open="sheetLeftOpen">
+                        <AtomBlazor.SheetTrigger>
+                            <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small">@L.T("左侧", "Left")</Button>
+                        </AtomBlazor.SheetTrigger>
+                        <AtomBlazor.SheetContent Side="SheetSide.Left">
+                            <SheetHeader>
+                                <AtomBlazor.SheetTitle>@L.T("从左侧滑入的面板", "Sheet from Left")</AtomBlazor.SheetTitle>
+                                <AtomBlazor.SheetDescription>@L.T("从左侧边缘滑入。", "Slides in from the left edge.")</AtomBlazor.SheetDescription>
+                            </SheetHeader>
+                        </AtomBlazor.SheetContent>
+                    </Sheet>
+                    <Sheet @bind-Open="sheetTopOpen">
+                        <AtomBlazor.SheetTrigger>
+                            <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small">@L.T("顶部", "Top")</Button>
+                        </AtomBlazor.SheetTrigger>
+                        <AtomBlazor.SheetContent Side="SheetSide.Top">
+                            <SheetHeader>
+                                <AtomBlazor.SheetTitle>@L.T("从顶部滑入的面板", "Sheet from Top")</AtomBlazor.SheetTitle>
+                                <AtomBlazor.SheetDescription>@L.T("从顶部边缘滑入。", "Slides in from the top edge.")</AtomBlazor.SheetDescription>
+                            </SheetHeader>
+                        </AtomBlazor.SheetContent>
+                    </Sheet>
+                    <Sheet @bind-Open="sheetBottomOpen">
+                        <AtomBlazor.SheetTrigger>
+                            <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small">@L.T("底部", "Bottom")</Button>
+                        </AtomBlazor.SheetTrigger>
+                        <AtomBlazor.SheetContent Side="SheetSide.Bottom">
+                            <SheetHeader>
+                                <AtomBlazor.SheetTitle>@L.T("从底部滑入的面板", "Sheet from Bottom")</AtomBlazor.SheetTitle>
+                                <AtomBlazor.SheetDescription>@L.T("从底部边缘滑入。", "Slides in from the bottom edge.")</AtomBlazor.SheetDescription>
+                            </SheetHeader>
+                        </AtomBlazor.SheetContent>
+                    </Sheet>
+                </div>
+            </div>
+
+            <!-- Fade + Zoom + Directional Slide -->
+            <div class="p-6 border rounded-lg bg-card space-y-3">
+                <div class="space-y-1">
+                    <p class="text-sm font-semibold">@L.T("淡入 + 缩放 + 方向滑入", "Fade + Zoom + Directional Slide")</p>
+                    <p class="text-xs text-muted-foreground">
+                        @L.T("浮层内容淡入、缩放，并朝其展开方向滑入。在触发器下方展开的下拉菜单会从上方滑下。Select、Popover、DropdownMenu、ContextMenu 使用。", "Floating content fades, zooms, and slides from the direction it opens toward. A dropdown opening below the trigger slides down from the top. Used by Select, Popover, DropdownMenu, and ContextMenu.")
+                    </p>
+                </div>
+                <div class="flex gap-2 flex-wrap items-start">
+                    <Select @bind-Value="selectedDefault" TValue="string" Class="w-[200px]">
+                        <AtomBlazor.SelectTrigger>
+                            <AtomBlazor.SelectValue Placeholder="@(L.T("请选择", "Select"))" />
+                        </AtomBlazor.SelectTrigger>
+                        <AtomBlazor.SelectContent>
+                            @foreach (var fruit in fruits)
+                            {
+                                <AtomBlazor.SelectItem Value="@fruit" Text="@fruit" />
+                            }
+                        </AtomBlazor.SelectContent>
+                    </Select>
+                    <DropdownMenu>
+                        <AtomBlazor.DropdownMenuTrigger>
+                            <Button Variant="ButtonVariant.Outline">
+                                @L.T("菜单", "Menu")
+                                <LucideIcon Name="chevron-down" Class="ml-2 h-4 w-4" />
+                            </Button>
+                        </AtomBlazor.DropdownMenuTrigger>
+                        <AtomBlazor.DropdownMenuContent>
+                            <AtomBlazor.DropdownMenuItem>@L.T("个人资料", "Profile")</AtomBlazor.DropdownMenuItem>
+                            <AtomBlazor.DropdownMenuItem>@L.T("设置", "Settings")</AtomBlazor.DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <AtomBlazor.DropdownMenuItem>@L.T("退出登录", "Log out")</AtomBlazor.DropdownMenuItem>
+                        </AtomBlazor.DropdownMenuContent>
+                    </DropdownMenu>
+                    <Popover>
+                        <AtomBlazor.PopoverTrigger>
+                            <Button Variant="ButtonVariant.Outline">@L.T("浮层", "Popover")</Button>
+                        </AtomBlazor.PopoverTrigger>
+                        <AtomBlazor.PopoverContent>
+                            <div class="space-y-2">
+                                <h4 class="font-medium leading-none text-sm">@L.T("浮层内容", "Popover Content")</h4>
+                                <p class="text-xs text-muted-foreground">@L.T("滑动方向与摆放位置一致。", "Slide direction matches the placement.")</p>
+                            </div>
+                        </AtomBlazor.PopoverContent>
+                    </Popover>
+                </div>
+            </div>
+
+            <!-- Toast Slide -->
+            <div class="p-6 border rounded-lg bg-card space-y-3">
+                <div class="space-y-1">
+                    <p class="text-sm font-semibold">@L.T("滑入", "Slide In")</p>
+                    <p class="text-xs text-muted-foreground">@L.T("通知从视口边缘滑入视野。Toast 使用。", "Notifications slide into view from the edge of the viewport. Used by Toast.")</p>
+                </div>
+                <div class="flex gap-2 flex-wrap">
+                    <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="@ShowDefaultToast">@L.T("默认", "Default")</Button>
+                    <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="@ShowSuccessToast">@L.T("成功", "Success")</Button>
+                    <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="@ShowDestructiveToast">@L.T("危险", "Destructive")</Button>
+                </div>
+            </div>
+
+            <!-- Expand / Collapse -->
+            <div class="p-6 border rounded-lg bg-card space-y-3">
+                <div class="space-y-1">
+                    <p class="text-sm font-semibold">@L.T("展开 / 折叠", "Expand / Collapse")</p>
+                    <p class="text-xs text-muted-foreground">@L.T("内容借助 CSS 网格行动画平滑展开与折叠。Collapsible 与 Accordion 使用。", "Content smoothly expands and collapses using CSS grid row animation. Used by Collapsible and Accordion.")</p>
+                </div>
+                <Collapsible @bind-Open="collapsibleOpen" Class="w-[350px] space-y-2">
+                    <div class="flex items-center justify-between space-x-4 px-4">
+                        <h4 class="text-sm font-semibold">@L.T("已加星的仓库", "Starred repositories")</h4>
+                        <AtomBlazor.CollapsibleTrigger>
+                            <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Small">
+                                <LucideIcon Name="chevrons-up-down" Class="h-4 w-4" />
+                                <span class="sr-only">@L.T("切换", "Toggle")</span>
+                            </Button>
+                        </AtomBlazor.CollapsibleTrigger>
+                    </div>
+                    <div class="rounded-md border px-4 py-3 text-sm">@@/ui</div>
+                    <AtomBlazor.CollapsibleContent>
+                        <div class="space-y-2">
+                            <div class="rounded-md border px-4 py-3 text-sm">@@/primitives</div>
+                            <div class="rounded-md border px-4 py-3 text-sm">@@/icons</div>
+                        </div>
+                    </AtomBlazor.CollapsibleContent>
+                </Collapsible>
+            </div>
+        </section>
+
+        <!-- Customizing Animations -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("自定义动画", "Customizing Animations")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        使用组合模式时，可以向内容组件传入 <code class="text-xs bg-muted px-1 py-0.5 rounded">Class</code> 参数
+                        来调整动画行为。若要更深入的定制，可覆盖控制动画参数的 CSS 自定义属性。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        When using compositional mode, you can pass a <code class="text-xs bg-muted px-1 py-0.5 rounded">Class</code> parameter
+                        to the content component to adjust animation behavior. For deeper customization, override the CSS custom properties
+                        that control the animation parameters.
+                    </p>
+                </text>
+            }
+
+            <h3 class="text-lg font-semibold">@L.T("更慢的动画", "Slower Animation")</h3>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">Class</code> 参数使用 Tailwind 的
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">duration-*</code> 工具类，即可放慢或加快动画。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        Use Tailwind's <code class="text-xs bg-muted px-1 py-0.5 rounded">duration-*</code> utilities via the
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Class</code> parameter to slow down or speed up the animation.
+                    </p>
+                </text>
+            }
+            <div class="p-6 border rounded-lg bg-card">
+                <Select @bind-Value="selectedSlow" TValue="string" Class="w-[280px]">
+                    <AtomBlazor.SelectTrigger>
+                        <AtomBlazor.SelectValue Placeholder="@(L.T("选择一个水果", "Select a fruit"))" />
+                    </AtomBlazor.SelectTrigger>
+                    <AtomBlazor.SelectContent Class="duration-500">
+                        @foreach (var fruit in fruits)
+                        {
+                            <AtomBlazor.SelectItem Value="@fruit" Text="@fruit" />
+                        }
+                    </AtomBlazor.SelectContent>
+                </Select>
+            </div>
+            <div class="rounded-lg border bg-muted/50 p-4">
+                <pre class="text-sm overflow-x-auto"><code>&lt;SelectContent Class="duration-500"&gt;
+    ...
+&lt;/SelectContent&gt;</code></pre>
+            </div>
+
+            <h3 class="text-lg font-semibold pt-2">@L.T("CSS 自定义属性覆盖", "CSS Custom Property Overrides")</h3>
+            <p class="text-muted-foreground leading-relaxed">
+                @L.T("动画参数由 CSS 自定义属性驱动。你可以在自己的样式表中覆盖它们，在不替换整个动画系统的前提下改变动画的观感。", "The animation parameters are driven by CSS custom properties. You can override them in your own stylesheet to change the feel of animations without replacing the entire animation system.")
+            </p>
+            <div class="rounded-lg border bg-muted/50 p-4">
+                <pre class="text-sm overflow-x-auto"><code>/* Custom CSS — scale from 80% instead of 95% */
+.my-custom-dropdown {
+  --tw-enter-scale: 0.8;
+  --tw-exit-scale: 0.8;
+}
+
+/* Fade only — neutralize zoom and slide */
+.fade-only {
+  --tw-enter-scale: 1;
+  --tw-exit-scale: 1;
+  --tw-enter-translate-y: 0;
+  --tw-exit-translate-y: 0;
+}</code></pre>
+            </div>
+            <div class="rounded-lg border bg-muted/50 p-4">
+                <pre class="text-sm overflow-x-auto"><code>&lt;!-- Then pass the class via the Class parameter --&gt;
+&lt;SelectContent Class="my-custom-dropdown"&gt;
+    ...
+&lt;/SelectContent&gt;
+
+&lt;DropdownMenuContent Class="fade-only"&gt;
+    ...
+&lt;/DropdownMenuContent&gt;</code></pre>
+            </div>
+            <p class="text-muted-foreground leading-relaxed">
+                @L.T("可用的自定义属性：", "Available custom properties:")
+            </p>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm border-collapse">
+                    <thead>
+                        <tr class="border-b">
+                            <th class="text-left py-2 px-3 font-medium">@L.T("属性", "Property")</th>
+                            <th class="text-left py-2 px-3 font-medium">@L.T("控制内容", "Controls")</th>
+                            <th class="text-left py-2 px-3 font-medium">@L.T("恒等值", "Identity Value")</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-muted-foreground">
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">--tw-enter-opacity</code></td>
+                            <td class="py-2 px-3">@L.T("起始不透明度（入场）", "Starting opacity (enter)")</td>
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">1</code></td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">--tw-enter-scale</code></td>
+                            <td class="py-2 px-3">@L.T("起始缩放（入场）", "Starting scale (enter)")</td>
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">1</code></td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">--tw-enter-translate-x</code></td>
+                            <td class="py-2 px-3">@L.T("水平滑动距离（入场）", "Horizontal slide distance (enter)")</td>
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">0</code></td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">--tw-enter-translate-y</code></td>
+                            <td class="py-2 px-3">@L.T("垂直滑动距离（入场）", "Vertical slide distance (enter)")</td>
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">0</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        出场动画使用相同的模式，属性名为 <code class="text-xs bg-muted px-1 py-0.5 rounded">--tw-exit-*</code>。
+                        把某个属性设置为其恒等值，即可有效地禁用动画中对应的那一部分。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        Exit animations use the same pattern with <code class="text-xs bg-muted px-1 py-0.5 rounded">--tw-exit-*</code> properties.
+                        Set a property to its identity value to effectively disable that part of the animation.
+                    </p>
+                </text>
+            }
+        </section>
+
+        <!-- Disabling Animations -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("禁用动画", "Disabling Animations")</h2>
+
+            <h3 class="text-lg font-semibold">@L.T("全局禁用", "Globally")</h3>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        给你的 <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;html&gt;</code> 元素加上
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">atom-no-animate</code> 类，即可禁用全站的所有动画
+                        与过渡。这对所有组件都有效，也包括 Select、Popover 下拉这类经 portal 渲染的内容。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        Add the <code class="text-xs bg-muted px-1 py-0.5 rounded">atom-no-animate</code> class to your
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;html&gt;</code> element to disable all animations
+                        and transitions site-wide. This works for all components, including portaled content like Select and Popover
+                        dropdowns.
+                    </p>
+                </text>
+            }
+            <div class="rounded-lg border bg-muted/50 p-4">
+                <pre class="text-sm overflow-x-auto"><code>&lt;html class="atom-no-animate"&gt;</code></pre>
+            </div>
+            <div class="p-4 border-l-4 border-primary bg-primary/5 rounded-r-lg">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">
+                            可以试试站点页头里的动画开关
+                            (<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block align-text-bottom"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/><line x1="2" x2="22" y1="2" y2="22"/></svg>)
+                            ，它为整个演示站点开启或关闭动画。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">
+                            Try it out using the animation toggle
+                            (<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block align-text-bottom"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/><line x1="2" x2="22" y1="2" y2="22"/></svg>)
+                            in the site header to toggle animations on and off across the entire demo site.
+                        </p>
+                    </text>
+                }
+            </div>
+
+            <h3 class="text-lg font-semibold pt-2">@L.T("按组件禁用", "Per Component")</h3>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        在组合模式下，给内容组件传入
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Class="animate-none!"</code>
+                        即可禁用单个实例的动画。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        In compositional mode, pass <code class="text-xs bg-muted px-1 py-0.5 rounded">Class="animate-none!"</code>
+                        to the content component to disable animation on a single instance.
+                    </p>
+                </text>
+            }
+            <div class="rounded-lg border bg-muted/50 p-4">
+                <pre class="text-sm overflow-x-auto"><code>&lt;SelectContent Class="animate-none!"&gt;
+    ...
+&lt;/SelectContent&gt;
+
+&lt;DropdownMenuContent Class="animate-none!"&gt;
+    ...
+&lt;/DropdownMenuContent&gt;
+
+&lt;PopoverContent Class="animate-none!"&gt;
+    ...
+&lt;/PopoverContent&gt;</code></pre>
+            </div>
+
+            <h3 class="text-lg font-semibold pt-2">@L.T("无障碍", "Accessibility")</h3>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        库会自动遵循
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">prefers-reduced-motion: reduce</code> 媒体查询。
+                        当用户在操作系统设置中开启了“减弱动态效果”时，所有动画与过渡都会被自动抑制，
+                        无需任何额外配置。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        The library automatically respects the
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">prefers-reduced-motion: reduce</code> media query.
+                        When a user has "Reduce motion" enabled in their operating system settings, all animations and transitions
+                        are suppressed automatically. No additional configuration is needed.
+                    </p>
+                </text>
+            }
+        </section>
+
+        <!-- Components with Animations -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("带动画的组件", "Animated Components")</h2>
+            <p class="text-muted-foreground leading-relaxed">
+                @L.T("以下组件内置了动画：", "The following components include built-in animations:")
+            </p>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm border-collapse">
+                    <thead>
+                        <tr class="border-b">
+                            <th class="text-left py-2 px-3 font-medium">@L.T("组件", "Component")</th>
+                            <th class="text-left py-2 px-3 font-medium">@L.T("动画", "Animation")</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-muted-foreground">
+                        <tr class="border-b">
+                            <td class="py-2 px-3">Dialog / AlertDialog</td>
+                            <td class="py-2 px-3">@L.T("淡入 + 缩放", "Fade + zoom")</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3">Sheet</td>
+                            <td class="py-2 px-3">@L.T("从边缘滑入（方向与所在侧一致）", "Slide in from edge (direction matches side)")</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3">Drawer</td>
+                            <td class="py-2 px-3">@L.T("从底部滑入", "Slide in from bottom")</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3">Popover</td>
+                            <td class="py-2 px-3">@L.T("淡入 + 缩放 + 方向滑入", "Fade + zoom + directional slide")</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3">DropdownMenu</td>
+                            <td class="py-2 px-3">@L.T("淡入 + 缩放 + 方向滑入", "Fade + zoom + directional slide")</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3">ContextMenu</td>
+                            <td class="py-2 px-3">@L.T("淡入 + 缩放 + 方向滑入", "Fade + zoom + directional slide")</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3">Select</td>
+                            <td class="py-2 px-3">@L.T("淡入 + 缩放 + 方向滑入", "Fade + zoom + directional slide")</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3">Toast</td>
+                            <td class="py-2 px-3">@L.T("从顶部 / 底部滑入", "Slide in from top / bottom")</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-3">Collapsible</td>
+                            <td class="py-2 px-3">@L.T("网格行展开 / 折叠", "Grid row expand / collapse")</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string? selectedDefault;
+    private string? selectedSlow;
+    private bool dialogOpen;
+    private bool sheetRightOpen;
+    private bool sheetLeftOpen;
+    private bool sheetTopOpen;
+    private bool sheetBottomOpen;
+    private bool collapsibleOpen;
+
+    private static readonly string[] fruits = ["Apple", "Banana", "Blueberry", "Grapes", "Pineapple"];
+
+    private void ShowDefaultToast() =>
+        ToastService.Show(L.T("这条通知会从视口边缘滑入。", "This toast slides into view from the edge of the viewport."));
+
+    private void ShowSuccessToast() =>
+        ToastService.Success(L.T("更改已保存。", "Your changes have been saved."), L.T("成功", "Success"));
+
+    private void ShowDestructiveToast() =>
+        ToastService.Error(L.T("你的请求出现了问题。", "There was a problem with your request."), L.T("出了点问题", "Something went wrong"));
+}

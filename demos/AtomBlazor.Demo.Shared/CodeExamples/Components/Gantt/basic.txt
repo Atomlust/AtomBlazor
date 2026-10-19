@@ -1,0 +1,52 @@
+<Gantt TItem="PlanTask"
+         Data="@plan"
+         IdSelector="@(t => t.Id)"
+         ParentIdSelector="@(t => t.Parent)"
+         TextSelector="@(t => t.Name)"
+         StartSelector="@(t => t.Start)"
+         EndSelector="@(t => t.End)"
+         ProgressSelector="@(t => t.Progress)"
+         OnBuilt="@DescribeBuild"
+         Height="26rem"
+         AriaLabel="Product launch plan" />
+
+@code {
+    public sealed class PlanTask
+    {
+        public required string Id { get; init; }
+        public string? Parent { get; init; }
+        public required string Name { get; init; }
+        public DateTimeOffset Start { get; set; }
+        public DateTimeOffset End { get; set; }
+        public double Progress { get; set; }
+    }
+
+    // A phase is declared with no length of its own. Because it has children it becomes a
+    // summary, and the engine gives it their span and their weighted progress.
+    private readonly List<PlanTask> plan =
+    [
+        new() { Id = "design", Name = "Design", Start = Day(0), End = Day(0) },
+        new() { Id = "wireframes", Parent = "design", Name = "Wireframes",
+                Start = Day(0), End = Day(5), Progress = 1.0 },
+        new() { Id = "visual", Parent = "design", Name = "Visual design",
+                Start = Day(5), End = Day(12), Progress = 0.4 },
+
+        // Start and end the same instant makes a milestone, drawn as a marker.
+        new() { Id = "signoff", Parent = "design", Name = "Design signed off",
+                Start = Day(12), End = Day(12) },
+    ];
+}
+
+@code {
+    private string? summary;
+
+    // Fires after every build that changed something. Safe to handle from the page that declares
+    // the chart: a build that produced the same thing does not report again, so this does not
+    // re-render the page forever.
+    private void DescribeBuild(GanttChart<PlanTask>? chart)
+    {
+        summary = chart is null
+            ? null
+            : $"{chart.TaskCount} tasks over {chart.Axis.SlotCount} days.";
+    }
+}

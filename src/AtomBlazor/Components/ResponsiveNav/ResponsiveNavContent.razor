@@ -1,0 +1,117 @@
+@namespace AtomBlazor
+@using Microsoft.AspNetCore.Components.Routing
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+@*
+    ResponsiveNavContent 组件，用于移动端导航。
+    内容渲染在自一侧滑入的 Sheet 内。
+    发生导航时自动关闭。
+*@
+
+@if (Context != null)
+{
+    <Sheet Open="@Context.OpenMobile" OpenChanged="@(EventCallback.Factory.Create<bool>(this, OnOpenChanged))" Side="@Side">
+        <SheetContent Class="@ContentClass" ShowClose="@ShowClose" @attributes="AdditionalAttributes">
+            @if (Header != null)
+            {
+                <div class="atom:border-b atom:pb-4 atom:mb-4">
+                    @Header
+                </div>
+            }
+            @ChildContent
+            @if (Footer != null)
+            {
+                <div class="atom:mt-auto atom:pt-4 atom:border-t">
+                    @Footer
+                </div>
+            }
+        </SheetContent>
+    </Sheet>
+}
+
+@code {
+    [CascadingParameter]
+    private ResponsiveNavContext? Context { get; set; }
+
+    /// <summary>
+    /// 要在移动端弹层内渲染的导航内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 移动端菜单的可选头部内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? Header { get; set; }
+
+    /// <summary>
+    /// 移动端菜单的可选尾部内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? Footer { get; set; }
+
+    /// <summary>
+    /// 弹层滑入的一侧。
+    /// 默认为 Left。
+    /// </summary>
+    [Parameter]
+    public SheetSide Side { get; set; } = SheetSide.Left;
+
+    /// <summary>
+    /// 是否显示关闭按钮。
+    /// 默认为 true。
+    /// </summary>
+    [Parameter]
+    public bool ShowClose { get; set; } = true;
+
+    /// <summary>
+    /// 弹层内容的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? ContentClass { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用于根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 是否在导航发生时关闭菜单。
+    /// 默认为 true。
+    /// </summary>
+    [Parameter]
+    public bool CloseOnNavigate { get; set; } = true;
+
+    protected override void OnInitialized()
+    {
+        if (CloseOnNavigate)
+        {
+            NavigationManager.LocationChanged += OnLocationChanged;
+        }
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        // 导航发生时关闭移动端菜单
+        if (Context?.OpenMobile == true)
+        {
+            Context.SetOpenMobile(false);
+        }
+    }
+
+    private void OnOpenChanged(bool open)
+    {
+        Context?.SetOpenMobile(open);
+    }
+
+    public void Dispose()
+    {
+        if (CloseOnNavigate)
+        {
+            NavigationManager.LocationChanged -= OnLocationChanged;
+        }
+    }
+}

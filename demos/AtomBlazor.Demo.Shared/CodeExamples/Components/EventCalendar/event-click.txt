@@ -1,0 +1,28 @@
+<EventCalendar Items="events"
+                 EventStart="e => e.Start"
+                 EventEnd="e => e.End"
+                 EventTitle="e => e.Title"
+                 OnEventClick="(DemoEvent e) => selectedEvent = e" />
+
+@if (selectedEvent is not null)
+{
+    <Card>
+        <CardHeader>
+            <CardTitle>@selectedEvent.Title</CardTitle>
+            <CardDescription>
+                @selectedEvent.Start.ToString("f")
+                @if (selectedEvent.End is not null)
+                {
+                    <text> – @selectedEvent.End.Value.ToString("f")</text>
+                }
+            </CardDescription>
+        </CardHeader>
+        <CardContent>
+            <Badge Variant="BadgeVariant.Outline">@selectedEvent.Category</Badge>
+        </CardContent>
+    </Card>
+}
+
+@code {
+    private DemoEvent? selectedEvent;
+}

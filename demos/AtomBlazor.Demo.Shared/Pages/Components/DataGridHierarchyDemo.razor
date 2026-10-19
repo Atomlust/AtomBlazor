@@ -1,0 +1,546 @@
+@page "/components/datagrid-hierarchy"
+@using AtomBlazor.Primitives.Utilities
+
+<PageTitle>@L.T("层级数据网格 - Atom BlazorUI", "Hierarchical DataGrid - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-7xl">
+    <div class="space-y-4">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("层级数据网格", "Hierarchical DataGrid")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("在 DataGrid 中以扁平行渲染方式展示层级树形数据，支持展开/折叠、按层级缩进、逐层排序与子级分页。", "Display hierarchical tree data within the DataGrid using a flat-row rendering approach, with expand/collapse, depth-based indentation, per-level sorting, and child pagination.")
+        </p>
+    </div>
+
+    <!-- ── Nested Data (Continents → Countries) ───────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("嵌套数据", "Nested Data")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    使用 <code class="bg-muted px-1 py-0.5 rounded">ChildrenSelector</code> 展示
+                    大洲 → 国家的层级结构，并带排序与子级分页。
+                    点击列头即可排序，<kbd class="bg-muted px-1 py-0.5 rounded text-xs">Ctrl</kbd>+点击可多列排序。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Uses <code class="bg-muted px-1 py-0.5 rounded">ChildrenSelector</code> to display
+                    continent → country hierarchy with sorting and child pagination.
+                    Click a column header to sort, or <kbd class="bg-muted px-1 py-0.5 rounded text-xs">Ctrl</kbd>+click to multi-sort.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="MedalEntry" Items="@continents"
+                    ChildrenSelector="@(c => c.Children)"
+                    ItemValueSelector="@(c => c.Name)"
+                    ChildPageSize="5">
+            <Columns>
+                <DataGridHierarchyColumn TData="MedalEntry" TProp="string" Property="@(c => c.Name)" Title="@(L.T("名称", "Name"))" Sortable />
+                <DataGridPropertyColumn TData="MedalEntry" TProp="int" Property="@(c => c.Gold)" Title="@(L.T("金牌", "Gold"))" Sortable />
+                <DataGridPropertyColumn TData="MedalEntry" TProp="int" Property="@(c => c.Silver)" Title="@(L.T("银牌", "Silver"))" Sortable />
+                <DataGridPropertyColumn TData="MedalEntry" TProp="int" Property="@(c => c.Bronze)" Title="@(L.T("铜牌", "Bronze"))" Sortable />
+                <DataGridPropertyColumn TData="MedalEntry" TProp="int" Property="@(c => c.Total)" Title="@(L.T("总计", "Total"))" Sortable />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGridHierarchy/nested.txt" />
+    </div>
+
+    <!-- ── Self-Referencing Data (Org Chart) ──────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自引用数据（组织架构图）", "Self-Referencing Data (Org Chart)")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    使用 <code class="bg-muted px-1 py-0.5 rounded">ParentValueSelector</code> 配合
+                    <code class="bg-muted px-1 py-0.5 rounded">DefaultExpandDepth="1"</code>，从带父级 ID 引用的
+                    扁平数据呈现组织架构图。并搭配
+                    <code class="bg-muted px-1 py-0.5 rounded">FilterBuilder</code> 做高级筛选。
+                    各列支持 <code class="bg-muted px-1 py-0.5 rounded">Reorderable</code> —— 拖拽列头即可重新排列。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Uses <code class="bg-muted px-1 py-0.5 rounded">ParentValueSelector</code> with
+                    <code class="bg-muted px-1 py-0.5 rounded">DefaultExpandDepth="1"</code> to show an
+                    org chart from flat data with parent ID references. Combined with a
+                    <code class="bg-muted px-1 py-0.5 rounded">FilterBuilder</code> for advanced filtering.
+                    Columns are <code class="bg-muted px-1 py-0.5 rounded">Reorderable</code> — drag column headers to rearrange.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="flex items-center gap-4">
+            <FilterBuilder @bind-Filter="orgFilter"
+                             Fields="@orgFields"
+                             OnFilterChanged="HandleOrgFilterChanged"
+                             MaxDepth="2"
+                             Compact="true"
+                             Class="flex-1" />
+            <div class="flex items-center gap-2 shrink-0">
+                <label class="text-sm text-muted-foreground whitespace-nowrap">@L.T("筛选模式：", "Filter mode:")</label>
+                <Select TValue="HierarchyFilterMode"
+                          Value="@orgFilterMode"
+                          ValueChanged="@(v => { orgFilterMode = v; })"
+                          Options="@hierarchyFilterModeOptions"
+                          Class="w-52" />
+            </div>
+        </div>
+        <DataGrid TData="Employee" Items="@employees"
+                    ParentValueSelector="@(e => e.ReportsToId)"
+                    ItemValueSelector="@(e => e.Id)"
+                    ItemFilter="@orgFilterPredicate"
+                    HierarchyFilterMode="@orgFilterMode"
+                    DefaultExpandDepth="1"
+                    ChildPageSize="5"
+                    ShowExpandAll="true"
+                    Reorderable="true">
+            <Columns>
+                <DataGridHierarchyColumn TData="Employee" TProp="string" Property="@(e => e.Name)" Title="@(L.T("名称", "Name"))" Sortable>
+                    <CellTemplate>
+                        <div class="flex items-center gap-2">
+                            <Avatar Size="AvatarSize.Small">
+                                @if (context.Item.AvatarUrl != null)
+                                {
+                                    <AvatarImage Source="@context.Item.AvatarUrl" Alt="@context.Item.Name" />
+                                }
+                                <AvatarFallback>@GetInitials(context.Item.Name)</AvatarFallback>
+                            </Avatar>
+                            <span class="truncate">@context.Value</span>
+                        </div>
+                    </CellTemplate>
+                </DataGridHierarchyColumn>
+                <DataGridPropertyColumn TData="Employee" TProp="string" Property="@(e => e.JobTitle)" Title="@(L.T("职位", "Job Title"))" />
+                <DataGridPropertyColumn TData="Employee" TProp="string" Property="@(e => e.Department)" Title="@(L.T("部门", "Department"))" Sortable />
+                <DataGridPropertyColumn TData="Employee" TProp="string" Property="@(e => e.Location)" Title="@(L.T("地点", "Location"))" />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGridHierarchy/self-referencing.txt" />
+    </div>
+
+    <!-- ── Self-Referencing Data with Column Filters ─────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自引用数据配列筛选器", "Self-Referencing Data with Column Filters")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    同一份组织架构图数据，改用逐列的 <code class="bg-muted px-1 py-0.5 rounded">Filterable</code>
+                    筛选器，而不是 <code class="bg-muted px-1 py-0.5 rounded">FilterBuilder</code>。
+                    把指针移到列头即可显出该列的筛选图标，点击后打开筛选浮层。
+                    Department 与 Location 使用
+                    <code class="bg-muted px-1 py-0.5 rounded">FilterType="FilterFieldType.Enum"</code>
+                    并提供预设选项。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    The same org chart data using per-column <code class="bg-muted px-1 py-0.5 rounded">Filterable</code>
+                    filters instead of the <code class="bg-muted px-1 py-0.5 rounded">FilterBuilder</code>.
+                    Hover a column header to reveal its filter icon, then click to open a filter popover.
+                    Department and Location use <code class="bg-muted px-1 py-0.5 rounded">FilterType="FilterFieldType.Enum"</code>
+                    with predefined options.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="flex items-center gap-2">
+            <label class="text-sm text-muted-foreground whitespace-nowrap">@L.T("筛选模式：", "Filter mode:")</label>
+            <Select TValue="HierarchyFilterMode"
+                      Value="@columnFilterMode"
+                      ValueChanged="@(v => { columnFilterMode = v; })"
+                      Options="@hierarchyFilterModeOptions"
+                      Class="w-52" />
+        </div>
+        <DataGrid TData="Employee" Items="@employees"
+                    ParentValueSelector="@(e => e.ReportsToId)"
+                    ItemValueSelector="@(e => e.Id)"
+                    HierarchyFilterMode="@columnFilterMode"
+                    DefaultExpandDepth="1"
+                    ChildPageSize="5"
+                    ShowExpandAll="true"
+                    Reorderable="true">
+            <Columns>
+                <DataGridHierarchyColumn TData="Employee" TProp="string" Property="@(e => e.Name)" Title="@(L.T("名称", "Name"))" Sortable Filterable>
+                    <CellTemplate>
+                        <div class="flex items-center gap-2">
+                            <Avatar Size="AvatarSize.Small">
+                                @if (context.Item.AvatarUrl != null)
+                                {
+                                    <AvatarImage Source="@context.Item.AvatarUrl" Alt="@context.Item.Name" />
+                                }
+                                <AvatarFallback>@GetInitials(context.Item.Name)</AvatarFallback>
+                            </Avatar>
+                            <span class="truncate">@context.Value</span>
+                        </div>
+                    </CellTemplate>
+                </DataGridHierarchyColumn>
+                <DataGridPropertyColumn TData="Employee" TProp="string" Property="@(e => e.JobTitle)" Title="@(L.T("职位", "Job Title"))" Sortable Filterable />
+                <DataGridPropertyColumn TData="Employee" TProp="string" Property="@(e => e.Department)" Title="@(L.T("部门", "Department"))" Sortable Filterable
+                    FilterType="FilterFieldType.Enum"
+                    FilterOptions="@(departments.Select(d => new SelectOption<string>(d, d)))" />
+                <DataGridPropertyColumn TData="Employee" TProp="string" Property="@(e => e.Location)" Title="@(L.T("地点", "Location"))" Sortable Filterable
+                    FilterType="FilterFieldType.Enum"
+                    FilterOptions="@(locations.Order().Select(l => new SelectOption<string>(l, l)))" />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGridHierarchy/self-referencing-column-filters.txt" />
+    </div>
+
+    <!-- ── Lazy Loading ───────────────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("懒加载", "Lazy Loading")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    使用 <code class="bg-muted px-1 py-0.5 rounded">LoadChildren</code> 按需拉取子节点。
+                    展开某个部门会触发一次模拟的异步加载。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Uses <code class="bg-muted px-1 py-0.5 rounded">LoadChildren</code> to fetch children
+                    on demand. Expand a department to trigger a simulated async load.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Department" Items="@rootDepartments"
+                    ChildrenSelector="@(_ => null)"
+                    ItemValueSelector="@(d => d.Id)"
+                    HasChildrenPredicate="@(d => d.HasSubDepartments)"
+                    LoadChildren="@LoadDepartmentChildrenAsync">
+            <Columns>
+                <DataGridHierarchyColumn TData="Department" TProp="string" Property="@(d => d.Name)" Title="@(L.T("部门", "Department"))" Sortable />
+                <DataGridPropertyColumn TData="Department" TProp="int" Property="@(d => d.EmployeeCount)" Title="@(L.T("员工数", "Employees"))" />
+                <DataGridPropertyColumn TData="Department" TProp="string" Property="@(d => d.Head)" Title="@(L.T("负责人", "Head"))" />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGridHierarchy/lazy-loading.txt" />
+    </div>
+
+    <!-- ── File Explorer ────────────────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("文件浏览器", "File Explorer")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    带图标、文件大小与日期的文件浏览器式树形结构。
+                    使用 <code class="bg-muted px-1 py-0.5 rounded">HierarchySelectionMode.Cascade</code>
+                    把选中状态级联到子节点 —— 选中文件夹即选中其中全部内容。
+                    父节点在部分选中时呈现不确定状态。
+                    全部列都可排序、<code class="bg-muted px-1 py-0.5 rounded">Reorderable</code> 且 <code class="bg-muted px-1 py-0.5 rounded">Resizable</code>。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    A file-explorer-style tree with icons, file sizes, and dates.
+                    Uses <code class="bg-muted px-1 py-0.5 rounded">HierarchySelectionMode.Cascade</code>
+                    to cascade selection to children — selecting a folder selects all its contents.
+                    Parents show an indeterminate state when partially selected.
+                    All columns are sortable, <code class="bg-muted px-1 py-0.5 rounded">Reorderable</code>, and <code class="bg-muted px-1 py-0.5 rounded">Resizable</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="FileEntry" Items="@fileTree"
+                    ChildrenSelector="@(f => f.Children)"
+                    ItemValueSelector="@(f => f.Id)"
+                    SelectionMode="DataTableSelectionMode.Multiple"
+                    HierarchySelectionMode="HierarchySelectionMode.Cascade"
+                    SelectedItemsChanged="@((IReadOnlyCollection<FileEntry> items) => { selectedFiles = items; })"
+                    DefaultExpandDepth="1"
+                    ShowExpandAll="true"
+                    ShowPagination="false"
+                    Reorderable="true"
+                    Resizable="true">
+            <Columns>
+                <DataGridSelectColumn TData="FileEntry" />
+                <DataGridHierarchyColumn TData="FileEntry" TProp="string" Property="@(f => f.Name)" Title="@(L.T("名称", "Name"))" Sortable>
+                    <CellTemplate>
+                        <div class="flex items-center gap-2">
+                            <LucideIcon Name="@GetFileIcon(context.Item)"
+                                       Class="@ClassNames.cn("w-4 h-4 shrink-0", context.Item.IsFolder ? "text-blue-500" : "text-muted-foreground")" />
+                            <span class="truncate">@context.Value</span>
+                        </div>
+                    </CellTemplate>
+                </DataGridHierarchyColumn>
+                <DataGridTemplateColumn TData="FileEntry" Title="@(L.T("大小", "Size"))" Sortable SortBy="@(f => (object)(f.Size ?? 0L))">
+                    <ChildContent>
+                        <span class="text-muted-foreground tabular-nums">@FormatFileSize(context.Size)</span>
+                    </ChildContent>
+                </DataGridTemplateColumn>
+                <DataGridPropertyColumn TData="FileEntry" TProp="string" Property="@(f => f.Extension ?? "")" Title="@(L.T("类型", "Type"))" Sortable />
+                <DataGridPropertyColumn TData="FileEntry" TProp="DateTime" Property="@(f => f.Modified)" Title="@(L.T("修改时间", "Modified"))" Format="yyyy-MM-dd" Sortable />
+            </Columns>
+        </DataGrid>
+        @if (selectedFiles?.Count > 0)
+        {
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    已选择 @selectedFiles.Count 项
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    @selectedFiles.Count item(s) selected
+                </p>
+                        </text>
+}
+        }
+        <CodeBlock Source="Components/DataGridHierarchy/file-explorer.txt" />
+    </div>
+
+    <!-- ── Large Dataset (World Geography) ────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("大数据集", "Large Dataset")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    大洲 → 国家 → 州/省 → 城市的四级层级，共
+                    <strong>@totalPlaceCount.ToString("N0")</strong> 行。层级列设置了
+                    <code class="bg-muted px-1 py-0.5 rounded">Pinned="AtomBlazor.Primitives.ColumnPinning.Left"</code>，横向滚动时保持
+                    可见。各列支持 <code class="bg-muted px-1 py-0.5 rounded">Reorderable</code>。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    A 4-level hierarchy of Continent → Country → State/Province → City with
+                    <strong>@totalPlaceCount.ToString("N0")</strong> total rows. The hierarchy column is
+                    <code class="bg-muted px-1 py-0.5 rounded">Pinned="AtomBlazor.Primitives.ColumnPinning.Left"</code> so it stays
+                    visible while scrolling. Columns are <code class="bg-muted px-1 py-0.5 rounded">Reorderable</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Place" Items="@worldData"
+                    ChildrenSelector="@(p => p.Children)"
+                    ItemValueSelector="@(p => p.Id)"
+                    ChildPageSize="10"
+                    ShowExpandAll="true"
+                    Reorderable="true">
+            <Columns>
+                <DataGridHierarchyColumn TData="Place" TProp="string" Property="@(p => p.Name)" Title="@(L.T("名称", "Name"))" Sortable Filterable Pinned="AtomBlazor.Primitives.ColumnPinning.Left">
+                    <CellTemplate>
+                        <div class="flex items-center gap-2">
+                            @if (context.Item.Type == "Country" && context.Item.Code.Length == 2)
+                            {
+                                <span class="text-base leading-none">@CountryCodeToFlag(context.Item.Code)</span>
+                            }
+                            <span class="truncate">@context.Value</span>
+                        </div>
+                    </CellTemplate>
+                </DataGridHierarchyColumn>
+                <DataGridPropertyColumn TData="Place" TProp="string" Property="@(p => p.Type)" Title="@(L.T("类型", "Type"))" Filterable />
+                <DataGridPropertyColumn TData="Place" TProp="long" Property="@(p => p.Population)" Title="@(L.T("人口", "Population"))" Sortable />
+                <DataGridPropertyColumn TData="Place" TProp="string" Property="@(p => p.Code)" Title="@(L.T("代码", "Code"))" Sortable Filterable />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGridHierarchy/large-dataset.txt" />
+    </div>
+
+    <!-- ── Virtualized Large Org Chart (4,000 employees) ────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("虚拟化大型组织架构图", "Virtualized Large Org Chart")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    自动生成的组织架构图，共 <strong>@largeOrgEmployees.Count.ToString("N0")</strong> 名员工，
+                    每人配一个 DiceBear 头像。使用 <code class="bg-muted px-1 py-0.5 rounded">Virtualize="true"</code>
+                    并配合 <code class="bg-muted px-1 py-0.5 rounded">ItemSize="52"</code>，DOM 中只渲染可见行。
+                    同时搭配 <code class="bg-muted px-1 py-0.5 rounded">FilterBuilder</code> 做筛选。
+                    对于大数据集，当条目数超过
+                    <code class="bg-muted px-1 py-0.5 rounded">HierarchyLargeDatasetThreshold</code>（默认 500）时，
+                    <code class="bg-muted px-1 py-0.5 rounded">HierarchyFilterMode</code> 会自动改用
+                    <code class="bg-muted px-1 py-0.5 rounded">ShowMatchedOnly</code>，
+                    并且筛选结果按可见行数分页，而不是按根节点数量。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    A generated org chart with <strong>@largeOrgEmployees.Count.ToString("N0")</strong> employees,
+                    each with a DiceBear avatar. Uses <code class="bg-muted px-1 py-0.5 rounded">Virtualize="true"</code>
+                    with <code class="bg-muted px-1 py-0.5 rounded">ItemSize="52"</code> so only visible rows are rendered
+                    in the DOM. Combined with a <code class="bg-muted px-1 py-0.5 rounded">FilterBuilder</code> for filtering.
+                    For large datasets, <code class="bg-muted px-1 py-0.5 rounded">HierarchyFilterMode</code> automatically
+                    switches to <code class="bg-muted px-1 py-0.5 rounded">ShowMatchedOnly</code> when the item count exceeds
+                    <code class="bg-muted px-1 py-0.5 rounded">HierarchyLargeDatasetThreshold</code> (default 500),
+                    and filtered results paginate by visible rows instead of root count.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="flex items-center gap-4">
+            <FilterBuilder @bind-Filter="largeOrgFilter"
+                             Fields="@largeOrgFields"
+                             OnFilterChanged="HandleLargeOrgFilterChanged"
+                             MaxDepth="2"
+                             Compact="true"
+                             Class="flex-1" />
+        </div>
+        <DataGrid TData="LargeOrgEmployee" Items="@largeOrgEmployees"
+                    ParentValueSelector="@(e => e.ReportsToId)"
+                    ItemValueSelector="@(e => e.Id)"
+                    ItemFilter="@largeOrgFilterPredicate"
+                    DefaultExpandDepth="1"
+                    ChildPageSize="10"
+                    ShowExpandAll="true"
+                    Virtualize="true"
+                    StickyHeader="true"
+                    ItemSize="52"
+                    Class="h-[600px] overflow-auto">
+            <Columns>
+                <DataGridHierarchyColumn TData="LargeOrgEmployee" TProp="string" Property="@(e => e.Name)" Title="@(L.T("名称", "Name"))" Sortable Filterable>
+                    <CellTemplate>
+                        <div class="flex items-center gap-2">
+                            <Avatar Size="AvatarSize.Small">
+                                <AvatarImage Source="@context.Item.AvatarUrl" Alt="@context.Item.Name" />
+                                <AvatarFallback>@GetInitials(context.Item.Name)</AvatarFallback>
+                            </Avatar>
+                            <span class="truncate">@context.Value</span>
+                        </div>
+                    </CellTemplate>
+                </DataGridHierarchyColumn>
+                <DataGridPropertyColumn TData="LargeOrgEmployee" TProp="string" Property="@(e => e.Code)" Title="@(L.T("代码", "Code"))" Sortable />
+                <DataGridPropertyColumn TData="LargeOrgEmployee" TProp="string" Property="@(e => e.JobTitle)" Title="@(L.T("职位", "Job Title"))" Sortable Filterable />
+                <DataGridPropertyColumn TData="LargeOrgEmployee" TProp="string" Property="@(e => e.Department)" Title="@(L.T("部门", "Department"))" Sortable Filterable />
+                <DataGridPropertyColumn TData="LargeOrgEmployee" TProp="string" Property="@(e => e.Location)" Title="@(L.T("地点", "Location"))" Sortable />
+                <DataGridPropertyColumn TData="LargeOrgEmployee" TProp="int" Property="@(e => e.DirectReports)" Title="@(L.T("直接下属数", "Direct Reports"))" Sortable />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGridHierarchy/virtualized-large-org.txt" />
+    </div>
+
+        <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("层级行会暴露自己所处层级与展开状态。请提供能标识该数据网格的 AriaLabel。", "Hierarchy rows expose their level and expansion state. Supply an AriaLabel that identifies the data grid.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("ExpandedNodes 及其变更回调让应用可以自行保留展开状态。加载子节点时应保持稳定的条目键与有意义的行标签。", "ExpandedNodes and its change callback allow the application to retain expansion. Loading children should preserve stable item keys and meaningful row labels.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在网格控件之间移动", "Move between grid controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("启用 EnableKeyboardNavigation 后在聚焦的网格行间导航", "Navigate focused grid rows when EnableKeyboardNavigation is enabled"))"><Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("激活聚焦的展开或折叠按钮", "Activate a focused expand or collapse button"))"><Kbd>Enter</Kbd> / <Kbd>Space</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <ApiReference ComponentName="DataGrid">
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="Items" Type="IEnumerable&lt;TData&gt;?">网格的数据源，可以是 IQueryable&lt;TData&gt; 或 IEnumerable&lt;TData&gt;。与 ItemsProvider 互斥。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="Items" Type="IEnumerable&lt;TData&gt;?">The data source for the grid. Can be IQueryable&lt;TData&gt; or IEnumerable&lt;TData&gt;. Mutually exclusive with ItemsProvider.</ApiParameter>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="ItemKey" Type="Func&lt;TData, object&gt;?">为每个数据项返回稳定标识键的函数（例如 item =&gt; item.Id）。设置后，选中与展开状态按键跟踪而不再依赖引用相等，因此状态能在数据重新拉取后保留。启用虚拟化时它也会传给 Virtualize 组件。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="ItemKey" Type="Func&lt;TData, object&gt;?">A function that returns a stable identity key for each data item (e.g., item =&gt; item.Id). When set, selection and expansion state is tracked by key instead of reference equality, so state survives data re-fetches. Also forwarded to the Virtualize component when virtualization is enabled.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="ItemValueSelector" Type="Func&lt;TData, string&gt;?">@L.T("从每个条目提取唯一字符串标识的函数。使用层级功能时必须提供。", "Function that extracts a unique string identifier from each item. Required when using hierarchy features.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="ParentValueSelector" Type="Func&lt;TData, string?&gt;?">自引用（扁平）层级数据中返回条目父级取值的函数。与 ChildrenSelector 互斥。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="ParentValueSelector" Type="Func&lt;TData, string?&gt;?">Function that returns the parent&#x27;s value for self-referencing (flat) hierarchical data. Mutually exclusive with ChildrenSelector.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="ChildrenSelector" Type="Func&lt;TData, IEnumerable&lt;TData&gt;?&gt;?">@L.T("嵌套层级数据中返回某个条目子节点的函数。与 ParentValueSelector 互斥。", "Function that returns the children of an item for nested hierarchical data. Mutually exclusive with ParentValueSelector.")</ApiParameter>
+            <ApiParameter Name="HasChildrenPredicate" Type="Func&lt;TData, bool&gt;?">@L.T("可选断言，用于在子节点加载之前判断条目是否有子节点。适用于子节点尚未建立的懒加载场景。", "Optional predicate to determine if an item has children before they are loaded. Used for lazy loading where children may not be indexed yet.")</ApiParameter>
+            <ApiParameter Name="LoadChildren" Type="Func&lt;TData, Task&lt;IEnumerable&lt;TData&gt;&gt;&gt;?">@L.T("按需为某个节点加载全部子节点的异步回调（完整式懒加载）。", "Async callback to load all children for a node on demand (lazy loading - full).")</ApiParameter>
+            <ApiParameter Name="LoadChildrenPaged" Type="Func&lt;TData, int, int, Task&lt;ChildPageResult&lt;TData&gt;&gt;&gt;?">@L.T("为某个节点加载一页子节点的异步回调（分页式懒加载）。参数：父条目、跳过数量、取用数量。", "Async callback to load a page of children for a node (lazy loading - paged). Parameters: parent item, skip count, take count.")</ApiParameter>
+            <ApiParameter Name="ChildPageSize" Type="int?">@L.T("层级模式下子级分页的页容量。设置后，每个展开的节点最多显示这么多子项并配一个紧凑分页器；置为 null 则全部子项内联展示。默认 null（不做子级分页）。", "Page size for child-level pagination in hierarchy mode. When set, each expanded node shows at most this many children with a compact pager. Set to null to show all children inline. Default is null (no child pagination).")</ApiParameter>
+            <ApiParameter Name="DefaultExpandAll" Type="bool">@L.T("是否默认展开全部层级节点。默认为 false。", "Whether all hierarchy nodes should be expanded by default. Default is false.")</ApiParameter>
+            <ApiParameter Name="DefaultExpandDepth" Type="int?">@L.T("默认展开的最大深度（不含该层）。例如 1 只展开根节点。", "Maximum depth to expand by default (exclusive). For example, 1 expands only root nodes.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="ExpandedNodes" Type="HashSet&lt;string&gt;?">层级模式下已展开节点的取值集合。配合 @@bind-ExpandedNodes 使用可受控维持状态。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="ExpandedNodes" Type="HashSet&lt;string&gt;?">The set of expanded node values in hierarchy mode. Use with @@bind-ExpandedNodes for controlled state.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="ExpandedNodesChanged" Type="EventCallback&lt;HashSet&lt;string&gt;&gt;">@L.T("受控展开状态变更的事件回调。", "Event callback for controlled expansion state changes.")</ApiParameter>
+            <ApiParameter Name="HierarchySelectionMode" Type="HierarchySelectionMode" Default="HierarchySelectionMode.Independent">@L.T("控制行选中与层级结构如何联动。HierarchySelectionMode.Independent（默认）逐行独立处理选中。HierarchySelectionMode.Cascade 会把选中向下级联到后代，并在子项部分选中的父行上显示不确定状态。仅当 SelectionMode 为 DataTableSelectionMode.Multiple 且处于层级模式时生效。", "Controls how row selection interacts with the hierarchy. HierarchySelectionMode.Independent (default) treats each row independently. HierarchySelectionMode.Cascade cascades selection to descendants and shows an indeterminate state on parents with partially selected children. Only applies when SelectionMode is DataTableSelectionMode.Multiple and hierarchy mode is active.")</ApiParameter>
+            <ApiParameter Name="HierarchyFilterMode" Type="HierarchyFilterMode" Default="HierarchyFilterMode.ShowMatchedSubtree">@L.T("控制层级筛选如何处理匹配节点的后代。Primitives.Utilities.HierarchyFilterMode.ShowMatchedSubtree（默认）会显示匹配父节点的整棵子树。Primitives.Utilities.HierarchyFilterMode.ShowMatchedOnly 只显示自身匹配筛选条件的条目。当条目总数超过 HierarchyLargeDatasetThreshold 时，筛选期间 ShowMatchedSubtree 会自动降级为 ShowMatchedOnly，以免大树上的性能问题。", "Controls how hierarchy filtering treats descendants of matching nodes. Primitives.Utilities.HierarchyFilterMode.ShowMatchedSubtree (default) shows the entire subtree of matching parents. Primitives.Utilities.HierarchyFilterMode.ShowMatchedOnly only shows items that independently match the filter. When the total item count exceeds HierarchyLargeDatasetThreshold, ShowMatchedSubtree is automatically downgraded to ShowMatchedOnly during filtering to prevent performance issues with large trees.")</ApiParameter>
+            <ApiParameter Name="ShowExpandAll" Type="bool">@L.T("是否在层级列头显示内置的全展开/全折叠切换按钮。默认为 false。", "Whether to show a built-in expand/collapse all toggle button in the hierarchy column header. Default is false.")</ApiParameter>
+            <ApiParameter Name="OnExpandAll" Type="EventCallback">@L.T("触发全部展开时执行的事件回调（经由内置切换或 ExpandAllAsync）。", "Event callback invoked when expand all is triggered (via the built-in toggle or ExpandAllAsync).")</ApiParameter>
+            <ApiParameter Name="OnCollapseAll" Type="EventCallback">@L.T("触发全部折叠时执行的事件回调（经由内置切换或 CollapseAllAsync）。", "Event callback invoked when collapse all is triggered (via the built-in toggle or CollapseAllAsync).")</ApiParameter>
+            <ApiParameter Name="OnNodeExpand" Type="EventCallback&lt;TData&gt;">@L.T("展开某个层级节点时执行的事件回调。", "Event callback invoked when a hierarchy node is expanded.")</ApiParameter>
+            <ApiParameter Name="OnNodeCollapse" Type="EventCallback&lt;TData&gt;">@L.T("折叠某个层级节点时执行的事件回调。", "Event callback invoked when a hierarchy node is collapsed.")</ApiParameter>
+            <ApiParameter Name="EnableKeyboardNavigation" Type="bool" Default="true">@L.T("是否为行启用键盘导航。默认为 true。", "Enable keyboard navigation for rows. Default is true.")</ApiParameter>
+            <ApiParameter Name="AriaLabel" Type="string?">@L.T("网格的 ARIA 标签。", "ARIA label for the grid.")</ApiParameter>
+        </ApiReference>
+    </section>
+
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

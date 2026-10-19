@@ -1,0 +1,92 @@
+@namespace AtomBlazor.Primitives
+@implements IDisposable
+
+<button data-nav-trigger @ref="buttonRef"
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded="@(Item?.IsOpen == true ? "true" : "false")"
+        data-state="@(Item?.IsOpen == true ? "open" : "closed")"
+        @onclick="HandleClick"
+        @onmouseenter="HandleMouseEnter"
+        @onmouseleave="HandleMouseLeave"
+        @attributes="AdditionalAttributes">
+    @ChildContent
+</button>
+
+@code {
+    private ElementReference buttonRef;
+
+    [CascadingParameter]
+    private NavigationMenuItemContext? Item { get; set; }
+
+    [CascadingParameter]
+    private NavigationMenuContext? Menu { get; set; }
+
+    /// <summary>
+    /// 子内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用于根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 按钮元素引用，向焦点管理公开。
+    /// </summary>
+    public ElementReference ButtonRef => buttonRef;
+
+    /// <summary>
+    /// 占据本触发器在菜单列表中的位置，按渲染顺序。
+    /// </summary>
+    /// <remarks>
+    /// 以 <c>this</c> 为键登记，于是条目可以在元素真实存在后被替换，并在触发器离开时
+    /// 被移除。过去这个列表由一个首渲染后重算的下标寻址，即 <c>TriggerCount - 1</c>：
+    /// 每个触发器都在它们中任何一个渲染之前完成初始化，于是到那时该下标对所有
+    /// 触发器都指向最后一个槽位，每一个都覆盖了同一个
+    /// 条目。
+    /// </remarks>
+    protected override void OnInitialized() => Menu?.RegisterTrigger(this, buttonRef);
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // 元素引用直到此刻才真实，所以替换上面登记的占位条目。
+            Menu?.RegisterTrigger(this, buttonRef);
+        }
+    }
+
+    /// <summary>
+    /// 离开菜单的触发器列表，让方向键导航不再跳到已经不在页面
+    /// 上的按钮。
+    /// </summary>
+    public void Dispose()
+    {
+        Menu?.UnregisterTrigger(this);
+        GC.SuppressFinalize(this);
+    }
+
+    private void HandleClick()
+    {
+        if (Item != null && !Item.IsOpen)
+        {
+            Item.Open();
+        }
+    }
+
+    private void HandleMouseEnter()
+    {
+        if (Item != null)
+        {
+            Item.CancelCloseTimer();
+            Item.Open();
+        }
+    }
+
+    private void HandleMouseLeave() =>
+        Item?.StartCloseTimer();
+}

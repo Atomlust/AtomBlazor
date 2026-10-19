@@ -1,0 +1,429 @@
+@page "/components/color-picker"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("ColorPicker 颜色选择器 - Atom BlazorUI", "ColorPicker Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("ColorPicker 颜色选择器", "ColorPicker Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("可视化取色组件，支持十六进制/RGB 输入、预设色板与可选的 Alpha 通道。",
+                     "A visual color selection component with hex/RGB input, preset colors, and optional alpha channel.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本示例", "Basic Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("用可视化取色面板选色，或直接输入十六进制值。",
+                     "Select a color using the visual picker or enter a hex value.")
+            </p>
+        </div>
+        <ColorPicker @bind-Value="_basicColor" />
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">已选择：@_basicColor</p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">Selected: @_basicColor</p>
+                </text>
+}
+        <div class="h-16 w-32 rounded-md border border-input"
+             style="background-color: @_basicColor;">
+        </div>
+        <CodeBlock Source="Components/ColorPicker/basic.txt" />
+    </div>
+
+    <!-- With Alpha Channel -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带 Alpha 通道", "With Alpha Channel")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("通过 Alpha 滑块选择透明度。", "Enable transparency selection with the alpha slider.")
+            </p>
+        </div>
+        <ColorPicker @bind-Value="_alphaColor" ShowAlpha="true" />
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">已选择：@_alphaColor</p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">Selected: @_alphaColor</p>
+                </text>
+}
+        <div class="h-16 w-32 rounded-md border border-input"
+             style="background: linear-gradient(@_alphaColor, @_alphaColor), url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 fill-opacity=%22.1%22><rect x=%220%22 y=%220%22 width=%228%22 height=%228%22 fill=%22%23000%22/><rect x=%228%22 y=%228%22 width=%228%22 height=%228%22 fill=%22%23000%22/></svg>');">
+        </div>
+        <CodeBlock Source="Components/ColorPicker/alpha.txt" />
+    </div>
+
+    <!-- Without Presets -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("隐藏预设色板", "Without Presets")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("不显示预设颜色色块。", "Preset color swatches are hidden.")
+            </p>
+        </div>
+        <ColorPicker @bind-Value="_noPresetsColor" ShowPresets="false" />
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">已选择：@_noPresetsColor</p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">Selected: @_noPresetsColor</p>
+                </text>
+}
+        <CodeBlock Source="Components/ColorPicker/no-presets.txt" />
+    </div>
+
+    <!-- Custom Presets -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义预设色", "Custom Presets")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("把品牌色作为预设。", "Brand colors as presets.")
+            </p>
+        </div>
+        <ColorPicker @bind-Value="_customPresetsColor"
+                     PresetColors="@_brandColors" />
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">已选择：@_customPresetsColor</p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">Selected: @_customPresetsColor</p>
+                </text>
+}
+        <CodeBlock Source="Components/ColorPicker/custom-presets.txt" />
+    </div>
+
+    <!-- Without Inputs -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("隐藏输入框", "Without Inputs")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("仅保留可视化取色面板，不显示十六进制/RGB 输入框。",
+                     "Visual picker only, no hex/RGB inputs.")
+            </p>
+        </div>
+        <ColorPicker @bind-Value="_noInputsColor" ShowInputs="false" />
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">已选择：@_noInputsColor</p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">Selected: @_noInputsColor</p>
+                </text>
+}
+        <CodeBlock Source="Components/ColorPicker/no-inputs.txt" />
+    </div>
+
+    <!-- Pre-selected Color -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("预选颜色", "Pre-selected Color")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("以一个指定颜色作为初始值。", "Initialized with a specific color.")
+            </p>
+        </div>
+        <ColorPicker @bind-Value="_preselectedColor" />
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">已选择：@_preselectedColor</p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">Selected: @_preselectedColor</p>
+                </text>
+}
+        <CodeBlock Source="Components/ColorPicker/preselected.txt" />
+    </div>
+
+    <!-- Default Value (Uncontrolled) -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <div class="flex items-center gap-2">
+                <h2 class="text-2xl font-semibold">@L.T("默认值", "Default Value")</h2>
+                <span class="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20">v3</span>
+            </div>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">DefaultValue</code> 设置初始颜色，无需外部绑定。取色面板会从该颜色开始。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">DefaultValue</code> to set an initial color without external binding. The picker starts at the specified color.
+                </p>
+                        </text>
+}
+        </div>
+        <ColorPicker DefaultValue="#8B5CF6" />
+        <CodeBlock Source="Components/ColorPicker/default-value.txt" />
+    </div>
+
+    <!-- Multiple Pickers -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("前景色与背景色", "Foreground & Background")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("分别选取文字颜色与背景色的常见用法。", "Common pattern for selecting text and background colors.")
+            </p>
+        </div>
+        <div class="flex items-center gap-4">
+            <div>
+                <label class="text-sm font-medium mb-1 block">@L.T("前景色", "Foreground")</label>
+                <ColorPicker @bind-Value="_fgColor" />
+            </div>
+            <div>
+                <label class="text-sm font-medium mb-1 block">@L.T("背景色", "Background")</label>
+                <ColorPicker @bind-Value="_bgColor" />
+            </div>
+        </div>
+        <div class="p-4 rounded-md border border-input"
+             style="background-color: @_bgColor; color: @_fgColor;">
+            <p class="text-lg font-medium">@L.T("示例文字", "Sample Text")</p>
+            <p class="text-sm">@L.T("这段文字使用了所选的颜色。", "This text uses the selected colors.")</p>
+        </div>
+        <CodeBlock Source="Components/ColorPicker/foreground-background.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+        </div>
+        <ColorPicker Value="#3B82F6" Disabled="true" />
+        <CodeBlock Source="Components/ColorPicker/disabled.txt" />
+    </div>
+
+    <!-- Form Validation with EditForm -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表单校验", "Form Validation")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    ColorPicker 可与 Blazor 的 EditForm 和 EditContext 集成，完成模型校验。
+                    在 EditForm 内使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code>，
+                    校验错误会通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> 自动套用错误样式。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    ColorPicker integrates with Blazor's EditForm and EditContext for model validation.
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code> within an EditForm and
+                    validation errors will automatically apply error styling via <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <EditForm Model="colorFormModel" OnValidSubmit="HandleColorFormSubmit" class="max-w-md space-y-4">
+            <DataAnnotationsValidator />
+
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("品牌色", "Brand Color")</label>
+                <ColorPicker @bind-Value="colorFormModel.BrandColor" />
+                <ValidationMessage For="@(() => colorFormModel.BrandColor)" class="text-sm text-destructive" />
+            </div>
+
+            <div class="flex gap-4">
+                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Default">@L.T("提交", "Submit")</Button>
+                <Button Type="ButtonType.Button" Variant="ButtonVariant.Outline" OnClick="ResetColorForm">@L.T("重置", "Reset")</Button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(colorFormMessage))
+            {
+                <div class="p-4 bg-card rounded-lg border">
+                    <p class="text-sm">@colorFormMessage</p>
+                </div>
+            }
+        </EditForm>
+        <CodeBlock Source="Components/ColorPicker/form-validation.txt" />
+    </div>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    触发按钮经由 Popover 基础构件带上 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-haspopup</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code>
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    预设颜色按钮带有以颜色名称为值的 <code class="text-xs bg-muted px-1 py-0.5 rounded">title</code> 属性
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    禁用状态通过触发按钮上的 <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code> 属性表达
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Trigger button includes <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-haspopup</code> and <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> via the Popover primitive
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    Color preset buttons include <code class="text-xs bg-muted px-1 py-0.5 rounded">title</code> attributes with the color name
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    Disabled state is conveyed via the <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code> attribute on the trigger button
+                </AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("打开/关闭取色面板", "Open/close the color picker popover"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭弹层", "Close the popover"))">
+                <Kbd>Escape</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在取色面板内移动焦点", "Navigate within the picker"))">
+                <Kbd>Tab</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数说明。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="ColorPicker">
+                <ApiParameter Name="Value" Type="string">
+                    @L.T("十六进制格式的颜色值（#RRGGBB）。", "Color value in hex format (#RRGGBB).")
+                </ApiParameter>
+                <ApiParameter Name="Format" Type="ColorFormat" Default="Hex">
+                    @L.T("输出格式（Hex、RGB、HSL）。", "Output format (Hex, RGB, HSL).")
+                </ApiParameter>
+                <ApiParameter Name="ShowAlpha" Type="bool" Default="false">
+                    @L.T("是否显示 Alpha 滑块。", "Show alpha slider.")
+                </ApiParameter>
+                <ApiParameter Name="ShowPresets" Type="bool" Default="true">
+                    @L.T("是否显示预设颜色。", "Show preset colors.")
+                </ApiParameter>
+                <ApiParameter Name="PresetColors" Type="string[]?">
+                    @L.T("自定义预设颜色。", "Custom preset colors.")
+                </ApiParameter>
+                <ApiParameter Name="ShowInputs" Type="bool" Default="true">
+                    @L.T("是否显示十六进制/RGB 输入框。", "Show hex/RGB inputs.")
+                </ApiParameter>
+                <ApiParameter Name="DefaultValue" Type="string?">
+                    @L.T("未外部绑定时使用的初始颜色。", "Initial color when not externally bound.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool">
+                    @L.T("禁用取色面板。", "Disables the picker.")
+                </ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">
+                    @L.T("该取色控件是否为必填项。", "Whether the color picker is required.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string _basicColor = "#3B82F6";
+    private string _alphaColor = "#3B82F680";
+    private string _noPresetsColor = "#10B981";
+    private string _customPresetsColor = "#6366F1";
+    private string _noInputsColor = "#F59E0B";
+    private string _preselectedColor = "#EC4899";
+    private string _fgColor = "#FFFFFF";
+    private string _bgColor = "#1E293B";
+
+    private string[] _brandColors = {
+        "#6366F1", "#8B5CF6", "#A855F7", "#D946EF",
+        "#EC4899", "#F43F5E", "#EF4444", "#F97316",
+        "#F59E0B", "#EAB308", "#84CC16", "#22C55E"
+    };
+
+    private ColorFormModel colorFormModel = new();
+    private string? colorFormMessage;
+
+    private void HandleColorFormSubmit()
+    {
+        if (L.IsChinese)
+        {
+            colorFormMessage = $"表单已提交！品牌色：{colorFormModel.BrandColor}";
+        }
+        else
+        {
+            colorFormMessage = $"Form submitted! Brand Color: {colorFormModel.BrandColor}";
+        }
+    }
+
+    private void ResetColorForm()
+    {
+        colorFormModel = new();
+        colorFormMessage = null;
+    }
+
+    private class ColorFormModel
+    {
+        [Required(ErrorMessage = "Please select a brand color.")]
+        public string? BrandColor { get; set; }
+    }
+}

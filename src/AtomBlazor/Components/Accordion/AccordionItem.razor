@@ -1,0 +1,47 @@
+@namespace AtomBlazor
+
+@*
+    带样式的 AccordionItem 组件。
+    以 shadcn/ui 样式包裹 AccordionItem 基元。
+*@
+
+<AtomBlazor.Primitives.AccordionItem Value="@Value"
+                                                   Disabled="@Disabled"
+                                                   class="@CssClass"
+                                                   @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.AccordionItem>
+
+@code {
+    /// <summary>
+    /// 唯一标识本 Accordion 条目的值。
+    /// </summary>
+    [Parameter, EditorRequired]
+    public string Value { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 本 Accordion 条目是否被禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 在 Accordion 条目内渲染的子内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 要应用到 Accordion 条目的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string CssClass => ClassNames.cn("atom:border-b", Class);
+}

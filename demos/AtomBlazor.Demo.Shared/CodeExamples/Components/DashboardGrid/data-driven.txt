@@ -1,0 +1,37 @@
+<DashboardGrid @ref="gridRef" @bind-State="gridState"
+                 Loading="@isLoading"
+                 Background="DashboardBackground.Grid" Border="true">
+    @foreach (var widget in widgets)
+    {
+        <DashboardWidget @key="widget.Id" Id="@widget.Id"
+                           Column="@widget.Column" Row="@widget.Row"
+                           ColumnSpan="@widget.ColSpan" RowSpan="@widget.RowSpan"
+                           Title="@widget.Title" OnRemove="RemoveWidget">
+            @RenderWidgetContent(widget)
+        </DashboardWidget>
+    }
+</DashboardGrid>
+
+@code {
+    private DashboardGrid? gridRef;
+    private DashboardGridState gridState = new();
+
+    private async Task LoadDashboard()
+    {
+        isLoading = true;
+        var payload = await Http.GetFromJsonAsync<DashboardPayload>("/api/dashboard");
+
+        foreach (var w in payload.Widgets)
+        {
+            gridState.RegisterWidget(w.Id, w.Column, w.Row, w.ColSpan, w.RowSpan);
+        }
+
+        isLoading = false;
+    }
+
+    private void SaveDashboard()
+    {
+        var config = gridRef?.GetConfig();
+        // Serialize config to JSON and persist
+    }
+}

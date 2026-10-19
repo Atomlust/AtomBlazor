@@ -1,0 +1,270 @@
+@page "/components/slider"
+<PageTitle>@L.T("滑块组件 - Atom BlazorUI", "Slider Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("滑块组件", "Slider Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("用户可在给定范围内选择数值的输入控件。", "An input where the user selects a value from within a given range.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基础示例", "Basic Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("使用默认设置的简单滑块。", "A simple slider with default settings.")
+            </p>
+        </div>
+        <div class="w-[60%]">
+            <Slider @bind-Value="_basicValue" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.F("值：{0}", "Value: {0}", _basicValue)</p>
+        <CodeBlock Source="Components/Slider/basic.txt" />
+    </div>
+
+    <!-- With Default Value -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带默认值", "With Default Value")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("预设默认值的滑块。", "Slider with a preset default value.")
+            </p>
+        </div>
+        <div class="w-[60%]">
+            <Slider @bind-Value="_presetValue" DefaultValue="50" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.F("值：{0}", "Value: {0}", _presetValue)</p>
+        <CodeBlock Source="Components/Slider/default-value.txt" />
+    </div>
+
+    <!-- Custom Range -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义范围", "Custom Range")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("自定义最小值和最大值的滑块。", "Slider with custom min and max values.")
+            </p>
+        </div>
+        <div class="w-[60%]">
+            <Slider @bind-Value="_rangeValue" Min="0" Max="10" Step="1" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.F("值：{0}（0-10）", "Value: {0} (0-10)", _rangeValue)</p>
+        <CodeBlock Source="Components/Slider/custom-range.txt" />
+    </div>
+
+    <!-- Step Size -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("步长", "Step Size")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("自定义步长增量的滑块。", "Slider with custom step increments.")
+            </p>
+        </div>
+        <div class="w-[60%]">
+            <Slider @bind-Value="_stepValue" Step="10" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.F("值：{0}（步长：10）", "Value: {0} (step: 10)", _stepValue)</p>
+        <CodeBlock Source="Components/Slider/step-size.txt" />
+    </div>
+
+    <!-- Vertical -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("垂直", "Vertical")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("自下而上运行。请给滑块设置高度；它会填满其容器。", "Runs bottom to top. Give the slider a height; it fills its container.")
+            </p>
+        </div>
+        <div class="h-48">
+            <Slider @bind-Value="_verticalValue" Orientation="AtomBlazor.SliderOrientation.Vertical" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.F("值：{0}", "Value: {0}", _verticalValue)</p>
+        <CodeBlock Source="Components/Slider/vertical.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("已禁用的滑块。", "A disabled slider.")
+            </p>
+        </div>
+        <div class="w-[60%]">
+            <Slider Value="50" Disabled="true" />
+        </div>
+        <CodeBlock Source="Components/Slider/disabled.txt" />
+    </div>
+
+    <!-- Custom Track & Thumb Styling -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <div class="flex items-center gap-2">
+                <h2 class="text-2xl font-semibold">@L.T("自定义轨道与滑块样式", "Custom Track &amp; Thumb Styling")</h2>
+                <span class="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20">v3</span>
+            </div>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">TrackClass</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">ThumbClass</code> 自定义滑块的各个部件，无需 CSS 技巧。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Use <code class="text-xs bg-muted px-1 py-0.5 rounded">TrackClass</code> and <code class="text-xs bg-muted px-1 py-0.5 rounded">ThumbClass</code> to customize individual slider parts without CSS hacks.
+                    </p>
+                </text>
+            }
+        </div>
+        <div class="space-y-6 w-[60%]">
+            <div class="space-y-2">
+                <p class="text-sm text-muted-foreground">@L.T("绿色轨道与滑块", "Green track and thumb")</p>
+                <Slider @bind-Value="_customTrackValue" TrackClass="bg-green-200 dark:bg-green-900" ThumbClass="border-green-500" />
+            </div>
+            <div class="space-y-2">
+                <p class="text-sm text-muted-foreground">@L.T("蓝色轨道，更大的滑块", "Blue track, larger thumb")</p>
+                <Slider @bind-Value="_customThumbValue" TrackClass="bg-blue-200 dark:bg-blue-900" ThumbClass="border-blue-500 h-6 w-6" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/Slider/custom-track-thumb.txt" />
+    </div>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        滑块按钮上带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="slider"</code>，以及 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuemin</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuemax</code> 和 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuenow</code>
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">role="slider"</code> with <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuemin</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuemax</code>, and <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuenow</code> on the thumb
+                    </AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled</code> 向辅助技术传达禁用状态
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled</code> conveys the disabled state to assistive technology
+                    </AccessibilityItem>
+                </text>
+            }
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("以一步的幅度增大/减小数值", "Increase/decrease value by one step"))">
+                <Kbd>ArrowRight</Kbd> / <Kbd>ArrowLeft</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("以一步的幅度增大/减小数值", "Increase/decrease value by one step"))">
+                <Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("以大步的幅度增大/减小数值", "Increase/decrease value by a large step"))">
+                <Kbd>PageUp</Kbd> / <Kbd>PageDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("跳转到最小/最大值", "Jump to minimum/maximum value"))">
+                <Kbd>Home</Kbd> / <Kbd>End</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="Slider">
+                <ApiParameter Name="Value" Type="double">
+                    @L.T("当前值", "Current value")
+                </ApiParameter>
+                <ApiParameter Name="Min" Type="double" Default="0">
+                    @L.T("最小值。", "Minimum value.")
+                </ApiParameter>
+                <ApiParameter Name="Max" Type="double" Default="100">
+                    @L.T("最大值。", "Maximum value.")
+                </ApiParameter>
+                <ApiParameter Name="Step" Type="double" Default="1">
+                    @L.T("步长增量。", "Step increment.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="Orientation" Type="SliderOrientation" Default="Horizontal">
+                            <code>Vertical</code> 让滑块自下而上运行；它会填满其容器的高度。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="Orientation" Type="SliderOrientation" Default="Horizontal">
+                            <code>Vertical</code> runs the slider bottom to top; it fills the height of its container.
+                        </ApiParameter>
+                    </text>
+                }
+                <ApiParameter Name="Disabled" Type="bool">
+                    @L.T("禁用滑块", "Disables the slider")
+                </ApiParameter>
+                <ApiParameter Name="TrackClass" Type="string?">
+                    @L.T("应用到轨道的额外 CSS 类", "Additional CSS classes for the track")
+                </ApiParameter>
+                <ApiParameter Name="ThumbClass" Type="string?">
+                    @L.T("应用到滑块按钮的额外 CSS 类", "Additional CSS classes for the thumb")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到组件根元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </ApiParameter>
+                    </text>
+                }
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private double _basicValue = 0;
+    private double _presetValue = 50;
+    private double _rangeValue = 5;
+    private double _stepValue = 50;
+    private double _verticalValue = 60;
+    private double _customTrackValue = 40;
+    private double _customThumbValue = 60;
+}

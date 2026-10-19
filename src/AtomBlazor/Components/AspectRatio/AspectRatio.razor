@@ -1,0 +1,44 @@
+@namespace AtomBlazor
+@using System.Globalization
+
+<div class="@CssClass" style="@MergedContainerStyle" @attributes="@InlineStyleMerge.WithoutStyle(AdditionalAttributes)">
+    <div class="aspect-ratio-content">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// 需要保持的宽高比（宽 / 高）。
+    /// 常用值：16/9、4/3、1/1、21/9，默认为 1（正方形）。
+    /// </summary>
+    [Parameter]
+    public double Ratio { get; set; } = 1;
+
+    /// <summary>
+    /// 在宽高比容器内展示的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用到容器的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string ContainerStyle => $"position: relative; width: 100%; aspect-ratio: {Ratio.ToString("F4", CultureInfo.InvariantCulture)};";
+
+    private string? MergedContainerStyle => InlineStyleMerge.Merge(ContainerStyle, AdditionalAttributes);
+
+    private string CssClass => ClassNames.cn(
+        "atom:overflow-hidden",
+        Class
+    );
+}

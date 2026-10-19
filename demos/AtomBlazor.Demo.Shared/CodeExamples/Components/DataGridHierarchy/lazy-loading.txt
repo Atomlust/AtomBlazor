@@ -1,0 +1,35 @@
+<DataGrid TData="Department" Items="@rootDepartments"
+            ChildrenSelector="@(_ => null)"
+            ItemValueSelector="@(d => d.Id)"
+            HasChildrenPredicate="@(d => d.HasSubDepartments)"
+            LoadChildren="@LoadDepartmentChildrenAsync">
+    <Columns>
+        <DataGridHierarchyColumn TData="Department" TProp="string"
+            Property="@(d => d.Name)" Title="Department" Sortable />
+        <DataGridPropertyColumn TData="Department" TProp="int"
+            Property="@(d => d.EmployeeCount)" Title="Employees" />
+        <DataGridPropertyColumn TData="Department" TProp="string"
+            Property="@(d => d.Head)" Title="Head" />
+    </Columns>
+</DataGrid>
+
+@code {
+    private List<Department> rootDepartments = new() { /* ... */ };
+
+    private async Task<IEnumerable<Department>> LoadDepartmentChildrenAsync(
+        Department parent)
+    {
+        // Simulate async load (e.g., API call)
+        await Task.Delay(500);
+        return GetChildDepartments(parent.Id);
+    }
+
+    public class Department
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public int EmployeeCount { get; set; }
+        public string Head { get; set; }
+        public bool HasSubDepartments { get; set; }
+    }
+}

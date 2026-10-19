@@ -1,0 +1,62 @@
+@namespace AtomBlazor
+
+@*
+    带样式的 HoverCardContent 组件。
+    以 shadcn/ui 样式包裹 HoverCardContent 基元。
+*@
+
+<AtomBlazor.Primitives.HoverCardContent Side="@Side"
+                                                      Align="@Align"
+                                                      Offset="@Offset"
+                                                      class="@CssClass"
+                                                      @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.HoverCardContent>
+
+@code {
+    /// <summary>
+    /// 卡片内渲染的子内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 定位的偏好边。
+    /// </summary>
+    [Parameter]
+    public PopoverSide Side { get; set; } = PopoverSide.Bottom;
+
+    /// <summary>
+    /// 相对触发器的对齐方式。
+    /// </summary>
+    [Parameter]
+    public PopoverAlign Align { get; set; } = PopoverAlign.Center;
+
+    /// <summary>
+    /// 与触发器的偏移距离（像素）。
+    /// </summary>
+    [Parameter]
+    public int Offset { get; set; } = 4;
+
+    /// <summary>
+    /// 追加到内容上的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的其他 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string CssClass => ClassNames.cn(
+        "atom:z-50 atom:w-64 atom:rounded-md atom:border atom:bg-popover atom:p-4 atom:text-popover-foreground atom:shadow-md atom:outline-none",
+        "atom:data-[state=open]:animate-in atom:data-[state=closed]:animate-out",
+        "atom:data-[state=closed]:fade-out-0 atom:data-[state=open]:fade-in-0",
+        "atom:data-[state=closed]:zoom-out-95 atom:data-[state=open]:zoom-in-95",
+        "atom:data-[side=bottom]:slide-in-from-top-2 atom:data-[side=left]:slide-in-from-right-2",
+        "atom:data-[side=right]:slide-in-from-left-2 atom:data-[side=top]:slide-in-from-bottom-2",
+        Class
+    );
+}

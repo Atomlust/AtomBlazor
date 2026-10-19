@@ -1,0 +1,28 @@
+@using Microsoft.JSInterop
+@inject IJSRuntime Js
+
+<AtomBlazor.Demo.Routes InitialLanguage="@InitialLanguage" />
+
+@code {
+    /// <summary>
+    /// 首帧前从 cookie 取回的显示语言。WebAssembly 宿主没有预渲染帧，语言必须在首次渲染前定下：
+    /// 库组件（Sidebar 触发器、向导步骤指示）在首帧按当前语言解析并缓存文案，
+    /// MainLayout 首屏后的补读对它们来说已经太晚。
+    /// </summary>
+    private string? InitialLanguage { get; set; }
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        try
+        {
+            InitialLanguage = Js is IJSInProcessRuntime inProcess
+                ? inProcess.Invoke<string?>("atomReadLanguageCookie")
+                : null;
+        }
+        catch (JSException)
+        {
+            // 读取器缺席时按默认语言渲染，不阻断启动。
+        }
+    }
+}

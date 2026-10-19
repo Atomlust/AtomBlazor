@@ -1,0 +1,32 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+
+<li role="presentation" aria-hidden="true" class="@CssClass" @attributes="AdditionalAttributes">
+    @if (ChildContent != null)
+    {
+        @ChildContent
+    }
+    else
+    {
+        <LucideIcon Name="chevron-right" Class="atom:h-3.5 atom:w-3.5" />
+    }
+</li>
+
+@code {
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private string CssClass => ClassNames.cn(
+        "atom:[&>svg]:w-3.5 atom:[&>svg]:h-3.5",
+        Class
+    );
+}

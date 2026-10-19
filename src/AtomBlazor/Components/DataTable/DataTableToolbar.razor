@@ -1,0 +1,87 @@
+@namespace AtomBlazor
+@typeparam TData where TData : class
+@inject ILocalizer Localizer
+
+<div class="atom:flex atom:items-center atom:justify-between atom:gap-2 atom:py-4" @attributes="AdditionalAttributes">
+    <div class="atom:flex atom:flex-1 atom:items-center atom:gap-2">
+        <Input @bind-Value="@_searchValue"
+               @bind-Value:after="@HandleSearchChanged"
+               Placeholder="@Localizer["DataTable.Search"]"
+               Class="atom:h-8 atom:w-[150px] atom:lg:w-[250px]" />
+
+        <Popover>
+            <AtomBlazor.PopoverTrigger>
+                <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" Class="atom:h-8 atom:ms-auto">
+                    <svg class="atom:w-4 atom:h-4 atom:me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    @Localizer["DataTable.Columns"]
+                </Button>
+            </AtomBlazor.PopoverTrigger>
+            <AtomBlazor.PopoverContent Class="atom:w-[200px] atom:p-0" Side="@PopoverSide.Bottom" Align="@PopoverAlign.End">
+                <div class="atom:p-4 atom:space-y-2">
+                    <div class="atom:text-sm atom:font-medium atom:mb-3">@Localizer["DataTable.ToggleColumns"]</div>
+                    @foreach (var column in Columns)
+                    {
+                        <div class="atom:flex atom:items-center atom:gap-2 atom:p-2 atom:hover:bg-accent atom:rounded-sm atom:transition-colors"
+                             @onclick:stopPropagation="true">
+                            <Checkbox Checked="@column.Visible"
+                                      CheckedChanged="@((bool isChecked) => OnColumnVisibilityChanged?.Invoke(column.Id, isChecked))" />
+                            <span class="atom:text-sm atom:select-none atom:cursor-pointer" @onclick="@(() => OnColumnVisibilityChanged?.Invoke(column.Id, !column.Visible))">@column.Header</span>
+                        </div>
+                    }
+                </div>
+            </AtomBlazor.PopoverContent>
+        </Popover>
+    </div>
+
+    @if (ChildContent != null)
+    {
+        <div class="atom:flex atom:items-center atom:gap-2">
+            @ChildContent
+        </div>
+    }
+</div>
+
+@code {
+    private string _searchValue = string.Empty;
+
+    /// <summary>当前的全局搜索文本。</summary>
+    [Parameter]
+    public string GlobalSearchValue { get; set; } = string.Empty;
+
+    /// <summary>上报对全局搜索文本的编辑。</summary>
+    [Parameter]
+    public EventCallback<string> OnGlobalSearchChanged { get; set; }
+
+    /// <summary>可见性选择器所提供的各列。</summary>
+    [Parameter]
+    public List<DataTable<TData>.ColumnData> Columns { get; set; } = new();
+
+    /// <summary>可选的同步可见性回调。由处理方更新其所属表并请求其重新渲染。</summary>
+    [Parameter]
+    public Action<string, bool>? OnColumnVisibilityChanged { get; set; }
+
+    /// <summary>附加的工具栏动作。</summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        _searchValue = GlobalSearchValue;
+    }
+
+    private async Task HandleSearchChanged()
+    {
+        if (OnGlobalSearchChanged.HasDelegate)
+        {
+            await OnGlobalSearchChanged.InvokeAsync(_searchValue);
+        }
+    }
+}

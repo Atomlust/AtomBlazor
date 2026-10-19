@@ -1,0 +1,514 @@
+@page "/components/file-upload"
+<PageTitle>@L.T("FileUpload 文件上传组件 - Atom BlazorUI", "FileUpload Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("FileUpload 文件上传组件", "FileUpload Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("支持拖拽上传、图片预览与文件校验的文件上传组件。", "A file upload component with drag-and-drop, image previews, and file validation.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本示例", "Basic Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("把文件拖进来，或点击浏览选取。", "Drag and drop files or click to browse.")
+            </p>
+        </div>
+        <FileUpload AriaLabel="@(L.T("选择文件", "Choose files"))" @bind-Files="_basicFiles" />
+        <p class="text-sm text-muted-foreground">
+            @L.F("文件数：{0}", "Files: {0}", _basicFiles?.Count ?? 0)
+        </p>
+
+        <CodeBlock Source="Components/FileUpload/basic.txt" />
+    </div>
+
+    <!-- Multiple Files -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("多文件上传", "Multiple Files")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一次最多上传 5 个文件。", "Upload up to 5 files at once.")
+            </p>
+        </div>
+        <FileUpload @bind-Files="_multipleFiles" Multiple="true" MaxFileCount="5" />
+        <p class="text-sm text-muted-foreground">
+            @L.F("文件数：{0} / 5", "Files: {0} / 5", _multipleFiles?.Count ?? 0)
+        </p>
+
+        <CodeBlock Source="Components/FileUpload/multiple.txt" />
+    </div>
+
+    <!-- Images Only -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("仅限图片", "Images Only")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("只接受图片文件，并提供预览。", "Only accepts image files with preview.")
+            </p>
+        </div>
+        <FileUpload @bind-Files="_imageFiles"
+                    Multiple="true"
+                    Accept="image/*"
+                    MaxFileCount="4" />
+
+        <CodeBlock Source="Components/FileUpload/images.txt" />
+    </div>
+
+    <!-- Documents -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("仅限文档", "Documents Only")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("接受 PDF、Word 与 Excel 文件。", "Accepts PDF, Word, and Excel files.")
+            </p>
+        </div>
+        <FileUpload @bind-Files="_docFiles"
+                    Multiple="true"
+                    Accept=".pdf,.doc,.docx,.xls,.xlsx"
+                    MaxFileSize="@(20 * 1024 * 1024)" />
+
+        <CodeBlock Source="Components/FileUpload/documents.txt" />
+    </div>
+
+    <!-- Custom Size Limit -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("小文件上限（1MB）", "Small Files (1MB limit)")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("超过 1MB 的文件会被拒绝。", "Files larger than 1MB will be rejected.")
+            </p>
+        </div>
+        <FileUpload @bind-Files="_smallFiles"
+                    Multiple="true"
+                    MaxFileSize="@(1 * 1024 * 1024)"
+                    OnValidationError="HandleValidationError" />
+        @if (!string.IsNullOrEmpty(_lastError))
+        {
+            <p class="text-sm text-destructive">@L.T("最近一次错误：", "Last error:") @_lastError</p>
+        }
+
+        <CodeBlock Source="Components/FileUpload/size-limit.txt" />
+    </div>
+
+    <!-- No Preview -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("关闭图片预览", "Without Image Preview")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("图片预览已禁用。", "Image previews are disabled.")
+            </p>
+        </div>
+        <FileUpload @bind-Files="_noPreviewFiles" Multiple="true" ShowPreview="false" />
+
+        <CodeBlock Source="Components/FileUpload/no-preview.txt" />
+    </div>
+
+    <!-- Single File -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("单个文件", "Single File")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一次只能上传一个文件。", "Only one file at a time.")
+            </p>
+        </div>
+        <FileUpload @bind-Files="_singleFile" Multiple="false" />
+
+        <CodeBlock Source="Components/FileUpload/single.txt" />
+    </div>
+
+    <!-- Clear Files -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("清空文件", "Clear Files")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    调用 <code class="text-xs bg-muted px-1 py-0.5 rounded">ClearFiles()</code> 方法可以用代码重置上传区。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use the <code class="text-xs bg-muted px-1 py-0.5 rounded">ClearFiles()</code> method to programmatically reset the upload.
+                </p>
+                        </text>
+}
+        </div>
+        <FileUpload @ref="_clearUploader" @bind-Files="_clearFiles" Multiple="true" />
+        <Button Variant="ButtonVariant.Outline"
+                  OnClick="() => _clearUploader!.ClearFiles()"
+                  Disabled="@(_clearFiles is null || _clearFiles.Count == 0)">
+            @L.T("清空文件", "Clear Files")
+        </Button>
+        <p class="text-sm text-muted-foreground">
+            @L.F("文件数：{0}", "Files: {0}", _clearFiles?.Count ?? 0)
+        </p>
+
+        <CodeBlock Source="Components/FileUpload/clear-files.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用状态", "Disabled")</h2>
+        </div>
+        <FileUpload Disabled="true" />
+
+        <CodeBlock Source="Components/FileUpload/disabled.txt" />
+    </div>
+
+    <!-- Trigger From Your Own Control -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("用你自己的控件触发", "Trigger From Your Own Control")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    设置 <code class="bg-muted px-1 py-0.5 rounded">Id</code>，再让一个
+                    <code class="bg-muted px-1 py-0.5 rounded">&lt;label for="..."&gt;</code> 指向它，就能从页面上任意位置打开文件
+                    选择对话框——在拖放区被隐藏时特别有用，例如带附件按钮的聊天输入框。点击下方标签会打开它下方
+                    拖放区的文件对话框。若未设置 <code class="bg-muted px-1 py-0.5 rounded">Id</code>，则会自动生成一个唯一值。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Set <code class="bg-muted px-1 py-0.5 rounded">Id</code> and point a
+                    <code class="bg-muted px-1 py-0.5 rounded">&lt;label for="..."&gt;</code> at it to open the file
+                    dialog from anywhere on the page — useful when the dropzone is hidden, for example a chat
+                    composer with an attach button. Clicking the label below opens the dialog for the dropzone
+                    underneath it. When <code class="bg-muted px-1 py-0.5 rounded">Id</code> is not set, a unique
+                    one is generated.
+                </p>
+                        </text>
+}
+        </div>
+
+        <label for="chat-attachment-upload"
+               class="inline-flex items-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-muted cursor-pointer">
+            <LucideIcon Name="paperclip" Class="h-4 w-4" />
+            @L.T("附加文件", "Attach files")
+        </label>
+
+        <FileUpload Id="chat-attachment-upload" Multiple="true" />
+
+        <CodeBlock Source="Components/FileUpload/label-trigger.txt" />
+    </div>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("进度、取消与重试", "Progress, Cancellation and Retry")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("跟随上传进度、取消某次尝试并重试。本示例在本地模拟一次传输；勾选失败选项即可体验恢复流程。", "Follow upload progress, cancel an attempt and retry it. This example simulates a transfer locally; select the failure option to try recovery.")</p>
+        </div>
+        <div class="rounded-lg border p-6 space-y-4">
+            <div class="flex items-center gap-2">
+                <Checkbox Id="upload-fail-next" @bind-Checked="failNextUpload" />
+                @* 偏差：本仓 _Imports 同时引入 Microsoft.AspNetCore.Components.Forms（其 Label<TValue> 带 For 参数），
+                   裸 <AtomBlazor.Label For=...> 触发 RZ10012 泛型/非泛型歧义，照原语页先例改全限定标签，渲染行为零变化。 *@
+                <AtomBlazor.Label For="upload-fail-next">@L.T("让下一次尝试失败", "Fail the next attempt")</AtomBlazor.Label>
+            </div>
+            <FileUpload Multiple="true" ShowPreview="false" UploadHandler="DemoUploadAsync" />
+        </div>
+        <CodeBlock Source="Components/FileUpload/transport.txt" />
+    </section>
+
+    <!-- Accessibility Notes -->
+    <!-- Paste -->
+    <div class="space-y-4">
+        @if (L.IsChinese)
+        {
+                <text>
+                    <h2 class="text-2xl font-semibold">粘贴文件 <span class="text-xs font-normal text-primary bg-primary/10 px-1.5 py-0.5 rounded">新增</span></h2>
+                </text>
+}
+        else
+        {
+                <text>
+                    <h2 class="text-2xl font-semibold">Paste files <span class="text-xs font-normal text-primary bg-primary/10 px-1.5 py-0.5 rounded">New</span></h2>
+                </text>
+}
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                在文件管理器里复制一个文件，然后点击或用 Tab 把焦点移到下面的上传区，再按
+                <Kbd>Ctrl</Kbd> + <Kbd>V</Kbd>（macOS 上是 <Kbd>Cmd</Kbd> + <Kbd>V</Kbd>）。
+                截屏复制到剪贴板后粘贴同样有效。粘贴的文本会被忽略。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Copy a file in your file manager, click or Tab into the upload below, then press
+                <Kbd>Ctrl</Kbd> + <Kbd>V</Kbd> (<Kbd>Cmd</Kbd> + <Kbd>V</Kbd> on macOS). A screenshot
+                copied to the clipboard works too. Pasted text is ignored.
+            </p>
+                </text>
+}
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                只有焦点位于上传区内部时才会处理粘贴，因此不会抢走页面上其它目标想要的粘贴内容。把
+                <code class="bg-muted px-1 py-0.5 rounded">AllowPaste="false"</code> 设为关闭即可禁用该功能。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                A paste is only acted on while focus is inside the upload, so it cannot take a paste meant for
+                something else on the page. Set
+                <code class="bg-muted px-1 py-0.5 rounded">AllowPaste="false"</code> to turn it off.
+            </p>
+                </text>
+}
+
+        <FileUpload Multiple="true" @bind-Files="pasteFiles" />
+
+        <CodeBlock Source="Components/FileUpload/paste.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    每个文件的移除按钮都带有描述性的 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code>（"Remove {filename}"）
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Remove buttons include descriptive <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> ("Remove {filename}") for each file
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    图片预览的 <code class="text-xs bg-muted px-1 py-0.5 rounded">alt</code> 文本包含文件名
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Image previews include <code class="text-xs bg-muted px-1 py-0.5 rounded">alt</code> text with the file name
+                </AccessibilityItem>
+                        </text>
+}
+            <AccessibilityItem>
+                @L.T("使用原生 file input 元素，自带键盘可访问性", "Uses a native file input element for built-in keyboard accessibility")
+            </AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("打开文件浏览对话框", "Open the file browser dialog"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在拖放区与移除按钮之间移动焦点", "Navigate between the dropzone and remove buttons"))">
+                <Kbd>Tab</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="FileUpload">
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">@L.T("转发给可交互控件或分组的无障碍名称。", "Accessible name forwarded to the interactive control or group.")</ApiParameter>
+                <ApiParameter Name="Files" Type="IReadOnlyList&lt;FileUploadItem&gt;?">
+                    @L.T("已选中的文件。", "Selected files.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Id" Type="string?">
+                        底层 file input 的 HTML id。让一个 &lt;label for="..."&gt; 指向它，就能用你自己的控件打开文件选择对话框，即使拖放区被隐藏也有效。未设置时会自动生成一个唯一 id。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Id" Type="string?">
+                        The HTML id of the underlying file input. Point a &lt;label for="..."&gt; at it to open the file dialog from your own control, which works even when the dropzone is hidden. When not set, a unique id is generated.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="Multiple" Type="bool" Default="false">
+                    @L.T("允许选择多个文件。", "Allow multiple files.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Accept" Type="string?">
+                        接受的文件类型（例如 "image/*,.pdf"）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Accept" Type="string?">
+                        Accepted file types (e.g., "image/*,.pdf").
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="MaxFileSize" Type="long" Default="10485760">
+                    @L.T("以字节计的单文件大小上限（默认为 10MB）。", "Maximum file size in bytes (default: 10MB).")
+                </ApiParameter>
+                <ApiParameter Name="MaxFileCount" Type="int" Default="10">
+                    @L.T("允许的文件数量上限。", "Maximum number of files.")
+                </ApiParameter>
+                <ApiParameter Name="ShowPreview" Type="bool" Default="true">
+                    @L.T("是否显示图片预览。", "Show image previews.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("禁用上传区。", "Disables the upload.")
+                </ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">
+                    @L.T("文件上传是否为必填项。", "Whether the file upload is required.")
+                </ApiParameter>
+                <ApiParameter Name="OnValidationError" Type="EventCallback&lt;FileValidationError&gt;">
+                    @L.T("校验错误的事件回调。", "Validation error callback.")
+                </ApiParameter>
+                <ApiParameter Name="DropzoneContent" Type="RenderFragment?">
+                    @L.T("自定义拖放区内容。", "Custom dropzone content.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        未匹配到的特性，会被应用到底层的 &lt;input type="file"&gt; 而不是容器上——这样 name、aria-label 之类的表单与无障碍特性能落到真正持有文件的元素。要给容器加样式请用 Class。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Unmatched attributes, applied to the underlying &lt;input type="file"&gt; rather than the container — so form and accessibility attributes such as name or aria-label reach the element that holds the files. Use Class to style the container.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="ClearFiles()" Type="Task">
+                    @L.T("清空全部文件与校验错误，把组件重置到初始状态。", "Clears all files and validation errors, resetting the component.")
+                </ApiParameter>
+                <ApiParameter Name="AllowPaste" Type="bool" Default="true">
+                    @L.T("是否允许把文件粘贴进上传区。只有焦点位于本上传区内部时才会处理粘贴，因此不会打扰页面上其它目标的粘贴内容。粘贴的文本会被忽略——只读取文件。", "Whether files can be pasted into the upload. Only acted on while focus is inside this upload, so a paste meant for something else on the page is left alone. Pasted text is ignored — only files are read.")
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="FileUpload transport">
+                <ApiParameter Since="v4" Name="UploadHandler" Type="Func&lt;FileUploadContext,CancellationToken,Task&gt;">@L.T("可选的应用侧传输。OpenReadStream() 会打开一个全新的、带大小限制的流；用累计已发送的字节数去 await ReportProgressAsync(bytesSent)。正常返回即视为上传完成；抛出异常会保留该文件，可从零字节起重试。传入你应用自己的传输即可把文件发送到服务器。", "Optional application transport. OpenReadStream() opens a fresh size-limited stream; await ReportProgressAsync(bytesSent) with cumulative bytes. Returning successfully marks the upload complete; an exception retains the file for retry from byte zero. Supply your application's transport to send files to a server.")</ApiParameter>
+                <ApiParameter Since="v4" Name="AutoUpload" Type="bool" Default="true">@L.T("提供了处理程序时会自动把新文件排队，最多同时运行三个上传。", "When a handler is supplied, automatically queue new files. Up to three uploads run concurrently.")</ApiParameter>
+                <ApiParameter Since="v4" Name="OnUploadFinished" Type="EventCallback&lt;FileUploadItem&gt;">@L.T("某次尝试成功、失败或被取消后运行。UploadError 会保留异常用于诊断；界面只显示通用错误提示。", "Runs when an attempt succeeds, fails or is canceled. UploadError retains the exception for diagnostics; the UI shows a generic error.")</ApiParameter>
+                <ApiParameter Since="v4" Name="UploadFilesAsync() / UploadFileAsync(file) / CancelUpload(file)" Type="methods">@L.T("把已选文件排队、重试某个失败或已取消的文件，或取消某次尝试。处理程序必须观察传入的令牌。移除或清空文件会取消对应的尝试。", "Queue selected files, retry one failed/canceled file, or cancel an attempt. Handlers must observe the supplied token. Removing or clearing files cancels their attempts.")</ApiParameter>
+                <ApiParameter Since="v4" Name="Status / BytesTransferred / Progress / UploadError" Type="FileUploadItem properties">@L.T("Selected、Queued、Uploading、Succeeded、Canceled 或 Failed；当前这次尝试的字节数与百分比。", "Selected, Queued, Uploading, Succeeded, Canceled or Failed; bytes and percentage for the current attempt.")</ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="FileUploadItem">
+                <ApiParameter Name="File" Type="IBrowserFile">
+                    @L.T("浏览器端的文件引用。", "The browser file reference.")
+                </ApiParameter>
+                <ApiParameter Name="Name" Type="string">
+                    @L.T("文件名。", "File name.")
+                </ApiParameter>
+                <ApiParameter Name="Size" Type="long">
+                    @L.T("以字节计的文件大小。", "File size in bytes.")
+                </ApiParameter>
+                <ApiParameter Name="ContentType" Type="string">
+                    @L.T("MIME 类型。", "MIME type.")
+                </ApiParameter>
+                <ApiParameter Name="FormattedSize" Type="string">
+                    @L.T("便于阅读的体积文本。", "Human-readable size.")
+                </ApiParameter>
+                <ApiParameter Name="IsImage" Type="bool">
+                    @L.T("该文件是否为图片。", "Whether file is an image.")
+                </ApiParameter>
+                <ApiParameter Name="PreviewUrl" Type="string?">
+                    @L.T("用于预览的 Data URL。", "Data URL for preview.")
+                </ApiParameter>
+            </ApiReference>
+
+            <div class="border rounded-lg p-6">
+                <h3 class="font-mono text-sm font-semibold mb-2">@L.T("校验错误类型", "Validation Error Types")</h3>
+                <div class="text-sm text-muted-foreground space-y-1">
+                    <p><strong>FileTooLarge:</strong> @L.T("文件超出大小限制", "File exceeds size limit")</p>
+                    <p><strong>InvalidType:</strong> @L.T("文件类型不被接受", "File type not accepted")</p>
+                    <p><strong>TooManyFiles:</strong> @L.T("文件数量超过上限", "Max file count exceeded")</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private bool failNextUpload;
+    private async Task DemoUploadAsync(FileUploadContext context, CancellationToken cancellationToken)
+    {
+        var fail = failNextUpload;
+        failNextUpload = false;
+        await InvokeAsync(StateHasChanged);
+        await using var stream = context.OpenReadStream();
+        var buffer = new byte[16 * 1024];
+        long transferred = 0;
+        int read;
+        while ((read = await stream.ReadAsync(buffer, cancellationToken)) > 0)
+        {
+            await Task.Delay(100, cancellationToken);
+            transferred += read;
+            await context.ReportProgressAsync(transferred);
+            if (fail)
+            {
+                throw new IOException("Demonstration failure; retry is available.");
+            }
+        }
+    }
+
+    private IReadOnlyList<FileUploadItem>? pasteFiles;
+
+    private IReadOnlyList<FileUploadItem>? _basicFiles;
+    private IReadOnlyList<FileUploadItem>? _multipleFiles;
+    private IReadOnlyList<FileUploadItem>? _imageFiles;
+    private IReadOnlyList<FileUploadItem>? _docFiles;
+    private IReadOnlyList<FileUploadItem>? _smallFiles;
+    private IReadOnlyList<FileUploadItem>? _noPreviewFiles;
+    private IReadOnlyList<FileUploadItem>? _singleFile;
+    private FileUpload? _clearUploader;
+    private IReadOnlyList<FileUploadItem>? _clearFiles;
+    private string? _lastError;
+
+    private void HandleValidationError(FileValidationError error)
+    {
+        _lastError = error.Message;
+    }
+}

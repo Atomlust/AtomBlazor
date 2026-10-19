@@ -1,0 +1,257 @@
+@page "/components/form-field-date-time-picker"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("FormFieldDateTimePicker 日期时间字段 - Atom BlazorUI", "FormFieldDateTimePicker Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">FormFieldDateTimePicker</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("带内置标签、辅助文本与错误提示的 DateTimePicker 表单字段封装。", "A form field wrapper for DateTimePicker with built-in label, helper text, and error messages.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Which form component? -->
+    <div class="rounded-lg border border-dashed bg-muted/30 p-6 space-y-3">
+        <h2 class="text-lg font-semibold">@L.T("该用哪个表单组件？", "Which form component?")</h2>
+        <div class="space-y-2 text-sm text-muted-foreground">
+            <p><strong>@L.T("文本输入", "Text input")</strong> @L.T("（string、int、date 等）？", "(string, int, date, etc.)?") &rarr; <a href="/components/form-field-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldInput&lt;T&gt;</a></p>
+            <p><strong>@L.T("日期选择器", "Date picker")</strong>@L.T("？", "?") &rarr; <a href="/components/form-field-date-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldDatePicker</a></p>
+            <p><strong>@L.T("时间选择器", "Time picker")</strong>@L.T("？", "?") &rarr; <a href="/components/form-field-time-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTimePicker</a></p>
+            <p><strong>@L.T("日期与时间选择器", "Date &amp; time picker")</strong>@L.T("？", "?") &rarr; <strong>FormFieldDateTimePicker</strong> @L.T("（当前页）", "(this page)")</p>
+            <p><strong>@L.T("日期范围选择器", "Date range picker")</strong>@L.T("？", "?") &rarr; <a href="/components/form-field-date-range-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldDateRangePicker</a></p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带自动关联标签与辅助文本的日期时间选择器。", "A date time picker with an auto-associated label and helper text.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldDateTimePicker AriaLabel="@(L.T("预约", "Appointment"))" @bind-Value="_appointment"
+                                      Label="@(L.T("预约", "Appointment"))"
+                                      HelperText="@(L.T("我们什么时候见面？", "When should we meet?"))" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("已选择：", "Selected:")</p>
+            <p class="text-sm font-mono">@(_appointment?.ToString("g") ?? L.T("（无）", "(none)"))</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldDateTimePicker/basic.txt" />
+    </div>
+
+    <!-- With Constraints -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("限制条件", "Constraints")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">MinDate</code> /
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">MaxDate</code> 限定可选范围，用
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">MinuteStep</code> 设定固定的分钟间隔。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">MinDate</code> /
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">MaxDate</code> to restrict the selectable range
+                    and <code class="text-xs bg-muted px-1 py-0.5 rounded">MinuteStep</code> for fixed minute intervals.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldDateTimePicker @bind-Value="_deliverySlot"
+                                      Label="@(L.T("配送时段", "Delivery slot"))"
+                                      HelperText="@(L.T("选择未来 14 天内的时段。", "Select a slot within the next 14 days."))"
+                                      MinDate="DateTime.Today"
+                                      MaxDate="DateTime.Today.AddDays(14)"
+                                      MinuteStep="15" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("已选择：", "Selected:")</p>
+            <p class="text-sm font-mono">@(_deliverySlot?.ToString("g") ?? L.T("（无）", "(none)"))</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldDateTimePicker/constraints.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个处于禁用状态的日期时间选择器表单字段。", "A disabled date time picker form field.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldDateTimePicker Value="DateTime.Now"
+                                      Label="@(L.T("锁定的预约", "Locked appointment"))"
+                                      HelperText="@(L.T("该预约不可更改。", "This appointment cannot be changed."))"
+                                      Disabled="true" />
+        </div>
+        <CodeBlock Source="Components/FormFieldDateTimePicker/disabled.txt" />
+    </div>
+
+    <!-- EditForm Integration -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("EditForm 集成", "EditForm Integration")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("在 EditForm 中校验错误会自动显示。", "Validation errors display automatically inside an EditForm.")
+                @L.T("试试不选择日期和时间直接提交。", "Try submitting without selecting a date and time.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <EditForm Model="_formModel" OnValidSubmit="HandleFormSubmit">
+                <DataAnnotationsValidator />
+                <div class="space-y-4">
+                    <FormFieldDateTimePicker @bind-Value="_formModel.Appointment"
+                                              Label="@(L.T("预约", "Appointment"))"
+                                              Placeholder="@(L.T("选择日期和时间…", "Pick a date and time..."))" />
+                    <Button Type="ButtonType.Submit">@L.T("提交", "Submit")</Button>
+                </div>
+            </EditForm>
+            @if (_formSubmitted)
+            {
+                <div class="mt-4 rounded-lg border border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800 p-4">
+                    <p class="text-sm font-medium text-green-800 dark:text-green-200">
+                        @L.F("已提交：{0}", "Submitted: {0}", _formModel.Appointment?.ToString("g"))
+                    </p>
+                </div>
+            }
+        </div>
+        <CodeBlock Source="Components/FormFieldDateTimePicker/editform.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("标签与日期时间选择器触发按钮在视觉上关联", "Label visually associated with the date time picker trigger")</AccessibilityItem>
+            <AccessibilityItem>@L.T("描述通过 aria-describedby 关联", "Description linked via aria-describedby")</AccessibilityItem>
+            <AccessibilityItem>@L.T("校验错误通过 aria-invalid 展示", "Validation errors displayed with aria-invalid")</AccessibilityItem>
+        </AriaAttributes>
+            <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可用的表单控件之间移动", "Move between enabled form controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("打开选择器，或激活当前聚焦的选择器按钮", "Open the picker or activate a focused picker button"))"><Kbd>Enter</Kbd> / <Kbd>Space</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭当前浮层", "Close the active popup"))"><Kbd>Escape</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="FormFieldDateTimePicker">
+                <ApiParameter Name="Label" Type="string?" Default="null">
+                    @L.T("显示在日期时间选择器上方的标签文本。", "The label text displayed above the date time picker.")
+                </ApiParameter>
+                <ApiParameter Name="HelperText" Type="string?" Default="null">
+                    @L.T("显示在日期时间选择器下方的辅助文本。错误状态下隐藏。", "Helper text displayed below the date time picker. Hidden during error state.")
+                </ApiParameter>
+                <ApiParameter Name="ErrorText" Type="string?" Default="null">
+                    @L.T("手动错误文本覆盖。当字段无效且设置了该项时，替换自动生成的提示。", "Manual error text override. When the field is invalid and this is set, replaces auto-generated messages.")
+                </ApiParameter>
+                <ApiParameter Name="Orientation" Type="FieldOrientation" Default="Vertical">
+                    @L.T("字段的布局方向。", "Layout orientation of the field.")
+                </ApiParameter>
+                <ApiParameter Name="Value" Type="DateTime?" Default="null">
+                    @L.T("所选的日期与时间值。使用 @bind-Value 进行双向绑定。", "The selected date and time value. Use @bind-Value for two-way binding.")
+                </ApiParameter>
+                <ApiParameter Name="ValueChanged" Type="EventCallback&lt;DateTime?&gt;">
+                    @L.T("所选日期与时间发生变化时调用的回调。", "Callback invoked when the selected date and time changes.")
+                </ApiParameter>
+                <ApiParameter Name="DateTimeFormat" Type="string?" Default="null">
+                    @L.T("用于显示的日期时间格式。为 null 时，若 ShowSeconds 为 true 则使用 \"G\"（含秒），否则使用 \"g\"。", "The date and time format to display. When null, uses \"G\" (with seconds) if ShowSeconds is true, otherwise \"g\".")
+                </ApiParameter>
+                <ApiParameter Name="Placeholder" Type="string?" Default="null">
+                    @L.T("未选择日期与时间时显示的占位文本。", "Placeholder text when no date and time is selected.")
+                </ApiParameter>
+                <ApiParameter Name="MinDate" Type="DateTime?" Default="null">
+                    @L.T("可选择的最小日期。", "The minimum selectable date.")
+                </ApiParameter>
+                <ApiParameter Name="MaxDate" Type="DateTime?" Default="null">
+                    @L.T("可选择的最大日期。", "The maximum selectable date.")
+                </ApiParameter>
+                <ApiParameter Name="DisabledDates" Type="Func&lt;DateTime, bool&gt;?" Default="null">
+                    @L.T("判断某个日期是否被禁用的函数。", "Function to determine if a specific date is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="FirstDayOfWeek" Type="DayOfWeek?" Default="null">
+                    @L.T("每周的第一天。默认跟随当前区域设置。", "The first day of the week. Defaults to current culture setting.")
+                </ApiParameter>
+                <ApiParameter Name="TimeFormat" Type="TimeFormat" Default="Hour12">
+                    @L.T("时间选择器使用的时间格式（12 小时制含 AM/PM，或 24 小时制）。", "The time format for the time selectors (12-hour with AM/PM or 24-hour).")
+                </ApiParameter>
+                <ApiParameter Name="ShowSeconds" Type="bool" Default="false">
+                    @L.T("是否显示秒选择器。", "Whether to show the seconds selector.")
+                </ApiParameter>
+                <ApiParameter Name="MinuteStep" Type="int" Default="1">
+                    @L.T("分钟步进间隔。", "The minute step interval.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("日期时间选择器是否被禁用。", "Whether the date time picker is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">
+                    @L.T("日期时间选择器是否为必填。", "Whether the date time picker is required.")
+                </ApiParameter>
+                <ApiParameter Name="InputClass" Type="string?" Default="null">
+                    @L.T("应用到内部 DateTimePicker 触发按钮上的额外 CSS 类。", "Additional CSS classes applied to the inner DateTimePicker trigger button.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到外部 Field 容器上的额外 CSS 类。", "Additional CSS classes applied to the outer Field container.")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                    @L.T("控件的 ARIA 标签。", "ARIA label for the control.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private DateTime? _appointment;
+    private DateTime? _deliverySlot;
+    private bool _formSubmitted;
+    private DateTimePickerFormModel _formModel = new();
+
+    private void HandleFormSubmit()
+    {
+        _formSubmitted = true;
+    }
+
+    private class DateTimePickerFormModel
+    {
+        [Required(ErrorMessage = "Please select an appointment time.")]
+        public DateTime? Appointment { get; set; }
+    }
+}

@@ -1,0 +1,33 @@
+@namespace AtomBlazor.Primitives
+
+@* SliderTrack —— 范围指示器的容器 *@
+<div data-orientation="@Context?.Orientation.ToString().ToLower()"
+     @attributes="AdditionalAttributes">
+    @ChildContent
+</div>
+
+@code {
+    [CascadingParameter]
+    private SliderPrimitive? Context { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (Context == null)
+        {
+            throw new InvalidOperationException(
+                "SliderTrack 必须用在 Slider 组件内部。");
+        }
+    }
+
+    /// <summary>
+    /// 子内容（通常是一个 SliderRange）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}

@@ -1,0 +1,75 @@
+@page "/components/bottom-nav"
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("底部导航 - Atom BlazorUI", "Bottom Navigation - Atom BlazorUI")</PageTitle>
+<div class="max-w-4xl space-y-8">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("底部导航", "Bottom Navigation")</h1>
+        <p class="text-xl text-muted-foreground">@L.T("带文字标签的底部导航，支持选中态与可选链接。", "Bottom navigation with labelled destinations, active state and optional links.")</p>
+    </div>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("选择与禁用项", "Selection and disabled items")</h2>
+        <div class="rounded-lg border p-6 space-y-4">
+<BottomNav @bind-Value="selected" Fixed="false" AriaLabel="@(L.T("预览导航", "Preview navigation"))">
+    <BottomNavItem Value="home" Label="@(L.T("首页", "Home"))"><Icon><LucideIcon Name="house" Size="20" /></Icon></BottomNavItem>
+    <BottomNavItem Value="saved" Label="@(L.T("收藏", "Saved"))"><Icon><LucideIcon Name="bookmark" Size="20" /></Icon></BottomNavItem>
+    <BottomNavItem Value="account" Label="@(L.T("账户", "Account"))"><Icon><LucideIcon Name="user" Size="20" /></Icon></BottomNavItem>
+    <BottomNavItem Value="locked" Label="@(L.T("暂不可用", "Unavailable"))" Disabled="true"><Icon><LucideIcon Name="lock" Size="20" /></Icon></BottomNavItem>
+</BottomNav>
+<p role="status" class="text-sm text-muted-foreground">@L.T("已选择：", "Selected: ")@selected</p>
+        </div>
+        <CodeBlock Source="Components/BottomNav/basic.txt" />
+    </section>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("链接导航", "Link navigation")</h2>
+        <div class="rounded-lg border p-6 space-y-4">
+<p class="text-sm text-muted-foreground">@L.T("设置 Href 就是普通的链接导航。Fixed 默认为 true，需要在页面内容下方预留空间；这两个预览用了 Fixed=false，好让它留在容器里。", "Set Href for normal link navigation. Fixed defaults to true; reserve space below page content. These previews use Fixed=false to stay inside their containers.")</p>
+<BottomNav Fixed="false" AriaLabel="@(L.T("文档导航", "Documentation navigation"))">
+    <BottomNavItem Value="components" Label="@(L.T("组件", "Components"))" Href="/components"><Icon><LucideIcon Name="layout-grid" Size="20" /></Icon></BottomNavItem>
+    <BottomNavItem Value="recipes" Label="@(L.T("示例", "Recipes"))" Href="/recipes"><Icon><LucideIcon Name="chef-hat" Size="20" /></Icon></BottomNavItem>
+</BottomNav>
+        </div>
+        <CodeBlock Source="Components/BottomNav/links.txt" />
+    </section>
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>导航地标使用 AriaLabel；当前选中项会暴露 aria-current="page"。</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>The navigation landmark uses AriaLabel; the active destination exposes aria-current="page".</AccessibilityItem>
+                        </text>
+}
+            <AccessibilityItem>@L.T("每个目的地都有可见的文字标签。禁用项无法激活，也会从键盘导航中移除。", "Each destination has a visible label. Disabled items cannot be activated and are removed from keyboard navigation.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可用目的地之间移动", "Move between enabled destinations"))"><Kbd>Tab / Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("激活目的地按钮", "Activate a destination button"))"><Kbd>Enter / Space</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("打开导航链接", "Follow a navigation link"))"><Kbd>Enter</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+<span id="bottom-nav-item" class="block scroll-mt-20" aria-hidden="true"></span>
+<ApiReference Since="v4" ComponentName="BottomNav / BottomNavItem">
+        <ApiParameter Name="Value / ValueChanged" Type="string? / EventCallback&lt;string&gt;">@L.T("根节点的当前值与选择回调；支持 @bind-Value。", "Root active value and selection callback; supports @bind-Value.")</ApiParameter>
+        <ApiParameter Name="Fixed / SafeArea / AriaLabel" Type="bool / bool / string?" Default="true / true / Primary navigation">@L.T("视口定位、底部安全区内边距与导航地标标签。", "Viewport positioning, bottom safe-area padding and navigation landmark label.")</ApiParameter>
+        <ApiParameter Name="ChildContent" Type="RenderFragment">@L.T("BottomNavItem 子项。", "BottomNavItem children.")</ApiParameter>
+        <ApiParameter Name="Item Value / Label / Icon" Type="string / string / RenderFragment?">@L.T("必填的唯一值与可见标签；图标内容可选。", "Required unique value and visible label; optional icon content.")</ApiParameter>
+        <ApiParameter Name="Item Href / Disabled / OnClick" Type="string? / bool / EventCallback">@L.T("可选的链接目标、禁用状态与激活回调。链接保留原生导航行为。", "Optional link destination, disabled state and activation callback. Links keep native navigation behavior.")</ApiParameter>
+    <ApiParameter Name="Class / AdditionalAttributes" Type="string? / Dictionary&lt;string, object&gt;?">@L.T("追加到根元素的 CSS 类与 HTML 属性。", "Additional root CSS classes and HTML attributes.")</ApiParameter>
+    </ApiReference>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string selected = "home";
+}

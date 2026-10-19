@@ -1,0 +1,38 @@
+@using AtomBlazor.Components.Dialog.Internals.Shared
+@using AtomBlazor.Icons.Lucide
+@inject DialogService DialogService
+@inject ILocalizer Localizer
+
+<DialogHeader Title="@Dialog.Title"
+              Description="@Dialog.Description"
+              TitleId="@TitleId"
+              DescriptionId="@DescriptionId" />
+
+<CascadingValue TValue="IDialogReference" Value="Dialog" IsFixed="true">
+    <DynamicComponent Type="@Dialog.ComponentType"
+                      Parameters="@Dialog.Parameters" />
+</CascadingValue>
+
+@* Close (X) button — gated on the ShowClose option. Rendered last so it is not the first
+   focusable element when focus is trapped. Independent of PreventClose, which only governs
+   Escape/backdrop dismissal: an explicit X is always a deliberate close. *@
+@if (Dialog.Options.ShowClose)
+{
+    <button type="button"
+            class="atom:absolute atom:end-4 atom:top-4 atom:rounded-sm atom:opacity-70 atom:ring-offset-background atom:transition-opacity atom:hover:opacity-100 atom:focus:outline-none atom:focus:ring-2 atom:focus:ring-ring atom:focus:ring-offset-2 atom:disabled:pointer-events-none"
+            @onclick="Close">
+        <LucideIcon Name="x" Class="atom:h-4 atom:w-4" />
+        <span class="atom:sr-only">@Localizer["Dialog.Close"]</span>
+    </button>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public ComponentDialogData Dialog { get; set; } = default!;
+
+    [Parameter] public string? TitleId { get; set; }
+    [Parameter] public string? DescriptionId { get; set; }
+
+    private void Close()
+        => DialogService.Resolve(Dialog.Id, DialogResult.Cancel());
+}

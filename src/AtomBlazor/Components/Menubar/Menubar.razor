@@ -1,0 +1,37 @@
+@namespace AtomBlazor
+
+<AtomBlazor.Primitives.MenubarPrimitive @ref="primitiveRef" class="@CssClass" @attributes="AdditionalAttributes">
+    <CascadingValue Value="this" IsFixed="false">
+        @ChildContent
+    </CascadingValue>
+</AtomBlazor.Primitives.MenubarPrimitive>
+
+@code {
+    private AtomBlazor.Primitives.MenubarPrimitive? primitiveRef;
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用于根元素的额外 HTML 特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 应用于此菜单栏内所有 <see cref="MenubarTrigger"/> 组件的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? TriggerClass { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    internal AtomBlazor.Primitives.MenubarContext? PrimitiveContext =>
+        primitiveRef?.Context;
+
+    private string CssClass => ClassNames.cn(
+        "atom:relative atom:z-50 atom:flex atom:h-10 atom:items-center atom:space-x-1 atom:rounded-md atom:border atom:bg-background atom:p-1",
+        Class
+    );
+}

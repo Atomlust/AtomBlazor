@@ -1,0 +1,44 @@
+<Scheduler @bind-Events="events" @bind-View="view"
+             ActiveHours="activeHours"
+             BlockOutsideActiveHours="false"
+             StartHour="0" EndHour="24" TimeZoneId="UTC" />
+
+@code {
+    private SchedulerView view = SchedulerView.Week;
+
+    private readonly IReadOnlyList<SchedulerDayHours> activeHours =
+    [
+        new(DayOfWeek.Monday,    new(8, 30), new(17, 0)),
+        new(DayOfWeek.Tuesday,   new(8, 30), new(17, 0)),
+
+        // Two ranges for one day mute the gap between them.
+        new(DayOfWeek.Wednesday, new(8, 30), new(12, 0)),
+        new(DayOfWeek.Wednesday, new(13, 0), new(17, 0)),
+
+        new(DayOfWeek.Thursday,  new(8, 30), new(17, 0)),
+        new(DayOfWeek.Friday,    new(8, 30), new(15, 0)),
+
+        // Saturday and Sunday have no range, so they are muted end to end.
+    ];
+
+    private IReadOnlyList<SchedulerEvent> events = [];
+}
+
+@* Notes:
+   - An empty ActiveHours list mutes nothing. That is the default.
+   - Start is inclusive, End is exclusive. TimeOnly cannot express 24:00, so
+     use TimeOnly.MinValue as the End to run to the end of the day.
+   - Times are wall times in the display zone (TimeZoneId), so a day that
+     gains or loses an hour keeps the same clock boundaries.
+   - ActiveHours sits inside StartHour/EndHour. Hours outside the rendered
+     range are never drawn, so they cannot be muted.
+
+   BlockOutsideActiveHours="true" additionally:
+   - disables the muted slots, so click, double-click, Enter and the context
+     menu all do nothing there;
+   - refuses any drag or resize that lands outside the ranges;
+   - in Month, closes only the days with no range at all — a partly active
+     day has no single time to block.
+
+   It does NOT validate the Events you supply, and CreateEvent(start) still
+   works. That is the deliberate programmatic escape hatch. *@

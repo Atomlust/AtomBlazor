@@ -1,0 +1,40 @@
+@namespace AtomBlazor
+
+@*
+    SidebarMenuChevron 组件：可展开菜单指示器。
+    自动处理旋转、定位与图标模式可见性。
+*@
+
+<div class="@GetClasses()" @attributes="AdditionalAttributes">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// V 形箭头图标内容（通常是 LucideIcon）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string GetClasses()
+    {
+        return ClassNames.cn(
+            "atom:ms-auto atom:transition-transform",
+            "atom:group-data-[state=open]:rotate-90",
+            "atom:group-data-[collapsible=icon]:hidden",
+            Class
+        );
+    }
+}

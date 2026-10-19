@@ -1,0 +1,49 @@
+@namespace AtomBlazor
+
+@* 递归渲染一个 dock 布局节点。分屏复用 Resizable 面板组件；标签组经
+   DockTabGroup 渲染。节点以 object 类型传递，使布局模型保持 internal，
+   而本组件（Razor 生成为 public）依旧可用。 *@
+
+@if (Node is DockSplitNode split)
+{
+    @* 以结构签名作 key：分屏形状一变就强制新建 Resizable 组，
+       从而使 Resizable 面板/手柄的索引账目保持正确。 *@
+    <ResizablePanelGroup Direction="@Direction(split.Orientation)"
+                           Class="atom:h-full atom:w-full"
+                           @key="@($"split-{split.Id}-{split.Signature}")">
+        @for (var i = 0; i < split.Children.Count; i++)
+        {
+            var child = split.Children[i];
+            var size = i < split.Sizes.Count ? split.Sizes[i] : 100.0 / split.Children.Count;
+
+            if (i > 0)
+            {
+                @* 静止时分隔线融入背景：组的边框已提供可见分隔，
+                   故手柄自身的线条透明（悬停/激活高亮保留）。 *@
+                <ResizableHandle WithHandle="false" Class="atom:bg-transparent atom:hover:bg-primary/50 atom:active:bg-primary" />
+            }
+
+            <ResizablePanel DefaultSize="size" MinSize="8" Class="atom:h-full" @key="@($"panel-{child.Id}")">
+                <DockNode Node="child" />
+            </ResizablePanel>
+        }
+    </ResizablePanelGroup>
+}
+else if (Node is DockTabGroupNode group)
+{
+    <DockTabGroup Group="group" />
+}
+
+@code {
+    /// <summary>
+    /// 要渲染的布局节点。类型定为 <see cref="object"/>，让内部布局模型
+    /// 不进入公开 API；它总是一个内部 dock 节点。
+    /// </summary>
+    [Parameter, EditorRequired]
+    public object Node { get; set; } = null!;
+
+    private static ResizableDirection Direction(DockOrientation orientation) =>
+        orientation == DockOrientation.Horizontal
+            ? ResizableDirection.Horizontal
+            : ResizableDirection.Vertical;
+}

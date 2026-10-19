@@ -1,0 +1,37 @@
+@namespace AtomBlazor
+@typeparam TValue
+@attribute [CascadingTypeParameter(nameof(TValue))]
+@inherits FormFieldBase
+
+<Field Orientation="@Orientation" IsInvalid="@IsInvalid" Class="@Class">
+    @if (Label is not null)
+    {
+        <FieldLabel>@Label</FieldLabel>
+    }
+    <FieldContent>
+        <RadioGroup TValue="TValue"
+                    Value="@Value"
+                    ValueChanged="HandleValueChanged"
+                    ValueExpression="@ValueExpression"
+                    Disabled="@Disabled"
+                    Required="@Required"
+                    AriaLabel="@(AriaLabel ?? Label)"
+                    AriaDescribedBy="@DescribedById"
+                    Class="@InputClass"
+                    @attributes="AdditionalAttributes">
+            @ChildContent
+        </RadioGroup>
+        @if (!string.IsNullOrEmpty(HelperText) && !IsInvalid)
+        {
+            <FieldDescription Id="@DescriptionId">@HelperText</FieldDescription>
+        }
+        @if (IsInvalid && !string.IsNullOrEmpty(ErrorText))
+        {
+            <FieldError Id="@ErrorId">@ErrorText</FieldError>
+        }
+        else if (HasEditContextErrors)
+        {
+            <FieldError Id="@ErrorId" Errors="@EditContextErrors" />
+        }
+    </FieldContent>
+</Field>

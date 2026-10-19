@@ -1,0 +1,191 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@inject ILocalizer Localizer
+
+@if (_removed) { return; }
+
+<AtomBlazor.Primitives.DashboardWidget
+    Id="@Id"
+    Column="@Column"
+    Row="@Row"
+    ColumnSpan="@ColumnSpan"
+    RowSpan="@RowSpan"
+    MinColumnSpan="@MinColumnSpan"
+    MinRowSpan="@MinRowSpan"
+    MaxColumnSpan="@MaxColumnSpan"
+    MaxRowSpan="@MaxRowSpan"
+    Draggable="@Draggable"
+    Resizable="@Resizable"
+    Static="@Static"
+    class="@CssClass"
+    @attributes="AdditionalAttributes">
+
+    @if (Header != null)
+    {
+        @Header
+    }
+    else if (Title != null)
+    {
+        <DashboardWidgetHeader>
+            <span class="atom:text-sm atom:font-semibold">@Title</span>
+        </DashboardWidgetHeader>
+    }
+
+    @if (_isEditable && OnRemove.HasDelegate)
+    {
+        <button type="button"
+                class="atom:absolute atom:top-2 atom:end-2 atom:z-20 atom:p-1 atom:rounded-md atom:opacity-0 atom:group-hover:opacity-100 atom:transition-opacity atom:text-muted-foreground atom:hover:text-destructive atom:hover:bg-destructive/10"
+                aria-label="@Localizer["DashboardGrid.RemoveWidget"]"
+                @onclick="HandleRemove"
+                @onclick:stopPropagation="true">
+            <LucideIcon Name="trash" Class="atom:h-4 atom:w-4" />
+        </button>
+    }
+
+    <DashboardWidgetContent>
+        @if (Loading)
+        {
+            @if (LoadingContent != null)
+            {
+                @LoadingContent
+            }
+            else
+            {
+                <div class="atom:flex atom:flex-col atom:gap-3 atom:w-full atom:h-full atom:animate-pulse">
+                    <div class="atom:h-4 atom:bg-muted atom:rounded atom:w-3/4"></div>
+                    <div class="atom:h-4 atom:bg-muted atom:rounded atom:w-1/2"></div>
+                    <div class="atom:flex-1 atom:bg-muted atom:rounded"></div>
+                </div>
+            }
+        }
+        else
+        {
+            @ChildContent
+        }
+    </DashboardWidgetContent>
+
+    @if (Footer != null)
+    {
+        <div class="atom:border-t atom:px-4 atom:py-2">
+            @Footer
+        </div>
+    }
+
+    @if (_showResizeHandle)
+    {
+        @* 四角缩放手柄 *@
+        <div class="atom:absolute atom:top-0 atom:start-0 atom:w-4 atom:h-4 atom:cursor-nw-resize atom:rtl:cursor-ne-resize atom:z-10"
+             data-dashboard-resize-handle="nw"
+             data-widget-id="@Id"></div>
+        <div class="atom:absolute atom:top-0 atom:end-0 atom:w-4 atom:h-4 atom:cursor-ne-resize atom:rtl:cursor-nw-resize atom:z-10"
+             data-dashboard-resize-handle="ne"
+             data-widget-id="@Id"></div>
+        <div class="atom:absolute atom:bottom-0 atom:start-0 atom:w-4 atom:h-4 atom:cursor-sw-resize atom:rtl:cursor-se-resize atom:z-10"
+             data-dashboard-resize-handle="sw"
+             data-widget-id="@Id"></div>
+        <div class="atom:absolute atom:bottom-0 atom:end-0 atom:w-4 atom:h-4 atom:cursor-se-resize atom:rtl:cursor-sw-resize atom:z-10 atom:opacity-0 atom:group-hover:opacity-100 atom:focus:opacity-100 atom:transition-opacity"
+             data-dashboard-resize-handle="se"
+             data-widget-id="@Id"
+             role="separator"
+             tabindex="0"
+             aria-label="@Localizer["DashboardGrid.ResizeWidget"]">
+            <svg class="atom:w-4 atom:h-4 atom:text-muted-foreground" viewBox="0 0 16 16" fill="currentColor">
+                <circle cx="11" cy="11" r="1.5" />
+                <circle cx="7" cy="11" r="1.5" />
+                <circle cx="11" cy="7" r="1.5" />
+            </svg>
+        </div>
+        @* 四边缩放手柄 *@
+        <div class="atom:absolute atom:top-0 atom:inset-x-4 atom:h-2 atom:cursor-n-resize"
+             data-dashboard-resize-handle="n"
+             data-widget-id="@Id"></div>
+        <div class="atom:absolute atom:bottom-0 atom:inset-x-4 atom:h-2 atom:cursor-s-resize"
+             data-dashboard-resize-handle="s"
+             data-widget-id="@Id"></div>
+        <div class="atom:absolute atom:top-4 atom:end-0 atom:bottom-4 atom:w-2 atom:cursor-ew-resize"
+             data-dashboard-resize-handle="e"
+             data-widget-id="@Id"></div>
+        <div class="atom:absolute atom:top-4 atom:start-0 atom:bottom-4 atom:w-2 atom:cursor-ew-resize"
+             data-dashboard-resize-handle="w"
+             data-widget-id="@Id"></div>
+    }
+</AtomBlazor.Primitives.DashboardWidget>
+
+@code {
+    [CascadingParameter] public DashboardGridContext? Context { get; set; }
+
+    [Parameter, EditorRequired] public string Id { get; set; } = string.Empty;
+    [Parameter] public int Column { get; set; } = 1;
+    [Parameter] public int Row { get; set; } = 1;
+    [Parameter] public int ColumnSpan { get; set; } = 1;
+    [Parameter] public int RowSpan { get; set; } = 1;
+    [Parameter] public int MinColumnSpan { get; set; } = 4;
+    [Parameter] public int MinRowSpan { get; set; } = 4;
+    [Parameter] public int MaxColumnSpan { get; set; }
+    [Parameter] public int MaxRowSpan { get; set; }
+    [Parameter] public bool Draggable { get; set; } = true;
+    [Parameter] public bool Resizable { get; set; } = true;
+    [Parameter] public bool Static { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public RenderFragment? Header { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? Footer { get; set; }
+    [Parameter] public bool Loading { get; set; }
+    [Parameter] public RenderFragment? LoadingContent { get; set; }
+    [Parameter] public EventCallback<string> OnRemove { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private bool _removed;
+    private DashboardGridContext? _subscribedContext;
+
+    protected override void OnInitialized()
+    {
+        TrackContext();
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (Context != _subscribedContext)
+        {
+            TrackContext();
+
+            if (_removed && Context?.GetWidgetPosition(Id) == null)
+            {
+                _removed = false;
+            }
+        }
+    }
+
+    private void TrackContext()
+    {
+        _subscribedContext = Context;
+    }
+
+    private bool _isEditable =>
+        !Static && (Context?.Editable ?? false);
+
+    private bool _showResizeHandle =>
+        Resizable && !Static && (Context?.AllowResize ?? false) && (Context?.Editable ?? false);
+
+    private bool _isDraggable =>
+        Draggable && !Static && (Context?.AllowDrag ?? false) && (Context?.Editable ?? false);
+
+    private string CssClass => ClassNames.cn(
+        "atom:rounded-lg atom:border atom:bg-card atom:text-card-foreground atom:shadow-sm atom:relative atom:overflow-hidden atom:group atom:flex atom:flex-col atom:h-full atom:outline-none",
+        _isDraggable ? "atom:cursor-move" : "",
+        Static ? "atom:opacity-75" : "",
+        Class
+    );
+
+    private async Task HandleRemove()
+    {
+        _removed = true;
+        await OnRemove.InvokeAsync(Id);
+    }
+}

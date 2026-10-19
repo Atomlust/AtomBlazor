@@ -1,0 +1,68 @@
+@namespace AtomBlazor
+
+@* 经过样式封装的 DropdownMenu 组件 - 对 DropdownMenu 基础组件的轻量封装 *@
+<AtomBlazor.Primitives.DropdownMenuPrimitive Open="@Open"
+                                                      OpenChanged="@OpenChanged"
+                                                      DefaultOpen="@DefaultOpen"
+                                                      OnOpenChange="@OnOpenChange"
+                                                      Modal="@Modal"
+                                                      Dir="@Dir"
+                                                      ItemClass="@ItemClass">
+    @ChildContent
+</AtomBlazor.Primitives.DropdownMenuPrimitive>
+
+@code {
+    /// <summary>
+    /// 要在下拉菜单中渲染的子内容。
+    /// 通常包括 DropdownMenuTrigger 和 DropdownMenuContent。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 控制下拉菜单是否处于打开状态（受控模式）。
+    /// 为 null 时，下拉菜单自行管理其状态（非受控模式）。
+    /// </summary>
+    [Parameter]
+    public bool? Open { get; set; }
+
+    /// <summary>
+    /// 打开状态发生变化时触发的事件回调。
+    /// 配合 @bind-Open 使用可实现双向绑定。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>
+    /// 非受控模式下的默认打开状态。
+    /// </summary>
+    [Parameter]
+    public bool DefaultOpen { get; set; } = false;
+
+    /// <summary>
+    /// 下拉菜单打开状态发生变化时触发的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OnOpenChange { get; set; }
+
+    /// <summary>
+    /// 下拉菜单是否可通过点击外部或按 Esc 键关闭。
+    /// 默认值为 true。
+    /// </summary>
+    [Parameter]
+    public bool Modal { get; set; } = true;
+
+    /// <summary>
+    /// 菜单内容布局的方向（"ltr" 或 "rtl"）。
+    /// 未设置时，继承外部的方向。
+    /// </summary>
+    [Parameter]
+    public string? Dir { get; set; }
+
+    /// <summary>
+    /// 应用于所有 DropdownMenuItem 子项的默认 CSS 类。
+    /// 通过上下文向下级联，以便子项可将其与自身类合并。
+    /// </summary>
+    [Parameter]
+    public string? ItemClass { get; set; }
+}

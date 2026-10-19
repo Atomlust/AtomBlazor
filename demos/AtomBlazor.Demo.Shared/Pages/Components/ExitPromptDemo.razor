@@ -1,0 +1,197 @@
+@page "/components/exit-prompt"
+
+<PageTitle>@L.T("Exit Prompt 离开提示 - Atom BlazorUI", "Exit Prompt - Atom BlazorUI")</PageTitle>
+
+<div class="max-w-4xl space-y-8">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Exit Prompt 离开提示", "Exit Prompt")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("当还有未保存的工作时拦住导航，并在放行之前先询问用户。", "Holds a navigation while there is unsaved work, and asks before letting it go.")
+        </p>
+    </div>
+
+    <div class="rounded-r-lg border-s-4 border-primary bg-primary/5 p-4">
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                <strong>两种不同的离开方式。</strong>应用内部的导航会被拦下，
+                并显示本组件自己的对话框。关闭标签页、重新加载或沿链接跳出应用时，
+                触发的是浏览器自带的提示——浏览器会故意忽略自定义消息并显示它们自己的文案，
+                脚本无法更改。正因如此，应用内的场景要单独处理。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                <strong>Two different departures.</strong> A navigation inside the application is held
+                and this component's own dialog is shown. Closing the tab, reloading, or following a
+                link out of the application arms the browser's own prompt — browsers deliberately
+                ignore a custom message there and show their own wording, which cannot be changed from
+                script. That is why the in-application case is handled separately.
+            </p>
+                </text>
+}
+    </div>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("守护一个表单", "Guarding a form")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("在字段里输入内容让表单变脏，然后使用它下方的链接。导航会被拦下，直到你作出选择。保存即可解除守护。", "Type in the field to make the form dirty, then use the link below it. The navigation is held until you answer. Saving clears the guard.")
+            </p>
+        </div>
+        <div class="space-y-4 rounded-lg border p-6">
+            <ExitPrompt Enabled="@dirty"
+                          OnPrompted="@(() => status = L.T("有一次导航被拦下。", "A navigation was held."))"
+                          OnStayed="@(() => status = L.T("你留下来了。草稿完好无损。", "You stayed. The draft is intact."))"
+                          OnLeft="@(() => status = L.T("你离开了。草稿已被丢弃。", "You left. The draft was discarded."))" />
+
+            <div class="max-w-sm space-y-3">
+                <FormFieldInput Label="@(L.T("草稿标题", "Draft title"))" Value="@title" ValueChanged="@OnTitleChanged" TValue="string" />
+                <div class="flex items-center gap-2">
+                    <Button OnClick="Save" Disabled="@(!dirty)">@L.T("保存", "Save")</Button>
+                    <Button Variant="ButtonVariant.Outline" OnClick="Reset">@L.T("重置", "Reset")</Button>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-4 border-t pt-4 text-sm">
+                <Link Href="/components/link">@L.T("导航离开，前往 Link 页面", "Navigate away to the Link page")</Link>
+                <span class="text-muted-foreground">
+                    @L.T("导航拦截：", "Guard is ")@(dirty ? L.T("已武装", "armed") : L.T("已解除", "down"))@L.T("。", ".")
+                </span>
+            </div>
+
+            <p role="status" class="text-sm text-muted-foreground">@status</p>
+        </div>
+        <CodeBlock Source="Components/ExitPrompt/basic.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("文案", "Wording")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("标题、正文与两个按钮都可以传入你自己的文案，否则使用本地化默认值。这只针对应用内对话框。", "The title, body and both buttons take your text, or the localized defaults. This applies to the in-application dialog only.")
+            </p>
+        </div>
+        <div class="space-y-3 rounded-lg border p-6 text-sm">
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    默认值：<strong class="text-foreground">Leave without saving?</strong> —
+                    "Your changes have not been saved. If you leave now, they are lost."，按钮为
+                    <strong class="text-foreground">Stay on this page</strong> 与
+                    <strong class="text-foreground">Leave and discard</strong>。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    Defaults: <strong class="text-foreground">Leave without saving?</strong> —
+                    "Your changes have not been saved. If you leave now, they are lost." with
+                    <strong class="text-foreground">Stay on this page</strong> and
+                    <strong class="text-foreground">Leave and discard</strong>.
+                </p>
+                        </text>
+}
+        </div>
+    </section>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>提示框是一个 <code>AlertDialog</code>：它会捕获焦点、以对话框身份被播报，且无法通过点击外部关闭——必须作出选择。</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>The prompt is a <code>AlertDialog</code>, so it traps focus, is announced as a dialog, and cannot be dismissed by a click outside — the choice has to be made.</AccessibilityItem>
+                        </text>
+}
+            <AccessibilityItem>@L.T("按 Escape 视为留下，这对未保存的草稿来说是安全的答案。", "Escape counts as staying, which is the safe answer for an unsaved draft.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("在导航真正被拦下之前不会渲染任何内容，因此已武装的提示不增加任何标记，也不增加任何 Tab 停靠点。", "Nothing renders until a navigation is actually held, so an armed prompt adds no markup and no tab stop.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在两个答案之间移动", "Move between the two answers"))"><Kbd>Tab / Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("取消导航并保留工作", "Cancel the navigation and keep the work"))"><Kbd>Escape</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <LocalizationSection
+        Description="@(L.T("应用内对话框里的每个字符串都可配置。浏览器自带的提示只显示它自己的文案，无法更改。", "Every string in the in-application dialog is configurable. The browser's own prompt shows its own wording and cannot be changed."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("ExitPrompt.Title", "Leave without saving?", L.T("对话框标题。", "Dialog title")),
+            new("ExitPrompt.Message", "Your changes have not been saved…", L.T("对话框正文。", "Dialog body")),
+            new("ExitPrompt.Stay", "Stay on this page", L.T("取消导航的按钮。", "Cancels the navigation")),
+            new("ExitPrompt.Leave", "Leave and discard", L.T("继续导航的按钮。", "Continues the navigation")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""ExitPrompt.Title"", ""Ohne Speichern verlassen?"");
+    localizer.Set(""ExitPrompt.Stay"", ""Auf dieser Seite bleiben"");
+});")" />
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+        <ApiReference Since="v4" ComponentName="ExitPrompt">
+            <ApiParameter Name="Enabled" Type="bool" Default="false">@L.T("是否存在需要守护的未保存工作。为 false 时不会拦截任何导航。", "Whether there is unsaved work to guard. Nothing is intercepted while false.")</ApiParameter>
+            <ApiParameter Name="Title / Message" Type="string?">@L.T("对话框的标题与正文。默认为本地化字符串。", "The dialog title and body. Default to the localized strings.")</ApiParameter>
+            <ApiParameter Name="StayLabel / LeaveLabel" Type="string?">@L.T("两个按钮的文案。", "The two button labels.")</ApiParameter>
+            <ApiParameter Name="OnPrompted" Type="EventCallback">@L.T("导航被拦下并显示对话框时触发。", "Raised when a navigation is held and the dialog shown.")</ApiParameter>
+            <ApiParameter Name="OnLeft / OnStayed" Type="EventCallback">@L.T("导航继续或被取消时触发。", "Raised when the navigation continues, or is cancelled.")</ApiParameter>
+        </ApiReference>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private const string original = "Quarterly report";
+
+    private string title = original;
+    private bool dirty;
+    private string status = "The guard arms as soon as the field changes.";
+
+    /// <summary>字段初始化时级联语言尚未到达，这里把初始占位状态串按当前显示语言归位。</summary>
+    protected override void OnParametersSet()
+    {
+        const string initialEn = "The guard arms as soon as the field changes.";
+        const string initialZh = "字段一有改动，拦截就会武装。";
+
+        if (status == initialEn || status == initialZh)
+        {
+            status = L.T(initialZh, initialEn);
+        }
+    }
+
+    private void OnTitleChanged(string value)
+    {
+        title = value;
+        // Compared against the saved value rather than "has it ever been touched", so typing a
+        // change and undoing it puts the guard back down.
+        dirty = !string.Equals(title, original, StringComparison.Ordinal);
+    }
+
+    private void Save()
+    {
+        dirty = false;
+        status = L.T("已保存。拦截已解除。", "Saved. The guard is down.");
+    }
+
+    private void Reset()
+    {
+        title = original;
+        dirty = false;
+        status = L.T("已重置。拦截已解除。", "Reset. The guard is down.");
+    }
+}

@@ -1,0 +1,27 @@
+@namespace AtomBlazor.Primitives
+@typeparam TItem
+
+<div id="@Id"
+     role="list"
+     aria-label="@AriaLabel"
+     data-sortable-announcements="@KeyboardAnnouncementsJson"
+     data-keyboard-sorting="@(KeyboardSorting ? "true" : "false")"
+     data-sortable-order="@(Sort ? "true" : "false")"
+     @attributes="AdditionalAttributes">
+    @foreach (var item in Items ?? [])
+    {
+        <div @key="item" data-atom-sortable-item role="listitem">
+            @if (ItemTemplate is not null)
+            {
+                @ItemTemplate(item)
+            }
+            @if (DragOverlayTemplate is not null)
+            {
+                <div data-atom-sortable-overlay hidden inert aria-hidden="true">@DragOverlayTemplate(item)</div>
+            }
+        </div>
+    }
+</div>
+
+<div id="@(Id + "-status")" role="status" aria-live="polite" aria-atomic="true" class="atom:sr-only">@_liveAnnouncement</div>
+<div id="@(Id + "-instructions")" class="atom:sr-only">@KeyboardInstructions</div>

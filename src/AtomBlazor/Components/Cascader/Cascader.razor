@@ -1,0 +1,253 @@
+@namespace AtomBlazor
+@typeparam TItem
+@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Components.Forms
+@using AtomBlazor.Icons.Lucide
+@using AtomBlazor.Primitives.Services
+@inject ILocalizer Localizer
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<div @ref="container" class="@ClassNames.cn("atom:flex atom:items-center atom:gap-1", Class)">
+    <Popover Open="@open" OpenChanged="SetOpen" RestoreFocusOnClose="true">
+        <AtomBlazor.PopoverTrigger id="@Id" aria-haspopup="dialog" aria-expanded="@open.ToString().ToLowerInvariant()"
+                          aria-controls="@popupId" aria-label="@(AriaLabel ?? Localizer["Cascader.Label"])"
+                          aria-required="@(Required ? "true" : null)" aria-describedby="@AriaDescribedBy"
+                          aria-invalid="@(validation.IsInvalid ? "true" : null)" disabled="@Disabled"
+                          data-cascader-trigger="true" class="@TriggerClass"
+                          @attributes="AdditionalAttributes">
+            <span class="@ClassNames.cn("atom:truncate", Value == null ? "atom:text-muted-foreground" : null)">@(Value == null ? Placeholder ?? Localizer["Cascader.Placeholder"] : PathLabel(Value))</span>
+            <LucideIcon Name="chevron-down" Size="16" Class="atom:ms-2 atom:h-4 atom:w-4 atom:shrink-0 atom:opacity-50" aria-hidden="true" />
+        </AtomBlazor.PopoverTrigger>
+        <AtomBlazor.PopoverContent MatchTriggerWidth="true" Class="atom:max-w-[90vw] atom:p-0"
+                          AutoFocusId="@(ShowSearch ? searchId : InitialItemId)" OnContentReady="ConnectKeyboardAsync"
+                          aria-label="@(AriaLabel ?? Localizer["Cascader.Label"])">
+          <div id="@popupId">
+            @if (ShowSearch)
+            {
+                <div class="atom:flex atom:items-center atom:rounded-t-md atom:border-b atom:border-border atom:px-3 atom:focus-within:ring-2 atom:focus-within:ring-ring atom:focus-within:ring-inset atom:focus-within:border-b-transparent">
+                    <LucideIcon Name="search" Size="16" Class="atom:me-2 atom:h-4 atom:w-4 atom:shrink-0 atom:opacity-50" aria-hidden="true" />
+                    <Input Id="@searchId" Value="@search" ValueChanged="@(v => search = v ?? "")" UpdateTiming="UpdateTiming.Immediate"
+                             Placeholder="@Localizer["Cascader.Search"]" AriaLabel="@Localizer["Cascader.Search"]" data-cascader-search="true"
+                             Class="atom:ms-2 atom:h-11 atom:rounded-none atom:border-0 atom:bg-transparent atom:px-0 atom:py-3 atom:text-sm atom:focus-visible:ring-0" />
+                </div>
+            }
+            @if (!string.IsNullOrWhiteSpace(search))
+            {
+                <div class="atom:max-h-64 atom:overflow-auto atom:p-1" data-cascader-column="0">
+                    @foreach (var node in SearchResults)
+                    {
+                        <button @key="node.Value" id="@NodeId(node.Value)" type="button" data-cascader-item="@node.Value"
+                                class="@itemClass" aria-current="@(Value == node.Value ? "true" : null)"
+                                @onclick="@(() => SelectAsync(node.Value))">@PathLabel(node.Value)</button>
+                    }
+                    @if (!SearchResults.Any())
+                    {
+                        <p role="status" class="atom:p-2 atom:text-sm atom:text-muted-foreground">@Localizer["Cascader.Empty"]</p>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="atom:flex atom:overflow-x-auto atom:p-1" data-cascader-scroll>
+                    @for (var column = 0; column < Columns.Count; column++)
+                    {
+                        var depth = column;
+                        <div class="atom:max-h-64 atom:min-w-40 atom:flex-1 atom:overflow-y-auto atom:border-e atom:border-border atom:px-1 atom:last:border-e-0"
+                             data-cascader-column="@depth" data-cascader-parent="@(depth > 0 ? path[depth - 1] : null)" role="group" aria-label="@Localizer["Cascader.Level", depth + 1]">
+                            @foreach (var key in Columns[column])
+                            {
+                                var node = index!.Nodes[key];
+                                <button @key="key" id="@NodeId(key)" type="button" data-cascader-item="@key"
+                                        class="@ClassNames.cn(itemClass, path.Contains(key) ? "atom:bg-accent atom:text-accent-foreground" : null)"
+                                        aria-expanded="@(node.Children.Count > 0 ? path.Contains(key).ToString().ToLowerInvariant() : null)"
+                                        aria-current="@(Value == key ? "true" : null)" @onclick="@(() => NavigateAsync(node, depth))">
+                                    <span class="atom:truncate">@node.Text</span>
+                                    @if (node.Children.Count > 0)
+                                    {
+                                        <LucideIcon Name="chevron-right" Size="16" Class="atom:ms-2 atom:h-4 atom:w-4 atom:shrink-0 atom:opacity-50 atom:rtl:rotate-180" aria-hidden="true" />
+                                    }
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+          </div>
+        </AtomBlazor.PopoverContent>
+    </Popover>
+    @if (Clearable && Value != null)
+    {
+        <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Icon" Disabled="@Disabled" AriaLabel="@Localizer["Cascader.Clear"]" OnClick="@(() => SelectAsync(null))"><LucideIcon Name="x" Size="16" aria-hidden="true" /></Button>
+    }
+    <input type="hidden" name="@validation.GetEffectiveName(Name)" value="@Value" disabled="@Disabled" />
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IEnumerable<TItem> Items { get; set; } = [];
+    [Parameter, EditorRequired] public Func<TItem, string> ValueField { get; set; } = default!;
+    [Parameter, EditorRequired] public Func<TItem, string> TextField { get; set; } = default!;
+    [Parameter, EditorRequired] public Func<TItem, IEnumerable<TItem>?> ChildrenProperty { get; set; } = default!;
+    /// <summary>选中节点的唯一键。其完整路径由 Items 推导。</summary>
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    [Parameter] public Expression<Func<string?>>? ValueExpression { get; set; }
+    /// <summary>允许在选择分支的同时继续导航其子级。</summary>
+    [Parameter] public bool ChangeOnSelect { get; set; }
+    [Parameter] public bool ShowSearch { get; set; } = true;
+    [Parameter] public bool Clearable { get; set; } = true;
+    [Parameter] public bool Disabled { get; set; }
+    /// <summary>把控件标记为必填，与 <see cref="TreeSelect{TItem}.Required"/> 的做法一致。</summary>
+    [Parameter] public bool Required { get; set; }
+    [Parameter] public string? Placeholder { get; set; }
+    [Parameter] public string? AriaLabel { get; set; }
+    /// <summary>描述本控件的元素 id，用于 <c>aria-describedby</c>。</summary>
+    [Parameter] public string? AriaDescribedBy { get; set; }
+    [Parameter] public string? Id { get; set; }
+    [Parameter] public string? Name { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    [CascadingParameter] private EditContext? EditContext { get; set; }
+    private readonly InputValidationBehavior validation = new();
+    private readonly string popupId = $"atom-cascader-{Guid.NewGuid():N}";
+    private readonly string searchId = $"atom-cascader-search-{Guid.NewGuid():N}";
+    private ElementReference container;
+    private IJSObjectReference? keyboardModule;
+    private bool disposed;
+    private HierarchyIndex<TItem>? index;
+    private List<string> path = [];
+    private string? previousValue;
+    private bool open;
+    private string search = string.Empty;
+    private const string itemClass = "atom:flex atom:w-full atom:items-center atom:justify-between atom:rounded-sm atom:px-2 atom:py-1.5 atom:text-start atom:text-sm atom:hover:bg-accent atom:focus-visible:outline-none atom:focus-visible:bg-accent atom:focus-visible:text-accent-foreground";
+    private string TriggerClass => ClassNames.cn(
+        "atom:flex atom:h-10 atom:w-full atom:items-center atom:justify-between atom:rounded-md atom:border atom:border-input atom:bg-background atom:px-3 atom:py-2 atom:text-sm",
+        "atom:hover:bg-accent atom:hover:text-accent-foreground atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:disabled:cursor-not-allowed atom:disabled:opacity-50",
+        open ? "atom:bg-accent atom:text-accent-foreground" : null);
+    private string NodeId(string key) => $"{popupId}-item-{Uri.EscapeDataString(key)}";
+    private string? InitialItemId => (Value != null && index!.Nodes.ContainsKey(Value) ? Value : index!.Roots.FirstOrDefault()) is { } key ? NodeId(key) : null;
+    private string PathLabel(string value) => index!.Nodes.ContainsKey(value) ? string.Join(" / ", index.Path(value).Select(n => n.Text)) : value;
+    private IEnumerable<HierarchyIndex<TItem>.Node> SearchResults => index!.Nodes.Values
+        .Where(n => (ChangeOnSelect || n.Children.Count == 0) && PathLabel(n.Value).Contains(search, StringComparison.CurrentCultureIgnoreCase));
+    private List<List<string>> Columns
+    {
+        get
+        {
+            var columns = new List<List<string>> { index!.Roots };
+            foreach (var key in path)
+            {
+                if (index.Nodes.TryGetValue(key, out var node) && node.Children.Count > 0)
+                {
+                    columns.Add(node.Children);
+                }
+            }
+            return columns;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        index = new(Items, ValueField, TextField, ChildrenProperty);
+        validation.Update(EditContext, ValueExpression);
+        if (previousValue != Value || path.Any(key => !index.Nodes.ContainsKey(key)))
+        {
+            path = index.Path(Value).Select(n => n.Value).ToList();
+            previousValue = Value;
+        }
+        if (Disabled)
+        {
+            open = false;
+        }
+    }
+
+    private void SetOpen(bool value)
+    {
+        var nextOpen = !Disabled && value;
+        if (nextOpen && !open)
+        {
+            path = index!.Path(Value).Select(n => n.Value).ToList();
+            search = string.Empty;
+        }
+        open = nextOpen;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // 有意偏差（记录在案）：按实例直连 cascader.js 模块路径
+            // 本仓库统一改走共享 components-core.js barrel（camelCase 点分标识符）
+            // 规则见 PrimitiveJsModuleTests。
+            keyboardModule = await ComponentModules.GetCoreAsync(JSRuntime);
+            if (!disposed)
+            {
+                // BL0016（.NET 11）：与一致不加 try/catch 守卫——已按 disposed 标志
+                // 拦在门内，断线时由电路生命周期兜底。
+#pragma warning disable BL0016
+                await keyboardModule.InvokeVoidAsync("cascader.initialize", container, popupId);
+#pragma warning restore BL0016
+            }
+        }
+    }
+
+    private async Task ConnectKeyboardAsync()
+    {
+        if (open && !disposed)
+        {
+            keyboardModule ??= await ComponentModules.GetCoreAsync(JSRuntime);
+            if (!disposed)
+            {
+                // BL0016（.NET 11）：与一致不加 try/catch 守卫——open/disposed 双标志
+                // 拦在门内，断线时由电路生命周期兜底。
+#pragma warning disable BL0016
+                await keyboardModule.InvokeVoidAsync("cascader.connect", popupId);
+#pragma warning restore BL0016
+            }
+        }
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        disposed = true;
+        if (keyboardModule != null)
+        {
+            try
+            {
+                await keyboardModule.InvokeVoidAsync("cascader.dispose", popupId);
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            {
+                // 电路拆除期间浏览器可能已经不在了。
+            }
+        }
+    }
+
+    private async Task NavigateAsync(HierarchyIndex<TItem>.Node node, int depth)
+    {
+        if (Disabled)
+        {
+            return;
+        }
+        path = path.Take(depth).Append(node.Value).ToList();
+        if (ChangeOnSelect || node.Children.Count == 0)
+        {
+            await SelectAsync(node.Value, node.Children.Count == 0);
+        }
+    }
+
+    private async Task SelectAsync(string? value, bool close = true)
+    {
+        if (Disabled)
+        {
+            return;
+        }
+        Value = value;
+        previousValue = value;
+        await ValueChanged.InvokeAsync(value);
+        validation.NotifyFieldChanged();
+        if (close)
+        {
+            open = false;
+        }
+    }
+}

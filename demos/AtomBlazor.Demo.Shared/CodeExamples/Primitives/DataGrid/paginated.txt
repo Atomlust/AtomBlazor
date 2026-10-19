@@ -1,0 +1,37 @@
+<DataGrid TData="Person" Items="@GetPaginatedData()" @bind-State="@paginatedGridState"
+            ManualPagination="true" AriaLabel="Paginated grid" Class="w-full caption-bottom text-sm">
+    <DataGridHeader>
+        <tr>
+            <DataGridHeaderCell TData="Person">Name</DataGridHeaderCell>
+            <DataGridHeaderCell TData="Person">Email</DataGridHeaderCell>
+        </tr>
+    </DataGridHeader>
+    <DataGridBody>
+        @foreach (var person in GetPaginatedData())
+        {
+            <DataGridRow TData="Person">
+                <DataGridCell>@person.Name</DataGridCell>
+                <DataGridCell>@person.Email</DataGridCell>
+            </DataGridRow>
+        }
+    </DataGridBody>
+</DataGrid>
+
+@* Manual pagination controls *@
+<div class="flex items-center justify-between">
+    <span>Page @paginatedGridState.Pagination.CurrentPage of @paginatedGridState.Pagination.TotalPages</span>
+    <div class="flex gap-2">
+        <button @onclick="@(() => paginatedGridState.Pagination.PreviousPage())"
+                disabled="@(!paginatedGridState.Pagination.CanGoPrevious)">Previous</button>
+        <button @onclick="@(() => paginatedGridState.Pagination.NextPage())"
+                disabled="@(!paginatedGridState.Pagination.CanGoNext)">Next</button>
+    </div>
+</div>
+
+@code {
+    private IEnumerable<Person> GetPaginatedData()
+    {
+        var skip = (paginatedGridState.Pagination.CurrentPage - 1) * paginatedGridState.Pagination.PageSize;
+        return data.Skip(skip).Take(paginatedGridState.Pagination.PageSize);
+    }
+}

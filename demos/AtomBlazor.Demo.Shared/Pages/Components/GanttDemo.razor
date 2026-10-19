@@ -1,0 +1,1597 @@
+@page "/components/gantt"
+@using AtomBlazor.Primitives.Gantt
+<PageTitle>@L.T("Gantt 甘特图 - Atom BlazorUI", "Gantt - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-5xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Gantt 甘特图", "Gantt")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("对照时间轴画出的计划：一侧是任务清单，每个任务在它右边各有一根条形，谁必须先做就用箭头连出来。", "A plan drawn against a timeline: a task list down the side, a bar for every task across from it, and arrows for what has to happen first.")
+            </p>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    本页每张图都绘制同样这 @plan.Count 项任务 —— 一个产品发布计划，最深的地方有四层。
+                    在任意图下方打开<strong>显示数据</strong>，就能读出它由哪些行搭建而成，
+                    其中也包括汇总条自己算出来的日期。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    Every chart on this page draws the same @plan.Count tasks &mdash; a product launch,
+                    four phases deep in places. Open <strong>Show the data</strong> under any chart to
+                    read the rows it was built from, including the dates a summary bar worked out for
+                    itself.
+                </p>
+                        </text>
+}
+        </div>
+    </div>
+
+    <div class="space-y-6">
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        把任务交给它，并说清怎么读一个任务。把另一个任务写成自己父亲的会嵌在它下面，
+                        而有子任务的任务就成了一个 <strong>汇总条</strong>：它的日期与进度取自底下的工作，
+                        而不是自带。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        Hand it the tasks and say how to read one. A task that names another as its
+                        parent nests under it, and a task with children becomes a
+                        <strong>summary</strong>: it takes its dates and its progress from the work
+                        underneath rather than carrying its own.
+                    </p>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        一根<strong>实心条</strong>就是一个任务，其中填实的是已完成的部分。一个<strong>方括号</strong> —— 一条两端各有一小竖的细线 —— 是汇总条，靠形状说明它是一段跨度而不是一个独立的任务。一个<strong>菱形</strong>是里程碑。图下方的图例给出这些名称，并且只列出那张图真正画出来的东西；把指针移到任一根条上就能看到它的日期、长度与完成进度。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        A <strong>filled bar</strong> is one task, the solid part being what is done. A
+                        <strong>bracket</strong> &mdash; a thin line with a leg at each end &mdash; is a
+                        summary, and the shape is what says it is a span rather than a task in its own
+                        right. A <strong>diamond</strong> is a milestone. The key under the chart names
+                        them, and only lists what that chart actually draws; hover any bar for its dates,
+                        its length and how far along it is.
+                    </p>
+                                </text>
+}
+            </div>
+
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    <code>OnBuilt</code> 会在每次构建之后把成品图交给页面，图之外的内容就是这样读到图里画了什么。下面这一行就是由它写出来的。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    <code>OnBuilt</code> hands the finished chart to the page after every build, which
+                    is how anything outside the chart reads what it drew. The line under this one is
+                    written from it.
+                </p>
+                        </text>
+}
+
+            <div class="rounded-lg border bg-card p-6 space-y-3">
+                @if (basicSummary is not null)
+                {
+                    <p class="text-sm text-muted-foreground" data-testid="gantt-built-summary">
+                        @basicSummary
+                    </p>
+                }
+
+                <Gantt TItem="PlanTask"
+                         Data="@plan"
+                         IdSelector="@(t => t.Id)"
+                         ParentIdSelector="@(t => t.Parent)"
+                         TextSelector="@(t => t.Name)"
+                         StartSelector="@(t => t.Start)"
+                         EndSelector="@(t => t.End)"
+                         ProgressSelector="@(t => t.Progress)"
+                         OnBuilt="@DescribeBuild"
+                         Height="26rem"
+                         AriaLabel="@(L.T("产品发布计划", "Product launch plan"))" />
+            </div>
+
+            @DataPanel("basic")
+
+            <CodeBlock Source="Components/Gantt/basic.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("列", "Columns")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        声明了列，任务清单就会变宽。宽度用的是像素而不是空间份额，因为图表得先知道任务清单有多宽，才能放下第一根条。拖动某一列的边缘可以改变宽度，点击可排序的标题会在<em>本分支内</em>重排任务 —— 子任务永远不会离开它的父任务。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        Declare columns and the task list grows. Widths are in pixels rather than a
+                        share of the space, because the chart has to know how wide the task list is
+                        before it can place the first bar. Drag a column's edge to change it, and click
+                        a sortable heading to reorder tasks <em>within</em> their branch &mdash; a child
+                        never leaves its parent.
+                    </p>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code> 读取你的任务，排序比较的就是它。而列的内容读的是<strong>行</strong>，也就是汇总之后的那个任务 —— 所以下面的日期与它旁边那根条一致，而不是与汇总条声明时写的值一致。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code> reads your task
+                        and is what a sort compares. A column's content reads the
+                        <strong>row</strong> instead, which is the task after roll-up &mdash; so the
+                        dates below agree with the bars beside them rather than with what a summary was
+                        declared with.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <Gantt TItem="PlanTask"
+                         Data="@plan"
+                         IdSelector="@(t => t.Id)"
+                         ParentIdSelector="@(t => t.Parent)"
+                         TextSelector="@(t => t.Name)"
+                         StartSelector="@(t => t.Start)"
+                         EndSelector="@(t => t.End)"
+                         ProgressSelector="@(t => t.Progress)"
+                         Height="26rem"
+                         AriaLabel="@(L.T("带列的计划", "Plan with columns"))">
+                    <Columns>
+                        <GanttColumn TItem="PlanTask" Title="@(L.T("任务", "Task"))" Width="230" IsTree="true" Sortable="true" />
+                        <GanttColumn TItem="PlanTask" Title="@(L.T("负责人", "Owner"))" Width="110"
+                                       Value="@(t => t.Owner)" Sortable="true" />
+                        <GanttColumn TItem="PlanTask" Title="@(L.T("开始", "Start"))" Width="100"
+                                       Value="@(t => t.Start)" Sortable="true">
+                            @context.Start.ToString("d MMM")
+                        </GanttColumn>
+                        <GanttColumn TItem="PlanTask" Title="@(L.T("天数", "Days"))" Width="70"
+                                       Align="GanttColumnAlign.End">
+                            @((context.End - context.Start).TotalDays.ToString("0"))
+                        </GanttColumn>
+                        <GanttColumn TItem="PlanTask" Title="@(L.T("完成", "Done"))" Width="70"
+                                       Align="GanttColumnAlign.End">
+                            @context.Progress.ToString("P0")
+                        </GanttColumn>
+                    </Columns>
+                </Gantt>
+            </div>
+
+            <CodeBlock Source="Components/Gantt/columns.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("缩放", "Zoom")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        六个缩放档位，每一档同时决定表头的两层。不管一个刻度里装着什么，它都按同样的宽度绘制，所以在月档位下二月和三月一样大 —— 条形的位置是在它自己的刻度内部算出来的，而不是对着平坦的天数。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        Six zoom levels, each picking both tiers of the header at once. Every slot is
+                        drawn the same width whatever it holds, so February and March are the same size
+                        at month zoom &mdash; a bar's position is worked out inside its slot rather than
+                        against a flat count of days.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-sm text-muted-foreground">@L.T("缩放：", "Zoom:")</span>
+                    @foreach (var level in Enum.GetValues<GanttZoom>())
+                    {
+                        <Button Variant="@(zoom == level ? ButtonVariant.Default : ButtonVariant.Outline)"
+                                  Size="ButtonSize.Small"
+                                  OnClick="@(() => zoom = level)">
+                            @level
+                        </Button>
+                    }
+                </div>
+
+                <Gantt TItem="PlanTask"
+                         Data="@plan"
+                         IdSelector="@(t => t.Id)"
+                         ParentIdSelector="@(t => t.Parent)"
+                         TextSelector="@(t => t.Name)"
+                         StartSelector="@(t => t.Start)"
+                         EndSelector="@(t => t.End)"
+                         ProgressSelector="@(t => t.Progress)"
+                         Zoom="@zoom"
+                         ShowToolbar="false"
+                         Height="24rem"
+                         AriaLabel="Plan at the chosen zoom" />
+            </div>
+
+            <CodeBlock Source="Components/Gantt/zoom.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("依赖关系", "Dependencies")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        四种类型，名字来自它们绑住的那两端。依赖是<strong>只绘制、不强制</strong>的：移动一个任务并不会移动依赖它的任务，因为重新安排一份计划牵涉浮动时间、日历与谁有空 —— 不该由一张图背着读者做决定。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        Four types, named for the two ends they tie together. A dependency is
+                        <strong>drawn, not enforced</strong>: moving a task does not move what depends
+                        on it, because rescheduling a plan is a decision about float, calendars and who
+                        is free &mdash; not something a chart should do behind the reader's back.
+                    </p>
+                                </text>
+}
+                <p class="text-muted-foreground">
+                    @L.T("把一个分支折起来时，原先越过它的箭头会重新系到此刻顶替它的那个汇总条上，而不是悄悄消失。", "Fold a branch up and an arrow that crossed it is re-tied to the summary now standing in for it, rather than quietly disappearing.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <Gantt TItem="PlanTask"
+                         Data="@plan"
+                         IdSelector="@(t => t.Id)"
+                         ParentIdSelector="@(t => t.Parent)"
+                         TextSelector="@(t => t.Name)"
+                         StartSelector="@(t => t.Start)"
+                         EndSelector="@(t => t.End)"
+                         ProgressSelector="@(t => t.Progress)"
+                         Dependencies="@links"
+                         Height="26rem"
+                         AriaLabel="@(L.T("带依赖关系的计划", "Plan with dependencies"))">
+                    <Columns>
+                        <GanttColumn TItem="PlanTask" Title="@(L.T("任务", "Task"))" Width="230" IsTree="true" />
+                    </Columns>
+                </Gantt>
+            </div>
+
+            <div class="rounded-md border overflow-hidden">
+                <table class="w-full text-xs">
+                    <thead class="bg-muted">
+                        <tr class="border-b">
+                            <th class="px-2 py-1.5 text-left font-medium">@L.T("起点", "From")</th>
+                            <th class="px-2 py-1.5 text-left font-medium">@L.T("终点", "To")</th>
+                            <th class="px-2 py-1.5 text-left font-medium">@L.T("类型", "Type")</th>
+                            <th class="px-2 py-1.5 text-left font-medium">@L.T("读作", "Reads as")</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var link in links)
+                        {
+                            <tr class="border-b last:border-0">
+                                <td class="px-2 py-1">@Named(link.FromId)</td>
+                                <td class="px-2 py-1">@Named(link.ToId)</td>
+                                <td class="px-2 py-1 font-mono">@link.Type</td>
+                                <td class="px-2 py-1 text-muted-foreground">@Reads(link)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <CodeBlock Source="Components/Gantt/dependencies.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("里程碑与汇总", "Milestones and Roll-up")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        没有长度的任务就是里程碑，会画成标记而不是一根谁也看不见的条。汇总条的进度<strong>按每个子任务的时长加权</strong>，所以做完一半的两周，比做完的半天更有分量。当汇总条带着另行商定的基线时，就把 <code class="text-xs bg-muted px-1 py-0.5 rounded">RollUpSummaries</code> 关掉。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        A task with no length is a milestone and is drawn as a marker rather than a bar
+                        nobody can see. A summary's progress is <strong>weighted by how long each child
+                        runs</strong>, so a fortnight half done outweighs an afternoon finished. Turn
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">RollUpSummaries</code> off
+                        where a summary carries a separately agreed baseline instead.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <label class="flex items-center gap-2 text-sm">
+                    <Checkbox Checked="@rollUp" CheckedChanged="@(v => rollUp = v)" aria-label="@(L.T("汇总子任务", "Roll up summaries"))" />
+                    <span>@L.T("由子任务算出汇总条", "Roll up summaries from their children")</span>
+                </label>
+
+                <Gantt TItem="PlanTask"
+                         Data="@plan"
+                         IdSelector="@(t => t.Id)"
+                         ParentIdSelector="@(t => t.Parent)"
+                         TextSelector="@(t => t.Name)"
+                         StartSelector="@(t => t.Start)"
+                         EndSelector="@(t => t.End)"
+                         ProgressSelector="@(t => t.Progress)"
+                         RollUpSummaries="@rollUp"
+                         ShowToolbar="false"
+                         Height="26rem"
+                         AriaLabel="@(L.T("汇总开关可开可关的计划", "Plan with roll-up switched on or off"))">
+                    <Columns>
+                        <GanttColumn TItem="PlanTask" Title="@(L.T("任务", "Task"))" Width="230" IsTree="true" />
+                        <GanttColumn TItem="PlanTask" Title="@(L.T("声明值", "Declared"))" Width="180"
+                                       Value="@(t => $"{t.Start:d MMM} - {t.End:d MMM} @ {t.Progress:P0}")" />
+                    </Columns>
+                </Gantt>
+
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-xs text-muted-foreground">
+                        <strong>声明值</strong>这一列读的是任务当初写下来的样子。汇总开着时，汇总条的条形会故意与它不一致。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-xs text-muted-foreground">
+                        The <strong>Declared</strong> column reads the task as it was written down. With
+                        roll-up on, a summary's bar disagrees with it on purpose.
+                    </p>
+                                </text>
+}
+            </div>
+
+            @DataPanel("rollup")
+
+            <CodeBlock Source="Components/Gantt/rollup.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("拖拽", "Dragging")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        打开 <code class="text-xs bg-muted px-1 py-0.5 rounded">AllowDrag</code> 就能移动条形，打开 <code class="text-xs bg-muted px-1 py-0.5 rounded">AllowResize</code> 就能拉动它的两端，打开 <code class="text-xs bg-muted px-1 py-0.5 rounded">AllowProgressDrag</code> 就得到一个设置任务完成进度的手柄。三者都从同一个回调回来，由 <code class="text-xs bg-muted px-1 py-0.5 rounded">Kind</code> 说明是哪一种。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        Turn on <code class="text-xs bg-muted px-1 py-0.5 rounded">AllowDrag</code> to
+                        move a bar,
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AllowResize</code> to pull its
+                        edges, and
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AllowProgressDrag</code> for a
+                        grip that sets how far along a task is. All three come back through the one
+                        callback, with <code class="text-xs bg-muted px-1 py-0.5 rounded">Kind</code>
+                        saying which.
+                    </p>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        图表不会写你的任务：它把这次拖拽要求的日期交给你，由你来保存；或者把 <code class="text-xs bg-muted px-1 py-0.5 rounded">Cancel</code> 置上，条形就弹回原处。除非你把 <code class="text-xs bg-muted px-1 py-0.5 rounded">SnapToSlot</code> 关掉，落点都是完整的刻度。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        The chart does not write to your task: it hands you the dates the drag is asking
+                        for and you store them, or set
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Cancel</code> and the bar
+                        snaps back. Drags land on whole slots unless you turn
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">SnapToSlot</code> off.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <Gantt TItem="PlanTask"
+                         Data="@editable"
+                         IdSelector="@(t => t.Id)"
+                         ParentIdSelector="@(t => t.Parent)"
+                         TextSelector="@(t => t.Name)"
+                         StartSelector="@(t => t.Start)"
+                         EndSelector="@(t => t.End)"
+                         ProgressSelector="@(t => t.Progress)"
+                         AllowDrag="true"
+                         AllowResize="true"
+                         AllowProgressDrag="true"
+                         OnTaskChange="@Reschedule"
+                         ShowToolbar="false"
+                         Height="26rem"
+                         AriaLabel="@(L.T("可以拖动的计划", "Plan you can drag"))">
+                    <Columns>
+                        <GanttColumn TItem="PlanTask" Title="@(L.T("任务", "Task"))" Width="230" IsTree="true" />
+                        <GanttColumn TItem="PlanTask" Title="@(L.T("开始", "Start"))" Width="100"
+                                       Value="@(t => t.Start)" Format="d MMM" />
+                        <GanttColumn TItem="PlanTask" Title="@(L.T("结束", "End"))" Width="100"
+                                       Value="@(t => t.End)" Format="d MMM" />
+                    </Columns>
+                </Gantt>
+
+                <div class="flex items-center gap-3">
+                    <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="ResetEditable">
+                        @L.T("恢复原样", "Put it back")
+                    </Button>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <p class="text-sm text-muted-foreground">
+                            @(lastChange ?? "拖一下条形、拉一端边缘，或者滑动条内的那个菱形。汇总条是由子任务算出来的，所以请拖叶子任务。")
+                        </p>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <p class="text-sm text-muted-foreground">
+                            @(lastChange ?? "Drag a bar, pull an edge, or slide the diamond inside it. A summary is worked out from its children, so use a leaf.")
+                        </p>
+                                        </text>
+}
+                </div>
+            </div>
+
+            <CodeBlock Source="Components/Gantt/dragging.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("绘制依赖关系", "Drawing Dependencies")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AllowLinking</code> 会在每根条的两端各放一个圆点。从一个圆点拖到另一根条上，你碰到的那两端就决定了类型：从末尾出发、落在开始上，那就是完成到开始。没有菜单来问你四种里想选哪种，因为这个手势已经说清楚了。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AllowLinking</code> puts a dot
+                        at each end of a bar. Drag from one to another bar and the two ends you touched
+                        decide the type: leave from the end, drop on a start, and that is a finish to
+                        start. There is no menu asking which of the four you meant, because the gesture
+                        has already said.
+                    </p>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        点击一根箭头就能删掉它。添加与删除都走可以拒绝的回调 —— 本页会回绝一条在时间上倒着指的箭头，这正是真实计划用来做环路检测的挂点。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        Click an arrow to remove it. Both go through callbacks that can refuse &mdash;
+                        this page turns down a link that would point backwards in time, which is the
+                        hook a real plan would use for loop detection.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <Gantt TItem="PlanTask"
+                         Data="@linkable"
+                         IdSelector="@(t => t.Id)"
+                         ParentIdSelector="@(t => t.Parent)"
+                         TextSelector="@(t => t.Name)"
+                         StartSelector="@(t => t.Start)"
+                         EndSelector="@(t => t.End)"
+                         ProgressSelector="@(t => t.Progress)"
+                         Dependencies="@drawn"
+                         AllowLinking="true"
+                         OnDependencyCreate="@AddLink"
+                         OnDependencyClick="@RemoveLink"
+                         ShowToolbar="false"
+                         Height="26rem"
+                         AriaLabel="@(L.T("可以连线画依赖的计划", "Plan you can draw dependencies on"))">
+                    <Columns>
+                        <GanttColumn TItem="PlanTask" Title="@(L.T("任务", "Task"))" Width="230" IsTree="true" />
+                    </Columns>
+                </Gantt>
+
+                <div class="flex items-center gap-3">
+                    <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="ResetLinks">
+                        @L.T("清空箭头", "Clear them")
+                    </Button>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <p class="text-sm text-muted-foreground">
+                            @(lastLink ?? $"箭头 {drawn.Count} 根。把指针移到一根条上，再把它的一个圆点拖到另一根条上。")
+                        </p>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <p class="text-sm text-muted-foreground">
+                            @(lastLink ?? $"{drawn.Count} arrows. Hover a bar, then drag one of its dots onto another bar.")
+                        </p>
+                                        </text>
+}
+                </div>
+            </div>
+
+            <CodeBlock Source="Components/Gantt/linking.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("重排任务清单", "Reordering the Task List")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AllowRowDrag</code> 会在每行放一个手柄。落在两行之间，这个任务就成为它们的同级；落在某行的正中，它就成为那个任务的子任务。重排与换父任务是同一个手势，两者都作为 <code class="text-xs bg-muted px-1 py-0.5 rounded">OnTaskMove</code> 到达，新的父任务已经算好。任务不能落到它自己的分支里。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AllowRowDrag</code> puts a grip
+                        on each row. Drop between two rows and the task becomes their sibling; drop onto
+                        the middle of one and it becomes that task's child. Reordering and re-parenting
+                        are the same gesture, and both arrive as
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">OnTaskMove</code> with the new
+                        parent already worked out. A task cannot be dropped into its own branch.
+                    </p>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <strong>新增、删除与改名都不需要图表额外提供什么。</strong>列的内容就是你自己写在你任务上的标记，所以这里的名称是一个输入框，最后一列放着一个删除按钮。下一次渲染时，集合里有什么图表就画什么。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <strong>Adding, deleting and renaming need nothing from the chart.</strong> A
+                        column's content is your markup over your own task, so the name here is an input
+                        and the last column holds a delete button. The chart draws whatever the
+                        collection says on the next render.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <div class="flex flex-wrap items-center gap-2">
+                    <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="AddTask">
+                        @L.T("新增任务", "Add a task")
+                    </Button>
+                    <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Small" OnClick="ResetOrderable">
+                        @L.T("恢复原样", "Put it back")
+                    </Button>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <p class="text-sm text-muted-foreground">
+                            @(lastMove ?? "抓住某行的手柄拖动它。落在另一行的正中就能把它嵌套进去。")
+                        </p>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <p class="text-sm text-muted-foreground">
+                            @(lastMove ?? "Drag a row by its grip. Drop on the middle of another row to nest it.")
+                        </p>
+                                        </text>
+}
+                </div>
+
+                <Gantt TItem="PlanTask"
+                         Data="@orderable"
+                         IdSelector="@(t => t.Id)"
+                         ParentIdSelector="@(t => t.Parent)"
+                         TextSelector="@(t => t.Name)"
+                         StartSelector="@(t => t.Start)"
+                         EndSelector="@(t => t.End)"
+                         ProgressSelector="@(t => t.Progress)"
+                         AllowRowDrag="true"
+                         OnTaskMove="@MoveTask"
+                         ShowToolbar="false"
+                         Height="26rem"
+                         AriaLabel="@(L.T("可以重排的计划", "Plan you can reorder"))">
+                    <Columns>
+                        <GanttColumn TItem="PlanTask" Title="@(L.T("任务", "Task"))" Width="250" IsTree="true">
+                            <Input Value="@context.Item.Name"
+                                     ValueChanged="@(value => context.Item.Name = value ?? string.Empty)"
+                                     UpdateTiming="UpdateTiming.Debounced"
+                                     Class="h-7 text-sm"
+                                     aria-label="@(L.IsChinese ? $"重命名 {context.Text}" : $"Rename {context.Text}")" />
+                        </GanttColumn>
+                        <GanttColumn TItem="PlanTask" Title="" Width="56" Align="GanttColumnAlign.Center">
+                            <Button Variant="ButtonVariant.Ghost"
+                                      Size="ButtonSize.Icon"
+                                      OnClick="@(() => DeleteTask(context.Item))"
+                                      aria-label="@(L.IsChinese ? $"删除 {context.Text}" : $"Delete {context.Text}")">
+                                <LucideIcon Name="trash-2" Size="14" />
+                            </Button>
+                        </GanttColumn>
+                    </Columns>
+                </Gantt>
+            </div>
+
+            <CodeBlock Source="Components/Gantt/reordering.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("工作日与颜色", "Working Days and Colour")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        默认给周六与周日铺底色；用 <code class="text-xs bg-muted px-1 py-0.5 rounded">NonWorkingDays</code> 说出你自己的休息日。一条线标出此刻。<code class="text-xs bg-muted px-1 py-0.5 rounded">BarColorSelector</code> 按任务对你的意义给条形上色 —— 这里是它归谁负责。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        Saturday and Sunday are shaded by default; name your own with
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">NonWorkingDays</code>. A line
+                        marks now. <code class="text-xs bg-muted px-1 py-0.5 rounded">BarColorSelector</code>
+                        paints a bar by whatever the task means to you &mdash; here, who owns it.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <Gantt TItem="PlanTask"
+                         Data="@plan"
+                         IdSelector="@(t => t.Id)"
+                         ParentIdSelector="@(t => t.Parent)"
+                         TextSelector="@(t => t.Name)"
+                         StartSelector="@(t => t.Start)"
+                         EndSelector="@(t => t.End)"
+                         ProgressSelector="@(t => t.Progress)"
+                         BarColorSelector="@(t => OwnerColor(t.Owner))"
+                         ShowTaskLabels="true"
+                         NonWorkingDays="@(new[] { DayOfWeek.Friday, DayOfWeek.Saturday })"
+                         ShowToolbar="false"
+                         Height="26rem"
+                         AriaLabel="@(L.T("按负责人着色的计划", "Plan coloured by owner"))">
+                    <Columns>
+                        <GanttColumn TItem="PlanTask" Title="@(L.T("任务", "Task"))" Width="230" IsTree="true" />
+                        <GanttColumn TItem="PlanTask" Title="@(L.T("负责人", "Owner"))" Width="110" Value="@(t => t.Owner)" />
+                    </Columns>
+                </Gantt>
+            </div>
+
+            <CodeBlock Source="Components/Gantt/working-days.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("折叠分支", "Folding Branches")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        图表记的是<em>收起</em>的集合而不是展开的，这一点与 <code class="text-xs bg-muted px-1 py-0.5 rounded">DataGrid</code> 的 <code class="text-xs bg-muted px-1 py-0.5 rounded">ExpandedNodes</code> 相反：计划是按展开来读的，所以空集合才是读者第一眼想要的状态。绑定 <code class="text-xs bg-muted px-1 py-0.5 rounded">CollapsedIds</code> 就可以从外面来驱动它。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        The chart names the <em>closed</em> set rather than the open one, unlike
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">DataGrid</code>'s
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">ExpandedNodes</code>: a plan
+                        is read open, so an empty set is the state a reader wants first. Bind
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">CollapsedIds</code> to drive
+                        it from outside.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <div class="flex flex-wrap items-center gap-2">
+                    @foreach (var phase in plan.Where(t => t.Parent is null))
+                    {
+                        var isClosed = closed.Contains(phase.Id);
+                        <Button Variant="@(isClosed ? ButtonVariant.Default : ButtonVariant.Outline)"
+                                  Size="ButtonSize.Small"
+                                  OnClick="@(() => Fold(phase.Id))">
+                            @(isClosed ? L.T("展开", "Open") : L.T("折叠", "Close")) @phase.Name
+                        </Button>
+                    }
+                </div>
+
+                <Gantt TItem="PlanTask"
+                         Data="@plan"
+                         IdSelector="@(t => t.Id)"
+                         ParentIdSelector="@(t => t.Parent)"
+                         TextSelector="@(t => t.Name)"
+                         StartSelector="@(t => t.Start)"
+                         EndSelector="@(t => t.End)"
+                         ProgressSelector="@(t => t.Progress)"
+                         Dependencies="@links"
+                         CollapsedIds="@closed"
+                         CollapsedIdsChanged="@(ids => closed = ids)"
+                         ShowToolbar="false"
+                         Height="24rem"
+                         AriaLabel="@(L.T("折叠了分支的计划", "Plan with branches folded"))" />
+            </div>
+
+            <CodeBlock Source="Components/Gantt/folding.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("从右到左", "Right to Left")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        时间顺着页面阅读方向流淌。任务清单挪到右边，时间轴从右边缘开始，条形、底色与箭头都跟着转过来 —— 包括箭头尖，而那是 SVG 自己不会做的那一部分。这里什么都没配置：图表是用逻辑偏移定位的，剩下的交给页面自身的方向。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        Time runs the way the page reads. The task list moves to the right, the timeline
+                        starts at the right edge, and the bars, the shading and the arrows all turn round
+                        with it &mdash; including the arrowheads, which is the part an SVG will not do on
+                        its own. Nothing here is configured: the chart is placed with logical offsets and
+                        the page's own direction does the rest.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6" dir="rtl">
+                <Gantt TItem="PlanTask"
+                         Data="@plan"
+                         IdSelector="@(t => t.Id)"
+                         ParentIdSelector="@(t => t.Parent)"
+                         TextSelector="@(t => t.Name)"
+                         StartSelector="@(t => t.Start)"
+                         EndSelector="@(t => t.End)"
+                         ProgressSelector="@(t => t.Progress)"
+                         Dependencies="@links"
+                         ShowToolbar="false"
+                         Height="24rem"
+                         AriaLabel="@(L.T("从右到左页面里的计划", "Plan in a right-to-left page"))">
+                    <Columns>
+                        <GanttColumn TItem="PlanTask" Title="@(L.T("任务", "Task"))" Width="230" IsTree="true" />
+                    </Columns>
+                </Gantt>
+            </div>
+
+            <CodeBlock Source="Components/Gantt/rtl.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("无界面（Headless）", "Headless")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AtomBlazor.Primitives</code> 里的 <code class="text-xs bg-muted px-1 py-0.5 rounded">GanttBuilder</code> 就是引擎本身 —— 树、汇总、时间轴与解析好的箭头，不含任何标记。这里它把同一份计划画成了文本。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">GanttBuilder</code> in
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AtomBlazor.Primitives</code>
+                        is the engine on its own &mdash; the tree, the roll-up, the timeline and the
+                        resolved arrows, with no markup. Here it is drawing the same plan as text.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <pre class="overflow-auto text-xs leading-5 font-mono">@HeadlessDump</pre>
+            </div>
+
+            <CodeBlock Source="Components/Gantt/headless.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            </div>
+            <div class="space-y-4">
+                <ApiReference ComponentName="Gantt&lt;TItem&gt;">
+                    <ApiParameter Name="Data" Type="IEnumerable&lt;TItem&gt;?">
+                        @L.T("任务集合，顺序不限。树会依据父任务标识重建。", "The tasks, in any order. The tree is rebuilt from the parent identifiers.")
+                    </ApiParameter>
+                    <ApiParameter Name="IdSelector" Type="Func&lt;TItem, string&gt;">
+                        @L.T("读取任务的标识。整份计划内必须唯一。", "Reads a task's identifier. Must be unique across the whole set.")
+                    </ApiParameter>
+                    <ApiParameter Name="TextSelector" Type="Func&lt;TItem, string&gt;">
+                        @L.T("读取任务的名称。", "Reads a task's name.")
+                    </ApiParameter>
+                    <ApiParameter Name="StartSelector" Type="Func&lt;TItem, DateTimeOffset&gt;">
+                        @L.T("读取任务的开始时间。", "Reads a task's start.")
+                    </ApiParameter>
+                    <ApiParameter Name="EndSelector" Type="Func&lt;TItem, DateTimeOffset&gt;">
+                        @L.T("读取任务的结束时间。与开始时间相同即成为里程碑。", "Reads a task's end. Equal to the start makes a milestone.")
+                    </ApiParameter>
+                    <ApiParameter Name="ParentIdSelector" Type="Func&lt;TItem, string?&gt;?">
+                        @L.T("读取这个任务所属父任务的标识。不设置就是平铺的计划。父任务不在集合内时视为没有父任务。", "Reads the identifier of the task this one sits under. Leave unset for a flat plan. A parent that is not in the set is treated as no parent.")
+                    </ApiParameter>
+                    <ApiParameter Name="ProgressSelector" Type="Func&lt;TItem, double&gt;?">
+                        @L.T("读取任务的完成进度，取值 0 到 1。超出范围的数值会被截断。", "Reads how far along a task is, from 0 to 1. Values outside are clamped.")
+                    </ApiParameter>
+                    <ApiParameter Name="BarColorSelector" Type="Func&lt;TItem, string?&gt;?">
+                        @L.T("读取条形的颜色，写作任意 CSS 颜色。为 null 时使用主题色。", "Reads a bar's colour, as any CSS colour. Null uses the theme's.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="Columns" Type="RenderFragment?">
+                            任务清单里 <code class="text-xs bg-muted px-1 py-0.5 rounded">GanttColumn</code> 的声明。不设置时显示一列任务名称。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="Columns" Type="RenderFragment?">
+                            The <code class="text-xs bg-muted px-1 py-0.5 rounded">GanttColumn</code> declarations of the task list. Unset shows one column of task names.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="Dependencies" Type="IEnumerable&lt;GanttDependency&gt;?">
+                        @L.T("任务之间画出的箭头。", "The arrows drawn between tasks.")
+                    </ApiParameter>
+                    <ApiParameter Name="ShowDependencies" Type="bool" Default="true">
+                        @L.T("是否绘制这些箭头。", "Whether the arrows are drawn.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="Zoom" Type="GanttZoom" Default="Day">
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">Hour</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Day</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Week</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Month</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Quarter</code> 或 <code class="text-xs bg-muted px-1 py-0.5 rounded">Year</code>。可双向绑定。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="Zoom" Type="GanttZoom" Default="Day">
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">Hour</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Day</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Week</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Month</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Quarter</code> or <code class="text-xs bg-muted px-1 py-0.5 rounded">Year</code>. Two-way bindable.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="SlotWidth" Type="int?">
+                        @L.T("单个刻度绘制出的宽度，单位为像素。为 null 时按缩放档位取宽度。", "How wide one slot is drawn, in pixels. Null takes a width from the zoom.")
+                    </ApiParameter>
+                    <ApiParameter Name="RangeStart" Type="DateTimeOffset?">
+                        @L.T("时间轴左边缘的显式起点。为 null 时取最早的那个任务。", "An explicit left edge for the timeline. Null takes it from the earliest task.")
+                    </ApiParameter>
+                    <ApiParameter Name="RangeEnd" Type="DateTimeOffset?">
+                        @L.T("时间轴的显式右边缘。为 null 时取最晚的那个任务。", "An explicit right edge. Null takes it from the latest task.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="RangeSnap" Type="GanttRangeSnap" Default="Major">
+                            时间轴在任务之外还要多铺多远：<code class="text-xs bg-muted px-1 py-0.5 rounded">None</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Minor</code> 或 <code class="text-xs bg-muted px-1 py-0.5 rounded">Major</code>。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="RangeSnap" Type="GanttRangeSnap" Default="Major">
+                            How far past the tasks the timeline is widened: <code class="text-xs bg-muted px-1 py-0.5 rounded">None</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Minor</code> or <code class="text-xs bg-muted px-1 py-0.5 rounded">Major</code>.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="NonWorkingDays" Type="IReadOnlyCollection&lt;DayOfWeek&gt;?">
+                        @L.T("被铺上底色视为非工作日的星期。为 null 时铺周六与周日。", "The days shaded as non-working. Null shades Saturday and Sunday.")
+                    </ApiParameter>
+                    <ApiParameter Name="ShowNonWorkingDays" Type="bool" Default="true">
+                        @L.T("这层底色到底画不画。", "Whether the shading is drawn at all.")
+                    </ApiParameter>
+                    <ApiParameter Name="ShowToday" Type="bool" Default="true">
+                        @L.T("是否用一条线标出当前时刻。", "Whether a line marks the current instant.")
+                    </ApiParameter>
+                    <ApiParameter Name="ScrollToToday" Type="bool" Default="true">
+                        @L.T("首次绘制时是否把时间轴滚到今天。", "Whether the timeline scrolls to today the first time it is drawn.")
+                    </ApiParameter>
+                    <ApiParameter Name="RowHeight" Type="int" Default="36">
+                        @L.T("单行绘制出的高度，单位为像素。", "How tall one row is drawn, in pixels.")
+                    </ApiParameter>
+                    <ApiParameter Name="HeaderRowHeight" Type="int" Default="30">
+                        @L.T("表头每一层绘制出的高度，单位为像素。", "How tall one tier of the header is drawn, in pixels.")
+                    </ApiParameter>
+                    <ApiParameter Name="CollapsedIds" Type="HashSet&lt;string&gt;?">
+                        @L.T("子任务被隐藏起来的那些任务的标识。可双向绑定。为空即全部显示。", "The identifiers of the tasks whose children are hidden. Two-way bindable. Empty shows everything.")
+                    </ApiParameter>
+                    <ApiParameter Name="DefaultExpandAll" Type="bool" Default="true">
+                        @L.T("是否每个分支一开始就是展开的。", "Whether every branch starts open.")
+                    </ApiParameter>
+                    <ApiParameter Name="RollUpSummaries" Type="bool" Default="true">
+                        @L.T("汇总条的日期与进度是否取自它的子任务。", "Whether a summary takes its dates and progress from its children.")
+                    </ApiParameter>
+                    <ApiParameter Name="AllowDrag" Type="bool" Default="false">
+                        @L.T("条形是否可以沿时间轴拖动。", "Whether a bar can be dragged along the timeline.")
+                    </ApiParameter>
+                    <ApiParameter Name="AllowResize" Type="bool" Default="false">
+                        @L.T("条形两端是否可以拖动来改变长度。", "Whether a bar's edges can be dragged to change its length.")
+                    </ApiParameter>
+                    <ApiParameter Name="AllowProgressDrag" Type="bool" Default="false">
+                        @L.T("条形内部的手柄是否可以拖动，用来设置任务的完成进度。", "Whether a grip inside a bar can be dragged to set how far along the task is.")
+                    </ApiParameter>
+                    <ApiParameter Name="AllowLinking" Type="bool" Default="false">
+                        @L.T("是否可以从条形一端的圆点拖到另一根条上画出依赖，并在点击它的箭头时删除。", "Whether a dependency can be drawn by dragging from a dot at one end of a bar onto another bar, and removed by clicking its arrow.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="OnDependencyCreate" Type="EventCallback&lt;GanttDependencyContext&lt;TItem&gt;&gt;">
+                            画出一条依赖时触发。把它加进你的集合，或者把 <code class="text-xs bg-muted px-1 py-0.5 rounded">Cancel</code> 置上。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="OnDependencyCreate" Type="EventCallback&lt;GanttDependencyContext&lt;TItem&gt;&gt;">
+                            Fired when a dependency is drawn. Add it to your collection, or set <code class="text-xs bg-muted px-1 py-0.5 rounded">Cancel</code>.
+                        </ApiParameter>
+                                        </text>
+}
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="OnDependencyClick" Type="EventCallback&lt;GanttDependency&gt;">
+                            点击箭头时触发，这也是删除箭头的途径。只有在 <code class="text-xs bg-muted px-1 py-0.5 rounded">AllowLinking</code> 打开时才可达。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="OnDependencyClick" Type="EventCallback&lt;GanttDependency&gt;">
+                            Fired when an arrow is clicked, which is how one gets deleted. Only reachable while <code class="text-xs bg-muted px-1 py-0.5 rounded">AllowLinking</code> is on.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="SnapToSlot" Type="bool" Default="true">
+                        @L.T("拖动是否落在完整的刻度上。", "Whether a drag lands on whole slots.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="OnTaskChange" Type="EventCallback&lt;GanttChangeContext&lt;TItem&gt;&gt;">
+                            条形被移动、被改长度或进度被拖动时触发。<code class="text-xs bg-muted px-1 py-0.5 rounded">Kind</code> 说明是哪一种。把新值存下来，或者把 <code class="text-xs bg-muted px-1 py-0.5 rounded">Cancel</code> 置上。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="OnTaskChange" Type="EventCallback&lt;GanttChangeContext&lt;TItem&gt;&gt;">
+                            Fired when a bar is moved, resized or its progress dragged. <code class="text-xs bg-muted px-1 py-0.5 rounded">Kind</code> says which. Store the new values, or set <code class="text-xs bg-muted px-1 py-0.5 rounded">Cancel</code>.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="OnTaskClick" Type="EventCallback&lt;TItem&gt;">
+                        @L.T("点击条形时触发。", "Fired when a bar is clicked.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="OnBuilt" Type="EventCallback&lt;GanttChart&lt;TItem&gt;?&gt;">
+                            图表构建完成之后触发。请用这个回调，而不是通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@ref</code> 去读 <code class="text-xs bg-muted px-1 py-0.5 rounded">Chart</code>，那样永远慢一次渲染。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="OnBuilt" Type="EventCallback&lt;GanttChart&lt;TItem&gt;?&gt;">
+                            Fired after the chart is built. Use this rather than reading <code class="text-xs bg-muted px-1 py-0.5 rounded">Chart</code> through <code class="text-xs bg-muted px-1 py-0.5 rounded">@@ref</code>, which is always one render behind.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="BarTemplate" Type="RenderFragment&lt;GanttRow&lt;TItem&gt;&gt;?">
+                        @L.T("条形内部绘制的内容，替换默认的填充。", "What is drawn inside a bar, replacing the default fill.")
+                    </ApiParameter>
+                    <ApiParameter Name="AllowRowDrag" Type="bool" Default="false">
+                        @L.T("行是否可以沿任务清单上下拖动。落在两行之间是重排；落在某一行正中是换父任务。", "Whether a row can be dragged up and down the task list. Between two rows reorders; onto the middle of one re-parents.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="OnTaskMove" Type="EventCallback&lt;GanttMoveContext&lt;TItem&gt;&gt;">
+                            行被放到别处时触发，新的父任务 <code class="text-xs bg-muted px-1 py-0.5 rounded">NewParentId</code> 已经算好。把它应用到你的集合上，或者把 <code class="text-xs bg-muted px-1 py-0.5 rounded">Cancel</code> 置上。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="OnTaskMove" Type="EventCallback&lt;GanttMoveContext&lt;TItem&gt;&gt;">
+                            Fired when a row is dropped somewhere else, with <code class="text-xs bg-muted px-1 py-0.5 rounded">NewParentId</code> already worked out. Apply it to your collection, or set <code class="text-xs bg-muted px-1 py-0.5 rounded">Cancel</code>.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="ShowLegend" Type="bool" Default="true">
+                        @L.T("图下方是否显示这些形状的图例。它只列出那张图真正画出来的东西。", "Whether a key to the shapes is shown under the chart. It lists only what that chart actually draws.")
+                    </ApiParameter>
+                    <ApiParameter Name="ShowTooltip" Type="bool" Default="true">
+                        @L.T("悬停在条形上时是否显示一张包含日期、长度与进度的卡片。", "Whether hovering a bar shows a card with its dates, length and progress.")
+                    </ApiParameter>
+                    <ApiParameter Name="TooltipTemplate" Type="RenderFragment&lt;GanttRow&lt;TItem&gt;&gt;?">
+                        @L.T("悬停卡片里放的内容，替换默认的几行。", "What the hover card holds, replacing the default lines.")
+                    </ApiParameter>
+                    <ApiParameter Name="ShowTaskLabels" Type="bool" Default="false">
+                        @L.T("任务名称是否写在它的条形旁边。默认关闭，因为任务清单已经固定在侧面了。", "Whether a task's name is written beside its bar. Off by default, because the task list is already pinned to the side.")
+                    </ApiParameter>
+                    <ApiParameter Name="Resizable" Type="bool" Default="true">
+                        @L.T("列的边缘是否可以拖动来改变宽度。", "Whether a column's edge can be dragged to change its width.")
+                    </ApiParameter>
+                    <ApiParameter Name="MinColumnWidth" Type="int" Default="60">
+                        @L.T("被拖动的列最窄可以变成多宽，单位为像素。", "How narrow a dragged column may get, in pixels.")
+                    </ApiParameter>
+                    <ApiParameter Name="ShowToolbar" Type="bool" Default="true">
+                        @L.T("是否显示带有今天、展开、折叠与缩放按钮的工具栏。", "Whether the toolbar with Today, expand, collapse and zoom is shown.")
+                    </ApiParameter>
+                    <ApiParameter Name="ShowZoomControls" Type="bool" Default="true">
+                        @L.T("工具栏是否提供各个缩放档位。", "Whether the toolbar offers the zoom levels.")
+                    </ApiParameter>
+                    <ApiParameter Name="Height" Type="string?">
+                        @L.T("滚动区域的高度，写作 CSS 长度。滚动时表头与任务清单保持不动。", "The height of the scrolling area, as a CSS length. The header and the task list stay put while the rest scrolls.")
+                    </ApiParameter>
+                    <ApiParameter Name="Loading" Type="bool" Default="false">
+                        @L.T("是否用加载指示取代图表。", "Whether a loading indicator replaces the chart.")
+                    </ApiParameter>
+                    <ApiParameter Name="EmptyMessage" Type="string?">
+                        @L.T("没有内容可绘制时显示的消息。", "The message shown when there is nothing to draw.")
+                    </ApiParameter>
+                    <ApiParameter Name="AriaLabel" Type="string?">
+                        @L.T("读屏软件为这张图表播报的标签。", "The label a screen reader announces for the chart.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="GanttColumn&lt;TItem&gt;">
+                    <ApiParameter Name="Title" Type="string">
+                        @L.T("列标题。", "The heading.")
+                    </ApiParameter>
+                    <ApiParameter Name="Width" Type="int" Default="140">
+                        @L.T("这一列绘制出的宽度，单位为像素。", "How wide the column is drawn, in pixels.")
+                    </ApiParameter>
+                    <ApiParameter Name="Value" Type="Func&lt;TItem, object?&gt;?">
+                        @L.T("从你的任务读取单元格的值，它也是排序比较所用的依据。树列上不设置时显示任务的名称。", "Reads the cell's value from your task, and is what a sort compares. Unset on the tree column shows the task's name.")
+                    </ApiParameter>
+                    <ApiParameter Name="Format" Type="string?">
+                        @L.T("写入这个值所使用的格式，为标准 .NET 格式字符串。", "The format the value is written with, as a standard .NET format string.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="ChildContent" Type="RenderFragment&lt;GanttRow&lt;TItem&gt;&gt;?">
+                            单元格的内容，用来替换 <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code>。这里的上下文是汇总之后的那一行，所以写在这里的日期与它旁边的条形一致。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="ChildContent" Type="RenderFragment&lt;GanttRow&lt;TItem&gt;&gt;?">
+                            The cell's content, which replaces <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code>. The context is the row after roll-up, so a date here agrees with the bar beside it.
+                        </ApiParameter>
+                                        </text>
+}
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="Align" Type="GanttColumnAlign" Default="Start">
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">Start</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Center</code> 或 <code class="text-xs bg-muted px-1 py-0.5 rounded">End</code>。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="Align" Type="GanttColumnAlign" Default="Start">
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">Start</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Center</code> or <code class="text-xs bg-muted px-1 py-0.5 rounded">End</code>.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="IsTree" Type="bool" Default="false">
+                        @L.T("这一列是否承载展开按钮与缩进。都不设置时，由第一个声明的列来承担。", "Whether this column carries the expander and the indent. Unset, the first column declared takes it.")
+                    </ApiParameter>
+                    <ApiParameter Name="Sortable" Type="bool" Default="false">
+                        @L.T("列标题是否在自己的分支内对任务排序。", "Whether the heading sorts the tasks, within their branch.")
+                    </ApiParameter>
+                    <ApiParameter Name="Comparer" Type="IComparer&lt;object?&gt;?">
+                        @L.T("这一列的取值如何排序。默认按取值自身的顺序。", "How this column's values are ordered. Defaults to the value's own order.")
+                    </ApiParameter>
+                    <ApiParameter Name="Key" Type="string?">
+                        @L.T("一个稳定的标识。默认为列标题。", "A stable identifier. Defaults to the title.")
+                    </ApiParameter>
+                </ApiReference>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string? basicSummary;
+
+    /// <summary>
+    /// Reads the finished chart. This is the arrangement that used to hang: the handler lives on
+    /// the page that declares the chart, so every call re-renders the page and sets the chart's
+    /// parameters again.
+    /// </summary>
+    private void DescribeBuild(GanttChart<PlanTask>? chart)
+    {
+        if (chart is null)
+        {
+            basicSummary = null;
+            return;
+        }
+
+        var milestones = chart.Rows.Count(r => r.IsMilestone);
+        var summaries = chart.Rows.Count(r => r.IsSummary);
+
+        basicSummary =
+            $"{chart.TaskCount} tasks over {chart.Axis.SlotCount} days, " +
+            $"{summaries} of them summaries and {milestones} milestones, " +
+            $"from {chart.Axis.Start:d MMM yyyy} to {chart.Axis.End:d MMM yyyy}.";
+    }
+
+    /// <summary>One task of the plan. A class, not a record, so the drag demo can write to it.</summary>
+    public sealed class PlanTask
+    {
+        public required string Id { get; init; }
+
+        public string? Parent { get; set; }
+
+        public required string Name { get; set; }
+
+        public required string Owner { get; init; }
+
+        public DateTimeOffset Start { get; set; }
+
+        public DateTimeOffset End { get; set; }
+
+        public double Progress { get; set; }
+    }
+
+    /// <summary>The Monday of last week, so that today lands in the middle of the plan.</summary>
+    private static readonly DateTimeOffset origin = Monday();
+
+    private static DateTimeOffset Monday()
+    {
+        var today = DateTimeOffset.Now.Date;
+        var back = ((int)today.DayOfWeek + 6) % 7;
+        return new DateTimeOffset(today.AddDays(-back - 7), DateTimeOffset.Now.Offset);
+    }
+
+    private static DateTimeOffset Day(int offset) => origin.AddDays(offset);
+
+    private static PlanTask Task(string id, string? parent, string name, string owner, int start, int length, double progress = 0) =>
+        new()
+        {
+            Id = id,
+            Parent = parent,
+            Name = name,
+            Owner = owner,
+            Start = Day(start),
+            End = Day(start + length),
+            Progress = progress,
+        };
+
+    private static List<PlanTask> BuildPlan() =>
+    [
+        Task("discovery", null, "Discovery", "Ana", 0, 0),
+        Task("interviews", "discovery", "Customer interviews", "Ana", 0, 5, 1.0),
+        Task("survey", "discovery", "Pricing survey", "Ben", 3, 4, 1.0),
+        Task("findings", "discovery", "Findings agreed", "Ana", 8, 0),
+
+        Task("design", null, "Design", "Cal", 0, 0),
+        Task("wireframes", "design", "Wireframes", "Cal", 8, 5, 1.0),
+        Task("visual", "design", "Visual design", "Cal", 0, 0),
+        Task("palette", "visual", "Colour and type", "Cal", 13, 4, 0.75),
+        Task("components", "visual", "Component sheet", "Dee", 13, 7, 0.4),
+        Task("signoff", "design", "Design signed off", "Ana", 21, 0),
+
+        Task("build", null, "Build", "Ben", 0, 0),
+        Task("api", "build", "Scheduling API", "Ben", 21, 10, 0.35),
+        Task("web", "build", "Web client", "Dee", 24, 12, 0.2),
+        Task("integrate", "build", "Integration pass", "Ben", 36, 4),
+
+        Task("launch", null, "Launch", "Ana", 0, 0),
+        Task("beta", "launch", "Private beta", "Ana", 40, 7),
+        Task("docs", "launch", "Docs and release notes", "Dee", 38, 6),
+        Task("ship", "launch", "Ship", "Ana", 47, 0),
+    ];
+
+    private readonly List<PlanTask> plan = BuildPlan();
+
+    private List<PlanTask> editable = BuildPlan();
+
+    private static readonly GanttDependency[] links =
+    [
+        new("interviews", "survey"),
+        new("survey", "findings"),
+        new("findings", "wireframes"),
+        new("wireframes", "palette"),
+        new("palette", "components", GanttDependencyType.StartToStart),
+        new("components", "signoff"),
+        new("signoff", "api"),
+        new("api", "integrate"),
+        new("web", "integrate", GanttDependencyType.FinishToFinish),
+        new("integrate", "beta"),
+        new("docs", "beta", GanttDependencyType.StartToFinish),
+        new("beta", "ship"),
+    ];
+
+
+    private readonly List<PlanTask> linkable = BuildPlan();
+
+    private List<PlanTask> orderable = BuildPlan();
+
+    private string? lastMove;
+
+    private int added;
+
+    private List<GanttDependency> drawn = [];
+
+    private string? lastLink;
+
+    private GanttZoom zoom = GanttZoom.Day;
+    private bool rollUp = true;
+    private HashSet<string> closed = [];
+    private string? lastChange;
+
+    /// <summary>Which data panels are open. One per demo, so opening one leaves the others alone.</summary>
+    private readonly HashSet<string> openData = [];
+
+    private void ToggleData(string id)
+    {
+        if (!openData.Remove(id))
+        {
+            openData.Add(id);
+        }
+    }
+
+    private void Fold(string id)
+    {
+        var next = new HashSet<string>(closed);
+        if (!next.Remove(id))
+        {
+            next.Add(id);
+        }
+
+        closed = next;
+    }
+
+    private void ResetEditable()
+    {
+        editable = BuildPlan();
+        lastChange = null;
+    }
+
+    private void Reschedule(GanttChangeContext<PlanTask> change)
+    {
+        if (change.Row.IsSummary)
+        {
+            // A summary is worked out from its children; moving it would be a number with nothing
+            // behind it. Refusing here is what the Cancel flag is for.
+            change.Cancel = true;
+            lastChange = $"{change.Item.Name} is a summary. Drag the tasks under it instead.";
+            return;
+        }
+
+        if (change.Kind == GanttChangeKind.Progress)
+        {
+            change.Item.Progress = change.Progress;
+            lastChange = $"{change.Item.Name} is {change.Progress:P0} done.";
+            return;
+        }
+
+        change.Item.Start = change.Start;
+        change.Item.End = change.End;
+        lastChange = $"{change.Item.Name}: {change.Start:d MMM} to {change.End:d MMM}.";
+    }
+
+    private void MoveTask(GanttMoveContext<PlanTask> move)
+    {
+        var item = move.Item;
+        orderable.Remove(item);
+        item.Parent = move.NewParentId;
+
+        // Dropping inside puts the task first under its new parent, which is where a reader who
+        // just aimed at that row expects to find it.
+        var target = orderable.IndexOf(move.Target.Item);
+        var at = move.Position == GanttDropPosition.Before ? target : target + 1;
+        orderable.Insert(Math.Clamp(at, 0, orderable.Count), item);
+
+        lastMove = move.Position == GanttDropPosition.Inside
+            ? $"{item.Name} now sits under {move.Target.Text}."
+            : $"{item.Name} moved {move.Position.ToString().ToLowerInvariant()} {move.Target.Text}.";
+    }
+
+    private void DeleteTask(PlanTask task)
+    {
+        // Everything under it goes too, or its children would reappear at the top level.
+        var doomed = new HashSet<string>(StringComparer.Ordinal) { task.Id };
+        for (var pass = 0; pass < orderable.Count; pass++)
+        {
+            foreach (var candidate in orderable.Where(t => t.Parent is not null && doomed.Contains(t.Parent)))
+            {
+                doomed.Add(candidate.Id);
+            }
+        }
+
+        orderable = [.. orderable.Where(t => !doomed.Contains(t.Id))];
+        lastMove = $"{task.Name} deleted, with {doomed.Count - 1} task(s) under it.";
+    }
+
+    private void AddTask()
+    {
+        added++;
+        var start = orderable.Count > 0 ? orderable.Max(t => t.End) : Day(0);
+        orderable = [.. orderable, new PlanTask
+        {
+            Id = $"new-{added}",
+            Name = $"New task {added}",
+            Owner = "Ana",
+            Start = start,
+            End = start.AddDays(3),
+        }];
+        lastMove = $"New task {added} added at the end. Drag it wherever it belongs.";
+    }
+
+    private void ResetOrderable()
+    {
+        orderable = BuildPlan();
+        added = 0;
+        lastMove = null;
+    }
+
+    private void AddLink(GanttDependencyContext<PlanTask> link)
+    {
+        // The one rule this page enforces. A real plan would check for a loop here, which is the
+        // same shape of check and the reason the callback can refuse at all.
+        if (link.To.Start < link.From.Start)
+        {
+            link.Cancel = true;
+            lastLink = $"{link.To.Text} starts before {link.From.Text}, so that arrow would point backwards.";
+            return;
+        }
+
+        if (drawn.Any(d => d.FromId == link.Dependency.FromId && d.ToId == link.Dependency.ToId))
+        {
+            lastLink = $"{link.From.Text} already points at {link.To.Text}.";
+            return;
+        }
+
+        drawn = [.. drawn, link.Dependency];
+        lastLink = $"{link.From.Text} \u2192 {link.To.Text} ({link.Dependency.Type}). Click the arrow to remove it.";
+    }
+
+    private void RemoveLink(GanttDependency dependency)
+    {
+        drawn = [.. drawn.Where(d => !ReferenceEquals(d, dependency))];
+        lastLink = "Arrow removed.";
+    }
+
+    private void ResetLinks()
+    {
+        drawn = [];
+        lastLink = null;
+    }
+
+    private string Named(string id) =>
+        plan.FirstOrDefault(t => t.Id == id)?.Name ?? id;
+
+    private string Reads(GanttDependency link) => link.Type switch
+    {
+        GanttDependencyType.StartToStart => $"{Named(link.FromId)} starts when {Named(link.ToId)} starts",
+        GanttDependencyType.FinishToFinish => $"{Named(link.FromId)} finishes when {Named(link.ToId)} finishes",
+        GanttDependencyType.StartToFinish => $"{Named(link.FromId)} starts before {Named(link.ToId)} finishes",
+        _ => $"{Named(link.FromId)} finishes before {Named(link.ToId)} starts",
+    };
+
+    private static string OwnerColor(string owner) => owner switch
+    {
+        "Ana" => "var(--color-sky-500, #0ea5e9)",
+        "Ben" => "var(--color-violet-500, #8b5cf6)",
+        "Cal" => "var(--color-emerald-500, #10b981)",
+        _ => "var(--color-amber-500, #f59e0b)",
+    };
+
+    /// <summary>
+    /// A collapsible view of the rows a chart was built from. A summary's bar disagrees with its
+    /// own declared dates on purpose, and that is only readable next to the rows themselves.
+    /// </summary>
+    private RenderFragment DataPanel(string id) => @<div class="space-y-2">
+        <button type="button"
+                class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                aria-expanded="@(openData.Contains(id) ? "true" : "false")"
+                @onclick="@(() => ToggleData(id))">
+            <span class="font-mono text-xs">@(openData.Contains(id) ? "▾" : "▸")</span>
+            @(openData.Contains(id)
+                ? "Hide the data"
+                : $"Show the data — {plan.Count} tasks")
+        </button>
+
+        @if (openData.Contains(id))
+        {
+            <div class="rounded-md border overflow-auto" style="max-height: 22rem">
+                <table class="w-full text-xs">
+                    <thead class="sticky top-0 bg-muted">
+                        <tr class="border-b">
+                            <th class="px-2 py-1.5 text-left font-medium">Id</th>
+                            <th class="px-2 py-1.5 text-left font-medium">Parent</th>
+                            <th class="px-2 py-1.5 text-left font-medium">Name</th>
+                            <th class="px-2 py-1.5 text-left font-medium">Owner</th>
+                            <th class="px-2 py-1.5 text-left font-medium">Start</th>
+                            <th class="px-2 py-1.5 text-left font-medium">End</th>
+                            <th class="px-2 py-1.5 text-right font-medium">Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var task in plan)
+                        {
+                            <tr class="border-b last:border-0">
+                                <td class="px-2 py-1 font-mono">@task.Id</td>
+                                <td class="px-2 py-1 font-mono text-muted-foreground">@(task.Parent ?? "—")</td>
+                                <td class="px-2 py-1">@task.Name</td>
+                                <td class="px-2 py-1">@task.Owner</td>
+                                <td class="px-2 py-1 tabular-nums">@task.Start.ToString("ddd d MMM")</td>
+                                <td class="px-2 py-1 tabular-nums">@task.End.ToString("ddd d MMM")</td>
+                                <td class="px-2 py-1 text-right tabular-nums">@task.Progress.ToString("P0")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-muted-foreground">
+                Every phase is declared with no length at all. What you see on its bar is its
+                children's span, worked out by the engine.
+            </p>
+        }
+    </div>;
+
+    private string HeadlessDump
+    {
+        get
+        {
+            var chart = GanttBuilder.Build(new GanttSource<PlanTask>
+            {
+                Items = plan,
+                Id = t => t.Id,
+                ParentId = t => t.Parent,
+                Text = t => t.Name,
+                Start = t => t.Start,
+                End = t => t.End,
+                Progress = t => t.Progress,
+                Zoom = GanttZoom.Week,
+            });
+
+            var builder = new System.Text.StringBuilder();
+            var culture = System.Globalization.CultureInfo.InvariantCulture;
+            const int trackWidth = 48;
+            var scale = (double)trackWidth / chart.Axis.SlotCount;
+
+            foreach (var row in chart.Rows)
+            {
+                var name = new string(' ', row.Depth * 2) + row.Text;
+                var from = (int)Math.Round(row.OffsetSlots * scale);
+                var length = Math.Max(row.IsMilestone ? 0 : 1, (int)Math.Round(row.LengthSlots * scale));
+                var fill = row.IsMilestone ? "◆" : new string(row.IsSummary ? '=' : '#', length);
+
+                builder.Append(culture, $"{name,-26}");
+                builder.Append(new string('·', Math.Min(from, trackWidth)));
+                builder.Append(fill);
+                builder.Append(new string('·', Math.Max(0, trackWidth - from - fill.Length)));
+                builder.Append(culture, $" {row.Progress * 100,3:0}%");
+                builder.Append('\n');
+            }
+
+            return builder.ToString();
+        }
+    }
+}

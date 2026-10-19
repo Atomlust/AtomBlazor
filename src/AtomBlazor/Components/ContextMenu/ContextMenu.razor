@@ -1,0 +1,34 @@
+@namespace AtomBlazor
+
+<AtomBlazor.Primitives.ContextMenuPrimitive @ref="primitiveRef" Open="@Open" OpenChanged="@OpenChanged">
+    @ChildContent
+</AtomBlazor.Primitives.ContextMenuPrimitive>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public bool? Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    private AtomBlazor.Primitives.ContextMenuPrimitive? primitiveRef;
+
+    internal async Task OpenAt(double x, double y)
+    {
+        if (primitiveRef != null)
+        {
+            await primitiveRef.OpenAt(x, y);
+        }
+    }
+
+    internal async Task Close()
+    {
+        if (primitiveRef != null)
+        {
+            await primitiveRef.Close();
+        }
+    }
+}

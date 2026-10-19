@@ -1,0 +1,24 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@inject ILocalizer Localizer
+
+<span role="presentation" aria-hidden="true" class="@CssClass" @attributes="AdditionalAttributes">
+    <LucideIcon Name="ellipsis" Class="atom:h-4 atom:w-4" />
+    <span class="atom:sr-only">@Localizer["Breadcrumb.More"]</span>
+</span>
+
+@code {
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string CssClass => ClassNames.cn(
+        "atom:flex atom:h-9 atom:w-9 atom:items-center atom:justify-center",
+        Class
+    );
+}

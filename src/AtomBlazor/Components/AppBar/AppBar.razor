@@ -1,0 +1,65 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@inject ILocalizer Localizer
+
+<header @attributes="AdditionalAttributes" class="@CssClass">
+    <div class="atom:flex atom:min-h-14 atom:items-center atom:gap-2 atom:px-3">
+        @if (LeadingContent is not null)
+        {
+            @LeadingContent
+        }
+        else if (ShowBack)
+        {
+            <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Icon" OnClick="OnBack"
+                      Class="atom:min-h-[44px] atom:min-w-[44px]" aria-label="@(BackLabel ?? Localizer["AppBar.Back"])">
+                <LucideIcon Name="arrow-left" Size="20" Class="atom:rtl:rotate-180" />
+            </Button>
+        }
+        <div class="atom:min-w-0 atom:flex-1">
+            @if (TitleContent is not null)
+            {
+                @TitleContent
+            }
+            else
+            {
+                <div class="atom:truncate atom:font-semibold">@Title</div>
+                @if (!string.IsNullOrEmpty(Description))
+                {
+                    <div class="atom:truncate atom:text-xs atom:text-muted-foreground">@Description</div>
+                }
+            }
+        </div>
+        @if (Actions is not null)
+        {
+            <div class="atom:flex atom:shrink-0 atom:items-center atom:gap-1">@Actions</div>
+        }
+    </div>
+</header>
+
+@code {
+    /// <summary>标题文本。</summary>
+    [Parameter] public string? Title { get; set; }
+    /// <summary>可选的次要文本。</summary>
+    [Parameter] public string? Description { get; set; }
+    /// <summary>替换标题与描述。</summary>
+    [Parameter] public RenderFragment? TitleContent { get; set; }
+    /// <summary>替换返回按钮。</summary>
+    [Parameter] public RenderFragment? LeadingContent { get; set; }
+    /// <summary>尾部操作区。</summary>
+    [Parameter] public RenderFragment? Actions { get; set; }
+    /// <summary>当 LeadingContent 缺席时显示返回按钮。</summary>
+    [Parameter] public bool ShowBack { get; set; }
+    /// <summary>返回按钮的无障碍标签。</summary>
+    [Parameter] public string? BackLabel { get; set; }
+    /// <summary>处理返回导航。</summary>
+    [Parameter] public EventCallback<MouseEventArgs> OnBack { get; set; }
+    /// <summary>吸附在滚动容器顶部。</summary>
+    [Parameter] public bool Sticky { get; set; } = true;
+    /// <summary>包含设备顶部安全区内边距。</summary>
+    [Parameter] public bool SafeArea { get; set; } = true;
+    /// <summary>附加 CSS 类。</summary>
+    [Parameter] public string? Class { get; set; }
+    /// <summary>附加 HTML 属性。</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    private string CssClass => ClassNames.cn("atom:z-30 atom:w-full atom:border-b atom:bg-background atom:text-foreground", Sticky ? "atom:sticky atom:top-0" : null, SafeArea ? "atom:pt-[env(safe-area-inset-top)]" : null, Class);
+}

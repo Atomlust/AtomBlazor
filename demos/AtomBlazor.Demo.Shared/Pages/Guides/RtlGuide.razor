@@ -1,0 +1,409 @@
+@page "/guides/rtl"
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("从右到左 - Atom BlazorUI", "Right-to-Left - Atom BlazorUI")</PageTitle>
+
+<div class="max-w-4xl space-y-8">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("从右到左", "Right-to-Left")</h1>
+        @if (L.IsChinese)
+        {
+            <text>
+                <p class="text-xl text-muted-foreground">
+                    把布局包进 <code class="rounded bg-muted px-1 py-0.5 text-lg">DirectionProvider</code>，
+                    库就会镜像。用顶栏的开关即可在两个方向下查看任何页面。
+                </p>
+            </text>
+        }
+        else
+        {
+            <text>
+                <p class="text-xl text-muted-foreground">
+                    Wrap the layout in <code class="rounded bg-muted px-1 py-0.5 text-lg">DirectionProvider</code>
+                    and the library mirrors. Use the toggle in the header to see any page in both directions.
+                </p>
+            </text>
+        }
+    </div>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("配置", "Setup")</h2>
+        @if (L.IsChinese)
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    Provider 要包住整个布局，包括浮层 host。浮层经由
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">PortalHost</code> 渲染，
+                    所以它也需要方向。
+                </p>
+            </text>
+        }
+        else
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    The provider goes around the whole layout, including the overlay hosts. An overlay
+                    renders through <code class="rounded bg-muted px-1 py-0.5 text-xs">PortalHost</code>,
+                    so it needs the direction too.
+                </p>
+            </text>
+        }
+        <CodeBlock Source="Guides/Rtl/setup.txt" />
+        @if (L.IsChinese)
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    Provider 自身不渲染任何盒子，所以加上它不会改变任何布局。它写入一个
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">dir</code> 特性，并级联一个
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">DirectionContext</code>。
+                </p>
+            </text>
+        }
+        else
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    The provider renders no box of its own, so adding it changes no layout. It writes a
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">dir</code> attribute and cascades a
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">DirectionContext</code>.
+                </p>
+            </text>
+        }
+    </section>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("工作原理", "How it works")</h2>
+        <div class="space-y-3 text-sm text-muted-foreground">
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p>
+                        <strong class="text-foreground">布局通过 CSS 镜像。</strong>库自带的每一个间距、
+                        边框、圆角与对齐工具类都是逻辑性的
+                        （<code class="rounded bg-muted px-1 py-0.5 text-xs">margin-inline-start</code>，而不是
+                        <code class="rounded bg-muted px-1 py-0.5 text-xs">margin-left</code>），所以
+                        <code class="rounded bg-muted px-1 py-0.5 text-xs">dir</code> 特性就够了。
+                        一个约定测试确保它一直保持这样。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p>
+                        <strong class="text-foreground">Layout mirrors through CSS.</strong> Every spacing,
+                        border, radius and alignment utility the library ships is logical
+                        (<code class="rounded bg-muted px-1 py-0.5 text-xs">margin-inline-start</code>, not
+                        <code class="rounded bg-muted px-1 py-0.5 text-xs">margin-left</code>), so the
+                        <code class="rounded bg-muted px-1 py-0.5 text-xs">dir</code> attribute is all it takes.
+                        A convention test keeps it that way.
+                    </p>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p>
+                        <strong class="text-foreground">浮层跟随它们的触发器。</strong>浮层、菜单或对话框
+                        在打开时从唤起它的元素复制方向，正如它复制局部主题一样。所以即使 portal host
+                        位于 provider 之外，provider 依然有效。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p>
+                        <strong class="text-foreground">Overlays follow their trigger.</strong> A popover,
+                        menu or dialog copies the direction from the element that opened it as it opens, the
+                        same way it copies a local theme. So the provider works even when the portal host
+                        sits outside it.
+                    </p>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p>
+                        <strong class="text-foreground">定位本来就是逻辑性的。</strong>
+                        <code class="rounded bg-muted px-1 py-0.5 text-xs">PopoverAlign.Start</code> 与
+                        <code class="rounded bg-muted px-1 py-0.5 text-xs">End</code> 按书写方向解析，
+                        所以尾部对齐的菜单始终停留在收尾一侧。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p>
+                        <strong class="text-foreground">Positioning is already logical.</strong>
+                        <code class="rounded bg-muted px-1 py-0.5 text-xs">PopoverAlign.Start</code> and
+                        <code class="rounded bg-muted px-1 py-0.5 text-xs">End</code> resolve against the
+                        writing direction, so an end-aligned menu stays on the trailing edge.
+                    </p>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p>
+                        <strong class="text-foreground">方向键跟随阅读方向。</strong>在选项卡、切换组、
+                        单选组、菜单和树中，<Kbd>&#8594;</Kbd> 按条目的绘制方向移动，而不是按键本身指向的方向。
+                        <Kbd>&#8593;</Kbd> 与 <Kbd>&#8595;</Kbd> 永不翻转。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p>
+                        <strong class="text-foreground">Arrow keys follow the reading direction.</strong> In
+                        tabs, toggle groups, radio groups, menus and the tree,
+                        <Kbd>&#8594;</Kbd> moves the way the items are drawn rather than the way the key
+                        points. <Kbd>&#8593;</Kbd> and <Kbd>&#8595;</Kbd> never flip.
+                    </p>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p>
+                        <strong class="text-foreground">没有 provider，就没有变化。</strong>缺少 provider 时，
+                        组件遵循 <code class="rounded bg-muted px-1 py-0.5 text-xs">CultureInfo.CurrentCulture</code>，
+                        这正是 provider 出现之前库的行为。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p>
+                        <strong class="text-foreground">No provider, no change.</strong> Without one, a
+                        component follows <code class="rounded bg-muted px-1 py-0.5 text-xs">CultureInfo.CurrentCulture</code>,
+                        which is what the library did before the provider existed.
+                    </p>
+                </text>
+            }
+        </div>
+    </section>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("物理边就是物理边", "Physical sides stay physical")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("以物理边命名的参数会兑现它的承诺。这些按设计不镜像 —— 想要另一侧，就传另一个值：", "A parameter that names a physical side keeps its promise. These do not mirror, by design — pass the other value if you want the other side:")
+        </p>
+        <ul class="ms-4 list-disc space-y-1 text-sm text-muted-foreground">
+            <li>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <code class="rounded bg-muted px-1 py-0.5 text-xs">SheetSide</code>、<code class="rounded bg-muted px-1 py-0.5 text-xs">DrawerDirection</code> 与 <code class="rounded bg-muted px-1 py-0.5 text-xs">SidebarSide</code>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <code class="rounded bg-muted px-1 py-0.5 text-xs">SheetSide</code>, <code class="rounded bg-muted px-1 py-0.5 text-xs">DrawerDirection</code> and <code class="rounded bg-muted px-1 py-0.5 text-xs">SidebarSide</code>
+                    </text>
+                }
+            </li>
+            <li>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <code class="rounded bg-muted px-1 py-0.5 text-xs">ToastPosition</code> 与 <code class="rounded bg-muted px-1 py-0.5 text-xs">BadgeDotPosition</code>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <code class="rounded bg-muted px-1 py-0.5 text-xs">ToastPosition</code> and <code class="rounded bg-muted px-1 py-0.5 text-xs">BadgeDotPosition</code>
+                    </text>
+                }
+            </li>
+            <li>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <code class="rounded bg-muted px-1 py-0.5 text-xs">PopoverSide</code>，它报告浮层实际落位的那一侧
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <code class="rounded bg-muted px-1 py-0.5 text-xs">PopoverSide</code>, which reports the side an overlay actually landed on
+                    </text>
+                }
+            </li>
+            <li>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <code class="rounded bg-muted px-1 py-0.5 text-xs">SankeyNodeAlign</code>，因为桑基布局由 ECharts 计算且不会镜像
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <code class="rounded bg-muted px-1 py-0.5 text-xs">SankeyNodeAlign</code>, because ECharts computes the sankey layout and does not mirror it
+                    </text>
+                }
+            </li>
+        </ul>
+    </section>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("几何也会镜像", "Geometry mirrors too")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("那些用像素或百分比数学来摆放内容的组件会自行读取方向，所以数学与绘制保持一致。", "The components that place their content with pixel or percentage maths read the direction themselves, so the maths agrees with the paint.")
+        </p>
+        <ul class="ms-4 list-disc space-y-1 text-sm text-muted-foreground">
+            <li>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <strong class="text-foreground">Slider</strong> 与 <strong class="text-foreground">RangeSlider</strong> 从阅读起始边开始填充，点击那条边就是最小值。水平箭头互换；Up 与 Down 不变。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <strong class="text-foreground">Slider</strong> and <strong class="text-foreground">RangeSlider</strong> fill from the reading edge, and a click at that edge is the minimum. The horizontal arrows swap; Up and Down do not.
+                    </text>
+                }
+            </li>
+            <li>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <strong class="text-foreground">Carousel</strong> 反向滑动、拖拽与步进，箭头位于首尾两侧之外。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <strong class="text-foreground">Carousel</strong> slides, drags and steps the other way, and its arrows sit outside the leading and trailing edges.
+                    </text>
+                }
+            </li>
+            <li>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <strong class="text-foreground">Scheduler</strong> 与 <strong class="text-foreground">EventCalendar</strong> 把日程排在时间轴槽之后的阅读侧，跨天条带反向延伸。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <strong class="text-foreground">Scheduler</strong> and <strong class="text-foreground">EventCalendar</strong> place events past the time gutter on the reading side, and multi-day bars run the other way.
+                    </text>
+                }
+            </li>
+            <li>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <strong class="text-foreground">DashboardGrid</strong> 沿阅读方向拖动与调整大小，手柄位于每个小部件的逻辑边上。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <strong class="text-foreground">DashboardGrid</strong> drags and resizes along the reading direction, with the handles on each widget's logical edges.
+                    </text>
+                }
+            </li>
+            <li>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <strong class="text-foreground">Dock</strong> 同步镜像放置区、标签顺序与放置指示器，所以落点正如指示器所示。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <strong class="text-foreground">Dock</strong> mirrors its drop zones, tab order and drop indicator together, so a drop lands where the indicator says.
+                    </text>
+                }
+            </li>
+            <li>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <strong class="text-foreground">Resizable</strong> 在把手被拖向首侧时增大首个面板。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <strong class="text-foreground">Resizable</strong> grows the leading panel when the handle is dragged towards the leading edge.
+                    </text>
+                }
+            </li>
+        </ul>
+        <div class="rounded-r-lg border-s-4 border-primary bg-primary/5 p-4">
+            <p class="text-sm text-muted-foreground">
+                @L.T("每一个都在手势发生的瞬间从 DOM 读取方向，所以打开期间改变方向的页面无需重新初始化。", "Each one reads the direction from the DOM at the moment of the gesture, so a page that changes direction while open needs no reinitialisation.")
+            </p>
+        </div>
+    </section>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("自行读取方向", "Reading the direction yourself")</h2>
+        @if (L.IsChinese)
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    你自己的组件也能读取同一个值。通过
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">DirectionContext.Resolve</code> 解析它，
+                    没有 provider 时它会回落到区域设置，所以你永远不必判空。
+                </p>
+            </text>
+        }
+        else
+        {
+            <text>
+                <p class="text-sm text-muted-foreground">
+                    A component of your own can read the same value. Resolve it through
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">DirectionContext.Resolve</code>, which
+                    falls back to the culture when there is no provider, so you never test for null.
+                </p>
+            </text>
+        }
+        <CodeBlock Source="Guides/Rtl/reading.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+
+        <ApiReference Since="v4" ComponentName="DirectionProvider">
+            <ApiParameter Name="Direction" Type="TextDirection" Default="Auto">@L.T("Auto 跟随当前区域设置；LeftToRight 与 RightToLeft 显式指定。", "Auto follows the current culture. LeftToRight and RightToLeft set it explicitly.")</ApiParameter>
+            <ApiParameter Name="ChildContent" Type="RenderFragment?">@L.T("方向所作用的内容。", "The content the direction applies to.")</ApiParameter>
+        </ApiReference>
+
+        <ApiReference Since="v4" ComponentName="DirectionContext">
+            <ApiParameter Name="Direction" Type="TextDirection">@L.T("配置的方向，即 Auto 解析之前的值。", "The direction as configured, before Auto is resolved.")</ApiParameter>
+            <ApiParameter Name="IsRightToLeft" Type="bool">@L.T("已解析的方向。Auto 按当前区域设置解析。", "The resolved direction. Auto resolves against the current culture.")</ApiParameter>
+            <ApiParameter Name="Attribute" Type="string">@if (L.IsChinese)
+                {
+                    <text>
+                        HTML <code>dir</code> 特性的取值：<code>"rtl"</code> 或 <code>"ltr"</code>。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        The value for an HTML <code>dir</code> attribute: <code>"rtl"</code> or <code>"ltr"</code>.
+                    </text>
+                }</ApiParameter>
+            <ApiParameter Name="Resolve(DirectionContext?)" Type="static bool">@L.T("解析级联的上下文，没有 provider 时回落到当前区域设置。", "Resolves a cascaded context, falling back to the current culture when there is no provider.")</ApiParameter>
+        </ApiReference>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

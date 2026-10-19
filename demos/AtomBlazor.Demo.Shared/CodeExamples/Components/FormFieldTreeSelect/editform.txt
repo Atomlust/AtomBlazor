@@ -1,0 +1,25 @@
+@* Bind the expression that matches the mode you are in: Value for single
+   selection, Values for multiple. The validation message follows it. *@
+<EditForm Model="model" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <FormFieldTreeSelect TItem="Node"
+                           @bind-Value="model.DepartmentId"
+                           Label="Department"
+                           HelperText="Required."
+                           Required="true"
+                           Items="departments"
+                           ValueField="n => n.Id"
+                           TextField="n => n.Name"
+                           ChildrenProperty="n => n.Children" />
+    <Button Type="ButtonType.Submit">Submit</Button>
+</EditForm>
+
+@code {
+    private readonly Model model = new();
+
+    private sealed class Model
+    {
+        [Required(ErrorMessage = "Choose a department.")]
+        public string? DepartmentId { get; set; }
+    }
+}

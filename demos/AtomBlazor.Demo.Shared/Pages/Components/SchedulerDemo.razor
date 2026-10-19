@@ -1,0 +1,797 @@
+@page "/components/scheduler"
+
+<PageTitle>@L.T("Scheduler 排程 - Atom BlazorUI", "Scheduler Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-6xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Scheduler 排程组件", "Scheduler Component")</h1>
+        <p class="text-xl text-muted-foreground">@L.T("按时间格安排预约，支持重复事件、资源泳道与时区。", "Schedule appointments with time slots, recurring events, resource lanes and time zones.")</p>
+    </div>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本示例", "Basic Example")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("整页覆盖 24 小时，可上下滚动；初始视图从上午 8 点开始。滚动时日期标题保持可见。单击时间格可高亮它；双击它，或在其获得焦点时按 Enter，即可创建预约。按空格仅高亮、不创建。选中事件即可编辑。Previous、Today 与 Next 并排位于居中日期的旁边。Today 使用排程的时区并保持当前视图。点击编辑器外部会保留你的草稿；用 Save、Cancel、关闭按钮或 Escape 结束。", "Scroll vertically through the full 24-hour day; the initial view starts at 8 AM. Day headings remain visible while scrolling. Click a time slot to highlight it; double-click it, or press Enter while it is focused, to create an appointment. Space highlights without creating. Select an event to edit it. Previous, Today and Next sit together beside the centered date heading. Today uses the schedule's time zone and keeps the current view. Clicking outside the editor leaves your draft open; use Save, Cancel, the close button or Escape to finish.")</p>
+        </div>
+        <div class="rounded-lg border p-4 space-y-4">
+            <Scheduler @bind-Events="simpleEvents" @bind-Date="simpleDate" @bind-View="simpleView"
+                         TimeZoneId="UTC" StartHour="0" EndHour="24" InitialScrollHour="8" AriaLabel="@(L.T("每日预约安排", "Daily appointments"))" />
+        </div>
+        <CodeBlock Source="Components/Scheduler/basic.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("周起始日与工作周", "Week Start and Work Week")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("在周视图中可选择周一或周日作为第一天。工作周始终显示周一至周五并隐藏周末预约。Previous 与 Next 每次移动整整一周；切回周视图会保留你的周起始选择。", "In Week view, choose Monday or Sunday as the first day. Work week always shows Monday through Friday and hides weekend appointments. Previous and Next move by one full week; returning to Week preserves your week-start choice.")</p>
+        </div>
+        <div class="rounded-lg border p-4 space-y-4">
+            <Scheduler @bind-Events="weekEvents" @bind-Date="weekDate" @bind-View="weekView"
+                         @bind-FirstDayOfWeek="weekStart" EnableTimeZones="false" TimeZoneId="UTC"
+                         StartHour="0" EndHour="24" InitialScrollHour="8" AriaLabel="@(L.T("周与工作周预约", "Week and work-week appointments"))" />
+        </div>
+        <CodeBlock Source="Components/Scheduler/week-views.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("拖拽、改尺寸与时间格大小", "Dragging, Resizing and Slot Sizes")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">拖动预约可移动它，拖动其上边缘或下边缘可改变开始或结束时间。变更会对齐到所选的时间格大小。这个单时区排程隐藏了时区控件，并使用 UTC 进行显示与编辑。选中事件后也可用键盘做同样的修改；删除会请求确认。拖拽结束时若悬在空时间格上不会创建任何内容。每次完成的手势都会先执行 <code>OnEventChange</code> 再替换事件，下方的横幅会精确展示它收到的内容。注意 <code>@@bind-Date</code> 与 <code>@@bind-View</code>：若只单向绑定，保存后父组件重渲染会把排程拉回原来的日期与视图。</p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">Drag an appointment to move it, or drag its top or bottom edge to change its start or end. Changes snap to the selected slot size. This single-zone schedule hides time-zone controls and uses UTC for display and editing. Select an event to make the same changes with the keyboard; deletion asks for confirmation. A drag that finishes over an empty slot does not create anything. Every completed gesture runs <code>OnEventChange</code> before the events are replaced, and the banner below shows exactly what it received. Note <code>@@bind-Date</code> and <code>@@bind-View</code>: bind them one-way and the parent's re-render after a save snaps the schedule back to its original day and view.</p>
+                        </text>
+}
+        </div>
+        <div class="rounded-lg border p-4 space-y-4">
+            <div class="flex flex-wrap items-end gap-4">
+                <div class="space-y-2 w-44">
+                    @* 偏差：本仓 _Imports 同时引入 Microsoft.AspNetCore.Components.Forms（其 Label<TValue> 带 For 参数）， 裸 <AtomBlazor.Label For=...> 触发 RZ10012 泛型/非泛型歧义，照 FileUploadDemo 先例改全限定标签，渲染行为零变化（下同）。 *@
+                    <AtomBlazor.Label For="scheduler-slot-size">@L.T("时间格大小", "Slot size")</AtomBlazor.Label>
+                    <Select TValue="int" @bind-Value="slotMinutes" DisplayTextSelector="SlotLabel">
+                        <AtomBlazor.SelectTrigger id="scheduler-slot-size"><AtomBlazor.SelectValue /></AtomBlazor.SelectTrigger>
+                        <AtomBlazor.SelectContent>
+                            <AtomBlazor.SelectItem Value="15" Text="@(L.T("15 分钟", "15 minutes"))" />
+                            <AtomBlazor.SelectItem Value="30" Text="@(L.T("30 分钟", "30 minutes"))" />
+                            <AtomBlazor.SelectItem Value="60" Text="@(L.T("1 小时", "1 hour"))" />
+                        </AtomBlazor.SelectContent>
+                    </Select>
+                </div>
+                <div class="flex items-center gap-2 pb-2">
+                    <Checkbox Id="scheduler-allow-drag" @bind-Checked="allowDrag" />
+                    <AtomBlazor.Label For="scheduler-allow-drag">@L.T("允许移动", "Allow moving")</AtomBlazor.Label>
+                </div>
+                <div class="flex items-center gap-2 pb-2">
+                    <Checkbox Id="scheduler-allow-resize" @bind-Checked="allowResize" />
+                    <AtomBlazor.Label For="scheduler-allow-resize">@L.T("允许调整时长", "Allow resizing")</AtomBlazor.Label>
+                </div>
+            </div>
+            <Scheduler @bind-Events="interactiveEvents" @bind-Date="interactiveDate" @bind-View="interactiveView"
+                         SlotMinutes="@slotMinutes" AllowDrag="@allowDrag" AllowResize="@allowResize"
+                         OnEventChange="RecordChangeAsync"
+                         EnableTimeZones="false" TimeZoneId="UTC" StartHour="0" EndHour="24" InitialScrollHour="8" AriaLabel="@(L.T("可拖拽与改尺寸的预约", "Drag and resize appointments"))" />
+            @if (lastChange is null)
+            {
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="rounded-md border border-dashed p-3 text-sm text-muted-foreground" data-demo-change-banner>移动或调整预约，查看 <code>OnEventChange</code> 收到的内容。</p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="rounded-md border border-dashed p-3 text-sm text-muted-foreground" data-demo-change-banner>Move or resize an appointment to see what <code>OnEventChange</code> receives.</p>
+                                </text>
+}
+            }
+            else
+            {
+                <div class="rounded-md border border-primary/40 bg-primary/5 p-3 text-sm space-y-1" data-demo-change-banner>
+                    <p class="font-medium">@L.T("OnEventChange 已触发", "OnEventChange fired")</p>
+                    <dl class="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-0.5 font-mono text-xs">
+                        <dt class="text-muted-foreground">Kind</dt><dd>@lastChange.Kind</dd>
+                        <dt class="text-muted-foreground">Scope</dt><dd>@lastChange.Scope</dd>
+                        <dt class="text-muted-foreground">Id</dt><dd>@lastChange.Id</dd>
+                        <dt class="text-muted-foreground">Title</dt><dd>@lastChange.Title</dd>
+                        <dt class="text-muted-foreground">Start</dt><dd>@lastChange.Start.ToString("yyyy-MM-dd HH:mm 'UTC'")</dd>
+                        <dt class="text-muted-foreground">End</dt><dd>@lastChange.End.ToString("yyyy-MM-dd HH:mm 'UTC'")</dd>
+                        <dt class="text-muted-foreground">OccurrenceStart</dt><dd>@(lastChange.OccurrenceStart?.ToString("yyyy-MM-dd HH:mm 'UTC'") ?? "null")</dd>
+                        <dt class="text-muted-foreground">Events after</dt><dd>@lastChange.Count</dd>
+                    </dl>
+                </div>
+            }
+        </div>
+        <CodeBlock Source="Components/Scheduler/drag-resize.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("资源、重复与时区", "Resources, Recurrence and Time Zones")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("会议室泳道按资源分隔，重叠事件平分可用宽度。每周一、周三上午 9:00 的规划例会在纽约时区保持不变；切换显示时区只是用当地时间展示同一批预约。可编辑单个发生或整个系列。编辑器中 Daily 表示每天，Weekly 提供星期复选框，Monthly/Yearly 按开始日期重复。发生次数上限可选。拖拽或改尺寸只影响该次发生；跨房间移动会改变其资源归属。", "Room lanes separate resources and overlapping events share the available width. The recurring planning session stays at 9:00 AM in New York; changing the display zone shows the same appointments in local time. Edit one occurrence or the whole series. In the editor, Daily means every day, Weekly offers weekday checkboxes, and Monthly/Yearly repeat on the start date. The occurrence limit is optional. Dragging or resizing changes only that occurrence; moving between rooms changes its resource assignment.")</p>
+        </div>
+        <div class="rounded-lg border p-4 space-y-4">
+            <div class="space-y-2 max-w-sm">
+                <AtomBlazor.Label For="scheduler-display-zone">@L.T("显示时区", "Display time zone")</AtomBlazor.Label>
+                <Select TValue="string" @bind-Value="displayZone" DisplayTextSelector="@(value => value.Replace('_', ' '))">
+                    <AtomBlazor.SelectTrigger id="scheduler-display-zone"><AtomBlazor.SelectValue /></AtomBlazor.SelectTrigger>
+                    <AtomBlazor.SelectContent>
+                        <AtomBlazor.SelectItem Value='@("America/New_York")' Text="America/New York" />
+                        <AtomBlazor.SelectItem Value='@("UTC")' Text="UTC" />
+                        <AtomBlazor.SelectItem Value='@("Europe/London")' Text="Europe/London" />
+                    </AtomBlazor.SelectContent>
+                </Select>
+            </div>
+            <div class="flex items-center gap-2">
+                <Checkbox Id="scheduler-reject-save" @bind-Checked="rejectSaves" />
+                <AtomBlazor.Label For="scheduler-reject-save">@L.T("模拟保存失败", "Simulate a failed save")</AtomBlazor.Label>
+            </div>
+            <Scheduler @bind-Events="events" Resources="resources" @bind-Date="date" @bind-View="view" TimeZoneId="@displayZone"
+                         StartHour="0" EndHour="24" InitialScrollHour="8" OnEventChange="SaveAsync" />
+        </div>
+        <CodeBlock Source="Components/Scheduler/resources.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("选择显示哪些资源", "Choosing Which Resources to Show")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">设置 <code>ShowResourceFilter</code> 可在工具栏绘制一个选择器。未分配（Unassigned）与会议室并列列出，所以可以单独显示它。不动选择器即显示全部；清空选择器则什么都不显示并给出提示。同一状态是可绑定参数，所以你也可以用自己的 UI 来驱动它——下面的按钮直接写入 <code>VisibleResourceIds</code>，工具栏选择器会随之联动。</p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">Set <code>ShowResourceFilter</code> to draw a picker in the toolbar. Unassigned is listed alongside the rooms, so you can show it on its own. Leaving the picker untouched shows everything; clearing it shows nothing and says so. The same state is a bindable parameter, so your own UI can drive it instead — the buttons below write to <code>VisibleResourceIds</code> directly and the toolbar picker follows.</p>
+                        </text>
+}
+        </div>
+        <div class="rounded-lg border p-4 space-y-4">
+            <div class="flex flex-wrap items-center gap-2">
+                <Button Variant="ButtonVariant.Outline" OnClick="@(() => filteredVisibleResources = null)">@L.T("全部显示", "Show all")</Button>
+                <Button Variant="ButtonVariant.Outline" OnClick="@(() => filteredVisibleResources = ["room-a"])">@L.T("仅 A 室", "Room A only")</Button>
+                <Button Variant="ButtonVariant.Outline" OnClick="@(() => filteredVisibleResources = ["room-b"])">@L.T("仅 B 室", "Room B only")</Button>
+                <Button Variant="ButtonVariant.Outline" OnClick="@(() => filteredVisibleResources = [])">@L.T("清空", "Clear")</Button>
+            </div>
+            <p class="text-sm text-muted-foreground">
+                <span class="font-medium">VisibleResourceIds:</span>
+                <span class="font-mono">@(filteredVisibleResources is null ? "null (all)" : filteredVisibleResources.Count == 0 ? "[] (none)" : string.Join(", ", filteredVisibleResources.Select(id => id.Length == 0 ? "(unassigned)" : id)))</span>
+            </p>
+            <Scheduler @bind-Events="filteredEvents" Resources="resources" @bind-Date="filteredDate" @bind-View="filteredView"
+                         @bind-VisibleResourceIds="filteredVisibleResources" ShowResourceFilter="true"
+                         EnableTimeZones="false" TimeZoneId="UTC" StartHour="0" EndHour="24" InitialScrollHour="8"
+                         AriaLabel="@(L.T("按资源筛选的预约", "Appointments filtered by resource"))" />
+        </div>
+        <CodeBlock Source="Components/Scheduler/resource-filter.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("右键菜单", "Context Menus")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">右键空白时间格可新建事件；右键预约可编辑或删除。删除会先请求确认，而不先打开编辑器。两个菜单都可以替换：渲染 <code>@@context.DefaultItems</code> 可保留内置项并在其前后添加你自己的项；不渲染它即可整体替换菜单。下方的事件菜单增加了 Duplicate，时间格菜单增加了一个一小时的时段块。</p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">Right-click an empty slot for New event; right-click an appointment for Edit and Delete. Delete asks for confirmation without opening the editor first. Both menus are replaceable: render <code>@@context.DefaultItems</code> to keep the built-in entries and add your own around them, or leave it out to replace the menu entirely. The event menu below adds Duplicate; the slot menu adds a one-hour block.</p>
+                        </text>
+}
+        </div>
+        <div class="rounded-lg border p-4 space-y-4">
+            <p class="text-sm text-muted-foreground"><span class="font-medium">@L.T("最近一次自定义操作：", "Last custom action:")</span> <span class="font-mono">@(menuAction ?? "(none)")</span></p>
+            <Scheduler @bind-Events="menuEvents" @bind-Date="menuDate" @bind-View="menuView"
+                         EnableTimeZones="false" TimeZoneId="UTC" StartHour="0" EndHour="24" InitialScrollHour="8"
+                         AriaLabel="@(L.T("带右键菜单的预约", "Appointments with context menus"))">
+                <SlotContextMenuContent>
+                    @context.DefaultItems
+                    <AtomBlazor.ContextMenuSeparator />
+                    <AtomBlazor.ContextMenuItem OnClick="@(() => BlockHour(context.Start))">@L.T("屏蔽一小时", "Block one hour")</AtomBlazor.ContextMenuItem>
+                </SlotContextMenuContent>
+                <EventContextMenuContent>
+                    @context.DefaultItems
+                    <AtomBlazor.ContextMenuSeparator />
+                    <AtomBlazor.ContextMenuItem OnClick="@(() => Duplicate(context.Occurrence))">@L.T("复制一份", "Duplicate")</AtomBlazor.ContextMenuItem>
+                </EventContextMenuContent>
+            </Scheduler>
+        </div>
+        <CodeBlock Source="Components/Scheduler/context-menu.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("全天事件", "All-Day Events")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">设置 <code>IsAllDay</code> 后，事件会绘制为时间网格上方条带中的横条，该条带不随当天滚动。跨越数天的事件是一整条横杆，而不是每天一个芯片；重叠的区段会堆叠成多行，互不相触的区段共享一行。<code>End</code> 是排他的——16 日的单个全天事件从 16 日持续到 17 日——而编辑器询问的是它覆盖的最后一天。切换到周视图可以看到横条跨列的效果。</p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">Set <code>IsAllDay</code> and the event draws as a bar in a band above the time grid, which does not scroll with the day. An event covering several days is one bar, not a chip per day; overlapping runs stack into rows, and runs that never touch share a row. <code>End</code> is exclusive — a single all-day event on the 16th runs from the 16th to the 17th — while the editor asks for the last day it covers. Switch to Week to see the bars span.</p>
+                        </text>
+}
+        </div>
+        <div class="rounded-lg border p-4 space-y-4">
+            <Scheduler @bind-Events="allDayEvents" @bind-Date="allDayDate" @bind-View="allDayView"
+                         EnableTimeZones="false" TimeZoneId="UTC" StartHour="0" EndHour="24" InitialScrollHour="8"
+                         MaxAllDayRows="3" AriaLabel="@(L.T("全天与定时预约", "All-day and timed appointments"))" />
+        </div>
+        <CodeBlock Source="Components/Scheduler/all-day.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带资源的全天事件", "All-Day Events with Resources")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("当可见资源有两个或以上时，条带会按资源分行，而不是照抄下方按天为主的泳道顺序。泳道顺序是 周一/A 室、周一/B 室、周二/A 室，因此某个房间的两日事件会落在不相邻的列上，无法绘制成一条横杆。条带因此不再与时间网格逐列对齐。把选择器收窄到单个房间，对齐就会恢复。", "With two or more resources visible, the band gets a row per resource instead of copying the day-major lane order below it. Lanes run Mon/Room A, Mon/Room B, Tue/Room A, so one room's two-day event would land in non-adjacent columns and could not be drawn as one bar. The band therefore stops lining up column-for-column with the grid. Narrow the picker to a single room and the alignment comes back.")</p>
+        </div>
+        <div class="rounded-lg border p-4 space-y-4">
+            <Scheduler @bind-Events="allDayResourceEvents" Resources="resources" @bind-Date="allDayResourceDate"
+                         @bind-View="allDayResourceView" @bind-VisibleResourceIds="allDayVisibleResources" ShowResourceFilter="true"
+                         EnableTimeZones="false" TimeZoneId="UTC" StartHour="0" EndHour="24" InitialScrollHour="8"
+                         AriaLabel="@(L.T("按房间的全天预约", "All-day appointments per room"))" />
+        </div>
+        <CodeBlock Source="Components/Scheduler/all-day-resources.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("月视图", "Month View")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">永远是六行周，因此网格高度不会随月份跳动。跨天事件——无论全天还是定时——在其覆盖的各天上是一整条横杆；单日事件是芯片。<code>MaxEventsPerDay</code> 限制每个格子的事件数，而一根横杆会在它覆盖的每一天都消耗这份额度，所以横杆之下的某天显示的芯片更少，并把差额计入它自己的 "+x more"。Previous 与 Next 按自然月步进。这里拖拽与改尺寸是关闭的：指针代码要从时间网格的几何来读取时刻，而月格没有这些。</p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">Six week rows, always, so the grid height does not jump between months. Multi-day events — all-day or timed — are one bar across the days they cover; single-day events are chips. <code>MaxEventsPerDay</code> caps each cell, and a bar spends that budget in every day it covers, so a day under a bar shows fewer chips and counts the difference into its own "+x more". Previous and Next step a calendar month. Dragging and resizing are off here: the pointer code reads times from the time grid's geometry, which a month cell does not have.</p>
+                        </text>
+}
+        </div>
+        <div class="rounded-lg border p-4 space-y-4">
+            <Scheduler @bind-Events="monthEvents" @bind-Date="monthDate" @bind-View="monthView"
+                         EnableTimeZones="false" TimeZoneId="UTC" MaxEventsPerDay="3"
+                         AriaLabel="@(L.T("月视图预约", "Month view appointments"))" />
+        </div>
+        <CodeBlock Source="Components/Scheduler/month-view.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("活跃时段", "Active Hours")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">声明每个工作日里排程关注的时段，其余部分都会被压暗。完全没有区间的整天从头到尾都是暗的，所以周末无需条目；同一天给两个区间则会压暗它们之间的空档——下面的周三就有午休。时间是显示时区里的墙上时间，因此夏令时切换日保持相同的钟点边界。在你设置 <code>BlockOutsideActiveHours</code> 之前，压暗只是视觉效果；设置后它会拒绝点击、Enter、右键菜单，以及任何落在暗区的拖拽或改尺寸。</p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">Name the part of each weekday the schedule is about and everything outside it is muted. A day with no range at all is muted end to end, so weekends need no entry, and two ranges for one day mute the gap between them — Wednesday below has a lunch break. Times are wall times in the display zone, so a daylight-saving day keeps the same clock boundaries. Muting is visual only until you set <code>BlockOutsideActiveHours</code>, which then refuses clicks, Enter, the context menu, and any drag or resize that lands outside.</p>
+                        </text>
+}
+        </div>
+        <div class="rounded-lg border p-4 space-y-4">
+            <div class="flex items-center gap-2">
+                <Checkbox Id="scheduler-block-hours" @bind-Checked="blockOutsideHours" />
+                <AtomBlazor.Label For="scheduler-block-hours">@L.T("禁止在活跃时段之外安排事件", "Block events outside the active hours")</AtomBlazor.Label>
+            </div>
+            <Scheduler @bind-Events="hoursEvents" @bind-Date="hoursDate" @bind-View="hoursView"
+                         ActiveHours="activeHours" BlockOutsideActiveHours="@blockOutsideHours"
+                         EnableTimeZones="false" TimeZoneId="UTC" StartHour="0" EndHour="24" InitialScrollHour="7"
+                         AriaLabel="@(L.T("带活跃时段的预约", "Appointments with active hours"))" />
+        </div>
+        <CodeBlock Source="Components/Scheduler/active-hours.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义时区", "Your Own Time Zones")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">不加干预时，编辑器会列出宿主支持的全部 IANA 时区——大约 600 个，按标识符显示。传入 <code>TimeZones</code> 可裁剪为你关心的那几个，并按你自己的命名显示。标识符会经过校验，所以你无法通过改名指向一个不存在的时区。已经使用某个未列出时区的事件仍会显示该时区，因此打开它不会悄悄改变它的时区。</p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">Left alone, the editor lists every IANA zone the host supports — around 600 of them, labelled by identifier. Pass <code>TimeZones</code> to cut that to the ones you care about and name them yourself. The identifiers are validated, so you cannot rename your way into a zone that does not exist. An event already using a zone you did not list still shows it, so opening that event cannot quietly move it.</p>
+                        </text>
+}
+        </div>
+        <div class="rounded-lg border p-4 space-y-4">
+            <Scheduler @bind-Events="zoneEvents" @bind-Date="zoneDate" @bind-View="zoneView"
+                         TimeZones="namedZones" TimeZoneId="Australia/Sydney"
+                         StartHour="0" EndHour="24" InitialScrollHour="8" AriaLabel="@(L.T("带命名时区的预约", "Appointments with named time zones"))" />
+        </div>
+        <CodeBlock Source="Components/Scheduler/time-zones.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义编辑器字段", "Your Own Editor Fields")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">从 <code>SchedulerEvent</code> 以携带你自己的数据，再用 <code>EditorContent</code> 收集它们。渲染 <code>@@context.DefaultContent</code> 可保留内置字段并在其周围添加内容。重写 <code>Clone</code> 并提供 <code>NewEventFactory</code>，否则一旦有人编辑或拖动事件，你的字段就会丢失。双击时间格创建一个，双击事件编辑它——两种情况下描述都会保留，拖拽也一样。</p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">Derive from <code>SchedulerEvent</code> to carry your own data, then use <code>EditorContent</code> to collect it. Render <code>@@context.DefaultContent</code> to keep the built-in fields and add around them. Override <code>Clone</code> and supply a <code>NewEventFactory</code>, or your fields are dropped the moment somebody edits or drags the event. Double-click a slot to create one, or an event to edit it — the description survives both, and a drag too.</p>
+                        </text>
+}
+        </div>
+        <div class="rounded-lg border p-4 space-y-4">
+            <Scheduler @bind-Events="describedEvents" @bind-Date="describedDate" @bind-View="describedView"
+                         NewEventFactory="@(() => new AgendaEvent())"
+                         EnableTimeZones="false" TimeZoneId="UTC" StartHour="0" EndHour="24" InitialScrollHour="8"
+                         AriaLabel="@(L.T("带描述的预约", "Appointments with a description"))">
+                <EditorContent>
+                    @context.DefaultContent
+                    @if (context.Draft is AgendaEvent agenda)
+                    {
+                        <div class="space-y-2">
+                            <AtomBlazor.Label For="scheduler-agenda">@L.T("议程", "Agenda")</AtomBlazor.Label>
+                            <Textarea id="scheduler-agenda" @bind-Value="agenda.Agenda" Rows="3" Placeholder="@(L.T("我们要讨论哪些内容？", "What are we covering?"))" />
+                        </div>
+                    }
+                </EditorContent>
+                <EventTemplate>
+                    <span class="font-medium">@context.Event.Title</span>
+                    @if (context.Event is AgendaEvent { Agenda.Length: > 0 } withAgenda)
+                    {
+                        <span class="block truncate opacity-70">@withAgenda.Agenda</span>
+                    }
+                </EventTemplate>
+            </Scheduler>
+        </div>
+        <CodeBlock Source="Components/Scheduler/editor-fields.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("替换工具栏", "Replacing the Toolbar")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">工具栏在组件内部渲染，所以 <code>ToolbarContent</code> 就是重排或改样式它的入口。渲染 <code>@@context.DefaultContent</code> 可保留内置工具栏并在其周围添加内容；不渲染它即可整体替换。上下文携带只读状态，外加三个从外部无法表达的命令：<code>Navigate</code> 知道当前视图的步进单位，<code>GoToToday</code> 按排程时区解析今天。其余的——Date、View、FirstDayOfWeek、VisibleResourceIds——本来就是可绑定参数。</p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">The toolbar is rendered inside the component, so <code>ToolbarContent</code> is how you restyle or rearrange it. Render <code>@@context.DefaultContent</code> to keep the built-in toolbar and add around it, or leave it out to replace it entirely. The context carries read state plus the three commands you cannot express from outside: <code>Navigate</code> knows the step size for the current view, and <code>GoToToday</code> resolves today in the schedule's time zone. Everything else — Date, View, FirstDayOfWeek, VisibleResourceIds — is already bindable.</p>
+                        </text>
+}
+        </div>
+        <div class="rounded-lg border p-4 space-y-4">
+            <Scheduler @bind-Events="toolbarEvents" @bind-Date="toolbarDate" @bind-View="toolbarView"
+                         EnableTimeZones="false" TimeZoneId="UTC" StartHour="0" EndHour="24" InitialScrollHour="8"
+                         AriaLabel="@(L.T("自定义工具栏的预约", "Appointments with a custom toolbar"))">
+                <ToolbarContent>
+                    <div class="flex flex-wrap items-center justify-between gap-2 rounded-md bg-muted/50 p-2">
+                        <div class="flex items-center gap-2">
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => context.Navigate.InvokeAsync(-1))" AriaLabel="@(L.T("上一个", "Previous"))">&#8249;</Button>
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => context.GoToToday.InvokeAsync())">@L.T("今天", "Today")</Button>
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => context.Navigate.InvokeAsync(1))" AriaLabel="@(L.T("下一个", "Next"))">&#8250;</Button>
+                        </div>
+                        <strong class="text-sm">@context.Heading</strong>
+                        <div class="flex items-center gap-2">
+                            <Button Variant="@(context.View == SchedulerView.Day ? ButtonVariant.Default : ButtonVariant.Ghost)" OnClick="@(() => context.SetView.InvokeAsync(SchedulerView.Day))">D</Button>
+                            <Button Variant="@(context.View == SchedulerView.Week ? ButtonVariant.Default : ButtonVariant.Ghost)" OnClick="@(() => context.SetView.InvokeAsync(SchedulerView.Week))">W</Button>
+                            <Button Variant="@(context.View == SchedulerView.Month ? ButtonVariant.Default : ButtonVariant.Ghost)" OnClick="@(() => context.SetView.InvokeAsync(SchedulerView.Month))">M</Button>
+                        </div>
+                    </div>
+                </ToolbarContent>
+            </Scheduler>
+        </div>
+        <CodeBlock Source="Components/Scheduler/custom-toolbar.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("只读排程", "Read-Only Schedule")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("只展示同样的预约，不允许创建、编辑或删除。日期导航与视图切换仍可用。", "Display the same appointments without allowing creation, editing or deletion. Date navigation and view changes remain available.")</p>
+        </div>
+        <div class="rounded-lg border p-4 space-y-4">
+            <Scheduler Events="simpleEvents" @bind-Date="readOnlyDate" @bind-View="readOnlyView"
+                         TimeZoneId="UTC" StartHour="0" EndHour="24" InitialScrollHour="8" ReadOnly="true" AriaLabel="@(L.T("只读的周预约", "Read-only weekly appointments"))" />
+        </div>
+        <CodeBlock Source="Components/Scheduler/read-only.txt" />
+    </section>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("排程区域、时间格与事件按钮都带有无障碍标签。视图按钮会播报自己的按下状态，周起始选择器也有标注。", "The scheduler region, time slots and event buttons have accessible labels. View buttons announce their pressed state and the week-start selector is labelled.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("每周重复选项在 fieldset 中使用带标签的复选框。事件编辑器使用带标签的 Bb 表单控件，并在时间非法或保存被拒时报告，同时不丢弃草稿。", "The weekly repeat choices use labelled checkboxes within a fieldset. The event editor uses labelled Bb form controls and reports invalid times or rejected saves without discarding the draft.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("只读排程在保留日期导航的同时禁用变更。删除确认会说明将移除的是单个事件、单次发生还是整个系列。", "Read-only schedules disable changes while preserving date navigation. Delete confirmation identifies whether one event, an occurrence or a series will be removed.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("垂直滚动获得焦点的时间格区域", "Scroll the focused time-slot region vertically"))"><Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd> / <Kbd>PageUp</Kbd> / <Kbd>PageDown</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在工具栏、时间格与预约之间移动", "Move between the toolbar, time slots and appointments"))"><Kbd>Tab</Kbd> / <Kbd>Shift</Kbd> + <Kbd>Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("打开预约，或在获得焦点的时间格中创建一个", "Open an appointment or create one in the focused time slot"))"><Kbd>Enter</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("高亮获得焦点的预约或时间格", "Highlight the focused appointment or time slot"))"><Kbd>Space</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("取消进行中的拖拽，或关闭当前打开的选择器或事件编辑器", "Cancel an active drag, or close the active picker or event editor"))"><Kbd>Escape</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性、事件数据与重复规则辅助类型。", "Component properties, event data and recurrence helpers.")</p>
+        </div>
+        <ApiReference Since="v4" ComponentName="Scheduler">
+            <ApiParameter Name="Events / EventsChanged" Type="IReadOnlyList&lt;SchedulerEvent&gt;">@L.T("绑定预约数据。更新使用独立副本。请先在 OnEventChange 中持久化 Events，再接受变更。", "Bind appointment data. Updates use independent copies. Persist Events from OnEventChange before accepting a change.")</ApiParameter>
+            <ApiParameter Name="Resources" Type="IReadOnlyList&lt;SchedulerResource&gt;">@L.T("唯一的资源 ID 与标题。每个事件可以拥有多个 ResourceIds。未分配的事件获得单独的泳道。", "Unique resource IDs and titles. Each event can have multiple ResourceIds. Unassigned events get a separate lane.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="VisibleResourceIds / VisibleResourceIdsChanged" Type="IReadOnlyList&lt;string&gt;?" Default="null" Since="v4">要显示哪些资源。null 显示全部资源；空列表显示无并渲染空状态提示。空字符串选择 Unassigned 泳道。用 <code>@@bind-VisibleResourceIds</code> 从你自己的 UI 驱动它——内置选择器写的就是同一属性，两者不会不一致。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="VisibleResourceIds / VisibleResourceIdsChanged" Type="IReadOnlyList&lt;string&gt;?" Default="null" Since="v4">Which resources to show. Null shows every resource; an empty list shows none and renders an empty-state message. The empty string selects the Unassigned lane. Use <code>@@bind-VisibleResourceIds</code> to drive it from your own UI — the built-in picker writes the same property, so the two cannot disagree.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="ShowResourceFilter" Type="bool" Default="false" Since="v4">@L.T("在工具栏中绘制一个资源选择器，绑定到 VisibleResourceIds。当 Resources 为空时无效果。默认关闭，因此既有排程不受影响。", "Draws a resource picker in the toolbar, bound to VisibleResourceIds. Has no effect when Resources is empty. Off by default, so existing schedules are unchanged.")</ApiParameter>
+            <ApiParameter Name="Date / DateChanged" Type="DateOnly">@L.T("要显示日或周的日期。Today 把它设为 TimeZoneId 中的当前日期，并在保持 View 与 FirstDayOfWeek 不变的同时触发 DateChanged。WorkWeek 使用以周一为起点的所在周。Week 与 WorkWeek 的导航按七天前进或后退。", "The date whose day or week is displayed. Today sets this to the current date in TimeZoneId and raises DateChanged while preserving View and FirstDayOfWeek. WorkWeek uses its Monday-start week. Week and WorkWeek navigation advance seven days.")</ApiParameter>
+            <ApiParameter Name="View / ViewChanged" Type="SchedulerView" Default="Week">@L.T("Day、Week、WorkWeek 或 Month。无论 FirstDayOfWeek 如何，WorkWeek 始终显示周一至周五。Month 渲染六行周并按自然月步进；它没有时间轴，因此在那里 AllowDrag 与 AllowResize 被忽略，资源也作为筛选器而非泳道。", "Day, Week, WorkWeek or Month. WorkWeek displays Monday through Friday regardless of FirstDayOfWeek. Month renders six week rows and steps a calendar month; it has no time axis, so AllowDrag and AllowResize are ignored there and resources act as a filter rather than lanes.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="FirstDayOfWeek / FirstDayOfWeekChanged" Type="DayOfWeek / EventCallback&lt;DayOfWeek&gt;" Default="Monday">周视图中的第一天。工具栏提供周一与周日。用 <code>@@bind-FirstDayOfWeek</code> 把修改保留在父组件中。WorkWeek 总是从周一开始，且不改变该偏好。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="FirstDayOfWeek / FirstDayOfWeekChanged" Type="DayOfWeek / EventCallback&lt;DayOfWeek&gt;" Default="Monday">First day in Week view. The toolbar offers Monday and Sunday. Use <code>@@bind-FirstDayOfWeek</code> to retain changes in the parent. WorkWeek always starts on Monday without changing this preference.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="TimeZoneId" Type="string" Default="UTC">@L.T("IANA 显示时区。SchedulerEvent.TimeZoneId 独立决定重复规则的墙上时间。", "IANA display zone. SchedulerEvent.TimeZoneId independently determines recurrence wall time.")</ApiParameter>
+            <ApiParameter Name="EnableTimeZones" Type="bool" Default="true">@L.T("为 false 时，隐藏时区选择器与工具栏标签，并在显示与编辑中都用 TimeZoneId。既有的时刻与重复时区会被保留。固定偏移的排程请使用 UTC。启用时，内置选择器列出 .NET 在宿主上支持的、来自 Noda Time TZDB 的 IANA 标识，包含别名。", "When false, hide the time-zone selector and toolbar label, and use TimeZoneId for both display and editing. Existing instants and recurrence zones are preserved. Use UTC for a fixed-offset schedule. When enabled, the built-in selector lists IANA IDs from Noda Time's TZDB that .NET supports on the host, including aliases.")</ApiParameter>
+            <ApiParameter Name="SlotMinutes" Type="int" Default="30">@L.T("时间格大小，也是拖拽/改尺寸的吸附间隔。支持 15、30、60 以及 5 到 120 之间其他能整除 1440 的值。改尺寸至少保留一个时间格的时长。", "Slot size and drag/resize snapping interval. Supports 15, 30, 60 and other divisors of 1440 between 5 and 120. Resizing keeps at least one slot of duration.")</ApiParameter>
+            <ApiParameter Name="StartHour / EndHour" Type="int" Default="8 / 18">@L.T("渲染的小时区间；区间外的小时无法通过滚动到达。整天请用 StartHour=0 与 EndHour=24。夏令时切换日使用其真实流逝时长。视口在最大 700px 或 65vh（取较小者）内滚动。", "The rendered hour range; hours outside it are not available by scrolling. Use StartHour=0 and EndHour=24 for a full day. DST days use their actual elapsed duration. The viewport scrolls within a maximum height of 700px or 65vh, whichever is smaller.")</ApiParameter>
+            <ApiParameter Name="InitialScrollHour" Type="int?" Default="null" Since="v4">@L.T("首次可交互渲染后显示的显示时区小时（0–23），会被钳制到渲染区间内。null 从 StartHour 开始。这不会移除更早的小时；后续渲染会保留用户的滚动位置。", "Display-zone hour (0–23) shown after the first interactive render, clamped to the rendered range. Null starts at StartHour. This does not remove earlier hours; later renders preserve the user's scroll position.")</ApiParameter>
+            <ApiParameter Name="AllowDrag" Type="bool" Default="true">@L.T("在可见的时间格、日期与资源泳道之间移动预约。时长保持不变。重复事件的移动会产生单次发生的例外。其他资源归属会被保留；移到未分配会清空归属。", "Move appointments between visible time slots, days and resource lanes. Duration is preserved. Recurring moves create an occurrence exception. Other resource assignments are retained; moving to Unassigned clears assignments.")</ApiParameter>
+            <ApiParameter Name="AllowResize" Type="bool" Default="true">@L.T("调整可见预约的上下边缘。变更走 OnEventChange；被拒绝的保存会保留原事件，并打开拟议的编辑以供修正或重试。", "Resize visible top and bottom appointment edges. Changes use OnEventChange; rejected saves keep the original event and open the proposed edit for correction or retry.")</ApiParameter>
+            <ApiParameter Name="ReadOnly" Type="bool" Default="false">@L.T("禁用创建、编辑、删除、移动与改尺寸。", "Disables creation, editing, deletion, moving and resizing.")</ApiParameter>
+            <ApiParameter Name="EventTemplate" Type="RenderFragment&lt;SchedulerOccurrence&gt;">@L.T("在无障碍事件按钮内部的自定义事件内容。", "Custom event content inside the accessible event button.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="ActiveHours" Type="IReadOnlyList&lt;SchedulerDayHours&gt;" Default="empty" Since="v4">排程强调的工作日区间；某天不在任何区间内的时间格会被压暗。空列表不压暗任何时段。没有区间的整天从头到尾都是暗的，所以周末无需条目；同一天给两个区间则压暗它们之间的空档。时间是显示时区里的墙上时间。Start 含、End 不含；用 <code>TimeOnly.MinValue</code> 作为 End 表示当天结束。月视图没有时间轴可供压暗。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="ActiveHours" Type="IReadOnlyList&lt;SchedulerDayHours&gt;" Default="empty" Since="v4">Weekday ranges the schedule emphasises; slots outside every range for their day are muted. Empty mutes nothing. A day with no range is muted end to end, so weekends need no entry, and two ranges for one day mute the gap between them. Times are wall times in the display zone. Start is inclusive, End exclusive; use <code>TimeOnly.MinValue</code> as End for the end of the day. Month has no time axis to mute.</ApiParameter>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="BlockOutsideActiveHours" Type="bool" Default="false" Since="v4">拒绝创建、移动或改尺寸落到被压暗的时间格：该时间格被禁用、其右键菜单被抑制，任何落在暗区的拖拽或改尺寸都会被拒绝。在月视图中它只关闭完全没有区间的天数。它不校验你提供的 Events，而 <code>CreateEvent</code> 始终是编程式的逃生口。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="BlockOutsideActiveHours" Type="bool" Default="false" Since="v4">Refuses to create, move or resize into a muted slot: the slot is disabled, its context menu is suppressed, and any drag or resize landing outside is rejected. In Month it closes only the days with no range at all. It does not validate the Events you supply, and <code>CreateEvent</code> stays open as the programmatic escape hatch.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="TimeZones" Type="IReadOnlyList&lt;SchedulerTimeZone&gt;" Default="empty" Since="v4">@L.T("编辑器提供的时区，按你自己的命名显示。空列表会列出宿主支持的全部 IANA 时区——大约 600 个。设置该参数时校验标识符。已经使用某个未列出时区的事件仍会被提供，因此打开它不会悄悄改变它的时区。", "The zones the editor offers, under your own names. Empty lists every IANA zone the host supports — roughly 600. IDs are validated when the parameter is set. An event already using a zone you did not list is still offered, so opening it cannot quietly move it.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="EditorContent" Type="RenderFragment&lt;SchedulerEditorContext&gt;" Since="v4">在编辑器中渲染你自己的字段。渲染 <code>@@context.DefaultContent</code> 可保留内置字段。上下文携带 Draft、IsNew、Scope 与 DefaultContent。把 Draft 转成你的类型即可绑定你的字段。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="EditorContent" Type="RenderFragment&lt;SchedulerEditorContext&gt;" Since="v4">Renders your own fields in the editor. Render <code>@@context.DefaultContent</code> to keep the built-in ones. The context carries Draft, IsNew, Scope and DefaultContent. Cast Draft to your derived type to bind your fields.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="NewEventFactory" Type="Func&lt;SchedulerEvent&gt;" Since="v4">@L.T("创建编辑器起始使用的空白事件。当你从 SchedulerEvent 时必须提供它，否则新创建的事件是基类型，你的字段会丢失。", "Creates the blank event the editor starts from. Supply this when you derive from SchedulerEvent, or a newly created event is the base type and your fields are lost.")</ApiParameter>
+            <ApiParameter Name="MaxEventsPerDay" Type="int" Default="3" Since="v4">@L.T("仅月视图。一个格子内先绘制的事件芯片数，其余折叠进 \"+x more\"。跨天横杆会在它覆盖的每一天消耗这份额度，所以横杆之下的某天显示更少的芯片，并把差额计入它自己的溢出计数。", "Month only. Event chips drawn in a cell before the rest collapse into \"+x more\". A multi-day bar spends the budget in every day it covers, so a day under a bar shows fewer chips and counts the difference into its own overflow.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="ToolbarContent" Type="RenderFragment&lt;SchedulerToolbarContext&gt;" Since="v4">替换内置工具栏。渲染 <code>@@context.DefaultContent</code> 可保留它并在其周围添加内容。上下文携带 Date、RangeStart、Heading、View、FirstDayOfWeek、TimeZoneId、Resources 与 VisibleResourceIds，外加 Navigate、GoToToday、SetView 与 SetVisibleResources。Navigate 知道当前视图的步进单位；GoToToday 按 TimeZoneId 解析今天。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="ToolbarContent" Type="RenderFragment&lt;SchedulerToolbarContext&gt;" Since="v4">Replaces the built-in toolbar. Render <code>@@context.DefaultContent</code> to keep it and add around it. The context carries Date, RangeStart, Heading, View, FirstDayOfWeek, TimeZoneId, Resources and VisibleResourceIds, plus Navigate, GoToToday, SetView and SetVisibleResources. Navigate knows the step size for the current view; GoToToday resolves today in TimeZoneId.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="MaxAllDayRows" Type="int" Default="2" Since="v4">@L.T("先绘制的全天行数，其余折叠成一个 \"+x more\" 计数。一根横杆会在它覆盖的每一天消耗这份额度。", "All-day rows drawn before the rest collapse into a \"+x more\" count. A bar spends the budget in every day it covers.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="SlotContextMenuContent" Type="RenderFragment&lt;SchedulerSlotMenuContext&gt;" Since="v4">替换右键空白时间格时显示的菜单。上下文携带 Start、End、Resource 与 DefaultItems。渲染 <code>@@context.DefaultItems</code> 可保留内置的新建事件项并在其周围添加你自己的项；不渲染它即可整体替换菜单。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="SlotContextMenuContent" Type="RenderFragment&lt;SchedulerSlotMenuContext&gt;" Since="v4">Replaces the menu shown when an empty slot is right-clicked. The context carries Start, End, Resource and DefaultItems. Render <code>@@context.DefaultItems</code> to keep the built-in New event entry and add your own around it; leave it out to replace the menu entirely.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="EventContextMenuContent" Type="RenderFragment&lt;SchedulerEventMenuContext&gt;" Since="v4">@L.T("替换右键事件时显示的菜单。上下文携带 SchedulerOccurrence 与 DefaultItems（Edit event、Delete event）。删除会先确认而不打开编辑器。", "Replaces the menu shown when an event is right-clicked. The context carries the SchedulerOccurrence and DefaultItems (Edit event, Delete event). Delete confirms without opening the editor.")</ApiParameter>
+            <ApiParameter Name="OnEventChange" Type="EventCallback&lt;SchedulerChangeContext&gt;">@L.T("接收 Kind、Scope、Event、OccurrenceStart 与拟议的 Events。把 Cancel 置为 true 可拒绝。编辑器保存、经确认的删除、移动与改尺寸都会走它。失败时保留原事件并保留拟议的编辑。", "Receives Kind, Scope, Event, OccurrenceStart and proposed Events. Set Cancel to reject. Used by editor saves, confirmed deletes, moves and resizes. Failures preserve the original events and retain the proposed edit.")</ApiParameter>
+            <ApiParameter Name="Slot interaction" Type="behaviour" Since="v4">@L.T("单击空白时间格会高亮它；高亮只有一个时间格高，并在导航、视图切换或资源筛选变化时清除。双击，或在时间格获得焦点时按 Enter，打开编辑器。按空格仅高亮、不创建。结束在时间格上的拖拽不会创建任何内容。", "Clicking an empty slot highlights it; the highlight is one slot tall and clears on navigation, a view change or a resource-filter change. Double-click, or press Enter while a slot is focused, to open the editor. Space highlights without creating. A drag that ends over a slot creates nothing.")</ApiParameter>
+            <ApiParameter Name="CreateEvent(start, resourceId) / EditEvent(occurrence, scope)" Type="void">@L.T("以编程方式打开内置编辑器。", "Open the built-in editor programmatically.")</ApiParameter>
+            <ApiParameter Name="Class / AriaLabel / AdditionalAttributes" Type="presentation parameters">@L.T("为排程区域设置样式与标签。", "Style and label the scheduler region.")</ApiParameter>
+        </ApiReference>
+        <ApiReference Since="v4" ComponentName="Scheduler data and recurrence">
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="SchedulerEvent.IsAllDay" Type="bool" Default="false" Since="v4">把事件绘制为时间网格上方条带中的横杆，而不是定时块。此时 Start 与 End 按事件 TimeZoneId 中的日期读取，其时间部分被忽略。<strong>End 是排他的</strong>——14 日的单个全天事件从 14 日持续到 15 日。重复按完整当地天计量，因此每日全天系列在 23 或 25 小时的夏令时切换日仍停留在午夜。当可见资源有两个或以上时，条带按资源分组，使多日横杆保持连续；此时它不再与下方的网格逐列对齐。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="SchedulerEvent.IsAllDay" Type="bool" Default="false" Since="v4">Draws the event as a bar in the band above the time grid instead of a timed block. Start and End are then read as dates in the event's TimeZoneId and their time components are ignored. <strong>End is exclusive</strong> — a single all-day event on the 14th runs from the 14th to the 15th. Recurrence is measured in whole local days, so a daily all-day series stays on midnight across a 23- or 25-hour daylight-saving day. With two or more resources visible, the band groups by resource so multi-day bars stay contiguous; it then no longer lines up column-for-column with the grid below.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="SchedulerDayHours" Type="record" Since="v4">@L.T("一个被强调工作区间日的 Day、Start 与 End。", "Day, Start and End for one emphasised weekday range.")</ApiParameter>
+            <ApiParameter Name="SchedulerTimeZone" Type="record" Since="v4">@L.T("一个 IANA Id 与你希望为它显示的 Title。", "An IANA Id and the Title you want shown for it.")</ApiParameter>
+            <ApiParameter Name="SchedulerEditorContext" Type="record" Since="v4">@L.T("编辑器的 Draft、IsNew、Scope 与 DefaultContent。", "Draft, IsNew, Scope and DefaultContent for the editor.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="SchedulerToolbarContext" Type="class" Since="v4">只读状态，外加替换工具栏无法从外部表达的命令。Date、View、FirstDayOfWeek 与 VisibleResourceIds 是普通可绑定参数，那些请用 <code>@@bind-</code> 驱动。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="SchedulerToolbarContext" Type="class" Since="v4">Read state plus the commands a replacement toolbar cannot express from outside. Date, View, FirstDayOfWeek and VisibleResourceIds are ordinary bindable parameters, so drive those with <code>@@bind-</code> instead.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="SchedulerSlotMenuContext" Type="record" Since="v4">@L.T("右键空白时间格的 Start、End、Resource 与 DefaultItems。End 是 Start 加上 SlotMinutes。", "Start, End, Resource and DefaultItems for a right-clicked empty slot. End is Start plus SlotMinutes.")</ApiParameter>
+            <ApiParameter Name="SchedulerEventMenuContext" Type="record" Since="v4">@L.T("右键事件的 Occurrence 与 DefaultItems。", "Occurrence and DefaultItems for a right-clicked event.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="SchedulerEvent" Type="class">Id、Title、Start、End、TimeZoneId、IsAllDay、ResourceIds、RecurrenceRule、ExcludedStarts、SeriesId 与 RecurrenceId。<strong>可</strong>——子类化它以携带你自己的字段，重写虚方法 <code>Clone()</code> 并调用受保护的 <code>CopyTo()</code>，这样你只需写自己的字段，并提供 <code>NewEventFactory</code>。忘记重写的话，第一次编辑、拖拽或改尺寸就会丢掉你的字段。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="SchedulerEvent" Type="class">Id, Title, Start, End, TimeZoneId, IsAllDay, ResourceIds, RecurrenceRule, ExcludedStarts, SeriesId and RecurrenceId. <strong>Derivable</strong> — subclass it to carry your own fields, override the virtual <code>Clone()</code> and call the protected <code>CopyTo()</code> so you only write your own, and supply <code>NewEventFactory</code>. Forgetting the override drops your fields on the first edit, drag or resize.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="RecurrenceRule" Type="string?">@L.T("RFC 5545 的每日、每周、每月或每年 RRULE；支持 BYDAY、BYMONTHDAY、COUNT 与 UNTIL。编辑器提供每日、每周（带星期复选框）、每月与每年预设。每月与每年按开始日期重复。更复杂、由应用提供的规则会被保留，直到用户选择替换；编辑器不暴露原始规则语法。缺月的日子遵循 RFC 规则并被跳过。", "RFC 5545 daily, weekly, monthly or yearly RRULE; supports BYDAY, BYMONTHDAY, COUNT and UNTIL. The editor offers daily, weekly (with weekday checkboxes), monthly and yearly presets. Monthly and yearly repeats use the start date. More complex application-supplied rules are preserved until the user chooses a replacement; the editor does not expose raw rule syntax. Missing month days follow RFC rules and are skipped.")</ApiParameter>
+            <ApiParameter Name="SchedulerEngine.Expand" Type="IReadOnlyList&lt;SchedulerOccurrence&gt;">@L.T("展开一个半开区间，包含跨越其起点的事件。默认上限 10,000；超过上限会抛出异常。", "Expand a half-open range, including events crossing its start. Default limit 10,000; exceeding the limit throws.")</ApiParameter>
+            <ApiParameter Name="SchedulerEngine.ToInstant" Type="DateTimeOffset">@L.T("对重复的夏令时刻使用 Earlier 或 Later 解析把墙上时间转换为时刻。不存在的时间会被拒绝。定时发生保留其原始流逝时长。", "Convert wall time with Earlier or Later resolution for a repeated DST time. Missing times are rejected. Timed occurrences retain their original elapsed duration.")</ApiParameter>
+            <ApiParameter Name="SchedulerEngine.ApplyChange / Validate" Type="static methods">@L.T("校验数据并准备独立的创建/更新/删除集合，包含系列例外。", "Validate data and prepare independent create/update/delete collections, including series exceptions.")</ApiParameter>
+        </ApiReference>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private DateOnly date = new(2026, 9, 14);
+    private SchedulerView view = SchedulerView.Day;
+    private string displayZone = "America/New_York";
+    private bool rejectSaves;
+    private readonly IReadOnlyList<SchedulerResource> resources = [new("room-a", "Room A"), new("room-b", "Room B")];
+    private IReadOnlyList<SchedulerEvent> events =
+    [
+        new() { Id = "planning", Title = "Planning", Start = new(2026, 9, 14, 9, 0, 0, TimeSpan.FromHours(-4)), End = new(2026, 9, 14, 10, 0, 0, TimeSpan.FromHours(-4)), TimeZoneId = "America/New_York", ResourceIds = ["room-a"], RecurrenceRule = "FREQ=WEEKLY;BYDAY=MO,WE;COUNT=24" },
+        new() { Id = "review", Title = "Design review", Start = new(2026, 9, 14, 9, 30, 0, TimeSpan.FromHours(-4)), End = new(2026, 9, 14, 11, 0, 0, TimeSpan.FromHours(-4)), TimeZoneId = "America/New_York", ResourceIds = ["room-a", "room-b"] }
+    ];
+    private async Task SaveAsync(SchedulerChangeContext context)
+    {
+        await Task.Delay(250);
+        context.Cancel = rejectSaves;
+    }
+
+    private DateOnly weekDate = new(2026, 9, 16);
+    private SchedulerView weekView = SchedulerView.Week;
+    private DayOfWeek weekStart = DayOfWeek.Monday;
+    private IReadOnlyList<SchedulerEvent> weekEvents =
+    [
+        new() { Id = "team-sync", Title = "Team sync", Start = new(2026, 9, 14, 9, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 9, 30, 0, TimeSpan.Zero), RecurrenceRule = "FREQ=WEEKLY;BYDAY=MO,WE,FR;COUNT=12" },
+        new() { Id = "sunday-support", Title = "Sunday support", Start = new(2026, 9, 13, 10, 0, 0, TimeSpan.Zero), End = new(2026, 9, 13, 11, 0, 0, TimeSpan.Zero) },
+        new() { Id = "maintenance", Title = "Saturday maintenance", Start = new(2026, 9, 19, 10, 0, 0, TimeSpan.Zero), End = new(2026, 9, 19, 11, 0, 0, TimeSpan.Zero) }
+    ];
+
+    private DateOnly interactiveDate = new(2026, 9, 14);
+    private SchedulerView interactiveView = SchedulerView.Day;
+    private DateOnly menuDate = new(2026, 9, 14);
+    private SchedulerView menuView = SchedulerView.Day;
+    private DateOnly readOnlyDate = new(2026, 9, 14);
+    private SchedulerView readOnlyView = SchedulerView.Week;
+
+    private sealed record ChangeBanner(SchedulerChangeKind Kind, SchedulerEditScope Scope, string Id, string Title,
+        DateTimeOffset Start, DateTimeOffset End, DateTimeOffset? OccurrenceStart, int Count);
+
+    private ChangeBanner? lastChange;
+
+    private Task RecordChangeAsync(SchedulerChangeContext context)
+    {
+        lastChange = new ChangeBanner(context.Kind, context.Scope, context.Event.Id, context.Event.Title,
+            context.Event.Start, context.Event.End, context.OccurrenceStart, context.Events.Count);
+        return Task.CompletedTask;
+    }
+
+    private int slotMinutes = 30;
+    private bool allowDrag = true;
+    private bool allowResize = true;
+    private static string SlotLabel(int value) => value == 60 ? "1 hour" : $"{value} minutes";
+    private IReadOnlyList<SchedulerEvent> interactiveEvents =
+    [
+        new() { Id = "workshop", Title = "Workshop", Start = new(2026, 9, 14, 9, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 10, 0, 0, TimeSpan.Zero) },
+        new() { Id = "review", Title = "Review", Start = new(2026, 9, 14, 11, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 12, 0, 0, TimeSpan.Zero) }
+    ];
+
+    private DateOnly toolbarDate = new(2026, 9, 14);
+    private SchedulerView toolbarView = SchedulerView.Day;
+    private IReadOnlyList<SchedulerEvent> toolbarEvents =
+    [
+        new() { Id = "tb-standup", Title = "Stand-up", Start = new(2026, 9, 14, 9, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 9, 30, 0, TimeSpan.Zero) }
+    ];
+
+    private DateOnly zoneDate = new(2026, 9, 14);
+    private SchedulerView zoneView = SchedulerView.Day;
+    private readonly IReadOnlyList<SchedulerTimeZone> namedZones =
+    [
+        new("Australia/Sydney", "Sydney"),
+        new("Asia/Singapore", "Singapore"),
+        new("Europe/London", "London"),
+        new("America/New_York", "New York"),
+        new("UTC", "Coordinated Universal Time")
+    ];
+    private IReadOnlyList<SchedulerEvent> zoneEvents =
+    [
+        new() { Id = "z-handover", Title = "Handover", Start = new(2026, 9, 14, 9, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 10, 0, 0, TimeSpan.Zero), TimeZoneId = "Australia/Sydney" },
+        new() { Id = "z-legacy", Title = "Legacy booking", Start = new(2026, 9, 14, 12, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 13, 0, 0, TimeSpan.Zero), TimeZoneId = "Africa/Cairo" }
+    ];
+
+    public sealed class AgendaEvent : SchedulerEvent
+    {
+        public string? Agenda { get; set; }
+
+        public override SchedulerEvent Clone()
+        {
+            var copy = new AgendaEvent { Agenda = Agenda };
+            CopyTo(copy);
+            return copy;
+        }
+    }
+
+    private DateOnly describedDate = new(2026, 9, 14);
+    private SchedulerView describedView = SchedulerView.Day;
+    private IReadOnlyList<SchedulerEvent> describedEvents =
+    [
+        new AgendaEvent { Id = "d-kickoff", Title = "Kick-off", Agenda = "Scope, owners, first milestone", Start = new(2026, 9, 14, 9, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 10, 0, 0, TimeSpan.Zero) },
+        new AgendaEvent { Id = "d-review", Title = "Review", Start = new(2026, 9, 14, 14, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 15, 0, 0, TimeSpan.Zero) }
+    ];
+
+    private DateOnly hoursDate = new(2026, 9, 14);
+    private SchedulerView hoursView = SchedulerView.Week;
+    private bool blockOutsideHours;
+    private readonly IReadOnlyList<SchedulerDayHours> activeHours =
+    [
+        new(DayOfWeek.Monday, new(8, 30), new(17, 0)),
+        new(DayOfWeek.Tuesday, new(8, 30), new(17, 0)),
+        new(DayOfWeek.Wednesday, new(8, 30), new(12, 0)),
+        new(DayOfWeek.Wednesday, new(13, 0), new(17, 0)),
+        new(DayOfWeek.Thursday, new(8, 30), new(17, 0)),
+        new(DayOfWeek.Friday, new(8, 30), new(15, 0))
+    ];
+    private IReadOnlyList<SchedulerEvent> hoursEvents =
+    [
+        new() { Id = "h-standup", Title = "Stand-up", Start = new(2026, 9, 14, 9, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 9, 30, 0, TimeSpan.Zero) },
+        new() { Id = "h-oncall", Title = "On-call handover", Start = new(2026, 9, 16, 19, 0, 0, TimeSpan.Zero), End = new(2026, 9, 16, 19, 30, 0, TimeSpan.Zero) }
+    ];
+
+    private DateOnly monthDate = new(2026, 9, 14);
+    private SchedulerView monthView = SchedulerView.Month;
+    private IReadOnlyList<SchedulerEvent> monthEvents =
+    [
+        new() { Id = "mo-conf", Title = "Conference", IsAllDay = true, Start = new(2026, 9, 16, 0, 0, 0, TimeSpan.Zero), End = new(2026, 9, 19, 0, 0, 0, TimeSpan.Zero) },
+        new() { Id = "mo-sprint", Title = "Sprint", IsAllDay = true, Start = new(2026, 9, 21, 0, 0, 0, TimeSpan.Zero), End = new(2026, 10, 3, 0, 0, 0, TimeSpan.Zero) },
+        new() { Id = "mo-standup", Title = "Stand-up", Start = new(2026, 9, 14, 9, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 9, 30, 0, TimeSpan.Zero), RecurrenceRule = "FREQ=WEEKLY;BYDAY=MO,WE,FR;COUNT=12" },
+        new() { Id = "mo-review", Title = "Design review", Start = new(2026, 9, 14, 11, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 12, 0, 0, TimeSpan.Zero) },
+        new() { Id = "mo-1to1", Title = "1:1", Start = new(2026, 9, 14, 14, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 14, 30, 0, TimeSpan.Zero) },
+        new() { Id = "mo-retro", Title = "Retro", Start = new(2026, 9, 14, 16, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 17, 0, 0, TimeSpan.Zero) }
+    ];
+
+    private DateOnly allDayDate = new(2026, 9, 14);
+    private SchedulerView allDayView = SchedulerView.Week;
+    private IReadOnlyList<SchedulerEvent> allDayEvents =
+    [
+        new() { Id = "a-conf", Title = "Conference", IsAllDay = true, Start = new(2026, 9, 16, 0, 0, 0, TimeSpan.Zero), End = new(2026, 9, 19, 0, 0, 0, TimeSpan.Zero) },
+        new() { Id = "a-holiday", Title = "Public holiday", IsAllDay = true, Start = new(2026, 9, 14, 0, 0, 0, TimeSpan.Zero), End = new(2026, 9, 15, 0, 0, 0, TimeSpan.Zero) },
+        new() { Id = "a-launch", Title = "Launch week", IsAllDay = true, Start = new(2026, 9, 17, 0, 0, 0, TimeSpan.Zero), End = new(2026, 9, 21, 0, 0, 0, TimeSpan.Zero) },
+        new() { Id = "a-standup", Title = "Stand-up", Start = new(2026, 9, 16, 9, 0, 0, TimeSpan.Zero), End = new(2026, 9, 16, 9, 30, 0, TimeSpan.Zero) }
+    ];
+
+    private DateOnly allDayResourceDate = new(2026, 9, 14);
+    private SchedulerView allDayResourceView = SchedulerView.Week;
+    private IReadOnlyList<string>? allDayVisibleResources;
+    private IReadOnlyList<SchedulerEvent> allDayResourceEvents =
+    [
+        new() { Id = "ar-setup", Title = "Room A setup", IsAllDay = true, Start = new(2026, 9, 15, 0, 0, 0, TimeSpan.Zero), End = new(2026, 9, 18, 0, 0, 0, TimeSpan.Zero), ResourceIds = ["room-a"] },
+        new() { Id = "ar-maint", Title = "Room B maintenance", IsAllDay = true, Start = new(2026, 9, 16, 0, 0, 0, TimeSpan.Zero), End = new(2026, 9, 17, 0, 0, 0, TimeSpan.Zero), ResourceIds = ["room-b"] },
+        new() { Id = "ar-audit", Title = "Site audit", IsAllDay = true, Start = new(2026, 9, 17, 0, 0, 0, TimeSpan.Zero), End = new(2026, 9, 19, 0, 0, 0, TimeSpan.Zero) }
+    ];
+
+    private string? menuAction;
+    private IReadOnlyList<SchedulerEvent> menuEvents =
+    [
+        new() { Id = "m-standup", Title = "Stand-up", Start = new(2026, 9, 14, 9, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 9, 30, 0, TimeSpan.Zero) },
+        new() { Id = "m-review", Title = "Design review", Start = new(2026, 9, 14, 11, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 12, 0, 0, TimeSpan.Zero) }
+    ];
+
+    private void BlockHour(DateTimeOffset start)
+    {
+        menuAction = L.IsChinese ? $"已屏蔽 {start:t} 起的一小时" : $"Blocked one hour at {start:t}";
+        menuEvents = [.. menuEvents, new SchedulerEvent { Title = "Blocked", Start = start, End = start.AddHours(1) }];
+    }
+
+    private void Duplicate(SchedulerOccurrence occurrence)
+    {
+        menuAction = L.IsChinese ? $"已复制「{occurrence.Event.Title}」" : $"Duplicated \"{occurrence.Event.Title}\"";
+        var copy = occurrence.Event.Clone();
+        copy.Id = Guid.NewGuid().ToString("N");
+        copy.Title = occurrence.Event.Title + " (copy)";
+        copy.Start = occurrence.Start.AddHours(1);
+        copy.End = occurrence.End.AddHours(1);
+        copy.RecurrenceRule = null;
+        copy.ExcludedStarts = [];
+        menuEvents = [.. menuEvents, copy];
+    }
+
+    private DateOnly filteredDate = new(2026, 9, 14);
+    private SchedulerView filteredView = SchedulerView.Day;
+    private IReadOnlyList<string>? filteredVisibleResources;
+    private IReadOnlyList<SchedulerEvent> filteredEvents =
+    [
+        new() { Id = "f-standup", Title = "Stand-up", Start = new(2026, 9, 14, 9, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 9, 30, 0, TimeSpan.Zero), ResourceIds = ["room-a"] },
+        new() { Id = "f-interview", Title = "Interview", Start = new(2026, 9, 14, 10, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 11, 0, 0, TimeSpan.Zero), ResourceIds = ["room-b"] },
+        new() { Id = "f-allhands", Title = "All hands", Start = new(2026, 9, 14, 14, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 15, 0, 0, TimeSpan.Zero), ResourceIds = ["room-a", "room-b"] },
+        new() { Id = "f-offsite", Title = "Offsite planning", Start = new(2026, 9, 14, 13, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 13, 30, 0, TimeSpan.Zero) }
+    ];
+
+    private DateOnly simpleDate = new(2026, 9, 14);
+    private SchedulerView simpleView = SchedulerView.Day;
+    private IReadOnlyList<SchedulerEvent> simpleEvents =
+    [
+        new() { Id = "standup", Title = "Team stand-up", Start = new(2026, 9, 14, 9, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 9, 30, 0, TimeSpan.Zero) },
+        new() { Id = "lunch", Title = "Lunch", Start = new(2026, 9, 14, 12, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 13, 0, 0, TimeSpan.Zero) }
+    ];
+}

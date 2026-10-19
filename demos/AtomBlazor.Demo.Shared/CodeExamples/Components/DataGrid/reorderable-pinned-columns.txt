@@ -1,0 +1,25 @@
+<div style="max-width: 800px; overflow-x: auto;">
+    <DataGrid TData="Person" Items="@people" InitialPageSize="5" Reorderable="true"
+                SelectionMode="DataTableSelectionMode.Multiple">
+        <Columns>
+            <DataGridSelectColumn TData="Person" Pinned="ColumnPinning.Left" />
+            <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)"
+                                      Sortable Width="160px" Pinned="ColumnPinning.Left" />
+            <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" Width="220px" />
+            <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Width="180px" />
+            <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Role)" Width="160px" />
+            <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Age)" Width="100px" />
+            <DataGridTemplateColumn TData="Person" Title="Actions" Width="140px"
+                                      Pinned="ColumnPinning.Right" CellClass="text-right">
+                <HeaderTemplate>
+                    <span class="w-full text-right">Actions</span>
+                </HeaderTemplate>
+                <ChildContent Context="person">
+                    <div @onclick:stopPropagation="true" class="inline-flex justify-end w-full">
+                        <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small">Edit</Button>
+                    </div>
+                </ChildContent>
+            </DataGridTemplateColumn>
+        </Columns>
+    </DataGrid>
+</div>

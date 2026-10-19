@@ -1,0 +1,92 @@
+@namespace AtomBlazor.Primitives
+@typeparam TData
+
+@if (PaginationTemplate != null)
+{
+    @PaginationTemplate(Context)
+}
+else
+{
+    @* Default headless structure with navigation buttons *@
+    <nav role="navigation" aria-label="@PaginationAriaLabel" class="@Class" @attributes="AdditionalAttributes">
+        <div>
+            @* Navigation buttons *@
+            <button type="button"
+                    @onclick="Context.GoToFirstPage"
+                    disabled="@(!State.CanGoPrevious)"
+                    aria-label="@FirstPageAriaLabel">
+                @FirstPageLabel
+            </button>
+
+            <button type="button"
+                    @onclick="Context.GoToPreviousPage"
+                    disabled="@(!State.CanGoPrevious)"
+                    aria-label="@PreviousPageAriaLabel">
+                @PreviousPageLabel
+            </button>
+
+            @* Page info *@
+            @if (ShowPageInfo)
+            {
+                <span aria-live="polite" aria-atomic="true">
+                    @Context.GetPageInfoText()
+                </span>
+                <span>
+                    @GetPageInfoLabel()
+                </span>
+            }
+
+            <button type="button"
+                    @onclick="Context.GoToNextPage"
+                    disabled="@(!State.CanGoNext)"
+                    aria-label="@NextPageAriaLabel">
+                @NextPageLabel
+            </button>
+
+            <button type="button"
+                    @onclick="Context.GoToLastPage"
+                    disabled="@(!State.CanGoNext)"
+                    aria-label="@LastPageAriaLabel">
+                @LastPageLabel
+            </button>
+
+            @* Page size selector *@
+            @if (ShowPageSizeSelector)
+            {
+                <label>
+                    @ItemsPerPageLabel
+                    <select @onchange="HandlePageSizeChangeEvent"
+                            value="@State.PageSize"
+                            aria-label="@PageSizeSelectorAriaLabel">
+                        @foreach (var size in PageSizeOptions)
+                        {
+                            <option value="@size">@size</option>
+                        }
+                    </select>
+                </label>
+            }
+        </div>
+
+        @* Allow additional custom content *@
+        @ChildContent
+    </nav>
+}
+
+@code {
+    /// <summary>
+    /// Gets or sets additional HTML attributes to apply to the root element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private async Task HandlePageSizeChangeEvent(ChangeEventArgs e)
+    {
+        if (_disposed) return;
+
+        if (int.TryParse(e.Value?.ToString(), out var newSize))
+        {
+            await Context.ChangePageSize(newSize);
+        }
+    }
+}
+

@@ -1,0 +1,463 @@
+@page "/primitives/alert-dialog"
+<PageTitle>@L.T("Alert Dialog 基元 - Atom BlazorUI", "Alert Dialog Primitive - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Alert Dialog 基元", "Alert Dialog Primitive")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("无样式、无外观的告警对话框基元，需要用户明确确认后才能继续。无法通过点击遮罩层或按 Escape 键关闭。", "Headless, unstyled alert dialog primitive requiring explicit user acknowledgement. Cannot be dismissed via overlay click or Escape key.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基础告警对话框", "Basic Alert Dialog")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("需要用户明确确认或取消的告警对话框。点击外部区域或按 Escape 键都不会关闭它。", "An alert dialog that requires the user to explicitly confirm or cancel. Clicking outside or pressing Escape will NOT close it.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <AtomBlazor.Primitives.AlertDialogPrimitive>
+                    <AtomBlazor.Primitives.AlertDialogTrigger>
+                        <button type="button" class="px-4 py-2 bg-destructive text-destructive-foreground rounded text-sm">
+                            @L.T("删除账户", "Delete Account")
+                        </button>
+                    </AtomBlazor.Primitives.AlertDialogTrigger>
+
+                    <AtomBlazor.Primitives.AlertDialogPortal>
+                        <AtomBlazor.Primitives.AlertDialogOverlay
+                            style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 50;" />
+
+                        <AtomBlazor.Primitives.AlertDialogContent
+                            style="position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 50; background: var(--background); border: 1px solid var(--border); border-radius: 8px; padding: 24px; max-width: 500px; width: 90%;">
+                            <AtomBlazor.Primitives.AlertDialogTitle
+                                style="font-size: 1.125rem; font-weight: 600; margin: 0 0 8px 0;">
+                                @L.T("你确定要这样做吗？", "Are you absolutely sure?")
+                            </AtomBlazor.Primitives.AlertDialogTitle>
+
+                            <AtomBlazor.Primitives.AlertDialogDescription
+                                style="font-size: 0.875rem; color: var(--muted-foreground); margin: 0 0 16px 0;">
+                                @L.T("该操作无法撤销。这会永久删除你的账户并从我们的服务器上移除你的数据。", "This action cannot be undone. This will permanently delete your account and remove your data from our servers.")
+                            </AtomBlazor.Primitives.AlertDialogDescription>
+
+                            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                                <AtomBlazor.Primitives.AlertDialogCancel>
+                                    <button type="button" class="px-4 py-2 border rounded text-sm">
+                                        @L.T("取消", "Cancel")
+                                    </button>
+                                </AtomBlazor.Primitives.AlertDialogCancel>
+
+                                <AtomBlazor.Primitives.AlertDialogAction>
+                                    <button type="button" class="px-4 py-2 bg-destructive text-destructive-foreground rounded text-sm">
+                                        @L.T("确认，删除账户", "Yes, delete account")
+                                    </button>
+                                </AtomBlazor.Primitives.AlertDialogAction>
+                            </div>
+                        </AtomBlazor.Primitives.AlertDialogContent>
+                    </AtomBlazor.Primitives.AlertDialogPortal>
+                </AtomBlazor.Primitives.AlertDialogPrimitive>
+            </div>
+
+            <CodeBlock Source="Primitives/AlertDialog/basic.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("受控告警对话框", "Controlled Alert Dialog")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("在外部控制打开状态。", "Control the open state externally.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <button @onclick="@(() => controlledOpen = true)"
+                        class="px-4 py-2 border rounded text-sm">
+                    @L.T("打开受控告警对话框", "Open Controlled Alert Dialog")
+                </button>
+
+                <AtomBlazor.Primitives.AlertDialogPrimitive @bind-Open="controlledOpen">
+                    <AtomBlazor.Primitives.AlertDialogPortal>
+                        <AtomBlazor.Primitives.AlertDialogOverlay
+                            style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 50;" />
+
+                        <AtomBlazor.Primitives.AlertDialogContent
+                            style="position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 50; background: var(--background); border: 1px solid var(--border); border-radius: 8px; padding: 24px; max-width: 400px; width: 90%;">
+                            <AtomBlazor.Primitives.AlertDialogTitle
+                                style="font-size: 1.125rem; font-weight: 600; margin: 0 0 8px 0;">
+                                @L.T("确认操作", "Confirm Action")
+                            </AtomBlazor.Primitives.AlertDialogTitle>
+
+                            <AtomBlazor.Primitives.AlertDialogDescription
+                                style="font-size: 0.875rem; color: var(--muted-foreground); margin: 0 0 16px 0;">
+                                @L.T("要继续执行此操作吗？", "Do you want to proceed with this action?")
+                            </AtomBlazor.Primitives.AlertDialogDescription>
+
+                            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                                <AtomBlazor.Primitives.AlertDialogCancel>
+                                    <button type="button" class="px-4 py-2 border rounded text-sm">
+                                        @L.T("否", "No")
+                                    </button>
+                                </AtomBlazor.Primitives.AlertDialogCancel>
+
+                                <AtomBlazor.Primitives.AlertDialogAction>
+                                    <button type="button" class="px-4 py-2 bg-primary text-primary-foreground rounded text-sm">
+                                        @L.T("确认，继续", "Yes, continue")
+                                    </button>
+                                </AtomBlazor.Primitives.AlertDialogAction>
+                            </div>
+                        </AtomBlazor.Primitives.AlertDialogContent>
+                    </AtomBlazor.Primitives.AlertDialogPortal>
+                </AtomBlazor.Primitives.AlertDialogPrimitive>
+
+                <p class="text-sm text-muted-foreground">@L.T("打开：", "Open: ")@controlledOpen</p>
+            </div>
+
+            <CodeBlock Source="Primitives/AlertDialog/controlled.txt" />
+        </section>
+
+        <!-- AsChild：本地自创段，无对应章节，按授权口径并存保留 -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("AsChild 模式", "AsChild Pattern")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground">
+                        使用 <code>AsChild</code> 把触发器组合到你自己的带样式元素上，例如破坏性的
+                        <code>Button</code>。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground">
+                        Use <code>AsChild</code> to compose the trigger with your own styled element, such as a
+                        destructive <code>Button</code>.
+                    </p>
+                </text>
+            }
+
+            <div class="rounded-lg border bg-card p-6">
+                <AtomBlazor.Primitives.AlertDialogPrimitive>
+                    <AtomBlazor.Primitives.AlertDialogTrigger AsChild>
+                        <Button Variant="ButtonVariant.Destructive">@L.T("删除", "Delete")</Button>
+                    </AtomBlazor.Primitives.AlertDialogTrigger>
+                    <AtomBlazor.Primitives.AlertDialogContent class="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 border bg-background p-6 shadow-lg rounded-lg">
+                        <AtomBlazor.Primitives.AlertDialogTitle>AsChild</AtomBlazor.Primitives.AlertDialogTitle>
+                    </AtomBlazor.Primitives.AlertDialogContent>
+                </AtomBlazor.Primitives.AlertDialogPrimitive>
+            </div>
+
+            <CodeBlock Source="Primitives/AlertDialog/as-child.txt" />
+        </section>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">role="alertdialog"</code> 表明这是一个需要用户确认的模态框
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">role="alertdialog"</code> indicates a modal requiring acknowledgement
+                    </AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-modal="true"</code> 始终设为 true，以表明模态行为
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-modal="true"</code> always set to indicate modal behavior
+                    </AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-labelledby</code> 指向标题元素
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-labelledby</code> points to the title element
+                    </AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code> 指向描述元素
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code> points to the description element
+                    </AccessibilityItem>
+                </text>
+            }
+            <AccessibilityItem>
+                @L.T("对话框打开时会自动捕获焦点", "Focus is trapped within the dialog when open")
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @L.T("与 Dialog 不同，按 Escape 键不会关闭告警对话框", "Unlike Dialog, Escape key does NOT close the alert dialog")
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @L.T("与 Dialog 不同，点击外部不会关闭告警对话框", "Unlike Dialog, clicking outside does NOT close the alert dialog")
+            </AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可聚焦元素之间移动焦点", "Move focus between focusable elements"))">
+                <Kbd>Tab</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("激活当前聚焦的按钮", "Activate the focused button"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        @if (L.IsChinese)
+        {
+            <text>
+                <div class="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4 text-sm text-muted-foreground">
+                    与 <code class="text-xs bg-muted px-1 py-0.5 rounded">Dialog</code> 不同，Alert Dialog 无法通过按 Escape 或点击遮罩层关闭。
+                    用户必须与 Action 或 Cancel 按钮交互。
+                </div>
+            </text>
+        }
+        else
+        {
+            <text>
+                <div class="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4 text-sm text-muted-foreground">
+                    Unlike <code class="text-xs bg-muted px-1 py-0.5 rounded">Dialog</code>, the Alert Dialog cannot be dismissed via Escape or overlay click.
+                    Users must interact with the Action or Cancel buttons.
+                </div>
+            </text>
+        }
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="AlertDialog (primitive)">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="Open" Type="bool?" Default="null">
+                            控制打开状态（受控模式）。支持通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Open</code> 双向绑定。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="Open" Type="bool?" Default="null">
+                            Controls the open state (controlled mode). Supports two-way binding with <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Open</code>.
+                        </ApiParameter>
+                    </text>
+                }
+                <ApiParameter Name="DefaultOpen" Type="bool" Default="false">
+                    @L.T("非受控模式下的默认打开状态。", "Default open state for uncontrolled mode.")
+                </ApiParameter>
+                <ApiParameter Name="OnOpenChange" Type="EventCallback&lt;bool&gt;">
+                    @L.T("打开状态发生变化时调用的回调。", "Callback invoked when the open state changes.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到组件根元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </ApiParameter>
+                    </text>
+                }
+                <ApiParameter Name="OpenChanged" Type="EventCallback&lt;bool&gt;">
+                    @L.T("打开状态发生变化时触发的事件回调。", "Event callback invoked when the open state changes.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("子内容，通常是 AlertDialogTrigger 与 AlertDialogContent。", "The child content, typically an AlertDialogTrigger and AlertDialogContent.")
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="AlertDialogTrigger (primitive)">
+                <ApiParameter Name="AsChild" Type="bool" Default="false">
+                    @L.T("为 true 时，把属性合并到子元素上而不渲染外层包裹元素。", "When true, merges props onto the child element instead of rendering a wrapper.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到组件根元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </ApiParameter>
+                    </text>
+                }
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("在触发器内显示的内容。", "The content to display inside the trigger.")
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="AlertDialogContent">
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("告警对话框的内容。", "The content of the alert dialog.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到组件根元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </ApiParameter>
+                    </text>
+                }
+            </ApiReference>
+
+            <ApiReference ComponentName="AlertDialogTitle">
+                <ApiParameter Name="As" Type="string" Default="&quot;h2&quot;">
+                    @L.T("要渲染的 HTML 标题元素标签。", "HTML heading element tag to render.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到组件根元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </ApiParameter>
+                    </text>
+                }
+            </ApiReference>
+
+            <ApiReference ComponentName="AlertDialogDescription">
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("描述文字内容。", "The description text content.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到组件根元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </ApiParameter>
+                    </text>
+                }
+            </ApiReference>
+
+            <ApiReference ComponentName="AlertDialogAction">
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("操作按钮的内容。点击后会关闭对话框。", "The action button content. Clicking closes the dialog.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到组件根元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </ApiParameter>
+                    </text>
+                }
+            </ApiReference>
+
+            <ApiReference ComponentName="AlertDialogCancel">
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("取消按钮的内容。点击后会关闭对话框。", "The cancel button content. Clicking closes the dialog.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到组件根元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </ApiParameter>
+                    </text>
+                }
+            </ApiReference>
+        </div>
+    </section>
+    </div>
+</div>
+
+@code {
+    private bool controlledOpen;
+
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

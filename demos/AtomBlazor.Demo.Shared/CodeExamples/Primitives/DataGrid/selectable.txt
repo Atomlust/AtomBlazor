@@ -1,0 +1,35 @@
+<DataGrid TData="Person" Items="@people" @bind-State="@selectableGridState"
+            ManualPagination="true" SelectionMode="SelectionMode.Multiple"
+            EnableKeyboardNavigation="true" OnSelectionChange="@HandleSelectionChange"
+            AriaLabel="Selectable grid" Class="w-full caption-bottom text-sm">
+    <DataGridHeader>
+        <tr>
+            @* AriaLabel names a header cell whose content carries no text of its own *@
+            <DataGridHeaderCell TData="Person" AriaLabel="Select" Class="w-12 px-4">
+                <input type="checkbox" checked="@selectAllChecked"
+                       @onchange="@HandleSelectAllChanged"
+                       @onclick:stopPropagation="true"
+                       aria-label="Select all" />
+            </DataGridHeaderCell>
+            <DataGridHeaderCell TData="Person">Name</DataGridHeaderCell>
+            <DataGridHeaderCell TData="Person">Email</DataGridHeaderCell>
+        </tr>
+    </DataGridHeader>
+    <DataGridBody>
+        @foreach (var person in people)
+        {
+            var isSelected = selectableGridState.Selection.IsSelected(person);
+            <DataGridRow TData="Person" Item="@person"
+                Class="@(isSelected ? "bg-muted" : "")">
+                <DataGridCell Class="w-12 px-4">
+                    <input type="checkbox" checked="@isSelected"
+                           @onchange="@(() => ToggleRowSelection(person))"
+                           @onclick:stopPropagation="true"
+                           aria-label="@($"Select {person.Name}")" />
+                </DataGridCell>
+                <DataGridCell>@person.Name</DataGridCell>
+                <DataGridCell>@person.Email</DataGridCell>
+            </DataGridRow>
+        }
+    </DataGridBody>
+</DataGrid>

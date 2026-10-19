@@ -1,0 +1,668 @@
+@page "/components/datagrid-styling"
+@using AtomBlazor.Demo.Services
+@inject MockDataService MockDataService
+
+<PageTitle>@L.T("数据网格样式 - Atom BlazorUI", "DataGrid Styling - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-7xl">
+    <div class="space-y-4">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("数据网格样式", "DataGrid Styling")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("用 Tailwind CSS 工具类自定义单元格内容、列头、行外观与网格整体样式。", "Customize cell content, headers, row appearance, and grid styling with Tailwind CSS utilities.")
+        </p>
+    </div>
+
+    <!-- ── Custom Cell Templates ───────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义单元格模板", "Custom Cell Templates")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="bg-muted px-1 py-0.5 rounded">DataGridTemplateColumn</code> 完全自定义单元格内容，
+                    或为 PropertyColumn 添加 <code class="bg-muted px-1 py-0.5 rounded">CellTemplate</code>。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="bg-muted px-1 py-0.5 rounded">DataGridTemplateColumn</code> for fully custom cell content,
+                    or add <code class="bg-muted px-1 py-0.5 rounded">CellTemplate</code> to a PropertyColumn.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@people" InitialPageSize="5">
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable>
+                    <CellTemplate Context="person">
+                        <div class="flex items-center gap-2">
+                            <Avatar Class="h-8 w-8">
+                                <AvatarFallback Class="text-xs">@GetInitials(person.Name)</AvatarFallback>
+                            </Avatar>
+                            <span class="font-medium">@person.Name</span>
+                        </div>
+                    </CellTemplate>
+                </DataGridPropertyColumn>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Status)" Sortable>
+                    <CellTemplate Context="person">
+                        <Badge Variant="@(person.Status == "Active" ? BadgeVariant.Default : person.Status == "Pending" ? BadgeVariant.Secondary : BadgeVariant.Outline)">
+                            @person.Status
+                        </Badge>
+                    </CellTemplate>
+                </DataGridPropertyColumn>
+                <DataGridTemplateColumn TData="Person" Title="@(L.T("操作", "Actions"))">
+                    <ChildContent Context="person">
+                        <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Small">@L.T("编辑", "Edit")</Button>
+                    </ChildContent>
+                </DataGridTemplateColumn>
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/custom-cell-templates.txt" />
+    </div>
+
+    <!-- ── Custom Header Template ──────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义列头模板", "Custom Header Template")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    在 <code class="bg-muted px-1 py-0.5 rounded">DataGridTemplateColumn</code> 上使用
+                    <code class="bg-muted px-1 py-0.5 rounded">HeaderTemplate</code>，以自定义内容替换默认列头文字。
+                    排序图标与列宽拖拽手柄都会保留。提供了模板之后，网格仍用该列的
+                    <code class="bg-muted px-1 py-0.5 rounded">Title</code> 标注列头单元格，所以下方这个只有图标的
+                    Actions 列头对读屏软件依旧播报为 "Actions"。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="bg-muted px-1 py-0.5 rounded">HeaderTemplate</code> on a
+                    <code class="bg-muted px-1 py-0.5 rounded">DataGridTemplateColumn</code> to replace
+                    the default header text with custom content. Sort icons and resize handles are preserved.
+                    While a template is supplied the grid labels the header cell with the column's
+                    <code class="bg-muted px-1 py-0.5 rounded">Title</code>, so the icon-only Actions header below
+                    is still announced as "Actions" to a screen reader.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@people" InitialPageSize="5">
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+                <DataGridTemplateColumn TData="Person" Title="@(L.T("联系方式", "Contact"))" Sortable
+                    SortBy="@(p => (object)p.Email)">
+                    <HeaderTemplate>
+                        <div class="flex items-center gap-1.5">
+                            <LucideIcon Name="mail" Class="h-4 w-4" />
+                            <span>@L.T("联系方式", "Contact")</span>
+                        </div>
+                    </HeaderTemplate>
+                    <ChildContent Context="person">
+                        @person.Email
+                    </ChildContent>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn TData="Person" Title="@(L.T("状态", "Status"))" Sortable
+                    SortBy="@(p => (object)p.Status)">
+                    <HeaderTemplate>
+                        <div class="flex items-center gap-1.5">
+                            <LucideIcon Name="activity" Class="h-4 w-4" />
+                            <span>@L.T("状态", "Status")</span>
+                        </div>
+                    </HeaderTemplate>
+                    <ChildContent Context="person">
+                        <Badge Variant="@(person.Status == "Active" ? BadgeVariant.Default : BadgeVariant.Secondary)">
+                            @person.Status
+                        </Badge>
+                    </ChildContent>
+                </DataGridTemplateColumn>
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable />
+                <DataGridTemplateColumn TData="Person" Title="@(L.T("操作", "Actions"))" Width="90px">
+                    <HeaderTemplate>
+                        <LucideIcon Name="settings-2" Class="h-4 w-4" />
+                    </HeaderTemplate>
+                    <ChildContent Context="person">
+                        <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Small">@L.T("编辑", "Edit")</Button>
+                    </ChildContent>
+                </DataGridTemplateColumn>
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/header-template.txt" />
+    </div>
+
+    <!-- ── Property Column Header Template ─────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("属性列的列头模板", "Property Column Header Template")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="bg-muted px-1 py-0.5 rounded">DataGridPropertyColumn</code> 同样接受
+                    <code class="bg-muted px-1 py-0.5 rounded">HeaderTemplate</code>，因此可以在不放弃类型安全绑定的前提下
+                    往列头里放图标或更丰富的标记。模板只替换标题<em>文字本身</em> —— 网格仍会在其外围渲染自己的排序指示器、
+                    筛选图标与列菜单，所以下方的 Department 列依旧可以排序，也依旧提供 "Group by"。
+                    对于只有图标的列头，请让 <code class="bg-muted px-1 py-0.5 rounded">Title</code> 保持有意义的含义 —— 它既用于
+                    列选择器与列菜单，也是网格用来标注列头单元格本身的依据。提供了
+                    <code class="bg-muted px-1 py-0.5 rounded">HeaderTemplate</code> 之后，网格会依据标题在列头上设置
+                    <code class="bg-muted px-1 py-0.5 rounded">aria-label</code>，因此下方这个只有图标的 Email 列会被播报为
+                    "Email"，无需你自己再加 <code class="bg-muted px-1 py-0.5 rounded">sr-only</code> 标记。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="bg-muted px-1 py-0.5 rounded">DataGridPropertyColumn</code> also accepts a
+                    <code class="bg-muted px-1 py-0.5 rounded">HeaderTemplate</code>, so you can put an icon or richer
+                    markup in the header without giving up type-safe binding. The template replaces the title
+                    <em>text only</em> — the grid keeps rendering its own sort indicator, filter icon and column menu
+                    around it, so the Department column below still sorts and still offers "Group by". Keep
+                    <code class="bg-muted px-1 py-0.5 rounded">Title</code> meaningful for icon-only headers — as well as
+                    feeding the column chooser and the column menu, it is what the grid uses to label the header cell
+                    itself. While a <code class="bg-muted px-1 py-0.5 rounded">HeaderTemplate</code> is supplied the grid
+                    sets <code class="bg-muted px-1 py-0.5 rounded">aria-label</code> on the header from the title, so the
+                    icon-only Email column below is announced as "Email" without any
+                    <code class="bg-muted px-1 py-0.5 rounded">sr-only</code> markup of your own.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@people" InitialPageSize="5">
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable>
+                    <HeaderTemplate>
+                        <div class="flex items-center gap-1.5">
+                            <LucideIcon Name="user" Class="h-4 w-4 text-muted-foreground" />
+                            <span>@L.T("姓名", "Name")</span>
+                        </div>
+                    </HeaderTemplate>
+                </DataGridPropertyColumn>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable Groupable>
+                    <HeaderTemplate>
+                        <div class="flex items-center gap-1.5">
+                            <LucideIcon Name="building-2" Class="h-4 w-4 text-muted-foreground" />
+                            <span>@L.T("部门", "Department")</span>
+                        </div>
+                    </HeaderTemplate>
+                </DataGridPropertyColumn>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" Title="@(L.T("邮箱", "Email"))" Width="220px">
+                    <HeaderTemplate>
+                        <LucideIcon Name="mail" Class="h-4 w-4 text-muted-foreground" />
+                    </HeaderTemplate>
+                </DataGridPropertyColumn>
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable
+                    CellClass="font-mono tabular-nums">
+                    <HeaderTemplate>
+                        <div class="flex items-center gap-1.5">
+                            <LucideIcon Name="banknote" Class="h-4 w-4 text-muted-foreground" />
+                            <span>@L.T("薪资", "Salary")</span>
+                        </div>
+                    </HeaderTemplate>
+                </DataGridPropertyColumn>
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/property-column-header-template.txt" />
+    </div>
+
+    <!-- ── Row & Column Styling ──────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("行与列样式", "Row & Column Styling")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="bg-muted px-1 py-0.5 rounded">RowClass</code> 依据数据逐行应用 CSS 类，
+                    <code class="bg-muted px-1 py-0.5 rounded">CellClass</code> 负责列的单元格样式，
+                    <code class="bg-muted px-1 py-0.5 rounded">HeaderClass</code> 负责列头样式。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="bg-muted px-1 py-0.5 rounded">RowClass</code> to apply CSS classes
+                    per row based on data, <code class="bg-muted px-1 py-0.5 rounded">CellClass</code> for
+                    column cell styling, and <code class="bg-muted px-1 py-0.5 rounded">HeaderClass</code> for
+                    column header styling.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@people" InitialPageSize="5"
+                   RowClass="@(p => p.Status == "Inactive" ? "opacity-50" : null)">
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable
+                    HeaderClass="text-primary" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable
+                    CellClass="font-mono tabular-nums" HeaderClass="text-right"  />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Status)" />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/row-column-styling.txt" />
+    </div>
+
+    <!-- ── Conditional Cell Formatting ─────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("单元格条件格式化", "Conditional Cell Formatting")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="bg-muted px-1 py-0.5 rounded">CellClassFunc</code> 依据该行的数据条目
+                    计算单元格类名 —— 无需通过 <code class="bg-muted px-1 py-0.5 rounded">CellTemplate</code> 替换内容即可美化单个单元格。
+                    它会与静态的 <code class="bg-muted px-1 py-0.5 rounded">CellClass</code> 叠加使用。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="bg-muted px-1 py-0.5 rounded">CellClassFunc</code> to compute
+                    cell classes from the row's data item — style individual cells without replacing
+                    their content via <code class="bg-muted px-1 py-0.5 rounded">CellTemplate</code>.
+                    Combines with the static <code class="bg-muted px-1 py-0.5 rounded">CellClass</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <DataGrid TData="Person" Items="@people" InitialPageSize="5">
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+                <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable
+                    CellClass="font-mono tabular-nums"
+                    CellClassFunc="@(p => p.Salary >= 100000 ? "text-emerald-600 dark:text-emerald-400 font-semibold" : p.Salary < 60000 ? "text-destructive" : null)" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Status)"
+                    CellClassFunc="@(p => p.Status == "Inactive" ? "text-muted-foreground line-through" : null)" />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/conditional-cell-formatting.txt" />
+    </div>
+
+    <!-- ── Custom Styling Showcase ────────────────────────────────── -->
+    <div class="space-y-8">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义样式展示", "Custom Styling Showcase")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    把 <code class="bg-muted px-1 py-0.5 rounded">Class</code>、
+                    <code class="bg-muted px-1 py-0.5 rounded">RowClass</code>、
+                    <code class="bg-muted px-1 py-0.5 rounded">CellClass</code> 与
+                    <code class="bg-muted px-1 py-0.5 rounded">HeaderClass</code> 同 Tailwind CSS
+                    工具类组合起来，对整个网格做完整的视觉定制。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Combine <code class="bg-muted px-1 py-0.5 rounded">Class</code>,
+                    <code class="bg-muted px-1 py-0.5 rounded">RowClass</code>,
+                    <code class="bg-muted px-1 py-0.5 rounded">CellClass</code>, and
+                    <code class="bg-muted px-1 py-0.5 rounded">HeaderClass</code> with Tailwind CSS
+                    utilities for full visual customization of the grid.
+                </p>
+                        </text>
+}
+        </div>
+
+        <!-- Grid Lines -->
+        <div class="space-y-4">
+            <div class="space-y-1">
+                <h3 class="text-lg font-medium">@L.T("网格线", "Grid Lines")</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        显示可见的行与列边框。在每列上用 <code class="bg-muted px-1 py-0.5 rounded">CellClass</code> 和
+                        <code class="bg-muted px-1 py-0.5 rounded">HeaderClass</code> 施加 <code class="bg-muted px-1 py-0.5 rounded">border-r</code>，
+                        并用 <code class="bg-muted px-1 py-0.5 rounded">Class</code> 给网格外层包一圈边框。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        Add visible row and column borders. Apply <code class="bg-muted px-1 py-0.5 rounded">border-r</code>
+                        via <code class="bg-muted px-1 py-0.5 rounded">CellClass</code> and
+                        <code class="bg-muted px-1 py-0.5 rounded">HeaderClass</code> on each column,
+                        and wrap the grid in an outer border with <code class="bg-muted px-1 py-0.5 rounded">Class</code>.
+                    </p>
+                                </text>
+}
+            </div>
+            <DataGrid TData="Person" Items="@people" InitialPageSize="5"
+                       Class="border border-border rounded-lg overflow-hidden">
+                <Columns>
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable
+                        CellClass="border-r border-border/40" HeaderClass="border-r border-border/40" />
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable
+                        CellClass="border-r border-border/40" HeaderClass="border-r border-border/40" />
+                    <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable
+                        CellClass="border-r border-border/40" HeaderClass="border-r border-border/40" />
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Status)" />
+                </Columns>
+            </DataGrid>
+            <CodeBlock Source="Components/DataGrid/custom-grid-lines.txt" />
+        </div>
+
+        <!-- Striped Rows (Built-in) -->
+        <div class="space-y-4">
+            <div class="space-y-1">
+                <h3 class="text-lg font-medium">@L.T("斑马纹行", "Striped Rows")</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        使用内置的 <code class="bg-muted px-1 py-0.5 rounded">Striped</code> 参数
+                        让行背景交替变色。条纹外观可用
+                        <code class="bg-muted px-1 py-0.5 rounded">StripeClass</code> 自定义（默认
+                        <code class="bg-muted px-1 py-0.5 rounded">even:bg-muted/30 even:hover:bg-muted/70</code>）。
+                        它会与 <code class="bg-muted px-1 py-0.5 rounded">RowClass</code> 叠加使用。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        Use the built-in <code class="bg-muted px-1 py-0.5 rounded">Striped</code> parameter
+                        for alternating row backgrounds. Customize the stripe appearance with
+                        <code class="bg-muted px-1 py-0.5 rounded">StripeClass</code> (defaults to
+                        <code class="bg-muted px-1 py-0.5 rounded">even:bg-muted/30 even:hover:bg-muted/70</code>).
+                        Composes with <code class="bg-muted px-1 py-0.5 rounded">RowClass</code>.
+                    </p>
+                                </text>
+}
+            </div>
+            <DataGrid TData="Person" Items="@people" InitialPageSize="5" Striped>
+                <Columns>
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+                    <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable />
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Status)" />
+                </Columns>
+            </DataGrid>
+            <CodeBlock Source="Components/DataGrid/custom-striped-rows.txt" />
+        </div>
+
+        <!-- Table Container Styling -->
+        <div class="space-y-4">
+            <div class="space-y-1">
+                <h3 class="text-lg font-medium">@L.T("表格容器样式", "Table Container Styling")</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        用 <code class="bg-muted px-1 py-0.5 rounded">TableContainerClass</code> 给包裹表格的
+                        内部可滚动容器设置样式。适合用来加边框、圆角或限制高度。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        Use <code class="bg-muted px-1 py-0.5 rounded">TableContainerClass</code> to style
+                        the inner scrollable container that wraps the table. Useful for adding borders,
+                        rounded corners, or constraining height.
+                    </p>
+                                </text>
+}
+            </div>
+            <DataGrid TData="Person" Items="@people" InitialPageSize="5"
+                       TableContainerClass="rounded-xl border-2 border-primary/20">
+                <Columns>
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+                    <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable />
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Status)" />
+                </Columns>
+            </DataGrid>
+            <CodeBlock Source="Components/DataGrid/custom-table-container.txt" />
+        </div>
+
+        <!-- Striped Columns -->
+        <div class="space-y-4">
+            <div class="space-y-1">
+                <h3 class="text-lg font-medium">@L.T("斑马纹列", "Striped Columns")</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        把 <code class="bg-muted px-1 py-0.5 rounded">CellClass</code> 与
+                        <code class="bg-muted px-1 py-0.5 rounded">HeaderClass</code> 应用到交替的
+                        列上，形成纵向条纹效果。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        Apply <code class="bg-muted px-1 py-0.5 rounded">CellClass</code> and
+                        <code class="bg-muted px-1 py-0.5 rounded">HeaderClass</code> to alternating
+                        columns for a vertical stripe effect.
+                    </p>
+                                </text>
+}
+            </div>
+            <DataGrid TData="Person" Items="@people" InitialPageSize="5">
+                <Columns>
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable
+                        CellClass="bg-muted" HeaderClass="bg-muted" />
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+                    <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable
+                        CellClass="bg-muted" HeaderClass="bg-muted" />
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Status)" />
+                </Columns>
+            </DataGrid>
+            <CodeBlock Source="Components/DataGrid/custom-striped-columns.txt" />
+        </div>
+
+        <!-- Colored Header -->
+        <div class="space-y-4">
+            <div class="space-y-1">
+                <h3 class="text-lg font-medium">@L.T("彩色列头", "Colored Header")</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        在每列的 <code class="bg-muted px-1 py-0.5 rounded">HeaderClass</code> 上设置专门的背景色，
+                        让列头行更突出。TailwindMerge 会自动化解与基础列头样式之间的类名冲突。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        Apply a distinct background colour to the header row using
+                        <code class="bg-muted px-1 py-0.5 rounded">HeaderClass</code> on each column.
+                        TailwindMerge automatically resolves conflicting classes with the base header styles.
+                    </p>
+                                </text>
+}
+            </div>
+            <DataGrid TData="Person" Items="@people" InitialPageSize="5">
+                <Columns>
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable
+                        HeaderClass="bg-primary text-primary-foreground" />
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable
+                        HeaderClass="bg-primary text-primary-foreground" />
+                    <DataGridPropertyColumn TData="Person" TProp="int" Property="@(p => p.Salary)" Format="C0" Sortable
+                        HeaderClass="bg-primary text-primary-foreground" />
+                    <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Status)"
+                        HeaderClass="bg-primary text-primary-foreground" />
+                </Columns>
+            </DataGrid>
+            <CodeBlock Source="Components/DataGrid/custom-colored-header.txt" />
+        </div>
+    </div>
+
+    <!-- ── Empty & Loading States ──────────────────────────────────── -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("空状态与加载状态", "Empty & Loading States")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    没有数据时网格显示空状态；当
+                    <code class="bg-muted px-1 py-0.5 rounded">IsLoading</code> 为 true 时显示加载状态。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    The grid shows an empty state when there is no data, and a loading state when
+                    <code class="bg-muted px-1 py-0.5 rounded">IsLoading</code> is true.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="flex gap-4">
+            <Button OnClick="ToggleLoading" Variant="ButtonVariant.Outline" Size="ButtonSize.Small">
+                @L.T("切换加载状态", "Toggle Loading")
+            </Button>
+        </div>
+        <DataGrid TData="Person" Items="@(Array.Empty<Person>())" IsLoading="@_isLoading">
+            <Columns>
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" />
+                <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" />
+            </Columns>
+        </DataGrid>
+        <CodeBlock Source="Components/DataGrid/empty-loading.txt" />
+    </div>
+
+        <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("自定义的行与单元格模板应保留有意义的文本、标签以及网格键盘控制。", "Custom row and cell templates should preserve meaningful text, labels and the grid keyboard controls.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("保持足够的文本对比度，并在仅靠颜色表达状态之外补充文字或图标。模板里的可交互元素需要自己的无障碍名称。", "Keep adequate text contrast and provide text or icons alongside color-only status cues. Interactive elements in templates need their own accessible names.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在网格的可交互控件之间移动", "Move between interactive grid controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("启用 EnableKeyboardNavigation 后在聚焦的网格行间导航", "Navigate focused grid rows when EnableKeyboardNavigation is enabled"))"><Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("激活聚焦的按钮或链接", "Activate a focused button or link"))"><Kbd>Enter</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <ApiReference ComponentName="DataGrid">
+            <ApiParameter Name="Class" Type="string?">@L.T("追加到根容器的额外 CSS 类。", "Additional CSS classes applied to the root container.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="RowClass" Type="Func&lt;TData, string?&gt;?">可选回调，用于给数据行应用自定义 CSS 类。接收该行的数据条目，返回额外的 CSS 类或 null。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="RowClass" Type="Func&lt;TData, string?&gt;?">Optional callback for applying custom CSS classes to data rows. Receives the row&#x27;s data item and returns additional CSS classes, or null.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="Striped" Type="bool">@L.T("为 true 时用 StripeClass 应用交替的行背景色。会与 RowClass 叠加 —— 冲突时用户提供的类名优先。", "When true, applies alternating row background colors using StripeClass. Composes with RowClass — user-provided classes take precedence for conflicts.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="StripeClass" Type="string" Default="&quot;atom:even:bg-muted/30 atom:even:hover:bg-muted/70&quot;">Striped 为 true 时应用到偶数行的 CSS 类。默认值为 &quot;even:bg-muted/30 even:hover:bg-muted/70&quot;。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="StripeClass" Type="string" Default="&quot;atom:even:bg-muted/30 atom:even:hover:bg-muted/70&quot;">CSS classes applied to even rows when Striped is true. Defaults to &quot;even:bg-muted/30 even:hover:bg-muted/70&quot;.</ApiParameter>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="TableContainerClass" Type="string?">追加到包裹 &lt;table&gt; 元素的内部可滚动容器的额外 CSS 类。用它来控制圆角、边框、最大高度等。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="TableContainerClass" Type="string?">Additional CSS classes applied to the inner scrollable container that wraps the &lt;table&gt; element. Use this to control border radius, borders, max-height, etc.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="FilterBarClass" Type="string?">@L.T("追加到已筛选条件指示条的额外 CSS 类。", "Additional CSS classes applied to the active-filter indicator bar.")</ApiParameter>
+            <ApiParameter Name="EmptyTemplate" Type="RenderFragment?">@L.T("自定义空状态模板。", "Custom empty state template.")</ApiParameter>
+            <ApiParameter Name="LoadingTemplate" Type="RenderFragment?">@L.T("自定义加载模板。", "Custom loading template.")</ApiParameter>
+            <ApiParameter Name="EnableKeyboardNavigation" Type="bool" Default="true">@L.T("是否为行启用键盘导航。默认为 true。", "Enable keyboard navigation for rows. Default is true.")</ApiParameter>
+            <ApiParameter Name="AriaLabel" Type="string?">@L.T("网格的 ARIA 标签。", "ARIA label for the grid.")</ApiParameter>
+        </ApiReference>
+
+        <ApiReference ComponentName="DataGridPropertyColumn">
+            <ApiParameter Name="CellClass" Type="string?">@L.T("本列单元格的额外 CSS 类。", "Additional CSS classes for cells in this column.")</ApiParameter>
+            <ApiParameter Name="HeaderClass" Type="string?">@L.T("列头单元格的额外 CSS 类。", "Additional CSS classes for the header cell.")</ApiParameter>
+            <ApiParameter Name="CellClassFunc" Type="Func&lt;TData, string?&gt;?">@L.T("在 CellClass 之外，依据该行的数据计算额外的单元格类名。可用于条件格式化，例如高亮负数合计。", "Computes additional cell classes from the row's data, in addition to CellClass. Use it for conditional formatting such as highlighting negative totals.")</ApiParameter>
+            <ApiParameter Name="CellTemplate" Type="RenderFragment&lt;TData&gt;?">@L.T("自定义单元格模板。提供后会覆盖默认的值渲染。", "Custom cell template. If provided, overrides the default value rendering.")</ApiParameter>
+            <ApiParameter Name="HeaderTemplate" Type="RenderFragment?">@L.T("自定义列头内容。提供后只替换列头标题文字 —— 网格仍会在其外围渲染自己的排序指示器、筛选图标、固定图标、列菜单与拖拽手柄，因此 Sortable 或 Groupable 列的各项操作全部保留。适合用它代替 Title 展示图标或更丰富的标记。", "Custom header content. If provided, replaces the header title text only — the grid still renders its own sort indicator, filter icon, pin icon, column menu and resize handle around it, so a Sortable or Groupable column keeps every affordance. Use it to show an icon or richer markup instead of Title.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="Format" Type="string?">用于展示属性值的格式字符串（例如 &quot;C2&quot;、&quot;N0&quot;、&quot;d&quot;）。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="Format" Type="string?">Format string for displaying the property value (e.g., &quot;C2&quot;, &quot;N0&quot;, &quot;d&quot;).</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="NoWrap" Type="bool">@L.T("本列文本是否不换行。为 true 时单元格内容使用 white-space: nowrap，溢出时以省略号截断。默认为 false。", "Whether text in this column should not wrap. When true, cell content uses white-space: nowrap and truncates with an ellipsis on overflow. Default is false.")</ApiParameter>
+        </ApiReference>
+    </section>
+
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private List<Person> people = new();
+    private bool _isLoading;
+
+    protected override void OnInitialized()
+    {
+        people = MockDataService.GeneratePersons(50);
+    }
+
+    private void ToggleLoading() => _isLoading = !_isLoading;
+
+    private static string GetInitials(string name)
+    {
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length >= 2
+            ? $"{parts[0][0]}{parts[1][0]}"
+            : parts.Length == 1 ? $"{parts[0][0]}" : "?";
+    }
+}

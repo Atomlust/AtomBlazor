@@ -1,0 +1,241 @@
+@namespace AtomBlazor
+@typeparam TValue
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Linq.Expressions
+@using System.Globalization
+
+<select aria-label="@AriaLabel" id="@EffectiveId"
+        class="@CssClass"
+        name="@EffectiveName"
+        value="@CurrentStringValue"
+        disabled="@Disabled"
+        required="@Required"
+        data-atom-native-select
+        @onchange="HandleChange"
+        @attributes="AdditionalAttributes">
+    @if (!string.IsNullOrEmpty(Placeholder))
+    {
+        <option value="" disabled selected="@IsPlaceholderSelected">@Placeholder</option>
+    }
+    @ChildContent
+</select>
+
+@code {
+    /// <summary>控件的可访问名称。</summary>
+    [Parameter] public string? AriaLabel { get; set; }
+
+
+    private FieldIdentifier _fieldIdentifier;
+    private EditContext? _editContext;
+
+    [CascadingParameter]
+    private EditContext? CascadedEditContext { get; set; }
+
+    /// <summary>
+    /// 当前选中的值。
+    /// </summary>
+    [Parameter]
+    public TValue? Value { get; set; }
+
+    /// <summary>
+    /// 值变化时调用的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<TValue?> ValueChanged { get; set; }
+
+    /// <summary>
+    /// 获取或设置 select 元素的 HTML name 特性。
+    /// </summary>
+    /// <remarks>
+    /// 位于 EditForm 内且未显式设置时，name 自动从 ValueExpression（FieldIdentifier）推导，
+    /// 以支持 SSR 表单回传。
+    /// </remarks>
+    [Parameter]
+    public string? Name { get; set; }
+
+    /// <summary>
+    /// 获取或设置标识绑定值的表达式。
+    /// </summary>
+    [Parameter]
+    public Expression<Func<TValue?>>? ValueExpression { get; set; }
+
+    /// <summary>
+    /// 未选中任何值时显示的占位文本。
+    /// </summary>
+    [Parameter]
+    public string? Placeholder { get; set; }
+
+    /// <summary>
+    /// 选择框是否禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 获取或设置选择框是否必填。
+    /// </summary>
+    [Parameter]
+    public bool Required { get; set; }
+
+    /// <summary>
+    /// 要展示的 option 元素。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用到选择框的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 选择框的尺寸变体。
+    /// </summary>
+    [Parameter]
+    public NativeSelectSize Size { get; set; } = NativeSelectSize.Default;
+
+    /// <summary>
+    /// 获取或设置 select 元素的 HTML id 特性。
+    /// 未指定时自动生成。
+    /// </summary>
+    [Parameter]
+    public string? Id { get; set; }
+
+    private string? _generatedId;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (CascadedEditContext != null && ValueExpression != null)
+        {
+            _editContext = CascadedEditContext;
+            _fieldIdentifier = FieldIdentifier.Create(ValueExpression);
+        }
+    }
+
+    private bool IsPlaceholderSelected => Value is null;
+
+    /// <summary>
+    /// 写入 <c>select</c> 元素的值，也就是标记哪个 option 处于选中态的依据。
+    /// </summary>
+    /// <remarks>
+    /// 这里曾读取一个私有的「用户是否已经选过」标记，在它变真之前一律渲染空串——
+    /// 于是调用方提供的 <c>Value</c> 根本不会被显示为选中，
+    /// 直到用户自己改动一次为止。
+    /// </remarks>
+    private string CurrentStringValue => Format(Value);
+
+    private async Task HandleChange(ChangeEventArgs e)
+    {
+        var stringValue = e.Value?.ToString();
+
+        if (string.IsNullOrEmpty(stringValue))
+        {
+            Value = default;
+            await ValueChanged.InvokeAsync(default);
+        }
+        else if (TryParse(stringValue, out var parsed))
+        {
+            Value = parsed;
+            await ValueChanged.InvokeAsync(parsed);
+        }
+        else
+        {
+            Value = default;
+            await ValueChanged.InvokeAsync(default);
+        }
+
+        if (_editContext != null && ValueExpression != null && _fieldIdentifier.FieldName != null)
+        {
+            _editContext.NotifyFieldChanged(_fieldIdentifier);
+        }
+    }
+
+    /// <summary>
+    /// 按 option 元素写出自身值的方式渲染当前值，
+    /// 使两者保持一致、浏览器标记正确的选项。
+    /// </summary>
+    private static string Format(TValue? value) => value switch
+    {
+        null => "",
+        Enum enumValue => enumValue.ToString(),
+        IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
+        _ => value.ToString() ?? ""
+    };
+
+    /// <summary>
+    /// 把选中 option 的值回转成 <typeparamref name="TValue"/>。
+    /// </summary>
+    /// <remarks>
+    /// 这里曾一律走 <c>Convert.ChangeType</c>，而它并不处理枚举：
+    /// 对任何枚举类型的选择框都抛 <see cref="InvalidCastException"/>，
+    /// 异常被吞掉、值回转成 <c>default</c>——
+    /// 于是选中一个选项看起来完全没有反应。
+    /// </remarks>
+    private static bool TryParse(string text, out TValue? value)
+    {
+        value = default;
+        var targetType = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
+
+        try
+        {
+            if (targetType.IsEnum)
+            {
+                value = (TValue)Enum.Parse(targetType, text, ignoreCase: true);
+                return true;
+            }
+
+            if (targetType == typeof(Guid))
+            {
+                value = (TValue)(object)Guid.Parse(text);
+                return true;
+            }
+
+            if (targetType == typeof(string))
+            {
+                value = (TValue)(object)text;
+                return true;
+            }
+
+            value = (TValue)Convert.ChangeType(text, targetType, CultureInfo.InvariantCulture);
+            return true;
+        }
+        catch (Exception ex) when (ex is FormatException or InvalidCastException or OverflowException or ArgumentException)
+        {
+            value = default;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 获取生效的 name 特性；位于 EditForm 内时回退到 FieldIdentifier 的字段名。
+    /// </summary>
+    private string? EffectiveName => Name ?? (_editContext != null && _fieldIdentifier.FieldName != null ? _fieldIdentifier.FieldName : null);
+
+    private string EffectiveId => Id ?? (_generatedId ??= $"select-{Guid.NewGuid().ToString("N")[..8]}");
+
+    private string SizeClasses => Size switch
+    {
+        NativeSelectSize.Small => "atom:h-8 atom:text-xs atom:px-2",
+        NativeSelectSize.Default => "atom:h-10 atom:text-sm atom:px-3",
+        NativeSelectSize.Large => "atom:h-12 atom:text-base atom:px-4",
+        _ => "atom:h-10 atom:text-sm atom:px-3"
+    };
+
+    private string CssClass => ClassNames.cn(
+        "atom:flex atom:w-full atom:rounded-md atom:border atom:border-input atom:bg-background atom:py-2",
+        "atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring",
+        "atom:disabled:cursor-not-allowed atom:disabled:opacity-50",
+        "atom:appearance-none atom:pe-8",
+        SizeClasses,
+        Class
+    );
+}

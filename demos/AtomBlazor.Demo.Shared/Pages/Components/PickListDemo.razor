@@ -1,0 +1,448 @@
+@page "/components/pick-list"
+@using AtomBlazor.Primitives
+<PageTitle>@L.T("Pick List 挑选列表 - Atom BlazorUI", "Pick List - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Pick List 挑选列表", "Pick List")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("两份列表，加上在它们之间搬运选项的按钮：选中某一行再按按钮，而不是拖动 —— 这正是它在长列表上好用、且能纯键盘操作的原因。", "Two lists and the buttons that move options between them. Pick rows and press a button, rather than dragging — which is what makes it work on a long list, and from the keyboard.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        只有一个绑定，而不是两个。
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Options</code> 装着全部选项，
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Values</code> 装着已挑选的那些；待选面板就是剩下的部分。两个绑定的集合可能会各自漂移 —— 同一个选项同时出现在两个面板里，或者哪里都不在 —— 而没有任何一方能负责把它们对齐。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        One binding, not two.
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Options</code> holds every
+                        option and <code class="text-xs bg-muted px-1 py-0.5 rounded">Values</code> holds
+                        the ones picked; the available pane is whatever is left. Two bound collections
+                        could drift apart — the same option in both panes, or in neither — and nothing
+                        could be asked to reconcile that.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <PickList TValue="string" Options="@columnOptions" @bind-Values="basicPicked" />
+                <p class="text-sm text-muted-foreground">
+                    @L.T("已挑选（按顺序）：", "Picked, in order:")
+                    <span class="font-mono text-foreground">@Describe(basicPicked)</span>
+                </p>
+            </div>
+
+            <CodeBlock Source="Components/PickList/basic.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("顺序会保留", "Order Is Kept")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("已选面板保留的是条目被移动进来的先后顺序，而不是它们列在选项里的顺序。挑选列表通常是在组装一个有序的东西 —— 一组列、一份播放列表、一串步骤。", "The selected pane keeps the order things were moved in, not the order they are listed in. A pick list is usually building an ordered thing — a set of columns, a playlist, a sequence of steps.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <PickList TValue="string"
+                            Options="@stepOptions"
+                            SourceLabel="@(L.T("步骤", "Steps"))"
+                            TargetLabel="@(L.T("你的顺序", "Your sequence"))"
+                            Height="12rem"
+                            @bind-Values="orderPicked" />
+                <p class="text-sm text-muted-foreground">
+                    @L.T("排列顺序：", "Sequence:")
+                    <span class="font-mono text-foreground">@Describe(orderPicked)</span>
+                </p>
+            </div>
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("搜索", "Search")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("每个面板都有自己的搜索框。搜索生效时，全部移动按钮搬走的是搜索后仍然可见的那些，而不是被藏起来的其余项 —— 一个悄悄移走你看不见的行的按钮，比没有按钮更糟。", "Each pane gets its own search box. With a search active, the move-everything buttons move what the search has left visible, not the hidden rest — a button that quietly moved rows you could not see would be worse than no button.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <PickList TValue="string"
+                            Options="@countryOptions"
+                            ShowSearch="true"
+                            SourceLabel="@(L.T("全部国家", "All countries"))"
+                            TargetLabel="@(L.T("发货目的地", "Shipping to"))"
+                            Height="12rem"
+                            @bind-Values="countryPicked" />
+                <p class="text-sm text-muted-foreground">
+                    @L.T("已挑选：", "Picked:") <span class="font-mono text-foreground">@(countryPicked?.Count() ?? 0) @L.T("项，共", "of") @countryOptions.Length</span>
+                </p>
+            </div>
+
+            <CodeBlock Source="Components/PickList/search.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("纵向", "Vertical")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("上下堆叠的面板配上方向箭头。窄屏幕上更合适 —— 横向并排时两个面板都会窄到没法读。横向布局本身在小屏幕上就已经会堆叠，并把按钮排成一行。", "Stacked panes with up and down arrows. Better on a narrow screen, where two panes side by side leave neither wide enough to read. The horizontal layout already stacks on small screens, and turns its buttons into a row when it does.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <PickList TValue="string"
+                            Options="@columnOptions"
+                            Orientation="PickListOrientation.Vertical"
+                            Height="10rem"
+                            @bind-Values="verticalPicked" />
+            </div>
+
+            <CodeBlock Source="Components/PickList/vertical.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("锁定选项", "Locked Options")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">OptionDisabled</code> 标记一个不能移动的选项。
+                        全部移动按钮会把它留在原地，于是必需的列不会被搬走。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">OptionDisabled</code> marks an
+                        option that cannot move. The move-everything buttons leave it where it is, so a
+                        required column stays put.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <PickList TValue="string"
+                            Options="@columnOptions"
+                            OptionDisabled="@(o => o.Value == "id")"
+                            @bind-Values="lockedPicked" />
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        <strong>ID</strong> 已被锁定。试试 <em>全部移动</em>。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        <strong>ID</strong> is locked. Try <em>Move all</em>.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <CodeBlock Source="Components/PickList/locked.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("响应一次移动", "Reacting to a Move")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">OnMove</code> 会回报哪些值移动了、朝哪个方向移动，
+                        时机是绑定更新之后。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">OnMove</code> reports which
+                        values moved and which way, after the binding has been updated.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <PickList TValue="string"
+                            Options="@columnOptions"
+                            @bind-Values="movePicked"
+                            OnMove="HandleMove" />
+                <p class="text-sm text-muted-foreground">
+                    @L.T("最近一次移动：", "Last move:") <span class="font-mono text-foreground">@(lastMove ?? L.T("暂无记录", "none yet"))</span>
+                </p>
+            </div>
+
+            <CodeBlock Source="Components/PickList/on-move.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("两个面板和所有按钮都不起作用了。", "Both panes and every button are out of action.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <PickList TValue="string" Options="@columnOptions" Values="@(new[] { "name" })" Disabled="true" />
+            </div>
+        </section>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    每个面板都是一枚 <a href="/components/list-box" class="underline">List Box</a>，所以它带着完整的
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">role="listbox"</code>
+                    模式：一个 Tab 停靠点、通过
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-activedescendant</code> 维护的活动选项，以及
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-selected</code> 标在每个选项上。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Each pane is a <a href="/components/list-box" class="underline">List Box</a>, so it
+                    carries the full <code class="text-xs bg-muted px-1 py-0.5 rounded">role="listbox"</code>
+                    pattern: one tab stop, an active option through
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-activedescendant</code>, and
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-selected</code> on every option.
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    <strong>这里的每一步都能用键盘完成。</strong> 这正是它比在两个列表之间拖动更可取的原因：
+                    拖动谈不上真正可用的键盘等价操作。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    <strong>Everything here works from the keyboard.</strong> That is the reason to prefer
+                    this over dragging between two lists: a drag has no keyboard equivalent worth the name.
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    每个移动按钮都只有图标，并带上相配的
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> 和
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">title</code>，所以它会被朗读出来，
+                    悬停时也有工具提示。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Each move button is icon-only and carries a matching
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> and
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">title</code>, so it is announced and
+                    shows a tooltip on hover.
+                </AccessibilityItem>
+                        </text>
+}
+            <AccessibilityItem>
+                @L.T("点了也不会发生什么的按钮会被禁用，而不是默默失效 —— 已选方向的箭头需要先有选中项，全部移动的箭头需要面板非空。", "A button that would do nothing is disabled rather than silently inert — the selected arrows need a selection, and the move-all arrows need a non-empty pane.")
+            </AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在两个面板、它们的搜索框和按钮之间移动", "Move between the panes, their search boxes and the buttons"))">
+                <Kbd>Tab</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在面板内移动活动选项", "Move the active option inside a pane"))">
+                <Kbd>&uarr;</Kbd> / <Kbd>&darr;</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("选中或取消选中活动选项", "Pick or unpick the active option"))">
+                <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("扩展选区，然后一次把这一批全部移走", "Extend the selection, then move the lot in one press"))">
+                <Kbd>Shift</Kbd> + <Kbd>&uarr;</Kbd> / <Kbd>&darr;</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("选中面板里全部可见的条目", "Select everything visible in the pane"))">
+                <Kbd>Ctrl</Kbd> + <Kbd>A</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("按下获得焦点的移动按钮", "Press the focused move button"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件的属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="PickList">
+                <ApiParameter Name="Options" Type="IEnumerable&lt;SelectOption&lt;TValue&gt;&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            全部选项，待选面板就按这个顺序显示它们。类型与其他列表组件接收的 <code class="text-xs bg-muted px-1 py-0.5 rounded">SelectOption&lt;TValue&gt;</code> 完全相同。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Every option, in the order the available pane shows them. The same <code class="text-xs bg-muted px-1 py-0.5 rounded">SelectOption&lt;TValue&gt;</code> the other list components take.
+                                        </text>
+}
+                </ApiParameter>
+                <ApiParameter Name="Values" Type="IEnumerable&lt;TValue&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            已挑选的值，按它们被移动进来的顺序。与 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Values</code> 配合使用。找不到对应选项的值会被丢掉。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            The picked values, in the order they were moved. Use with <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Values</code>. A value with no matching option is dropped.
+                                        </text>
+}
+                </ApiParameter>
+                <ApiParameter Name="ValuesChanged" Type="EventCallback&lt;IEnumerable&lt;TValue&gt;?&gt;">
+                    @L.T("已挑选的值发生变化时调用。", "Invoked when the picked values change.")
+                </ApiParameter>
+                <ApiParameter Name="OnMove" Type="EventCallback&lt;PickListMoveEventArgs&lt;TValue&gt;&gt;">
+                    @L.T("选项移动之后调用，带上移动了哪些值以及移动的方向。", "Invoked after options move, with the values that moved and which way.")
+                </ApiParameter>
+                <ApiParameter Name="SourceLabel" Type="string?" Default="Available">
+                    @L.T("待选面板上方的标签。", "The label above the pane of options not yet picked.")
+                </ApiParameter>
+                <ApiParameter Name="TargetLabel" Type="string?" Default="Selected">
+                    @L.T("已选面板上方的标签。", "The label above the pane of picked options.")
+                </ApiParameter>
+                <ApiParameter Name="SourceEmptyMessage" Type="string?">
+                    @L.T("待选面板为空时显示的提示。", "The message shown when the available pane is empty.")
+                </ApiParameter>
+                <ApiParameter Name="TargetEmptyMessage" Type="string?">
+                    @L.T("已选面板为空时显示的提示。", "The message shown when the selected pane is empty.")
+                </ApiParameter>
+                <ApiParameter Name="ShowSearch" Type="bool" Default="false">
+                    @L.T("每个面板是否带有搜索框。", "Whether each pane has a search box.")
+                </ApiParameter>
+                <ApiParameter Name="ShowSelectAll" Type="bool" Default="true">
+                    @L.T("每个面板是否带有全选复选框。", "Whether each pane has a select-all checkbox.")
+                </ApiParameter>
+                <ApiParameter Name="ShowMoveAll" Type="bool" Default="true">
+                    @L.T("是否显示全部移动按钮。搜索生效时，它们只移动搜索后仍可见的条目。", "Whether the move-everything buttons are shown. With a search active they move only what it left visible.")
+                </ApiParameter>
+                <ApiParameter Name="Orientation" Type="PickListOrientation" Default="Horizontal">
+                    @L.T("两个面板是左右并排还是上下堆叠。", "Whether the panes sit side by side or stacked.")
+                </ApiParameter>
+                <ApiParameter Name="OptionDisabled" Type="Func&lt;SelectOption&lt;TValue&gt;, bool&gt;?">
+                    @L.T("标记不能移动的选项的判断函数。全部移动按钮会跳过它们。", "A predicate marking options that cannot move. The move-everything buttons leave them alone.")
+                </ApiParameter>
+                <ApiParameter Name="ItemTemplate" Type="RenderFragment&lt;SelectOption&lt;TValue&gt;&gt;?">
+                    @L.T("选项内容的模板，两个面板共用。", "A template for an option's content, used in both panes.")
+                </ApiParameter>
+                <ApiParameter Name="Height" Type="string" Default="16rem">
+                    @L.T("每个面板滚动区域的高度，写成 CSS 长度值。", "The height of each pane's scrolling area, as a CSS length.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("整个控件是否被禁用。", "Whether the whole control is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("应用到根元素上的额外 CSS 类。", "Additional CSS classes for the root element.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @L.T("应用到根元素上的额外 HTML 属性。", "Additional HTML attributes applied to the root element.")
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private IEnumerable<string>? basicPicked = ["name"];
+    private IEnumerable<string>? orderPicked;
+    private IEnumerable<string>? countryPicked;
+    private IEnumerable<string>? verticalPicked;
+    private IEnumerable<string>? lockedPicked;
+    private IEnumerable<string>? movePicked;
+    private string? lastMove;
+
+    private readonly SelectOption<string>[] columnOptions =
+    [
+        new("id", "ID"),
+        new("name", "Name"),
+        new("email", "Email"),
+        new("role", "Role"),
+        new("created", "Created"),
+        new("status", "Status"),
+    ];
+
+    private readonly SelectOption<string>[] stepOptions =
+    [
+        new("gather", "Gather requirements"),
+        new("design", "Design"),
+        new("build", "Build"),
+        new("review", "Review"),
+        new("ship", "Ship"),
+    ];
+
+    private readonly SelectOption<string>[] countryOptions =
+    [
+        new("au", "Australia"), new("br", "Brazil"), new("ca", "Canada"),
+        new("cn", "China"), new("de", "Germany"), new("es", "Spain"),
+        new("fr", "France"), new("id", "Indonesia"), new("in", "India"),
+        new("it", "Italy"), new("jp", "Japan"), new("ke", "Kenya"),
+        new("mx", "Mexico"), new("ng", "Nigeria"), new("nz", "New Zealand"),
+        new("pt", "Portugal"), new("se", "Sweden"), new("sg", "Singapore"),
+        new("uk", "United Kingdom"), new("us", "United States"),
+    ];
+
+    private string Describe(IEnumerable<string>? values) =>
+        values is null || !values.Any() ? "none" : string.Join(" → ", columnOptions.Concat(stepOptions).GetTexts(values));
+
+    private void HandleMove(PickListMoveEventArgs<string> e) =>
+        lastMove = $"{e.Values.Count} {(e.ToTarget ? "picked" : "returned")}";
+}

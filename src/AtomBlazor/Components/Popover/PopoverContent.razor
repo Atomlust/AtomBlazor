@@ -1,0 +1,161 @@
+@namespace AtomBlazor
+
+@* 带样式的 PopoverContent，附加 shadcn/ui 类 *@
+
+<AtomBlazor.Primitives.PopoverContent ForceMount="@ForceMount"
+                                                   CloseOnEscape="@CloseOnEscape"
+                                                   CloseOnClickOutside="@CloseOnClickOutside"
+                                                   Side="@Side"
+                                                   Align="@Align"
+                                                   Offset="@Offset"
+                                                   MatchTriggerWidth="@MatchTriggerWidth"
+                                                   ScrollToSelected="@ScrollToSelected"
+                                                   ScrollToSelectedSelector="@ScrollToSelectedSelector"
+                                                   AutoFocusId="@AutoFocusId"
+                                                   Strategy="@Strategy"
+                                                   ZIndex="@ZIndex"
+                                                   OnEscapeKeyDown="@OnEscapeKeyDown"
+                                                   OnClickOutside="@OnClickOutside"
+                                                   OnContentReady="@OnContentReady"
+                                                   class="@CssClass"
+                                                   @attributes="FilteredAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.PopoverContent>
+
+@code {
+    /// <summary>
+    /// 关闭后是否把内容继续挂载在 DOM 里。
+    /// 为 true 时可让 CSS 退场动画播完。
+    /// 默认为 false。
+    /// </summary>
+    [Parameter]
+    public bool ForceMount { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 每次浮层打开时，是否在它显现之前把当前选中项滚动进视野。
+    /// 供组合框之类的列表内容使用。
+    /// </summary>
+    [Parameter]
+    public bool ScrollToSelected { get; set; }
+
+    /// <summary>
+    /// <see cref="ScrollToSelected"/> 用来识别选中项的 CSS 选择器。
+    /// </summary>
+    [Parameter]
+    public string ScrollToSelectedSelector { get; set; } = "[role=\"option\"][aria-selected=\"true\"]";
+
+    /// <summary>
+    /// 浮层揭示后一帧之内要聚焦的元素 <c>id</c>——例如搜索框。
+    /// 在定位浮层的那次调用内完成，不额外花往返。
+    /// </summary>
+    [Parameter]
+    public string? AutoFocusId { get; set; }
+
+    [Parameter]
+    public bool CloseOnEscape { get; set; } = true;
+
+    [Parameter]
+    public bool CloseOnClickOutside { get; set; } = true;
+
+    [Parameter]
+    public PopoverSide Side { get; set; } = PopoverSide.Bottom;
+
+    [Parameter]
+    public PopoverAlign Align { get; set; } = PopoverAlign.Center;
+
+    [Parameter]
+    public int Offset { get; set; } = 4;
+
+    [Parameter]
+    public bool MatchTriggerWidth { get; set; } = false;
+
+    /// <summary>
+    /// CSS 定位策略。
+    /// 默认为 <see cref="PositioningStrategy.Fixed"/>，以正确逃出堆叠上下文
+    /// （例如位于 Dialog、Sheet、Drawer 之内时）。
+    /// 仅当浮层应随容器一起滚动时使用 <see cref="PositioningStrategy.Absolute"/>。
+    /// </summary>
+    [Parameter]
+    public PositioningStrategy Strategy { get; set; } = PositioningStrategy.Fixed;
+
+    /// <summary>
+    /// 浮层内容的 CSS z-index。
+    /// 默认为 9999，以便渲染在遮罩层（Dialog、Sheet、Drawer）之上。
+    /// </summary>
+    [Parameter]
+    public int ZIndex { get; set; } = 9999;
+
+    [Parameter]
+    public EventCallback<KeyboardEventArgs> OnEscapeKeyDown { get; set; }
+
+    [Parameter]
+    public EventCallback OnClickOutside { get; set; }
+
+    /// <summary>
+    /// 浮层内容完全就绪（已定位且可见）时触发的回调。
+    /// 用于焦点管理等场景。
+    /// </summary>
+    [Parameter]
+    public EventCallback OnContentReady { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 返回移除了已显式处理参数的 AdditionalAttributes。
+    /// </summary>
+    private Dictionary<string, object>? FilteredAttributes
+    {
+        get
+        {
+            if (AdditionalAttributes == null) return null;
+            
+            var filtered = new Dictionary<string, object>();
+            foreach (var kvp in AdditionalAttributes)
+            {
+                var key = kvp.Key.ToLowerInvariant();
+                if (key != "class" && 
+                    key != "forcemount" &&
+                    key != "closeonescape" &&
+                    key != "closeonclickoutside" &&
+                    key != "side" &&
+                    key != "align" &&
+                    key != "offset" &&
+                    key != "matchtriggerwidth" &&
+                    key != "scrolltoselected" &&
+                    key != "scrolltoselectedselector" &&
+                    key != "autofocusid" &&
+                    key != "strategy" &&
+                    key != "zindex" &&
+                    key != "onescapekeydown" &&
+                    key != "onclickoutside" &&
+                    key != "oncontentready")
+                {
+                    filtered[kvp.Key] = kvp.Value;
+                }
+            }
+            
+            return filtered.Count > 0 ? filtered : null;
+        }
+    }
+
+    // MatchTriggerWidth 为 true 时用 w-full，让内容尊重 FloatingPortal 包装层的宽度；
+    // 否则用默认的 w-72 作为标准浮层宽度
+    private string WidthClass => MatchTriggerWidth ? "atom:w-full" : "atom:w-72";
+
+    private string CssClass => ClassNames.cn(
+        "atom:z-50", WidthClass, "atom:rounded-md atom:border atom:bg-popover atom:p-4 atom:text-popover-foreground atom:shadow-md atom:outline-none",
+        "atom:data-[state=open]:animate-in atom:data-[state=closed]:animate-out",
+        "atom:data-[state=closed]:fade-out-0 atom:data-[state=open]:fade-in-0",
+        "atom:data-[state=closed]:zoom-out-95 atom:data-[state=open]:zoom-in-95",
+        "atom:data-[side=bottom]:slide-in-from-top-2 atom:data-[side=left]:slide-in-from-right-2",
+        "atom:data-[side=right]:slide-in-from-left-2 atom:data-[side=top]:slide-in-from-bottom-2",
+        Class
+    );
+}

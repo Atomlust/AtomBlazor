@@ -1,0 +1,66 @@
+@namespace AtomBlazor
+
+@*
+    带样式的 HoverCard 组件封装。
+    以 shadcn/ui 样式包裹 HoverCard 基元。
+*@
+
+<AtomBlazor.Primitives.HoverCardPrimitive Open="@Open"
+                                              OpenChanged="@OpenChanged"
+                                              DefaultOpen="@DefaultOpen"
+                                              OnOpenChange="@OnOpenChange"
+                                              OpenDelay="@OpenDelay"
+                                              CloseDelay="@CloseDelay"
+                                              @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.HoverCardPrimitive>
+
+@code {
+    /// <summary>
+    /// 在悬浮卡片内渲染的子内容，应包含 HoverCardTrigger 与 HoverCardContent。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 控制卡片是否展开（受控模式）。
+    /// </summary>
+    [Parameter]
+    public bool? Open { get; set; }
+
+    /// <summary>
+    /// 开合状态变化时调用的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>
+    /// 非受控模式下的默认展开状态。
+    /// </summary>
+    [Parameter]
+    public bool DefaultOpen { get; set; } = false;
+
+    /// <summary>
+    /// 卡片开合状态变化时调用的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OnOpenChange { get; set; }
+
+    /// <summary>
+    /// 展开前的延时（毫秒），默认 700。
+    /// </summary>
+    [Parameter]
+    public int OpenDelay { get; set; } = 700;
+
+    /// <summary>
+    /// 收起前的延时（毫秒），默认 300。
+    /// </summary>
+    [Parameter]
+    public int CloseDelay { get; set; } = 300;
+
+    /// <summary>
+    /// 获取或设置应用到根元素的其他 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}

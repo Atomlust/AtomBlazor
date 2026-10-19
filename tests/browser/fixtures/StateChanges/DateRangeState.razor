@@ -1,0 +1,19 @@
+<section id="date-range-state">
+    <DateRangePicker AriaLabel="Report dates" @bind-Value="range" Presets="presets" />
+    <p id="report-range">@(range is null ? "empty" : $"{range.Start:yyyy-MM-dd}/{range.End:yyyy-MM-dd}")</p>
+    <button @onclick="() => range = new(DateTime.Today, DateTime.Today)">Load today</button>
+    <button @onclick="() => range = new(DateTime.Today.AddDays(-1), DateTime.Today.AddDays(-1))">Load yesterday</button>
+    <button @onclick="() => range = new(DateTime.Today.AddDays(-6), DateTime.Today)">Load last week</button>
+    <button @onclick="() => range = StoredRange()">Load stored range</button>
+    <button @onclick="() => range = null">Reset report</button>
+    <button @onclick="UseCustomPresets">Use custom presets</button>
+    <button @onclick="() => presets = null">Use default presets</button>
+</section>
+
+@code {
+    private DateRange? range = StoredRange();
+    private IReadOnlyList<DateRangeQuickPick>? presets;
+    private void UseCustomPresets() => presets = [DateRangePreset.Yesterday, DateRangeQuickPick.Custom("Stored report", StoredRange), DateRangePreset.Today];
+    // Non-midnight values must match the same calendar dates selected in the picker.
+    private static DateRange StoredRange() => new(new(2024, 1, 10, 8, 0, 0), new(2024, 1, 14, 17, 0, 0));
+}

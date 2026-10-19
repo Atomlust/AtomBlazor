@@ -1,0 +1,593 @@
+@page "/components/datatable"
+@using AtomBlazor.Demo.Services
+@inject MockDataService MockDataService
+
+<PageTitle>@L.T("数据表格组件 - Atom BlazorUI", "Data Table Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-7xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("数据表格组件", "Data Table Component")</h1>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-xl text-muted-foreground">
+                    功能强大且灵活的数据表格组件，支持排序、全局搜索、分页与行选择。
+                    逐列筛选界面请使用 <a href="/components/datagrid" class="text-primary underline underline-offset-4">DataGrid</a>。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-xl text-muted-foreground">
+                    A powerful and flexible data table component with sorting, global search, pagination, and row selection.
+                    For per-column filter UIs, use <a href="/components/datagrid" class="text-primary underline underline-offset-4">DataGrid</a>.
+                </p>
+                        </text>
+}
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基础表格", "Basic Table")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带自动排序与分页的简单表格。", "A simple table with automatic sorting and pagination.")
+            </p>
+        </div>
+        <DataTable TData="Person" Data="@people" InitialPageSize="5">
+            <Columns>
+                <DataTableColumn TData="Person" TValue="int" Property="@(p => p.Id)" Header="@(L.T("编号", "ID"))" Sortable />
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Name)" Header="@(L.T("姓名", "Name"))" Sortable />
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Email)" Header="@(L.T("邮箱", "Email"))" Sortable />
+                <DataTableColumn TData="Person" TValue="DateTime?" Property="@(p => p.LastPromotionDate?.LocalDateTime)" Format="MM/dd/yyyy hh:mm:ss tt" Header="@(L.T("最近晋升日期", "Last Promotion Date"))" Sortable />
+                <DataTableColumn TData="Person" TValue="int" Property="@(p => p.Salary)" Format="C0" Header="@(L.T("薪资", "Salary"))" Sortable />
+                <DataTableColumn TData="Person" TValue="int" Property="@(p => p.Age)" Header="@(L.T("年龄", "Age"))" Sortable />
+            </Columns>
+        </DataTable>
+        <CodeBlock Source="Components/DataTable/basic.txt" />
+    </div>
+
+    <!-- With Row Selection -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("行选择", "Row Selection")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("用复选框进行多行选择的表格。用方向键导航，Enter/Space 完成选择。", "Table with multiple row selection using checkboxes. Use arrow keys to navigate and Enter/Space to select.")
+            </p>
+        </div>
+        <div class="flex items-center gap-2 mb-2">
+            <input type="checkbox"
+                   id="enableKeyboardNavDataTable"
+                   checked="@enableKeyboardNavigation"
+                   @onchange="@((e) => enableKeyboardNavigation = (bool)(e.Value ?? true))"
+                   class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary" />
+            <label for="enableKeyboardNavDataTable" class="text-sm font-medium">@L.T("启用键盘导航", "Enable keyboard navigation")</label>
+        </div>
+        <DataTable TData="Person"
+                   Data="@people"
+                   SelectionMode="DataTableSelectionMode.Multiple"
+                   EnableKeyboardNavigation="@enableKeyboardNavigation"
+                   @bind-SelectedItems="@selectedPeople"
+                   InitialPageSize="5">
+            <Columns>
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Name)" Header="@(L.T("姓名", "Name"))" Sortable />
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Email)" Header="@(L.T("邮箱", "Email"))" />
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Role)" Header="@(L.T("角色", "Role"))" />
+            </Columns>
+        </DataTable>
+        @if (selectedPeople.Any())
+        {
+            <div class="p-4 bg-muted rounded-md">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm font-medium">已选择 @selectedPeople.Count 人</p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm font-medium">Selected: @selectedPeople.Count people</p>
+                                </text>
+}
+                <div class="flex flex-wrap gap-2 mt-2">
+                    @foreach (var person in selectedPeople)
+                    {
+                        <Badge>@person.Name</Badge>
+                    }
+                </div>
+            </div>
+        }
+        <CodeBlock Source="Components/DataTable/row-selection.txt" />
+    </div>
+
+    <!-- Custom Cell Templates -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义单元格模板", "Custom Cell Templates")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("用自定义模板把单元格渲染成徽章、按钮及其他组件。", "Use custom templates to render cells with badges, buttons, and other components.")
+            </p>
+        </div>
+        <DataTable TData="Person" Data="@people" ShowPagination="false">
+            <Columns>
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Name)" Header="@(L.T("姓名", "Name"))" Sortable />
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Status)" Header="@(L.T("状态", "Status"))" Sortable>
+                    <CellTemplate Context="person">
+                        <Badge Variant="@(person.Status == "Active" ? BadgeVariant.Default : BadgeVariant.Outline)">
+                            @person.Status
+                        </Badge>
+                    </CellTemplate>
+                </DataTableColumn>
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Role)" Header="@(L.T("角色", "Role"))">
+                    <CellTemplate Context="person">
+                        <Badge Variant="BadgeVariant.Secondary">@person.Role</Badge>
+                    </CellTemplate>
+                </DataTableColumn>
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Email)" Header="@(L.T("操作", "Actions"))">
+                    <CellTemplate Context="person">
+                        <div class="flex gap-2">
+                            <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="@(() => ShowDetails(person))">
+                                @L.T("查看", "View")
+                            </Button>
+                            <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Small" OnClick="@(() => EditPerson(person))">
+                                @L.T("编辑", "Edit")
+                            </Button>
+                        </div>
+                    </CellTemplate>
+                </DataTableColumn>
+            </Columns>
+        </DataTable>
+        <CodeBlock Source="Components/DataTable/custom-cell-templates.txt" />
+    </div>
+
+    <!-- Dialog with Combobox in CellTemplate (Issue #119 regression test) -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("单元格模板里的 Dialog 与 Combobox", "Dialog with Combobox in Cell Template")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    每一行都有一个 Edit 按钮，点击后打开内含 Combobox 的 Dialog。
+                    本示例用于检验嵌套门户（DataTable 行 &rarr; Dialog 门户 &rarr; Combobox FloatingPortal）。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Each row has an "Edit" button that opens a Dialog containing a Combobox.
+                    This tests nested portals (DataTable row &rarr; Dialog portal &rarr; Combobox FloatingPortal).
+                </p>
+                        </text>
+}
+        </div>
+        <DataTable TData="Person" Data="@people" ShowPagination="true" InitialPageSize="5" ShowToolbar="false">
+            <Columns>
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Name)" Header="@(L.T("姓名", "Name"))" Sortable />
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Role)" Header="@(L.T("角色", "Role"))" />
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Status)" Header="@(L.T("状态", "Status"))">
+                    <CellTemplate Context="person">
+                        <Badge Variant="@(person.Status == "Active" ? BadgeVariant.Default : BadgeVariant.Outline)">
+                            @person.Status
+                        </Badge>
+                    </CellTemplate>
+                </DataTableColumn>
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Email)" Header="@(L.T("操作", "Actions"))">
+                    <CellTemplate Context="person">
+                        <Dialog>
+                            <AtomBlazor.DialogTrigger>
+                                <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small">
+                                    @L.T("编辑角色", "Edit Role")
+                                </Button>
+                            </AtomBlazor.DialogTrigger>
+                            <AtomBlazor.DialogContent>
+                                <DialogHeader>
+                                    @if (L.IsChinese)
+                                    {
+                                                                        <text>
+                                                                            <AtomBlazor.DialogTitle>编辑 @person.Name</AtomBlazor.DialogTitle>
+                                                                        </text>
+}
+                                    else
+                                    {
+                                                                        <text>
+                                                                            <AtomBlazor.DialogTitle>Edit @person.Name</AtomBlazor.DialogTitle>
+                                                                        </text>
+}
+                                    <AtomBlazor.DialogDescription>
+                                        @L.T("用下方的组合框修改这个人的角色。", "Change the role for this person using the combobox below.")
+                                    </AtomBlazor.DialogDescription>
+                                </DialogHeader>
+                                <div class="py-4">
+                                    <Combobox TValue="string"
+                                              Options="roleOptions"
+                                              @bind-Value="selectedCellRole"
+                                              Placeholder="@(L.T("选择角色...", "Select role..."))"
+                                              SearchPlaceholder="@(L.T("搜索角色...", "Search roles..."))"
+                                              EmptyMessage="@(L.T("未找到角色。", "No roles found."))"
+                                              MatchTriggerWidth="true" />
+                                    @if (!string.IsNullOrEmpty(selectedCellRole))
+                                    {
+                                        @if (L.IsChinese)
+                                        {
+                                                                                <text>
+                                                                                    <p class="text-sm mt-2">已选择：<strong>@selectedCellRole</strong></p>
+                                                                                </text>
+}
+                                        else
+                                        {
+                                                                                <text>
+                                                                                    <p class="text-sm mt-2">Selected: <strong>@selectedCellRole</strong></p>
+                                                                                </text>
+}
+                                    }
+                                </div>
+                                <DialogFooter>
+                                    <AtomBlazor.Primitives.DialogClose class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                                        @L.T("取消", "Cancel")
+                                    </AtomBlazor.Primitives.DialogClose>
+                                    <button class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                                        @L.T("保存", "Save")
+                                    </button>
+                                </DialogFooter>
+                            </AtomBlazor.DialogContent>
+                        </Dialog>
+                    </CellTemplate>
+                </DataTableColumn>
+            </Columns>
+        </DataTable>
+        <CodeBlock Source="Components/DataTable/dialog-combobox-cell.txt" />
+    </div>
+
+    <!-- Actions Column (No Property) -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("操作列", "Actions Column")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    只有 <code class="bg-muted px-1 py-0.5 rounded">CellTemplate</code> 的列不再必须提供 <code class="bg-muted px-1 py-0.5 rounded">Property</code> —— 适合放操作按钮。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Columns with only a <code class="bg-muted px-1 py-0.5 rounded">CellTemplate</code> no longer need a <code class="bg-muted px-1 py-0.5 rounded">Property</code> — useful for action buttons.
+                </p>
+                        </text>
+}
+        </div>
+        <DataTable TData="Person" Data="@people" ShowPagination="true" InitialPageSize="5" ShowToolbar="false">
+            <Columns>
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Name)" Header="@(L.T("姓名", "Name"))" Sortable />
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Email)" Header="@(L.T("邮箱", "Email"))" />
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Role)" Header="@(L.T("角色", "Role"))" />
+                <DataTableColumn TData="Person" TValue="object" Header="@(L.T("操作", "Actions"))">
+                    <CellTemplate Context="person">
+                        <div class="flex items-center gap-2">
+                            <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="@(() => ShowDetails(person))">
+                                @L.T("查看", "View")
+                            </Button>
+                            <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Small" OnClick="@(() => EditPerson(person))">
+                                @L.T("编辑", "Edit")
+                            </Button>
+                        </div>
+                    </CellTemplate>
+                </DataTableColumn>
+            </Columns>
+        </DataTable>
+        <CodeBlock Source="Components/DataTable/actions-column.txt" />
+    </div>
+
+    <!-- With Global Search -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("全局搜索与列显隐", "Global Search & Column Visibility")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("在所有列中搜索，并切换各列的显示与隐藏。", "Search across all columns and toggle column visibility.")
+            </p>
+        </div>
+        <DataTable TData="Person" Data="@people" InitialPageSize="10">
+            <Columns>
+                <DataTableColumn TData="Person" TValue="int" Property="@(p => p.Id)" Header="@(L.T("编号", "ID"))" Sortable />
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Name)" Header="@(L.T("姓名", "Name"))" Sortable />
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Email)" Header="@(L.T("邮箱", "Email"))" />
+                <DataTableColumn TData="Person" TValue="int" Property="@(p => p.Age)" Header="@(L.T("年龄", "Age"))" Sortable />
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Role)" Header="@(L.T("角色", "Role"))" />
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Status)" Header="@(L.T("状态", "Status"))">
+                    <CellTemplate Context="person">
+                        <Badge Variant="@(person.Status == "Active" ? BadgeVariant.Default : BadgeVariant.Destructive)">
+                            @person.Status
+                        </Badge>
+                    </CellTemplate>
+                </DataTableColumn>
+            </Columns>
+        </DataTable>
+        <CodeBlock Source="Components/DataTable/global-search.txt" />
+    </div>
+
+    <!-- Empty State -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("空状态", "Empty State")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("没有数据可展示时显示一条提示。", "Displays a message when there's no data to show.")
+            </p>
+        </div>
+        <DataTable TData="Person" Data="@emptyPeople" InitialPageSize="5">
+            <Columns>
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Name)" Header="@(L.T("姓名", "Name"))" />
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Email)" Header="@(L.T("邮箱", "Email"))" />
+            </Columns>
+        </DataTable>
+        <CodeBlock Source="Components/DataTable/empty.txt" />
+    </div>
+
+    <!-- Loading State -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("加载状态", "Loading State")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("拉取数据期间显示加载指示器。", "Shows a loading indicator while data is being fetched.")
+            </p>
+        </div>
+        <div class="flex gap-2 mb-4">
+            <Button OnClick="@(() => isLoading = !isLoading)">
+                @L.T("切换加载状态", "Toggle Loading")
+            </Button>
+        </div>
+        <DataTable TData="Person" Data="@people" IsLoading="@isLoading" InitialPageSize="5">
+            <Columns>
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Name)" Header="@(L.T("姓名", "Name"))" Sortable />
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Email)" Header="@(L.T("邮箱", "Email"))" />
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Role)" Header="@(L.T("角色", "Role"))" />
+            </Columns>
+        </DataTable>
+        <CodeBlock Source="Components/DataTable/loading.txt" />
+    </div>
+
+    <!-- Without Toolbar -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("不带工具栏", "Without Toolbar")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("隐藏工具栏（没有搜索与列显隐）的极简表格。", "A minimal table without the toolbar (no search or column visibility).")
+            </p>
+        </div>
+        <DataTable TData="Person" Data="@people" ShowToolbar="false" InitialPageSize="5">
+            <Columns>
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Name)" Header="@(L.T("姓名", "Name"))" Sortable />
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Email)" Header="@(L.T("邮箱", "Email"))" />
+                <DataTableColumn TData="Person" TValue="int" Property="@(p => p.Age)" Header="@(L.T("年龄", "Age"))" Sortable />
+            </Columns>
+        </DataTable>
+        <CodeBlock Source="Components/DataTable/without-toolbar.txt" />
+    </div>
+
+    <!-- Custom Toolbar Actions -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义工具栏操作", "Custom Toolbar Actions")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("往工具栏里加入自定义的操作按钮。", "Add custom action buttons to the toolbar.")
+            </p>
+        </div>
+        <DataTable TData="Person" Data="@people" InitialPageSize="5">
+            <ToolbarActions>
+                <Button Variant="ButtonVariant.Default" Size="ButtonSize.Small" OnClick="@AddNewPerson">
+                    @L.T("新增人员", "Add Person")
+                </Button>
+                <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="@ExportData">
+                    @L.T("导出", "Export")
+                </Button>
+            </ToolbarActions>
+            <Columns>
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Name)" Header="@(L.T("姓名", "Name"))" Sortable />
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Email)" Header="@(L.T("邮箱", "Email"))" />
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Role)" Header="@(L.T("角色", "Role"))" />
+            </Columns>
+        </DataTable>
+        <CodeBlock Source="Components/DataTable/custom-toolbar-actions.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>为读屏软件使用 role="grid"</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Uses role="grid" for screen readers</AccessibilityItem>
+                        </text>
+}
+            <AccessibilityItem>@L.T("aria-sort 标明列的排序方向", "aria-sort indicates column sort direction")</AccessibilityItem>
+            <AccessibilityItem>@L.T("aria-selected 标明行的选中状态", "aria-selected indicates row selection state")</AccessibilityItem>
+            <AccessibilityItem>@L.T("复选框用 aria-label 标注选择操作", "aria-label on checkboxes for selection")</AccessibilityItem>
+            <AccessibilityItem>@L.T("行可获得焦点，并带有可见的焦点指示", "Focusable rows with visible focus indicator")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("移动到下一行", "Navigate to next row"))">
+                <Kbd>ArrowDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("移动到上一行", "Navigate to previous row"))">
+                <Kbd>ArrowUp</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("切换该行的选中状态", "Toggle row selection"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("排序该列（点击列头）", "Sort column (click header)"))">
+                <Kbd>Click</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="DataTable">
+                <ApiParameter Name="Data" Type="IEnumerable&lt;TData&gt;">
+                    @L.T("表格的数据源。", "The data source for the table.")
+                </ApiParameter>
+                <ApiParameter Name="SelectionMode" Type="DataTableSelectionMode" Default="None">
+                    @L.T("选择模式：None、Single 或 Multiple。", "The selection mode: None, Single, or Multiple.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="SelectedItems" Type="IReadOnlyCollection&lt;TData&gt;">
+                        当前已选中的条目。配合 @@bind-SelectedItems 可做双向绑定。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="SelectedItems" Type="IReadOnlyCollection&lt;TData&gt;">
+                        The currently selected items. Use with @@bind-SelectedItems for two-way binding.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="EnableKeyboardNavigation" Type="bool" Default="true">
+                    @L.T("为 true 时给表格行启用键盘导航（方向键移动，Enter/Space 选择）。", "When true, enables keyboard navigation for table rows (arrow keys to navigate, Enter/Space to select).")
+                </ApiParameter>
+                <ApiParameter Name="ShowToolbar" Type="bool" Default="true">
+                    @L.T("是否显示带全局搜索与列显隐的工具栏。", "Whether to show the toolbar with global search and column visibility.")
+                </ApiParameter>
+                <ApiParameter Name="ShowPagination" Type="bool" Default="true">
+                    @L.T("是否显示分页控件。", "Whether to show pagination controls.")
+                </ApiParameter>
+                <ApiParameter Name="IsLoading" Type="bool" Default="false">
+                    @L.T("表格是否处于加载状态。", "Whether the table is in a loading state.")
+                </ApiParameter>
+                <ApiParameter Name="InitialPageSize" Type="int" Default="5">
+                    @L.T("初始页容量。", "The initial page size.")
+                </ApiParameter>
+                <ApiParameter Name="PageSizes" Type="int[]" Default="[5, 10, 20, 50, 100]">
+                    @L.T("可选的页容量列表。", "The available page size options.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;div&gt;</code> 元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="DataTableColumn">
+                <ApiParameter Name="Property" Type="Func&lt;TData, TValue&gt;">
+                    @L.T("从数据条目取列值的表达式。", "Expression to get the column value from a data item.")
+                </ApiParameter>
+                <ApiParameter Name="Format" Type="string?" Default="null">
+                    @L.T("可选的格式化字符串，用于格式化列值。", "Optional formatting string used to format the column value.")
+                </ApiParameter>
+                <ApiParameter Name="Header" Type="string">
+                    @L.T("列头文本。", "The column header text.")
+                </ApiParameter>
+                <ApiParameter Name="Sortable" Type="bool" Default="false">
+                    @L.T("该列是否可排序。", "Whether the column is sortable.")
+                </ApiParameter>
+                <ApiParameter Name="CellTemplate" Type="RenderFragment&lt;TData&gt;?" Default="null">
+                    @L.T("渲染单元格内容的自定义模板。", "Custom template for rendering the cell content.")
+                </ApiParameter>
+                <ApiParameter Name="Visible" Type="bool" Default="true">
+                    @L.T("该列是否可见。", "Whether the column is visible.")
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+
+    <LocalizationSection
+        Description="@(L.T("DataTable 的工具栏、选择与空状态标签均可配置。", "DataTable toolbar, selection, and empty state labels are configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("Loading", "Loading...", L.T("数据加载期间显示。", "Shown while data is loading")),
+            new("NoResultsFound", "No results found", L.T("没有行时显示。", "Shown when there are no rows")),
+            new("Search", "Search...", L.T("工具栏搜索输入框的占位文本。", "Placeholder for the toolbar search input")),
+            new("Columns", "Columns", L.T("列显隐按钮的标签。", "Label for the column visibility button")),
+            new("ToggleColumns", "Toggle columns", L.T("列切换复选框的无障碍标签。", "Aria label for column toggle checkboxes")),
+            new("SelectAllRows", "Select all rows", L.T("表头复选框的无障碍标签。", "Aria label for the header checkbox")),
+            new("SelectThisRow", "Select this row", L.T("行复选框的无障碍标签。", "Aria label for row checkboxes")),
+            new("ClearSelection", "Clear selection", L.T("清除选择操作的标签。", "Label for the clear selection action")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""DataTable.Search"", ""Suchen..."");
+    localizer.Set(""DataTable.NoResultsFound"", ""Keine Ergebnisse gefunden"");
+    localizer.Set(""DataTable.Columns"", ""Spalten"");
+});")" />
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private List<Person> people = new();
+    private List<Person> emptyPeople = new();
+    private IReadOnlyCollection<Person> selectedPeople = Array.Empty<Person>();
+    private bool isLoading = false;
+    private bool enableKeyboardNavigation = true;
+    private string? selectedCellRole;
+
+    private readonly SelectOption<string>[] roleOptions =
+    [
+        new("Developer", "Developer"),
+        new("Designer", "Designer"),
+        new("Manager", "Manager"),
+        new("QA Engineer", "QA Engineer"),
+        new("DevOps", "DevOps"),
+        new("Product Owner", "Product Owner")
+    ];
+
+    protected override void OnInitialized()
+    {
+        // Generate 500 sample records using MockDataService
+        people = MockDataService.GeneratePersons(500);
+    }
+
+    private void ShowDetails(Person person)
+    {
+        // TODO: Implement show details dialog
+    }
+
+    private void EditPerson(Person person)
+    {
+        // TODO: Implement edit dialog
+    }
+
+    private void AddNewPerson()
+    {
+        // TODO: Implement add person dialog
+    }
+
+    private void ExportData()
+    {
+        // TODO: Implement export functionality
+    }
+}

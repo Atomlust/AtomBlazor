@@ -1,0 +1,320 @@
+@namespace AtomBlazor
+@typeparam TItem where TItem : class
+@using AtomBlazor.Icons.Lucide
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using AtomBlazor.Primitives
+
+<CascadingValue Value="this" IsFixed="true">
+    <div class="@ContainerCssClass" @attributes="AdditionalAttributes">
+
+            @* ── Toolbar ─────────────────────────────────────────────────── *@
+            @if (ShowToolbar)
+            {
+                <div class="atom:flex atom:flex-wrap atom:items-center atom:gap-2 atom:py-4">
+
+                    @* Global search *@
+                    @* Debounced, not the OnChange default: left at the default the search only
+                       filtered on blur or Enter, never while typing — the same defect as the grid's
+                       search input (#543). *@
+                    <Input @bind-Value="@_searchValue"
+                             @bind-Value:after="HandleSearchChanged"
+                             UpdateTiming="UpdateTiming.Debounced"
+                             DebounceInterval="@SearchDebounceMs"
+                             Placeholder="@Localizer["DataView.SearchPlaceholder"]"
+                             Class="atom:h-8 atom:w-[150px] atom:lg:w-[250px]" />
+
+                    @* Sort controls – only shown when at least one field is sortable *@
+                    @if (!MobileToolbar && _fields.Any(f => f.Sortable))
+                    {
+                        <DropdownMenu>
+                            <AtomBlazor.DropdownMenuTrigger>
+                                <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" Class="atom:h-8 atom:gap-1">
+                                    @if (_sortingState.Direction == SortDirection.Ascending)
+                                    {
+                                        <LucideIcon Name="arrow-up" Class="atom:w-4 atom:h-4" />
+                                    }
+                                    else if (_sortingState.Direction == SortDirection.Descending)
+                                    {
+                                        <LucideIcon Name="arrow-down" Class="atom:w-4 atom:h-4" />
+                                    }
+                                    else
+                                    {
+                                        <LucideIcon Name="arrow-up-down" Class="atom:w-4 atom:h-4 atom:opacity-50" />
+                                    }
+                                    @GetSortFieldLabel()
+                                    <LucideIcon Name="chevron-down" Class="atom:w-3 atom:h-3 atom:opacity-50" />
+                                </Button>
+                            </AtomBlazor.DropdownMenuTrigger>
+                            <AtomBlazor.DropdownMenuContent>
+                                @foreach (var field in _fields.Where(f => f.Sortable))
+                                {
+                                    var fieldId = field.Id;
+                                    var isSorted = _sortingState.SortedColumn == fieldId;
+                                    <AtomBlazor.DropdownMenuItem OnClick="@(async () => await HandleSortFieldChanged(fieldId))">
+                                        <div class="atom:flex atom:items-center atom:gap-2">
+                                            @if (isSorted && _sortingState.Direction == SortDirection.Ascending)
+                                            {
+                                                <LucideIcon Name="arrow-up" Class="atom:w-4 atom:h-4" />
+                                            }
+                                            else if (isSorted && _sortingState.Direction == SortDirection.Descending)
+                                            {
+                                                <LucideIcon Name="arrow-down" Class="atom:w-4 atom:h-4" />
+                                            }
+                                            else
+                                            {
+                                                <LucideIcon Name="arrow-up-down" Class="atom:w-4 atom:h-4 atom:opacity-50" />
+                                            }
+                                            @field.Header
+                                        </div>
+                                    </AtomBlazor.DropdownMenuItem>
+                                }
+                            </AtomBlazor.DropdownMenuContent>
+                        </DropdownMenu>
+                    }
+
+                    @if (MobileToolbar && (_fields.Any(f => f.Sortable) || FilterContent is not null))
+                    {
+                        <Button Variant="ButtonVariant.Outline" Class="atom:min-h-[44px]" OnClick="@(() => mobileToolbarOpen = true)"
+                                  aria-haspopup="dialog" aria-expanded="@mobileToolbarOpen.ToString().ToLowerInvariant()">
+                            <LucideIcon Name="sliders-horizontal" Size="16" /> @Localizer["DataView.SortAndFilter"]
+                        </Button>
+                        <Sheet @bind-Open="mobileToolbarOpen" Side="SheetSide.Bottom">
+                            <AtomBlazor.SheetContent Class="atom:max-h-[85dvh] atom:overflow-y-auto atom:rounded-t-xl atom:pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+                                <SheetHeader>
+                                    <AtomBlazor.SheetTitle>@Localizer["DataView.SortAndFilter"]</AtomBlazor.SheetTitle>
+                                    <AtomBlazor.SheetDescription>@Localizer["DataView.SortAndFilterDescription"]</AtomBlazor.SheetDescription>
+                                </SheetHeader>
+                                <div class="atom:space-y-4 atom:py-4">
+                                    @if (_fields.Any(f => f.Sortable))
+                                    {
+                                        <div class="atom:flex atom:flex-wrap atom:gap-2" role="group" aria-label="@Localizer["DataView.Sort"]">
+                                            @foreach (var field in _fields.Where(f => f.Sortable))
+                                            {
+                                                var fieldId = field.Id;
+                                                var active = _sortingState.SortedColumn == fieldId && _sortingState.Direction != SortDirection.None;
+                                                <Button Variant="@(active ? ButtonVariant.Secondary : ButtonVariant.Outline)" Class="atom:min-h-[44px]"
+                                                          OnClick="@(async () => await HandleSortFieldChanged(fieldId))" aria-pressed="@active.ToString().ToLowerInvariant()">
+                                                    @field.Header
+                                                    <LucideIcon Name="@(active ? _sortingState.Direction == SortDirection.Ascending ? "arrow-up" : "arrow-down" : "arrow-up-down")" Size="16" />
+                                                </Button>
+                                            }
+                                        </div>
+                                    }
+                                    @FilterContent
+                                </div>
+                                <Button Class="atom:min-h-[44px] atom:w-full" OnClick="@(() => mobileToolbarOpen = false)">@Localizer["DataView.Done"]</Button>
+                            </AtomBlazor.SheetContent>
+                        </Sheet>
+                    }
+                    else if (!MobileToolbar)
+                    {
+                        @FilterContent
+                    }
+
+                    @* Trailing side: ToolbarActions + layout toggle (both pushed along with ms-auto) *@
+                    @if (ToolbarActions != null || CanToggleLayout)
+                    {
+                        <div class="atom:ms-auto atom:flex atom:items-center atom:gap-2">
+                            @if (ToolbarActions != null)
+                            {
+                                @ToolbarActions
+                            }
+                            @if (CanToggleLayout)
+                            {
+                                <div class="atom:flex atom:items-center atom:gap-1 atom:rounded-md atom:border atom:p-1">
+                                    <Button Variant="ButtonVariant.Ghost"
+                                              Size="ButtonSize.Icon"
+                                              OnClick="@(() => SetLayout(DataViewLayout.List))"
+                                              Class="@ClassNames.cn("atom:h-7 atom:w-7", _effectiveLayout == DataViewLayout.List ? "atom:bg-accent atom:text-accent-foreground" : "")"
+                                              title="@Localizer["DataView.ListView"]">
+                                        <LucideIcon Name="list" Class="atom:w-4 atom:h-4" />
+                                    </Button>
+                                    <Button Variant="ButtonVariant.Ghost"
+                                              Size="ButtonSize.Icon"
+                                              OnClick="@(() => SetLayout(DataViewLayout.Grid))"
+                                              Class="@ClassNames.cn("atom:h-7 atom:w-7", _effectiveLayout == DataViewLayout.Grid ? "atom:bg-accent atom:text-accent-foreground" : "")"
+                                              title="@Localizer["DataView.GridView"]">
+                                        <LucideIcon Name="layout-grid" Class="atom:w-4 atom:h-4" />
+                                    </Button>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                </div>
+            }
+
+            @* ── Content ─────────────────────────────────────────────────── *@
+            @if (IsLoading || (_isProviderLoading && _visibleData.Count == 0))
+            {
+                @if (LoadingTemplate != null)
+                {
+                    @LoadingTemplate
+                }
+                else
+                {
+                    <div class="atom:flex atom:items-center atom:justify-center atom:p-8 atom:text-muted-foreground">
+                        <div class="atom:text-sm">@Localizer["DataView.Loading"]</div>
+                    </div>
+                }
+            }
+            else if (_filteredSortedData.Count == 0)
+            {
+                @if (EmptyTemplate != null)
+                {
+                    @EmptyTemplate
+                }
+                else
+                {
+                    <Empty Title="@Localizer["DataView.NoResultsFound"]" Size="EmptySize.Small" />
+                }
+            }
+            else if (VirtualizeList || (EnableInfiniteScroll && !ShowLoadMoreButton))
+            {
+                @*
+                    Scroll-based infinite scroll.
+                    The items grid/list lives inside a fixed-height scrollable container.
+                    The browser watches the scroll container (elementUtils.observeNearBottom)
+                    and calls back once when it nears the bottom. It measures the container as
+                    a whole, so it works for both flex lists and multi-column CSS grids
+                    (regardless of items-per-row count) — and it never sends a scroll event to
+                    the server.
+                    The sentinel <div> is placed OUTSIDE the grid container so it is always
+                    a full-width block element below all rows, never occupying an empty grid cell.
+                *@
+                <div class="atom:overflow-y-auto"
+                     style="@(VirtualizeList ? ScrollContainerStyle : ScrollHeight != null ? $"height: {ScrollHeight}" : null)"
+                     @ref="_scrollContainerRef"
+                     role="region"
+                     aria-live="polite">
+                    @RenderItems()
+                    @* Sentinel is outside the grid so it spans the full scroll-container
+                       width regardless of the column count. *@
+                    @if (CanLoadMore && !ShowLoadMoreButton)
+                    {
+                        <div class="atom:flex atom:items-center atom:justify-center atom:py-2 atom:text-xs atom:text-muted-foreground">
+                            @Localizer["DataView.LoadingMore"]
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                @* Regular pagination or ShowLoadMoreButton mode. *@
+                <div role="region" aria-live="polite">
+                    @RenderItems()
+                </div>
+
+            }
+            @if (EnableInfiniteScroll && CanLoadMore && ShowLoadMoreButton && !IsLoading)
+            {
+                <div class="atom:flex atom:justify-center atom:py-4">
+                    <Button Variant="ButtonVariant.Outline" OnClick="LoadMore" Disabled="@(_isLoadingMore || _isProviderLoading)">
+                        @Localizer["DataView.LoadMore"]
+                    </Button>
+                </div>
+            }
+
+            @* ── Pagination – hidden in infinite scroll mode ─────────────── *@
+            @if (ShowPagination && !EnableInfiniteScroll && !IsLoading && !_isProviderLoading && _filteredSortedData.Count > 0)
+            {
+                <Pagination State="@_paginationState"
+                              PageSizes="@PageSizes"
+                              OnPageChanged="@HandlePageChanged"
+                              OnPageSizeChanged="@HandlePageSizeChanged"
+                              Class="atom:flex atom:items-center atom:justify-between atom:px-2 atom:py-4">
+                    <PaginationInfo />
+                    <PaginationContent Class="atom:flex atom:items-center atom:gap-6 atom:lg:gap-8">
+                        <PaginationPageSizeSelector Label="Items per page" />
+                        <div class="atom:flex atom:items-center atom:gap-2">
+                            <PaginationPageDisplay />
+                            <div class="atom:flex atom:items-center atom:gap-1">
+                                <PaginationItem><PaginationFirst /></PaginationItem>
+                                <PaginationItem><PaginationPrevious ShowText="false" /></PaginationItem>
+                                <PaginationItem><PaginationNext ShowText="false" /></PaginationItem>
+                                <PaginationItem><PaginationLast /></PaginationItem>
+                            </div>
+                        </div>
+                    </PaginationContent>
+                </Pagination>
+            }
+
+        </div>
+
+        @* Capture slot-component registrations (renders nothing visible). *@
+        @Fields
+
+</CascadingValue>
+
+@code {
+    private RenderFragment RenderItems() => __builder =>
+    {
+        if (GroupBy is null)
+        {
+            @RenderCollection(_visibleData)
+        }
+        else
+        {
+            foreach (var group in VisibleGroups)
+            {
+                <section @key="group.Key" class="atom:mb-4 atom:space-y-2" aria-label="@(group.Key ?? Localizer["DataView.OtherGroup"])">
+                    @if (GroupHeaderTemplate is not null)
+                    {
+                        @GroupHeaderTemplate(group)
+                    }
+                    else
+                    {
+                        <h3 class="atom:text-sm atom:font-semibold">@(group.Key ?? Localizer["DataView.OtherGroup"]) <span class="atom:text-muted-foreground">(@group.Items.Count)</span></h3>
+                    }
+                    @RenderCollection((ICollection<TItem>)group.Items)
+                </section>
+            }
+        }
+    };
+
+    private RenderFragment RenderCollection(ICollection<TItem> items) => __builder =>
+    {
+        if (VirtualizeList)
+        {
+            <Virtualize TItem="TItem" Items="items" ItemSize="VirtualItemSize" OverscanCount="OverscanCount" Context="item">
+                <div @key="GetItemKey(item)" class="atom:pb-2">
+                    @RenderItem(item)
+                </div>
+            </Virtualize>
+        }
+        else
+        {
+            <div class="@ItemContainerCssClass" style="@ItemContainerStyle">
+                @foreach (var item in items)
+                {
+                    @if (ItemKey is null && SelectionMode == DataTableSelectionMode.None)
+                    {
+                        @RenderItem(item)
+                    }
+                    else
+                    {
+                        <div @key="GetItemKey(item)" class="atom:min-w-0">
+                            @RenderItem(item)
+                        </div>
+                    }
+                }
+            </div>
+        }
+    };
+
+    private RenderFragment RenderItem(TItem item) => __builder =>
+    {
+        if (SelectionMode != DataTableSelectionMode.None)
+        {
+            <div class="@ClassNames.cn("atom:flex atom:items-start atom:gap-2 atom:rounded-md", IsSelected(item) ? "atom:bg-accent/50" : null)" data-selected="@IsSelected(item).ToString().ToLowerInvariant()">
+                <Checkbox Checked="@IsSelected(item)" CheckedChanged="@(value => ToggleSelectionAsync(item, value))"
+                            Disabled="@ItemDisabled(item)" AriaLabel="@SelectionLabel(item)" Class="atom:m-2 atom:shrink-0" />
+                <div class="atom:min-w-0 atom:flex-1">@EffectiveActiveTemplate?.Invoke(item)</div>
+            </div>
+        }
+        else
+        {
+            @EffectiveActiveTemplate?.Invoke(item)
+        }
+    };
+}

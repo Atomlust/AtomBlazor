@@ -1,0 +1,195 @@
+@namespace AtomBlazor.Primitives
+@implements IDisposable
+
+@* TreeItem 基元——单个树节点，携带 ARIA 属性 *@
+<div id="@Context.GetNodeId(Value)"
+     role="treeitem"
+     tabindex="@(IsFocusable ? 0 : -1)"
+     aria-expanded="@(HasChildContent ? (IsExpanded ? "true" : "false") : null)"
+     aria-selected="@(Context.SelectionMode != TreeSelectionMode.None ? (IsSelected ? "true" : "false") : null)"
+     aria-checked="@AriaCheckedValue"
+     aria-level="@(Depth + 1)"
+     aria-setsize="@Context.GetSetSize(Value)"
+     aria-posinset="@Context.GetPosInSet(Value)"
+     aria-disabled="@(Disabled ? "true" : null)"
+     data-value="@Value"
+     data-depth="@Depth"
+     data-state="@(IsExpanded ? "open" : "closed")"
+     data-selected="@(IsSelected ? "true" : "false")"
+     data-has-children="@(HasChildContent ? "true" : "false")"
+     @attributes="AdditionalAttributes">
+    @NodeContent
+    @if (HasChildContent && (IsExpanded || RequiresCascadeRendering))
+    {
+        <div role="group" style="@(IsExpanded ? null : "display:none")">
+            <CascadingValue Value="this" IsFixed="true">
+                @ChildContent
+            </CascadingValue>
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// 节点的唯一值/标识符。
+    /// </summary>
+    [Parameter, EditorRequired]
+    public string Value { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 该节点是否禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 节点行自身渲染的内容（标签、图标等）。
+    /// 在基元层这就是节点的直接内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? NodeContent { get; set; }
+
+    /// <summary>
+    /// 子级 TreeItem 节点。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 显式把本节点标记为叶子（即便没有子节点也抑制展开箭头）。
+    /// 为 null 时，由 ChildContent 或已注册子节点的有无决定叶子状态。
+    /// </summary>
+    [Parameter]
+    public bool? IsLeaf { get; set; }
+
+    /// <summary>
+    /// 追加到节点元素上的其他特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 接收树上下文的级联参数。
+    /// </summary>
+    [CascadingParameter]
+    public TreeViewContext Context { get; set; } = null!;
+
+    /// <summary>
+    /// 接收父级树条目的级联参数（根级条目为 null）。
+    /// </summary>
+    [CascadingParameter]
+    public TreeItem? ParentItem { get; set; }
+
+    /// <summary>
+    /// 获取本节点的深度（根级为 0）。
+    /// </summary>
+    public int Depth => ParentItem != null ? ParentItem.Depth + 1 : 0;
+
+    /// <summary>
+    /// 获取本节点是否展开。
+    /// </summary>
+    public bool IsExpanded => Context.IsExpanded(Value);
+
+    /// <summary>
+    /// 获取本节点是否选中。
+    /// </summary>
+    public bool IsSelected => Context.IsSelected(Value);
+
+    /// <summary>
+    /// 获取本节点是否勾选。
+    /// </summary>
+    public bool IsChecked => Context.IsChecked(Value);
+
+    /// <summary>
+    /// 获取本节点是否处于不确定（半选）状态。
+    /// </summary>
+    public bool IsIndeterminate => Context.IsIndeterminate(Value);
+
+    /// <summary>
+    /// 获取本节点是否有要显示的子内容。
+    /// </summary>
+    public bool HasChildContent => IsLeaf == true ? false : (ChildContent != null || Context.HasChildren(Value));
+
+    private bool IsFocusable => !Disabled && (Context.FocusedNodeValue != null
+        ? Context.FocusedNodeValue == Value
+        : (Depth == 0 && Context.IsFirstEnabledRoot(Value)));
+
+    /// <summary>
+    /// 级联勾选生效时，子节点即便在折叠状态下也必须留在 DOM 中，
+    /// 让 GetAllDescendants/IsIndeterminate/ToggleChecked 能作用于已注册的后代。
+    /// </summary>
+    private bool RequiresCascadeRendering => Context.Checkable && !Context.CheckStrictly;
+
+    private string? AriaCheckedValue
+    {
+        get
+        {
+            if (!Context.Checkable)
+            {
+                return null;
+            }
+
+            if (IsIndeterminate)
+            {
+                return "mixed";
+            }
+
+            return IsChecked ? "true" : "false";
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        if (Context == null)
+        {
+            throw new InvalidOperationException("TreeItem 必须用在 TreeView 组件内部。");
+        }
+
+        Context.RegisterNode(Value, ParentItem?.Value, Depth, Disabled);
+        Context.OnStateChanged += StateHasChanged;
+    }
+
+    protected override void OnParametersSet()
+    {
+        Context.UpdateNodeDisabled(Value, Disabled);
+    }
+
+    /// <summary>
+    /// 切换本节点的展开状态。
+    /// </summary>
+    public void ToggleExpanded()
+    {
+        if (!Disabled && HasChildContent)
+        {
+            Context.ToggleExpanded(Value);
+        }
+    }
+
+    /// <summary>
+    /// 选中本节点。
+    /// </summary>
+    public void Select()
+    {
+        if (!Disabled)
+        {
+            Context.SelectNode(Value);
+        }
+    }
+
+    /// <summary>
+    /// 切换本节点的勾选状态。
+    /// </summary>
+    public void ToggleChecked()
+    {
+        if (!Disabled)
+        {
+            Context.ToggleChecked(Value);
+        }
+    }
+
+    public void Dispose()
+    {
+        Context.OnStateChanged -= StateHasChanged;
+        Context.UnregisterNode(Value);
+    }
+}

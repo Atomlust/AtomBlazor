@@ -1,0 +1,128 @@
+@typeparam TValue
+@namespace AtomBlazor.Primitives
+
+@* SelectTrigger 基元——打开 Select 下拉列表的 headless 按钮 *@
+@if (_context != null)
+{
+    <button type="button"
+            id="@_context.TriggerId"
+            @ref="_buttonElement"
+            role="combobox"
+            aria-expanded="@_context.IsOpen.ToString().ToLower()"
+            aria-controls="@_context.ContentId"
+            aria-haspopup="listbox"
+            aria-disabled="@_context.Disabled.ToString().ToLower()"
+            aria-required="@(_context.Required ? "true" : null)"
+            disabled="@_context.Disabled"
+            data-state="@(_context.IsOpen ? "open" : "closed")"
+            class="@Class"
+            @onclick="HandleClick"
+            @onkeydown="HandleKeyDown"
+            @onkeydown:preventDefault="@_shouldPreventDefault"
+            @attributes="FilteredAttributes">
+        @ChildContent
+    </button>
+}
+
+@code {
+    private bool _shouldPreventDefault;
+
+    [CascadingParameter]
+    private SelectContext<TValue>? _context { get; set; }
+
+    private ElementReference _buttonElement;
+
+    /// <summary>
+    /// 要在触发按钮内渲染的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到触发按钮的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 要应用到按钮元素的附加特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 返回移除了 "id"（若存在）的 AdditionalAttributes，
+    /// 因为按钮始终使用上下文的 TriggerId。
+    /// </summary>
+    private Dictionary<string, object>? FilteredAttributes
+    {
+        get
+        {
+            if (AdditionalAttributes == null || !AdditionalAttributes.ContainsKey("id"))
+            {
+                return AdditionalAttributes;
+            }
+
+            var filtered = new Dictionary<string, object>(AdditionalAttributes);
+            filtered.Remove("id");
+            return filtered.Count > 0 ? filtered : null;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        // 若传入了自定义 id（例如表单字段中为关联标签），
+        // 把它同步进上下文，让点击外部检测与 ARIA 引用
+        // 与 DOM 元素实际使用的 id 保持一致。
+        if (_context != null
+            && AdditionalAttributes != null
+            && AdditionalAttributes.TryGetValue("id", out var idObj)
+            && idObj is string customId
+            && !string.IsNullOrEmpty(customId))
+        {
+            _context.SetTriggerId(customId);
+        }
+    }
+
+    private void HandleClick(MouseEventArgs args)
+    {
+        // Enter/Space 可能在 HandleKeyDown 已把我们打开之后又产生一次原生点击。
+        // 忽略那次重复激活；指针点击仍照常走切换。
+        if (args.Detail == 0 && _context?.IsOpen == true)
+        {
+            return;
+        }
+        _context?.Toggle(_buttonElement);
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs args)
+    {
+        if (_context == null || _context.Disabled)
+        {
+            _shouldPreventDefault = false;
+            return;
+        }
+
+        switch (args.Key)
+        {
+            case "Enter":
+            case " ": // Space
+            case "ArrowDown":
+            case "ArrowUp":
+                _shouldPreventDefault = true;
+                _context.Open(_buttonElement);
+                break;
+            case "Escape":
+                _shouldPreventDefault = true;
+                if (_context.IsOpen)
+                {
+                    // Escape 属于有意的关闭——把焦点归还给触发器。
+                    _context.Close(restoreFocus: true);
+                }
+                break;
+            default:
+                _shouldPreventDefault = false;
+                break;
+        }
+    }
+}

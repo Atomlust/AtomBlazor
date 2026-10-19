@@ -1,0 +1,37 @@
+@namespace AtomBlazor
+
+@*
+    警告对话框页脚 - 包含操作按钮。
+*@
+
+<div class="@CssClass" @attributes="AdditionalAttributes">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// 在页脚中呈现的内容（通常为 AlertDialogCancel 和 AlertDialogAction）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用到页脚的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取为页脚计算得到的 CSS 类。
+    /// </summary>
+    private string CssClass => ClassNames.cn(
+        "atom:flex atom:flex-col-reverse atom:sm:flex-row atom:sm:justify-end atom:sm:space-x-2",
+        Class
+    );
+}

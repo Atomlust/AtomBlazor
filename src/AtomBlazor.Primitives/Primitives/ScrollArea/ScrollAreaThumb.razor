@@ -1,0 +1,44 @@
+@namespace AtomBlazor.Primitives
+
+@* ScrollArea thumb——滚动条内可拖拽的滑块元素。 *@
+
+<div @ref="thumbRef"
+     data-scrollarea-thumb
+     data-state="@dataState"
+     @attributes="AdditionalAttributes">
+    @ChildContent
+</div>
+
+@code {
+    private ElementReference thumbRef;
+    private string dataState = "hidden";
+
+    [CascadingParameter]
+    private ScrollAreaContext? Context { get; set; }
+
+    /// <summary>
+    /// 获取或设置滑块内的可选子内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到滑块元素的附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取滑块的元素引用，供 JS 互操作使用。
+    /// </summary>
+    internal ElementReference ThumbElement => thumbRef;
+
+    protected override void OnInitialized()
+    {
+        if (Context == null)
+        {
+            throw new InvalidOperationException(
+                "ScrollAreaThumb 必须在 ScrollArea 组件内使用。");
+        }
+    }
+}

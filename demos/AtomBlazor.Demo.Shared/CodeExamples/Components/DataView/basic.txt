@@ -1,0 +1,28 @@
+<DataView TItem="Person" Data="@people" InitialPageSize="5">
+    <ListTemplate Context="person">
+        <Card Class="flex items-center gap-4 p-4 shadow-none hover:bg-accent/50 transition-colors">
+            <Avatar>
+                <AvatarFallback>@GetInitials(person.Name)</AvatarFallback>
+            </Avatar>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold truncate">@person.Name</p>
+                <TypographyMuted Class="truncate">@person.Email</TypographyMuted>
+                <TypographyMuted Class="text-xs">@person.Department · @person.Role</TypographyMuted>
+            </div>
+            <div class="flex flex-col items-end gap-1 shrink-0">
+                <Badge Variant="@(person.Status == "Active" ? BadgeVariant.Default : BadgeVariant.Outline)">
+                    @person.Status
+                </Badge>
+                <TypographyMuted Class="text-xs">@person.Salary.ToString("C0")</TypographyMuted>
+            </div>
+        </Card>
+    </ListTemplate>
+    <Fields>
+        <DataViewColumn TItem="Person" TValue="string" Property="@(p => p.Name)"       Header="Name"       Sortable Filterable />
+        <DataViewColumn TItem="Person" TValue="string" Property="@(p => p.Email)"      Header="Email"      Filterable />
+        <DataViewColumn TItem="Person" TValue="string" Property="@(p => p.Department)" Header="Department" Sortable Filterable />
+        <DataViewColumn TItem="Person" TValue="string" Property="@(p => p.Role)"       Header="Role"       Sortable Filterable />
+        <DataViewColumn TItem="Person" TValue="string" Property="@(p => p.Status)"     Header="Status"     Sortable />
+        <DataViewColumn TItem="Person" TValue="int"    Property="@(p => p.Salary)"     Header="Salary"     Sortable />
+    </Fields>
+</DataView>

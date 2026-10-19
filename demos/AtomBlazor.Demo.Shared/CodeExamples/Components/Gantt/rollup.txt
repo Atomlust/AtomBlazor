@@ -1,0 +1,21 @@
+<Gantt TItem="PlanTask"
+         Data="@plan"
+         IdSelector="@(t => t.Id)"
+         ParentIdSelector="@(t => t.Parent)"
+         TextSelector="@(t => t.Name)"
+         StartSelector="@(t => t.Start)"
+         EndSelector="@(t => t.End)"
+         ProgressSelector="@(t => t.Progress)"
+         RollUpSummaries="true"
+         Height="26rem" />
+
+@* Roll-up is on by default:
+     Start    = the earliest child's start
+     End      = the latest child's end
+     Progress = weighted by how long each child runs, so a fortnight half done outweighs
+                an afternoon finished. Nothing but milestones underneath and they count equally.
+
+   Turn it off where a summary carries a baseline agreed separately from the work beneath it.
+
+   A task with no length is a milestone. So is one whose end is before its start, which is
+   drawn as a marker rather than a bar running backwards. *@

@@ -1,0 +1,177 @@
+@page "/components/highlighter"
+
+<PageTitle>@L.T("Highlighter 文本高亮 - Atom BlazorUI", "Highlighter - Atom BlazorUI")</PageTitle>
+
+<div class="max-w-4xl space-y-8">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">Highlighter</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("标出字符串中与搜索词匹配的部分，让结果列表可以说明每一行为何命中。",
+                 "Marks the parts of a string that match a search term, so a result list can show why each row matched.")
+        </p>
+    </div>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("实时搜索", "Live search")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("输入即可看到命中标记随之移动。默认不区分大小写。",
+                     "Type to see the matches move. Matching is case-insensitive by default.")
+            </p>
+        </div>
+        <div class="space-y-4 rounded-lg border p-6">
+            <Input @bind-Value="search" Placeholder="@(L.T("搜索下列条目……", "Search the rows..."))" Class="max-w-sm" />
+            <ul class="space-y-2 text-sm">
+                @foreach (var row in rows)
+                {
+                    <li class="rounded-md border px-3 py-2">
+                        <Highlighter Text="@row" Query="@search" />
+                    </li>
+                }
+            </ul>
+        </div>
+        <CodeBlock Source="Components/Highlighter/basic.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("多个搜索词", "Several terms")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    传入 <code class="rounded bg-muted px-1 py-0.5 text-xs">Queries</code> 可以标记不止一个词。
+                    相互重叠的命中会合并成一枚标记，而不是层层嵌套。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Pass <code class="rounded bg-muted px-1 py-0.5 text-xs">Queries</code> to mark more
+                    than one term. Overlapping matches merge into one mark rather than nesting.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-2 rounded-lg border p-6 text-sm">
+            <p><Highlighter Text="@paragraph" Queries="@(new[] { "grid", "column" })" /></p>
+            <p class="text-muted-foreground">
+                @L.T("重叠命中：", "Overlapping:") <Highlighter Text="Data grid columns" Queries="@(new[] { "grid col", "columns" })" />
+            </p>
+        </div>
+        <CodeBlock Source="Components/Highlighter/queries.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("选项", "Options")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">WholeWord</code> 可以避免一个短词
+                    命中其它单词中间的片段。
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">MarkClass</code> 用于替换标记的样式。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">WholeWord</code> stops a short
+                    term marking a fragment in the middle of every other word.
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">MarkClass</code> replaces the
+                    mark styling.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-3 rounded-lg border p-6 text-sm">
+            <p>@L.T("默认：", "Default:") <Highlighter Text="A grid of gridlines in the grid" Query="grid" /></p>
+            <p>@L.T("整词匹配：", "Whole word:") <Highlighter Text="A grid of gridlines in the grid" Query="grid" WholeWord="true" /></p>
+            <p>@L.T("区分大小写：", "Case-sensitive:") <Highlighter Text="Grid, grid and GRID" Query="Grid" CaseSensitive="true" /></p>
+            <p>@L.T("自定义标记：", "Custom mark:") <Highlighter Text="A grid of gridlines" Query="grid" MarkClass="atom:bg-amber-200 atom:text-amber-950" /></p>
+        </div>
+        <CodeBlock Source="Components/Highlighter/options.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("文本永远不会被当成标记", "The text is never markup")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("文本与搜索词都以纯文本渲染，所以在搜索框里输入的词无法注入一个元素。",
+                     "Both the text and the term render as text, so a term typed into a search box cannot inject an element.")
+            </p>
+        </div>
+        <div class="rounded-lg border p-6 text-sm">
+            <Highlighter Text="Angle brackets like <b>this</b> stay literal" Query="<b>" />
+        </div>
+    </section>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>命中的部分以 <code>&lt;mark&gt;</code> 渲染，浏览器与读屏软件早已把它当作“与搜索相关”，所以高亮并不只靠颜色传达。</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Matches render as <code>&lt;mark&gt;</code>, which browsers and screen readers already treat as "relevant to a search", so the highlight is not colour alone.</AccessibilityItem>
+                        </text>
+}
+            <AccessibilityItem>@L.T("标记的默认样式沿用继承来的文字颜色，因此对比度跟随周围文本，而不是被覆盖。", "The mark's default styling keeps the inherited text colour, so contrast follows the surrounding text rather than being overridden.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("该组件只渲染文本，不接收焦点", "The component renders text only and takes no focus"))"><Kbd>None</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+        <ApiReference Since="v4" ComponentName="Highlighter">
+            <ApiParameter Name="Text" Type="string?">@L.T("要渲染的文本。必填。", "The text to render. Required.")</ApiParameter>
+            <ApiParameter Name="Query" Type="string?">@L.T("要标记的搜索词。设置了 Queries 时会被忽略。", "The term to mark. Ignored when Queries is set.")</ApiParameter>
+            <ApiParameter Name="Queries" Type="IReadOnlyList&lt;string&gt;?">@L.T("多个搜索词。相互重叠的命中会合并成一枚标记。", "Several terms. Overlapping matches merge into one mark.")</ApiParameter>
+            <ApiParameter Name="CaseSensitive" Type="bool" Default="false">@L.T("按序号方式区分大小写匹配。", "Ordinal case-sensitive matching.")</ApiParameter>
+            <ApiParameter Name="WholeWord" Type="bool" Default="false">@L.T("只在单词起始处匹配。", "Only match at the start of a word.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="MarkClass" Type="string?">为 <code>&lt;mark&gt;</code> 元素追加的 CSS 类。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="MarkClass" Type="string?">Additional CSS classes for the <code>&lt;mark&gt;</code> elements.</ApiParameter>
+                        </text>
+}
+        </ApiReference>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string search = "grid";
+
+    private readonly string[] rows =
+    [
+        "Data Grid with virtual columns",
+        "Grid guide: layout and gaps",
+        "Dashboard Grid widgets",
+        "Scheduler lanes and resources",
+        "Event Calendar month view",
+    ];
+
+    private const string paragraph =
+        "The data grid renders a column per field, and the dashboard grid places widgets on a "
+        + "twelve column layout.";
+}

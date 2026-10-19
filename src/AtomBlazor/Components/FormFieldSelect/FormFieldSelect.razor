@@ -1,0 +1,51 @@
+@namespace AtomBlazor
+@typeparam TValue
+@inherits FormFieldBase
+@attribute [CascadingTypeParameter(nameof(TValue))]
+
+<Field Orientation="@Orientation" IsInvalid="@IsInvalid" Class="@Class">
+    @if (Label is not null)
+    {
+        <FieldLabel>@Label</FieldLabel>
+    }
+    <FieldContent>
+        <Select AriaLabel="@AriaLabel" TValue="TValue"
+                Value="@Value"
+                ValueChanged="HandleValueChanged"
+                ValueExpression="@ValueExpression"
+                Disabled="@Disabled"
+                Required="@Required"
+                DisplayTextSelector="@GetEffectiveDisplayTextSelector()"
+                Class="@InputClass"
+                @attributes="AdditionalAttributes">
+            <AtomBlazor.SelectTrigger TValue="TValue" id="@ControlId" aria-describedby="@DescribedById">
+                <AtomBlazor.SelectValue Placeholder="@Placeholder" />
+            </AtomBlazor.SelectTrigger>
+            <AtomBlazor.SelectContent TValue="TValue" OnLoadMore="@OnLoadMore" IsLoading="@IsLoading" EndOfListMessage="@EndOfListMessage">
+                @if (Options is not null)
+                {
+                    @foreach (var option in Options)
+                    {
+                        <AtomBlazor.SelectItem TValue="TValue" Value="@option.Value" Text="@option.Text" />
+                    }
+                }
+                else
+                {
+                    @ChildContent
+                }
+            </AtomBlazor.SelectContent>
+        </Select>
+        @if (!string.IsNullOrEmpty(HelperText) && !IsInvalid)
+        {
+            <FieldDescription Id="@DescriptionId">@HelperText</FieldDescription>
+        }
+        @if (IsInvalid && !string.IsNullOrEmpty(ErrorText))
+        {
+            <FieldError Id="@ErrorId">@ErrorText</FieldError>
+        }
+        else if (HasEditContextErrors)
+        {
+            <FieldError Id="@ErrorId" Errors="@EditContextErrors" />
+        }
+    </FieldContent>
+</Field>

@@ -1,0 +1,35 @@
+@namespace AtomBlazor
+@typeparam TValue
+@inherits FormFieldBase
+@attribute [CascadingTypeParameter(nameof(TValue))]
+
+<Field Orientation="@Orientation" IsInvalid="@IsInvalid" Class="@Class">
+    @if (Label is not null)
+    {
+        <FieldLabel>@Label</FieldLabel>
+    }
+    <FieldContent>
+        <CheckboxGroup AriaLabel="@AriaLabel" TValue="TValue"
+                         Values="@Values"
+                         ValuesChanged="HandleValuesChanged"
+                         ShowSelectAll="@ShowSelectAll"
+                         SelectAllLabel="@SelectAllLabel"
+                         Disabled="@Disabled"
+                         Class="@InputClass"
+                         @attributes="AdditionalAttributes">
+            @ChildContent
+        </CheckboxGroup>
+        @if (!string.IsNullOrEmpty(HelperText) && !IsInvalid)
+        {
+            <FieldDescription Id="@DescriptionId">@HelperText</FieldDescription>
+        }
+        @if (IsInvalid && !string.IsNullOrEmpty(ErrorText))
+        {
+            <FieldError Id="@ErrorId">@ErrorText</FieldError>
+        }
+        else if (HasEditContextErrors)
+        {
+            <FieldError Id="@ErrorId" Errors="@EditContextErrors" />
+        }
+    </FieldContent>
+</Field>

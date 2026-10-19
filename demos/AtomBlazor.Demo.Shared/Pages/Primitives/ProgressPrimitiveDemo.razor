@@ -1,0 +1,313 @@
+@page "/primitives/progress"
+<PageTitle>@L.T("Progress 进度条原语 - Atom BlazorUI", "Progress Primitive - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Progress 进度条原语", "Progress Primitive")</h1>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-xl text-muted-foreground">
+                        无头、无样式的进度条原语，具有可访问的 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="progressbar"</code>。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-xl text-muted-foreground">
+                Headless, unstyled progress bar primitive with accessible <code class="text-xs bg-muted px-1 py-0.5 rounded">role="progressbar"</code>.
+            </p>
+                </text>
+            }
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基础进度条", "Basic Progress")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("确定态进度条，显示完成百分比。", "A determinate progress bar showing completion percentage.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <div class="flex gap-2">
+                    <button @onclick="@(() => progressValue = Math.Max(0, progressValue - 10))"
+                            class="px-3 py-2 border rounded text-sm">-10%</button>
+                    <button @onclick="@(() => progressValue = Math.Min(100, progressValue + 10))"
+                            class="px-3 py-2 border rounded text-sm">+10%</button>
+                </div>
+
+                <AtomBlazor.Primitives.ProgressPrimitive
+                    Value="progressValue"
+                    GetValueLabel="@((v, m) => L.IsChinese ? $"当前完成 {v}%" : $"{v}% complete")"
+                    style="position: relative; height: 16px; width: 100%; overflow: hidden; border-radius: 9999px; background-color: var(--secondary);">
+                    <AtomBlazor.Primitives.ProgressIndicator
+                        style="@($"height: 100%; width: {progressValue}%; background-color: var(--primary); transition: width 0.3s;")" />
+                </AtomBlazor.Primitives.ProgressPrimitive>
+
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">当前值：@progressValue%</p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">Value: @progressValue%</p>
+                    </text>
+                }
+            </div>
+
+            <CodeBlock Source="Primitives/Progress/basic.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("不确定态进度条", "Indeterminate Progress")</h2>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            当 <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code> 为 null 时，进度条处于不确定态。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                    When <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code> is null, the progress bar is in an indeterminate state.
+                </p>
+                    </text>
+                }
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <AtomBlazor.Primitives.ProgressPrimitive
+                    Value="null"
+                    style="position: relative; height: 16px; width: 100%; overflow: hidden; border-radius: 9999px; background-color: var(--secondary);">
+                    <AtomBlazor.Primitives.ProgressIndicator
+                        style="height: 100%; width: 50%; background-color: var(--primary); animation: indeterminate 1.5s infinite ease-in-out;" />
+                </AtomBlazor.Primitives.ProgressPrimitive>
+                <p class="text-sm text-muted-foreground mt-2">
+                    @L.T("data-state=\"indeterminate\"，未设置 aria-valuenow。", "data-state=\"indeterminate\" — no aria-valuenow is set.")
+                </p>
+            </div>
+
+            <CodeBlock Source="Primitives/Progress/indeterminate.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("自定义最大值", "Custom Max Value")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("使用自定义最大值的进度条（例如向导中的步骤）。", "Progress with a custom max value (e.g., steps in a wizard).")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <div class="flex gap-2">
+                    <button @onclick="@(() => stepValue = Math.Max(0, stepValue - 1))"
+                            class="px-3 py-2 border rounded text-sm">@L.T("上一步", "Previous Step")</button>
+                    <button @onclick="@(() => stepValue = Math.Min(5, stepValue + 1))"
+                            class="px-3 py-2 border rounded text-sm">@L.T("下一步", "Next Step")</button>
+                </div>
+
+                <AtomBlazor.Primitives.ProgressPrimitive
+                    Value="stepValue"
+                    Max="5"
+                    GetValueLabel="@((v, m) => L.IsChinese ? $"第 {v} 步，共 {m} 步" : $"Step {v} of {m}")"
+                    style="position: relative; height: 16px; width: 100%; overflow: hidden; border-radius: 9999px; background-color: var(--secondary);">
+                    <AtomBlazor.Primitives.ProgressIndicator
+                        style="@($"height: 100%; width: {(stepValue / 5.0) * 100}%; background-color: var(--primary); transition: width 0.3s;")" />
+                </AtomBlazor.Primitives.ProgressPrimitive>
+
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">第 @stepValue 步，共 5 步</p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">Step @stepValue of 5</p>
+                    </text>
+                }
+            </div>
+
+            <CodeBlock Source="Primitives/Progress/custom-max.txt" />
+        </section>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">role="progressbar"</code> 进度指示器的语义角色
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">role="progressbar"</code> semantic role for progress indicators
+            </AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuenow</code> 指示当前值（不确定态时省略）
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuenow</code> indicates the current value (omitted when indeterminate)
+            </AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuemin</code> 设为 0，<code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuemax</code> 设为最大值（默认 100）
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuemin</code> set to 0 and <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuemax</code> set to the max value (default 100)
+            </AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuetext</code> 经由 <code class="text-xs bg-muted px-1 py-0.5 rounded">GetValueLabel</code> 回调提供人可读文本
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuetext</code> provides human-readable text via the <code class="text-xs bg-muted px-1 py-0.5 rounded">GetValueLabel</code> callback
+            </AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">data-state</code> 设为 "loading"、"complete" 或 "indeterminate"，用作 CSS 钩子
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">data-state</code> set to "loading", "complete", or "indeterminate" for CSS hooks
+            </AccessibilityItem>
+                </text>
+            }
+        </AriaAttributes>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="Progress">
+                <ApiParameter Name="Value" Type="double?" Default="null">
+                    @L.T("当前进度值。为 null 时进度条处于不确定态。", "Current progress value. When null, the progress bar is in an indeterminate state.")
+                </ApiParameter>
+                <ApiParameter Name="Max" Type="double" Default="100">
+                    @L.T("最大进度值。", "Maximum progress value.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="GetValueLabel" Type="Func&lt;double, double, string&gt;?" Default="null">
+                            用于生成人可读标签的回调。接收 <code class="text-xs bg-muted px-1 py-0.5 rounded">(value, max)</code> 并返回一个字符串用于 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuetext</code>。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="GetValueLabel" Type="Func&lt;double, double, string&gt;?" Default="null">
+                    Callback to generate a human-readable label. Receives <code class="text-xs bg-muted px-1 py-0.5 rounded">(value, max)</code> and returns a string for <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-valuetext</code>.
+                </ApiParameter>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到根 <code>&lt;div&gt;</code> 元素上的附加 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                </ApiParameter>
+                    </text>
+                }
+            </ApiReference>
+
+            <ApiReference ComponentName="ProgressIndicator">
+                <ApiParameter Name="ChildContent" Type="RenderFragment?" Default="null">
+                    @L.T("在指示器内渲染的可选子内容。", "Optional child content rendered inside the indicator.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到根 <code>&lt;div&gt;</code> 元素上的附加 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                </ApiParameter>
+                    </text>
+                }
+            </ApiReference>
+        </div>
+    </section>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private double progressValue = 50;
+    private double stepValue = 2;
+}

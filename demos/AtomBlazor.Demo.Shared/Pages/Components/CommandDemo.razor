@@ -1,0 +1,1221 @@
+@page "/components/command"
+@using AtomBlazor.Icons.Lucide.Data
+@using AtomBlazor.Icons.Feather.Data
+@using AtomBlazor.Icons.Heroicons.Data
+@using AtomBlazor.Icons.Feather
+@using AtomBlazor.Icons.Heroicons
+@using AtomBlazor.Primitives.Services
+@inject IKeyboardShortcutService KeyboardShortcuts
+@implements IDisposable
+
+<PageTitle>@L.T("Command 命令面板 - Atom BlazorUI", "Command Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Command 命令面板", "Command Component")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("轻量、可组合的命令菜单，检索与选择全程可用键盘操作。",
+                 "A fast, composable command menu with keyboard-driven search and selection.")
+        </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+    </div>
+
+    <!-- Command Palette Overlay (Modal) -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("命令面板（浮层）", "Command Palette (Overlay)")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                一个以浮层形式出现在屏幕上的完整命令面板。点击按钮或按 <Kbd>Ctrl+I</Kbd> 即可打开。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                A proper command palette that appears as an overlay on the screen. Click the button or press <Kbd>Ctrl+I</Kbd> to open.
+            </p>
+                </text>
+}
+
+        <div class="flex flex-col gap-2">
+            <Button Variant="ButtonVariant.Outline" OnClick="@(() => isCommandPaletteOpen = true)">
+                <LucideIcon Name="command" Size="16" Class="mr-2" />
+                @L.T("打开命令面板", "Open Command Palette")
+                <span class="ml-auto text-xs text-muted-foreground">Ctrl+I</span>
+            </Button>
+            @if (!string.IsNullOrEmpty(paletteSelected))
+            {
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm">上一次选择：<strong>@paletteSelected</strong></p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm">Last selected: <strong>@paletteSelected</strong></p>
+                                </text>
+}
+            }
+        </div>
+
+        <!-- Command Palette Overlay -->
+        @if (isCommandPaletteOpen)
+        {
+            <div class="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]" @onclick="@(() => isCommandPaletteOpen = false)">
+                <!-- Backdrop -->
+                <div class="fixed inset-0 bg-black/50 backdrop-blur-sm"></div>
+
+                <!-- Command Palette -->
+                <div class="relative w-full max-w-lg mx-4" @onclick:stopPropagation="true">
+                    <div class="border rounded-lg shadow-2xl bg-background animate-in fade-in-0 zoom-in-95">
+                        <AtomBlazor.Command OnValueChange="@HandlePaletteSelect">
+                            <CommandInput Placeholder="@(L.T("输入命令或搜索……", "Type a command or search..."))" AutoFocus="true" />
+                            <CommandList>
+                                <CommandEmpty>@L.T("未找到结果。", "No results found.")</CommandEmpty>
+                                <CommandGroup Heading="@(L.T("建议", "Suggestions"))">
+                                    <CommandItem Value="calendar">
+                                        <LucideIcon Name="calendar" Size="16" Class="mr-2" />
+                                        @L.T("日历", "Calendar")
+                                    </CommandItem>
+                                    <CommandItem Value="search-emoji">
+                                        <LucideIcon Name="smile" Size="16" Class="mr-2" />
+                                        @L.T("搜索表情", "Search Emoji")
+                                    </CommandItem>
+                                    <CommandItem Value="calculator">
+                                        <LucideIcon Name="calculator" Size="16" Class="mr-2" />
+                                        @L.T("计算器", "Calculator")
+                                    </CommandItem>
+                                </CommandGroup>
+                                <CommandSeparator />
+                                <CommandGroup Heading="@(L.T("设置", "Settings"))">
+                                    <CommandItem Value="profile">
+                                        <LucideIcon Name="user" Size="16" Class="mr-2" />
+                                        @L.T("个人资料", "Profile")
+                                        <CommandShortcut>⌘P</CommandShortcut>
+                                    </CommandItem>
+                                    <CommandItem Value="billing">
+                                        <LucideIcon Name="credit-card" Size="16" Class="mr-2" />
+                                        @L.T("账单", "Billing")
+                                        <CommandShortcut>⌘B</CommandShortcut>
+                                    </CommandItem>
+                                    <CommandItem Value="settings">
+                                        <LucideIcon Name="settings" Size="16" Class="mr-2" />
+                                        @L.T("设置", "Settings")
+                                        <CommandShortcut>⌘S</CommandShortcut>
+                                    </CommandItem>
+                                </CommandGroup>
+                            </CommandList>
+                        </AtomBlazor.Command>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <CodeBlock Source="Components/Command/palette.txt" />
+    </section>
+
+    <!-- CommandDialog with Shortcut -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("带快捷键的 CommandDialog", "CommandDialog with Shortcut")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                用 <code class="bg-muted px-1 py-0.5 rounded">CommandDialog</code> 得到一个自带键盘快捷键的命令面板。按 <Kbd>Ctrl+J</Kbd> 即可打开。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Use <code class="bg-muted px-1 py-0.5 rounded">CommandDialog</code> to get a command palette with a built-in keyboard shortcut. Press <Kbd>Ctrl+J</Kbd> to open.
+            </p>
+                </text>
+}
+
+        <div class="flex flex-col gap-2">
+            <Button Variant="ButtonVariant.Outline" OnClick="@(() => isCommandDialogOpen = true)">
+                <LucideIcon Name="command" Size="16" Class="mr-2" />
+                @L.T("打开命令对话框", "Open Command Dialog")
+                <span class="ml-auto text-xs text-muted-foreground">Ctrl+J</span>
+            </Button>
+            @if (!string.IsNullOrEmpty(dialogSelected))
+            {
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm">上一次选择：<strong>@dialogSelected</strong></p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm">Last selected: <strong>@dialogSelected</strong></p>
+                                </text>
+}
+            }
+        </div>
+
+        <CommandDialog @bind-Open="isCommandDialogOpen" Shortcut="Ctrl+J" OnValueChange="HandleDialogSelect">
+            <CommandInput Placeholder="@(L.T("输入命令或搜索……", "Type a command or search..."))" AutoFocus="true" />
+            <CommandList>
+                <CommandEmpty>@L.T("未找到结果。", "No results found.")</CommandEmpty>
+                <CommandGroup Heading="@(L.T("建议", "Suggestions"))">
+                    <CommandItem Value="calendar">
+                        <Icon><LucideIcon Name="calendar" Size="16" /></Icon>
+                        <ChildContent>@L.T("日历", "Calendar")</ChildContent>
+                    </CommandItem>
+                    <CommandItem Value="search-emoji">
+                        <Icon><LucideIcon Name="smile" Size="16" /></Icon>
+                        <ChildContent>@L.T("搜索表情", "Search Emoji")</ChildContent>
+                    </CommandItem>
+                    <CommandItem Value="calculator">
+                        <Icon><LucideIcon Name="calculator" Size="16" /></Icon>
+                        <ChildContent>@L.T("计算器", "Calculator")</ChildContent>
+                    </CommandItem>
+                </CommandGroup>
+                <CommandSeparator />
+                <CommandGroup Heading="@(L.T("设置", "Settings"))">
+                    <CommandItem Value="profile">
+                        <Icon><LucideIcon Name="user" Size="16" /></Icon>
+                        <ChildContent>@L.T("个人资料", "Profile")</ChildContent>
+                    </CommandItem>
+                    <CommandItem Value="settings">
+                        <Icon><LucideIcon Name="settings" Size="16" /></Icon>
+                        <ChildContent>@L.T("设置", "Settings")</ChildContent>
+                    </CommandItem>
+                </CommandGroup>
+            </CommandList>
+        </CommandDialog>
+
+        <CodeBlock Source="Components/Command/command-dialog.txt" />
+    </section>
+
+    <!-- Basic Command -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("基本命令菜单", "Basic Command Menu")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("一个简单的命令菜单，可搜索可选择。试着输入内容来筛选项。", "A simple command menu with search and selection. Try typing to filter items.")
+        </p>
+
+        <div class="flex flex-col gap-2">
+            <div class="border rounded-lg shadow-sm max-w-md">
+                <AtomBlazor.Command OnValueChange="@HandleBasicSelect">
+                    <CommandInput Placeholder="@(L.T("输入命令或搜索……", "Type a command or search..."))" />
+                    <CommandList>
+                        <CommandEmpty>@L.T("未找到结果。", "No results found.")</CommandEmpty>
+                        <CommandGroup>
+                            <CommandItem Value="calendar">@L.T("日历", "Calendar")</CommandItem>
+                            <CommandItem Value="search-emoji">@L.T("搜索表情", "Search Emoji")</CommandItem>
+                            <CommandItem Value="calculator">@L.T("计算器", "Calculator")</CommandItem>
+                            <CommandItem Value="settings">@L.T("设置", "Settings")</CommandItem>
+                        </CommandGroup>
+                    </CommandList>
+                </AtomBlazor.Command>
+            </div>
+            @if (!string.IsNullOrEmpty(basicSelected))
+            {
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm">已选择：<strong>@basicSelected</strong></p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm">Selected: <strong>@basicSelected</strong></p>
+                                </text>
+}
+            }
+        </div>
+
+        <CodeBlock Source="Components/Command/basic.txt" />
+    </section>
+
+    <!-- With Groups -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("分组命令", "Grouped Commands")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("把命令按逻辑分组，并配上分组标题。", "Organize commands into logical groups with headings.")
+        </p>
+
+        <div class="flex flex-col gap-2">
+            <div class="border rounded-lg shadow-sm max-w-md">
+                <AtomBlazor.Command OnValueChange="@HandleGroupSelect">
+                    <CommandInput Placeholder="@(L.T("搜索命令……", "Search commands..."))" />
+                    <CommandList>
+                        <CommandEmpty>@L.T("未找到结果。", "No results found.")</CommandEmpty>
+                        <CommandGroup Heading="@(L.T("建议", "Suggestions"))">
+                            <CommandItem Value="calendar">
+                                <LucideIcon Name="calendar" Size="16" Class="mr-2" />
+                                @L.T("日历", "Calendar")
+                            </CommandItem>
+                            <CommandItem Value="search-emoji">
+                                <LucideIcon Name="smile" Size="16" Class="mr-2" />
+                                @L.T("搜索表情", "Search Emoji")
+                            </CommandItem>
+                            <CommandItem Value="calculator">
+                                <LucideIcon Name="calculator" Size="16" Class="mr-2" />
+                                @L.T("计算器", "Calculator")
+                            </CommandItem>
+                        </CommandGroup>
+                        <CommandSeparator />
+                        <CommandGroup Heading="@(L.T("设置", "Settings"))">
+                            <CommandItem Value="profile">
+                                <LucideIcon Name="user" Size="16" Class="mr-2" />
+                                @L.T("个人资料", "Profile")
+                            </CommandItem>
+                            <CommandItem Value="billing">
+                                <LucideIcon Name="credit-card" Size="16" Class="mr-2" />
+                                @L.T("账单", "Billing")
+                            </CommandItem>
+                            <CommandItem Value="settings">
+                                <LucideIcon Name="settings" Size="16" Class="mr-2" />
+                                @L.T("设置", "Settings")
+                            </CommandItem>
+                        </CommandGroup>
+                    </CommandList>
+                </AtomBlazor.Command>
+            </div>
+            @if (!string.IsNullOrEmpty(groupSelected))
+            {
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm">已选择：<strong>@groupSelected</strong></p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm">Selected: <strong>@groupSelected</strong></p>
+                                </text>
+}
+            }
+        </div>
+
+        <CodeBlock Source="Components/Command/grouped.txt" />
+    </section>
+
+    <!-- With Keyboard Shortcuts -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("带键盘快捷键", "With Keyboard Shortcuts")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("在命令旁显示键盘快捷键（仅作展示）。用方向键导航，用 Enter 选择。", "Display keyboard shortcuts alongside commands (visual only). Use arrow keys to navigate and Enter to select.")
+        </p>
+
+        <div class="flex flex-col gap-2">
+            <div class="border rounded-lg shadow-sm max-w-md">
+                <AtomBlazor.Command OnValueChange="@HandleShortcutSelect">
+                    <CommandInput Placeholder="@(L.T("搜索命令……", "Search commands..."))" />
+                    <CommandList>
+                        <CommandEmpty>@L.T("未找到结果。", "No results found.")</CommandEmpty>
+                        <CommandGroup Heading="@(L.T("文件", "File"))">
+                            <CommandItem Value="new">
+                                @L.T("新建文件", "New File")
+                                <CommandShortcut>⌘N</CommandShortcut>
+                            </CommandItem>
+                            <CommandItem Value="open">
+                                @L.T("打开文件", "Open File")
+                                <CommandShortcut>⌘O</CommandShortcut>
+                            </CommandItem>
+                            <CommandItem Value="save">
+                                @L.T("保存文件", "Save File")
+                                <CommandShortcut>⌘S</CommandShortcut>
+                            </CommandItem>
+                        </CommandGroup>
+                        <CommandSeparator />
+                        <CommandGroup Heading="@(L.T("编辑", "Edit"))">
+                            <CommandItem Value="copy">
+                                @L.T("复制", "Copy")
+                                <CommandShortcut>⌘C</CommandShortcut>
+                            </CommandItem>
+                            <CommandItem Value="paste">
+                                @L.T("粘贴", "Paste")
+                                <CommandShortcut>⌘V</CommandShortcut>
+                            </CommandItem>
+                            <CommandItem Value="cut">
+                                @L.T("剪切", "Cut")
+                                <CommandShortcut>⌘X</CommandShortcut>
+                            </CommandItem>
+                        </CommandGroup>
+                    </CommandList>
+                </AtomBlazor.Command>
+            </div>
+            @if (!string.IsNullOrEmpty(shortcutSelected))
+            {
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm">已选择：<strong>@shortcutSelected</strong></p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm">Selected: <strong>@shortcutSelected</strong></p>
+                                </text>
+}
+            }
+        </div>
+
+        <CodeBlock Source="Components/Command/keyboard-shortcuts.txt" />
+    </section>
+
+    <!-- With Disabled Items -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("禁用条目", "Disabled Items")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("可以把条目设为禁用，使其无法被选中。", "Items can be disabled to prevent selection.")
+        </p>
+
+        <div class="flex flex-col gap-2">
+            <div class="border rounded-lg shadow-sm max-w-md">
+                <AtomBlazor.Command OnValueChange="@HandleDisabledSelect">
+                    <CommandInput Placeholder="@(L.T("搜索命令……", "Search commands..."))" />
+                    <CommandList>
+                        <CommandEmpty>@L.T("未找到结果。", "No results found.")</CommandEmpty>
+                        <CommandGroup>
+                            <CommandItem Value="cut">@L.T("剪切", "Cut")</CommandItem>
+                            <CommandItem Value="copy">@L.T("复制", "Copy")</CommandItem>
+                            <CommandItem Value="paste" Disabled="true">@L.T("粘贴（已禁用）", "Paste (Disabled)")</CommandItem>
+                            <CommandItem Value="select-all">@L.T("全选", "Select All")</CommandItem>
+                            <CommandItem Value="delete" Disabled="true">@L.T("删除（已禁用）", "Delete (Disabled)")</CommandItem>
+                        </CommandGroup>
+                    </CommandList>
+                </AtomBlazor.Command>
+            </div>
+            @if (!string.IsNullOrEmpty(disabledSelected))
+            {
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm">已选择：<strong>@disabledSelected</strong></p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm">Selected: <strong>@disabledSelected</strong></p>
+                                </text>
+}
+            }
+        </div>
+
+        <CodeBlock Source="Components/Command/disabled.txt" />
+    </section>
+
+    <!-- Empty State -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("空状态", "Empty State")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                当搜索词没有匹配结果时显示自定义提示。试着搜索“xyz”。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Shows a custom message when no results match the search query. Try searching for "xyz".
+            </p>
+                </text>
+}
+
+        <div class="flex flex-col gap-2">
+            <div class="border rounded-lg shadow-sm max-w-md">
+                <AtomBlazor.Command>
+                    <CommandInput Placeholder="@(L.T("试试搜索 xyz……", "Try searching for xyz..."))" />
+                    <CommandList>
+                        <CommandEmpty>
+                            <div class="flex flex-col items-center gap-2">
+                                <LucideIcon Name="search-x" Size="32" Class="text-muted-foreground" />
+                                <p class="text-sm">@L.T("没有找到与你的搜索匹配的结果。", "No results found for your query.")</p>
+                            </div>
+                        </CommandEmpty>
+                        <CommandGroup>
+                            <CommandItem Value="apple">Apple</CommandItem>
+                            <CommandItem Value="banana">Banana</CommandItem>
+                            <CommandItem Value="cherry">Cherry</CommandItem>
+                        </CommandGroup>
+                    </CommandList>
+                </AtomBlazor.Command>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Command/empty.txt" />
+    </section>
+
+    <!-- Complex Example -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("综合示例", "Complex Example")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("把全部特性用到一起：分组、图标、快捷键、禁用条目与搜索筛选。", "Combining all features: groups, icons, shortcuts, disabled items, and search filtering.")
+        </p>
+
+        <div class="flex flex-col gap-2">
+            <div class="border rounded-lg shadow-sm max-w-lg">
+                <AtomBlazor.Command OnValueChange="@HandleComplexSelect">
+                    <CommandInput Placeholder="@(L.T("输入命令或搜索……", "Type a command or search..."))" />
+                    <CommandList>
+                        <CommandEmpty>@L.T("未找到结果。", "No results found.")</CommandEmpty>
+                        <CommandGroup Heading="@(L.T("建议", "Suggestions"))">
+                            <CommandItem Value="calendar">
+                                <LucideIcon Name="calendar" Size="16" Class="mr-2" />
+                                @L.T("日历", "Calendar")
+                            </CommandItem>
+                            <CommandItem Value="search-emoji">
+                                <LucideIcon Name="smile" Size="16" Class="mr-2" />
+                                @L.T("搜索表情", "Search Emoji")
+                            </CommandItem>
+                            <CommandItem Value="calculator">
+                                <LucideIcon Name="calculator" Size="16" Class="mr-2" />
+                                @L.T("计算器", "Calculator")
+                            </CommandItem>
+                        </CommandGroup>
+                        <CommandSeparator />
+                        <CommandGroup Heading="@(L.T("文件", "File"))">
+                            <CommandItem Value="new-file">
+                                <LucideIcon Name="file-plus" Size="16" Class="mr-2" />
+                                @L.T("新建文件", "New File")
+                                <CommandShortcut>⌘N</CommandShortcut>
+                            </CommandItem>
+                            <CommandItem Value="open-file">
+                                <LucideIcon Name="folder-open" Size="16" Class="mr-2" />
+                                @L.T("打开文件", "Open File")
+                                <CommandShortcut>⌘O</CommandShortcut>
+                            </CommandItem>
+                            <CommandItem Value="save-file">
+                                <LucideIcon Name="save" Size="16" Class="mr-2" />
+                                @L.T("保存文件", "Save File")
+                                <CommandShortcut>⌘S</CommandShortcut>
+                            </CommandItem>
+                            <CommandItem Value="save-as" Disabled="true">
+                                <LucideIcon Name="save" Size="16" Class="mr-2" />
+                                @L.T("另存为……（已禁用）", "Save As... (Disabled)")
+                                <CommandShortcut>⇧⌘S</CommandShortcut>
+                            </CommandItem>
+                        </CommandGroup>
+                        <CommandSeparator />
+                        <CommandGroup Heading="@(L.T("设置", "Settings"))">
+                            <CommandItem Value="profile">
+                                <LucideIcon Name="user" Size="16" Class="mr-2" />
+                                @L.T("个人资料", "Profile")
+                                <CommandShortcut>⌘P</CommandShortcut>
+                            </CommandItem>
+                            <CommandItem Value="billing">
+                                <LucideIcon Name="credit-card" Size="16" Class="mr-2" />
+                                @L.T("账单", "Billing")
+                                <CommandShortcut>⌘B</CommandShortcut>
+                            </CommandItem>
+                            <CommandItem Value="settings">
+                                <LucideIcon Name="settings" Size="16" Class="mr-2" />
+                                @L.T("设置", "Settings")
+                                <CommandShortcut>⌘,</CommandShortcut>
+                            </CommandItem>
+                        </CommandGroup>
+                    </CommandList>
+                </AtomBlazor.Command>
+            </div>
+            @if (!string.IsNullOrEmpty(complexSelected))
+            {
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm">已选择：<strong>@complexSelected</strong></p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm">Selected: <strong>@complexSelected</strong></p>
+                                </text>
+}
+            }
+        </div>
+
+        <CodeBlock Source="Components/Command/complex.txt" />
+    </section>
+
+    <!-- Lazy Loading (Large Lists) -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("懒加载（大型列表）", "Lazy Loading (Large Lists)")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                用懒加载高效处理大数据集。条目随你滚动按需载入。
+                本例含 <strong>@TotalIconCount 个图标</strong>，来自三个图标库：Lucide (@_lucideIcons.Length)、Feather (@_featherIcons.Length) 与 Heroicons (@_heroIcons.Length)。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Efficiently handle large datasets with lazy loading. Items are loaded on-demand as you scroll.
+                This example contains <strong>@TotalIconCount icons</strong> across three libraries: Lucide (@_lucideIcons.Length), Feather (@_featherIcons.Length), and Heroicons (@_heroIcons.Length).
+            </p>
+                </text>
+}
+
+        <div class="flex flex-col gap-2">
+            <div class="border rounded-lg shadow-sm max-w-md">
+                <AtomBlazor.Command OnValueChange="@HandleLazySelect">
+                    <CommandInput Placeholder="@(L.IsChinese ? $"搜索 {TotalIconCount} 个图标……" : $"Search {TotalIconCount} icons...")" />
+                    <CommandList Class="max-h-[300px]">
+                        <CommandEmpty>@L.T("未找到图标。", "No icons found.")</CommandEmpty>
+                        <CommandVirtualizedGroup TItem="(string Name, int Index)"
+                            Heading="Lucide"
+                            Items="_lucideIcons"
+                            ItemValue="@(icon => icon.Name)"
+                            ItemSearchText="@(icon => icon.Name)"
+                            EnableLazyLoading="true">
+                            <ItemTemplate Context="icon">
+                                <LucideIcon Name="@icon.Name" Size="16" Class="mr-2" />
+                                <span class="flex-1">@icon.Name</span>
+                                <span class="text-xs text-muted-foreground ml-2">#@icon.Index</span>
+                            </ItemTemplate>
+                        </CommandVirtualizedGroup>
+                        <CommandSeparator />
+                        <CommandVirtualizedGroup TItem="(string Name, int Index)"
+                            Heading="Feather"
+                            Items="_featherIcons"
+                            ItemValue="@(icon => icon.Name)"
+                            ItemSearchText="@(icon => icon.Name)"
+                            EnableLazyLoading="true">
+                            <ItemTemplate Context="icon">
+                                <FeatherIcon Name="@icon.Name" Size="16" Class="mr-2" />
+                                <span class="flex-1">@icon.Name</span>
+                                <span class="text-xs text-muted-foreground ml-2">#@icon.Index</span>
+                            </ItemTemplate>
+                        </CommandVirtualizedGroup>
+                        <CommandSeparator />
+                        <CommandVirtualizedGroup TItem="(string Name, int Index)"
+                            Heading="Heroicons"
+                            Items="_heroIcons"
+                            ItemValue="@(icon => icon.Name)"
+                            ItemSearchText="@(icon => icon.Name)"
+                            EnableLazyLoading="true">
+                            <ItemTemplate Context="icon">
+                                <HeroIcon Name="@icon.Name" Size="16" Class="mr-2" />
+                                <span class="flex-1">@icon.Name</span>
+                                <span class="text-xs text-muted-foreground ml-2">#@icon.Index</span>
+                            </ItemTemplate>
+                        </CommandVirtualizedGroup>
+                    </CommandList>
+                </AtomBlazor.Command>
+            </div>
+            @if (!string.IsNullOrEmpty(lazySelected))
+            {
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm">已选择：<strong>@lazySelected</strong></p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm">Selected: <strong>@lazySelected</strong></p>
+                                </text>
+}
+            }
+        </div>
+
+        <CodeBlock Source="Components/Command/lazy-loading.txt" />
+    </section>
+
+    <!-- Server-Side Lazy Loading (ItemsProvider) -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("服务端懒加载（ItemsProvider）", "Server-Side Lazy Loading (ItemsProvider)")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                用 <code class="text-xs bg-muted px-1 py-0.5 rounded">EnableLazyLoading</code> 配合
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">Items</code> 参数时，仍然得提前把整个集合实例化。
+                改用 <code class="text-xs bg-muted px-1 py-0.5 rounded">ItemsProvider</code> 就只需取回当前可见的那一段——
+                特别适合存放在数据库或 API 里的数据。提供方会收到滚动区间与当前搜索词，返回匹配的那一段以及总数。
+                本例分 <strong>25,000</strong> 条记录逐页取用（并模拟了 150&nbsp;ms 的延迟），
+                组件内始终不会持超过一屏的数据。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                With <code class="text-xs bg-muted px-1 py-0.5 rounded">EnableLazyLoading</code> plus the
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">Items</code> parameter you still have to
+                materialize the whole collection up front. Supply an
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">ItemsProvider</code> instead to fetch only
+                the slice currently in view — ideal for data that lives in a database or API. The provider
+                receives the scroll range and the current search text and returns the matching slice plus a
+                total count. This example pages through <strong>25,000</strong> records (with a simulated
+                150&nbsp;ms latency) and never holds more than a screenful in the component.
+            </p>
+                </text>
+}
+
+        <div class="flex flex-col gap-2">
+            <div class="border rounded-lg shadow-sm max-w-md">
+                <AtomBlazor.Command OnValueChange="@HandleProviderSelect">
+                    <CommandInput Placeholder="@(L.T("搜索 25,000 条记录……", "Search 25,000 records..."))" />
+                    <CommandList Class="max-h-[300px]">
+                        <CommandEmpty>@L.T("未找到记录。", "No records found.")</CommandEmpty>
+                        <CommandVirtualizedGroup TItem="(string Name, int Index)"
+                            Heading="@(L.T("记录", "Records"))"
+                            ItemsProvider="@LoadProductsAsync"
+                            ItemValue="@(p => p.Name)"
+                            EnableLazyLoading="true">
+                            <ItemTemplate Context="product">
+                                <span class="flex-1">@product.Name</span>
+                                <span class="text-xs text-muted-foreground ml-2">#@product.Index</span>
+                            </ItemTemplate>
+                        </CommandVirtualizedGroup>
+                    </CommandList>
+                </AtomBlazor.Command>
+            </div>
+            @if (!string.IsNullOrEmpty(providerSelected))
+            {
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm">已选择：<strong>@providerSelected</strong></p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm">Selected: <strong>@providerSelected</strong></p>
+                                </text>
+}
+            }
+        </div>
+
+        <CodeBlock Source="Components/Command/items-provider.txt" />
+    </section>
+
+    <!-- Debounce -->
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("防抖", "Debounce")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                默认情况下，CommandInput 会对搜索筛选做防抖，以减少每次按键带来的重渲染。
+                把 <code class="text-xs bg-muted px-1 py-0.5 rounded">DisableDebounce="true"</code> 打开即可恢复即时筛选。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                By default, CommandInput debounces search filtering to reduce re-renders on every keystroke.
+                Set <code class="text-xs bg-muted px-1 py-0.5 rounded">DisableDebounce="true"</code> to restore immediate filtering.
+            </p>
+                </text>
+}
+
+        <div class="grid gap-6 md:grid-cols-2 max-w-4xl">
+            <div class="space-y-2">
+                <p class="text-sm font-medium">@L.T("防抖（默认，500ms）", "Debounced (default, 500ms)")</p>
+                <div class="border rounded-lg shadow-sm">
+                    <AtomBlazor.Command>
+                        <CommandInput Placeholder="@(L.T("搜索（防抖）……", "Search (debounced)..."))" />
+                        <CommandList>
+                            <CommandEmpty>@L.T("未找到结果。", "No results found.")</CommandEmpty>
+                            <CommandGroup>
+                                <CommandItem Value="apple">Apple</CommandItem>
+                                <CommandItem Value="banana">Banana</CommandItem>
+                                <CommandItem Value="cherry">Cherry</CommandItem>
+                                <CommandItem Value="date">Date</CommandItem>
+                            </CommandGroup>
+                        </CommandList>
+                    </AtomBlazor.Command>
+                </div>
+                <p class="text-xs text-muted-foreground">@L.T("停止输入 500ms 后才执行筛选。", "Filtering happens after you stop typing for 500ms.")</p>
+            </div>
+            <div class="space-y-2">
+                <p class="text-sm font-medium">@L.T("立即（DisableDebounce）", "Immediate (DisableDebounce)")</p>
+                <div class="border rounded-lg shadow-sm">
+                    <AtomBlazor.Command>
+                        <CommandInput Placeholder="@(L.T("搜索（立即）……", "Search (immediate)..."))" DisableDebounce="true" />
+                        <CommandList>
+                            <CommandEmpty>@L.T("未找到结果。", "No results found.")</CommandEmpty>
+                            <CommandGroup>
+                                <CommandItem Value="apple">Apple</CommandItem>
+                                <CommandItem Value="banana">Banana</CommandItem>
+                                <CommandItem Value="cherry">Cherry</CommandItem>
+                                <CommandItem Value="date">Date</CommandItem>
+                            </CommandGroup>
+                        </CommandList>
+                    </AtomBlazor.Command>
+                </div>
+                <p class="text-xs text-muted-foreground">@L.T("每次按键都会执行筛选。", "Filtering happens on every keystroke.")</p>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Command/debounce.txt" />
+    </section>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>命令容器使用 <code>role="listbox"</code> 表达条目选择语义</AccessibilityItem>
+                <AccessibilityItem>条目使用 <code>role="option"</code>，并以 <code>aria-selected</code> 标记高亮项</AccessibilityItem>
+                <AccessibilityItem>分组使用 <code>role="group"</code>，并以 <code>aria-labelledby</code> 关联分组标题</AccessibilityItem>
+                <AccessibilityItem>搜索输入框通过 <code>aria-controls</code> 与该 listbox 关联</AccessibilityItem>
+                <AccessibilityItem>禁用条目使用 <code>aria-disabled</code>，键盘导航时会跳过它们</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Command container uses <code>role="listbox"</code> for item selection semantics</AccessibilityItem>
+                <AccessibilityItem>Items use <code>role="option"</code> with <code>aria-selected</code> for the highlighted item</AccessibilityItem>
+                <AccessibilityItem>Groups use <code>role="group"</code> with <code>aria-labelledby</code> for heading association</AccessibilityItem>
+                <AccessibilityItem>Search input is linked to the listbox via <code>aria-controls</code></AccessibilityItem>
+                <AccessibilityItem>Disabled items use <code>aria-disabled</code> and are skipped during keyboard navigation</AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在条目间移动", "Move through items"))">
+                <Kbd>Arrow Up</Kbd> / <Kbd>Arrow Down</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("选中高亮条目", "Select highlighted item"))">
+                <Kbd>Enter</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭对话框（位于 CommandDialog 中时）", "Close dialog (when in CommandDialog)"))">
+                <Kbd>Escape</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("输入即可筛选条目", "Type to filter items"))">
+                <Kbd>Any Key</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="Command">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="SearchQuery" Type="string" Default="&quot;&quot;">
+                        当前搜索/筛选文本。支持用 <code>@@bind-SearchQuery</code> 双向绑定。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="SearchQuery" Type="string" Default="&quot;&quot;">
+                        The current search/filter text. Supports two-way binding with <code>@@bind-SearchQuery</code>.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="OnValueChange" Type="EventCallback&lt;string&gt;">
+                    @L.T("选中条目时触发的回调，接收该条目的 Value。", "Callback when an item is selected, receiving the item's Value.")
+                </ApiParameter>
+                <ApiParameter Name="FilterFunction" Type="Func&lt;CommandItemMetadata, string, bool&gt;?" Default="null">
+                    @L.T("自定义筛选函数。为 null 时使用内置的不区分大小写文本匹配。", "Custom filter function. When null, uses built-in case-insensitive text matching.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("禁用整个命令菜单。", "Disables the entire command menu.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("追加到命令容器的 CSS 类。", "Additional CSS classes for the command container.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;div&gt;</code> 元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="CommandDialog">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Open" Type="bool" Default="false">
+                        对话框是否处于打开状态。支持用 <code>@@bind-Open</code> 双向绑定。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Open" Type="bool" Default="false">
+                        Whether the dialog is open. Supports two-way binding with <code>@@bind-Open</code>.
+                    </ApiParameter>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Shortcut" Type="string?" Default="null">
+                        切换对话框开合的快捷键（例如 "Ctrl+J"、"Ctrl+K"）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Shortcut" Type="string?" Default="null">
+                        Keyboard shortcut to toggle the dialog (e.g., "Ctrl+J", "Ctrl+K").
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="OnValueChange" Type="EventCallback&lt;string&gt;">
+                    @L.T("选中条目时触发的回调。", "Callback when an item is selected.")
+                </ApiParameter>
+                <ApiParameter Name="CloseOnSelect" Type="bool" Default="true">
+                    @L.T("选中条目后是否关闭对话框。", "Whether to close the dialog when an item is selected.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("追加到对话框的 CSS 类。", "Additional CSS classes for the dialog.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="CommandInput">
+                <ApiParameter Name="Placeholder" Type="string" Default="&quot;Type a command or search...&quot;">
+                    @L.T("搜索输入框的占位文本。", "Placeholder text for the search input.")
+                </ApiParameter>
+                <ApiParameter Since="v4" Name="Id" Type="string?" Default="generated">
+                    @L.T("输入元素的 id。在外层弹层的 AutoFocusId 与之取同一值时，弹层打开即可在唤起它的那次调用中聚焦该输入框。", "The id of the input element. Pass the same value as a surrounding popover's AutoFocusId to have the input focused as the popover opens, inside the call that reveals it.")
+                </ApiParameter>
+                <ApiParameter Name="AutoFocus" Type="bool" Default="false">
+                    @L.T("渲染时自动聚焦该输入框。", "Automatically focus the input when rendered.")
+                </ApiParameter>
+                <ApiParameter Name="DisableDebounce" Type="bool" Default="false">
+                    @L.T("为 true 时每次按键立即筛选，不再防抖。", "When true, filters immediately on every keystroke instead of debouncing.")
+                </ApiParameter>
+                <ApiParameter Name="DebounceInterval" Type="int" Default="500">
+                    @L.T("应用筛选之前的防抖延迟（毫秒）。", "Debounce delay in milliseconds before filtering is applied.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("禁用搜索输入框。", "Disables the search input.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("追加到输入框的 CSS 类。", "Additional CSS classes for the input.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;div&gt;</code> 元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="CommandList">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Class" Type="string?" Default="null">
+                        追加到列表容器的 CSS 类，可用来控制最大高度（例如 <code>max-h-[300px]</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Class" Type="string?" Default="null">
+                        Additional CSS classes for the list container. Use to control max height (e.g., <code>max-h-[300px]</code>).
+                    </ApiParameter>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;div&gt;</code> 元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="CommandGroup">
+                <ApiParameter Name="Heading" Type="string?" Default="null">
+                    @L.T("显示在分组上方的可选标题文本。", "Optional heading text displayed above the group.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("追加到分组的 CSS 类。", "Additional CSS classes for the group.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;div&gt;</code> 元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="CommandItem">
+                <ApiParameter Name="Value" Type="string?" Default="null">
+                    @L.T("选中该条目时传给 OnValueChange 的值。", "The value passed to OnValueChange when this item is selected.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("禁用该条目，使其无法被选中也无法用键盘导航。", "Disables the item, preventing selection and keyboard navigation.")
+                </ApiParameter>
+                <ApiParameter Name="SearchText" Type="string?" Default="null">
+                    @L.T("用于筛选的自定义文本。为 null 时使用渲染出的文本内容。", "Custom text for filtering. When null, the rendered text content is used.")
+                </ApiParameter>
+                <ApiParameter Name="OnSelect" Type="EventCallback">
+                    @L.T("选中该条目时触发的回调。", "Callback invoked when this specific item is selected.")
+                </ApiParameter>
+                <ApiParameter Name="Icon" Type="RenderFragment?" Default="null">
+                    @L.T("渲染在条目文本之前的图标内容。", "Icon content rendered before the item text.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("追加到条目的 CSS 类。", "Additional CSS classes for the item.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;div&gt;</code> 元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="CommandSeparator">
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("追加到分隔线的 CSS 类。", "Additional CSS classes for the separator.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;div&gt;</code> 元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="CommandShortcut">
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("追加到快捷键文本的 CSS 类。", "Additional CSS classes for the shortcut text.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;span&gt;</code> 元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;span&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+
+    <LocalizationSection
+        Description="@(L.T("命令菜单的 aria 标签文案可配置。", "Command menu aria labels are configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("CommandMenu", "Command menu", L.T("命令对话框的 aria 标签。", "Aria label for the command dialog")),
+            new("CommandList", "Command list", L.T("命令列表的 aria 标签。", "Aria label for the command list")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""Command.CommandMenu"", ""Befehlsmenü"");
+    localizer.Set(""Command.CommandList"", ""Befehlsliste"");
+});")" />
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    // Icon data for lazy loading demo - all three libraries
+    private static readonly (string Name, int Index)[] _lucideIcons = LucideIconData.GetAvailableIcons()
+        .Select((name, index) => (name, index))
+        .ToArray();
+    private static readonly (string Name, int Index)[] _featherIcons = FeatherIconData.GetAvailableIcons()
+        .Select((name, index) => (name, index))
+        .ToArray();
+    private static readonly (string Name, int Index)[] _heroIcons = HeroIconData.GetAvailableIcons(HeroIconVariant.Outline)
+        .Select((name, index) => (name, index))
+        .ToArray();
+    private static int TotalIconCount => _lucideIcons.Length + _featherIcons.Length + _heroIcons.Length;
+
+    // Stands in for a database/API for the ItemsProvider demo. The component never receives this list —
+    // only the slices the provider returns for the current scroll range + search.
+    private static readonly List<(string Name, int Index)> _allRecords =
+        Enumerable.Range(0, 25000).Select(i => ($"Record {i:00000}", i)).ToList();
+
+    private IDisposable? _shortcutRegistration;
+
+    // Independent state for each section
+    private bool isCommandPaletteOpen;
+    private bool isCommandDialogOpen;
+    private string? paletteSelected;
+    private string? dialogSelected;
+    private string? basicSelected;
+    private string? groupSelected;
+    private string? shortcutSelected;
+    private string? disabledSelected;
+    private string? complexSelected;
+    private string? lazySelected;
+    private string? providerSelected;
+
+    // Individual handlers for each section
+    private void HandlePaletteSelect(string value)
+    {
+        paletteSelected = value;
+        isCommandPaletteOpen = false; // Close the palette after selection
+    }
+
+    private void HandleDialogSelect(string value) => dialogSelected = value;
+    private void HandleBasicSelect(string value) => basicSelected = value;
+    private void HandleGroupSelect(string value) => groupSelected = value;
+    private void HandleShortcutSelect(string value) => shortcutSelected = value;
+    private void HandleDisabledSelect(string value) => disabledSelected = value;
+    private void HandleComplexSelect(string value) => complexSelected = value;
+    private void HandleLazySelect(string value) => lazySelected = value;
+    private void HandleProviderSelect(string value) => providerSelected = value;
+
+    // ItemsProvider for the server-side lazy-loading demo. In a real app this would query a DB or API;
+    // here it filters the in-memory stand-in, pages it, and adds a small delay to simulate latency.
+    private async ValueTask<CommandItemsProviderResult<(string Name, int Index)>> LoadProductsAsync(
+        CommandItemsProviderRequest request)
+    {
+        await Task.Delay(150, request.CancellationToken); // simulate network/db latency
+
+        IEnumerable<(string Name, int Index)> query = _allRecords;
+        if (!string.IsNullOrWhiteSpace(request.SearchText))
+        {
+            query = query.Where(r => r.Name.Contains(request.SearchText, StringComparison.OrdinalIgnoreCase));
+        }
+
+        var matched = query.ToList();
+        var slice = matched.Skip(request.StartIndex).Take(request.Count).ToList();
+
+        return new CommandItemsProviderResult<(string Name, int Index)>
+        {
+            Items = slice,
+            TotalItemCount = matched.Count,
+        };
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _shortcutRegistration = await KeyboardShortcuts.RegisterAsync("Ctrl+I", () =>
+            {
+                isCommandPaletteOpen = true;
+                StateHasChanged();
+                return Task.CompletedTask;
+            });
+        }
+    }
+
+    public void Dispose()
+    {
+        _shortcutRegistration?.Dispose();
+    }
+}

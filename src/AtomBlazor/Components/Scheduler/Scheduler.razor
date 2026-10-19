@@ -1,0 +1,561 @@
+@namespace AtomBlazor
+@using System.Globalization
+@inject ILocalizer Localizer
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<section @ref="schedulerElement" class="@ClassNames.cn("atom:@container atom:space-y-3", Class)" aria-label="@(AriaLabel ?? Localizer["Scheduler.Label"])"
+         data-scheduler="@editorId" data-slot-minutes="@SlotMinutes" data-time-zone="@TimeZoneId" data-revision="@revision"
+         data-initial-scroll-top="@GetInitialScrollTop()?.ToString(CultureInfo.InvariantCulture)"
+         data-allow-drag="@((AllowDrag && !IsMonth && !ReadOnly && !saving && !editorOpen).ToString().ToLowerInvariant())"
+         data-allow-resize="@((AllowResize && !IsMonth && !ReadOnly && !saving && !editorOpen).ToString().ToLowerInvariant())" @attributes="AdditionalAttributes">
+    @if (ToolbarContent is null)
+    {
+        @DefaultToolbar
+    }
+    else
+    {
+        @ToolbarContent(BuildToolbarContext(DefaultToolbar))
+    }
+    @if (loadError != null)
+    {
+        <p role="alert" class="atom:text-destructive">@loadError</p>
+    }
+    @if (loadError == null && NothingSelected)
+    {
+        <p class="atom:rounded-md atom:border atom:p-6 atom:text-center atom:text-sm atom:text-muted-foreground" data-scheduler-empty>@Localizer["Scheduler.NoResourcesSelected"]</p>
+    }
+    else
+    {
+    @if (IsMonth)
+    {
+        @* 与时间泳道判然不同的另一套布局：六个周行的日单元网格，跨日片段以
+           横条形态悬浮于各行之上。拖拽与缩放已在上文强制关闭——指针代码
+           依每槽 40px 的泳道反推时刻，而此处并无这样一条泳道。 *@
+        <div class="atom:overflow-hidden atom:rounded-md atom:border" data-scheduler-month role="grid" aria-label="@Localizer["Scheduler.TimeSlots"]">
+            <div class="atom:flex atom:border-b atom:bg-muted/40" role="row">
+                @for (var day = 0; day < 7; day++)
+                {
+                    var name = CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedDayName((DayOfWeek)(((int)EffectiveWeekStart + day) % 7));
+                    <div class="atom:flex-1 atom:min-w-0 atom:p-1 atom:text-center atom:text-xs atom:font-medium atom:text-muted-foreground" role="columnheader">@name</div>
+                }
+            </div>
+            @foreach (var week in monthWeeks)
+            {
+                <div class="atom:relative atom:flex atom:border-b atom:last:border-b-0 atom:min-h-24" role="row">
+                    @for (var index = 0; index < week.Cells.Count; index++)
+                    {
+                        var cell = week.Cells[index];
+                        var cellDate = cell.Date;
+                        var isSelected = IsDaySelected(cellDate);
+                        @* 命中目标是整个单元，而非只有日号：事件下方的空白区域同样
+                           须能响应双击与右键。小条（chip）与横条会阻止事件
+                           冒泡，因而保留各自的单击、双击与右键菜单。 *@
+                        <div class="@ClassNames.cn(MonthCellClass(cell), IsDayBlocked(cellDate) ? "atom:bg-muted/60" : null)" role="gridcell"
+                             data-scheduler-blocked="@IsDayBlocked(cellDate).ToString().ToLowerInvariant()"
+                             @onclick="@(() => SelectDay(cellDate))"
+                             @ondblclick="@(() => CreateEventOnDay(cellDate))"
+                             @oncontextmenu="@(args => IsDayBlocked(cellDate) ? Task.CompletedTask : ShowSlotMenuAsync(args, DayCreateInstant(cellDate), null))" @oncontextmenu:preventDefault="true">
+                            <button type="button" disabled="@ReadOnly" data-scheduler-day="@cellDate.DayNumber"
+                                    class="@MonthDayButtonClass(isSelected)"
+                                    aria-label="@Localizer["Scheduler.DayCell", cellDate.ToString("D", CultureInfo.CurrentCulture)]"
+                                    aria-pressed="@isSelected.ToString().ToLowerInvariant()"
+                                    @onkeydown="@(args => DayKeyDown(args, cellDate))">
+                                @cellDate.Day
+                            </button>
+                            @* 预留横条悬浮所占的高度，令小条（chip）不被遮盖。 *@
+                            <div aria-hidden="true" style="@DayBandLayout.LaneSpacerStyle(week.LaneCount)"></div>
+                            @foreach (var chip in cell.Chips)
+                            {
+                                var occurrence = chip;
+                                <button @key="@(occurrence.Event.Id + occurrence.Start.Ticks)" type="button" data-scheduler-event="@occurrence.Event.Id"
+                                        class="@ClassNames.cn("atom:mb-0.5 atom:flex atom:w-full atom:items-center atom:gap-1 atom:overflow-hidden atom:rounded atom:px-1 atom:text-start atom:text-xs atom:hover:bg-muted atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring", SelectedRing(IsOccurrenceSelected(occurrence)))"
+                                        aria-label="@OccurrenceLabel(occurrence)" aria-disabled="@ReadOnly.ToString().ToLowerInvariant()"
+                                        @onclick="@(() => SelectOccurrence(occurrence))" @onclick:stopPropagation="true"
+                                        @ondblclick="@(() => EditEvent(occurrence))" @ondblclick:stopPropagation="true"
+                                        @onkeydown="@(args => OccurrenceKeyDown(args, occurrence))"
+                                        @oncontextmenu="@(args => ShowEventMenuAsync(args, occurrence))" @oncontextmenu:preventDefault="true" @oncontextmenu:stopPropagation="true">
+                                    @if (EventTemplate != null)
+                                    {
+                                        @EventTemplate(occurrence)
+                                    }
+                                    else
+                                    {
+                                        <span class="atom:shrink-0 atom:text-muted-foreground">@MonthChipLabel(occurrence)</span>
+                                        <span class="atom:truncate">@occurrence.Event.Title</span>
+                                    }
+                                </button>
+                            }
+                            @if (cell.HiddenCount > 0)
+                            {
+                                <span class="atom:block atom:px-1 atom:text-xs atom:text-muted-foreground">@Localizer["Scheduler.MoreEvents", cell.HiddenCount]</span>
+                            }
+                        </div>
+                    }
+                    @foreach (var bar in week.Bars)
+                    {
+                        var occurrence = bar.Occurrence;
+                        <button @key="@(occurrence.Event.Id + occurrence.Start.Ticks)" type="button" data-scheduler-month-event="@occurrence.Event.Id"
+                                class="@ClassNames.cn(BandBarClass(bar), SelectedRing(IsOccurrenceSelected(occurrence)))" style="@MonthBarStyle(bar)" aria-label="@BandBarLabel(bar)"
+                                aria-disabled="@ReadOnly.ToString().ToLowerInvariant()"
+                                @onclick="@(() => SelectOccurrence(occurrence))" @onclick:stopPropagation="true"
+                                @ondblclick="@(() => EditEvent(occurrence))" @ondblclick:stopPropagation="true"
+                                @onkeydown="@(args => OccurrenceKeyDown(args, occurrence))"
+                                @oncontextmenu="@(args => ShowEventMenuAsync(args, occurrence))" @oncontextmenu:preventDefault="true" @oncontextmenu:stopPropagation="true">
+                            @if (EventTemplate != null)
+                            {
+                                @EventTemplate(occurrence)
+                            }
+                            else
+                            {
+                                <span class="atom:truncate">@occurrence.Event.Title</span>
+                            }
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+    @if (bandRows.Count > 0)
+    {
+        @* 刻意置于纵向滚动之外——日列在其下滚动时该带保持不动——
+           但其列仍须与下方泳道对齐。故每条轨道原样复现泳道行的尺寸
+           规则（flex-1、min-w-[200px]，行上加 min-w-max，令列宽与泳道
+           同宽而不被压扁），scheduler.js 再把网格的水平滚动镜像
+           到它上面。 *@
+        <div class="atom:rounded-md atom:border" data-scheduler-all-day role="group" aria-label="@Localizer["Scheduler.AllDayRegion"]">
+            @foreach (var row in bandRows)
+            {
+                <div class="atom:overflow-hidden atom:border-b atom:last:border-b-0" data-scheduler-all-day-track>
+                    @if (row.Resource is not null)
+                    {
+                        @* 标签置于上方而非侧旁：标签列会挪动每一个日列。 *@
+                        <div class="atom:border-b atom:bg-muted/40 atom:px-2 atom:py-0.5 atom:text-xs atom:font-medium atom:text-muted-foreground">@row.Resource.Title</div>
+                    }
+                    <div class="atom:relative atom:flex atom:min-w-max" style="@FormattableString.Invariant($"height:{row.LaneCount * 22 + 4}px")">
+                        @for (var day = 0; day < DayCount; day++)
+                        {
+                            <div class="atom:flex-1 atom:min-w-[200px] atom:border-e atom:last:border-e-0" aria-hidden="true"></div>
+                        }
+                        @foreach (var bar in row.Bars)
+                        {
+                            var occurrence = bar.Occurrence;
+                            <button @key="@(occurrence.Event.Id + occurrence.Start.Ticks)" type="button" data-scheduler-all-day-event="@occurrence.Event.Id"
+                                    class="@ClassNames.cn(BandBarClass(bar), SelectedRing(IsOccurrenceSelected(occurrence)))" style="@BandBarStyle(bar)" aria-label="@BandBarLabel(bar)"
+                                    aria-disabled="@ReadOnly.ToString().ToLowerInvariant()"
+                                    @onclick="@(() => SelectOccurrence(occurrence))"
+                                    @ondblclick="@(() => EditEvent(occurrence))"
+                                    @onkeydown="@(args => OccurrenceKeyDown(args, occurrence))"
+                                    @oncontextmenu="@(args => ShowEventMenuAsync(args, occurrence))" @oncontextmenu:preventDefault="true">
+                                @if (EventTemplate != null)
+                                {
+                                    @EventTemplate(occurrence)
+                                }
+                                else
+                                {
+                                    <span class="atom:truncate">@occurrence.Event.Title</span>
+                                }
+                            </button>
+                        }
+                    </div>
+                    @if (row.Hidden.Any(count => count > 0))
+                    {
+                        <div class="atom:flex atom:min-w-max">
+                            @for (var day = 0; day < DayCount; day++)
+                            {
+                                var hidden = row.Hidden[day];
+                                <div class="atom:flex-1 atom:min-w-[200px] atom:px-1 atom:pb-1 atom:text-xs atom:text-muted-foreground">
+                                    @if (hidden > 0)
+                                    {
+                                        @Localizer["Scheduler.MoreAllDay", hidden]
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+    <div class="atom:overflow-auto atom:overscroll-contain atom:rounded-md atom:border atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring"
+         style="max-height:min(700px,65vh)" data-scheduler-scroll tabindex="0" role="region" aria-label="@Localizer["Scheduler.TimeSlots"]">
+        <div class="atom:flex atom:items-start">
+            @for (var index = 0; index < lanes.Count; index++)
+            {
+                var laneIndex = index;
+                var lane = lanes[laneIndex];
+                <section class="atom:flex-1 atom:min-w-[200px] atom:border-e" aria-label="@($"{lane.Date:D} {lane.Resource?.Title}")">
+                    <h3 class="atom:sticky atom:top-0 atom:z-10 atom:border-b atom:bg-background atom:p-2 atom:text-sm atom:font-medium">
+                        @lane.Date.ToString("ddd d", CultureInfo.CurrentCulture) @lane.Resource?.Title
+                    </h3>
+                    <div class="atom:relative" data-scheduler-lane="@laneIndex" data-start="@lane.Start.ToUnixTimeMilliseconds()" data-end="@lane.End.ToUnixTimeMilliseconds()"
+                         style="@FormattableString.Invariant($"height:{(lane.End - lane.Start).TotalMinutes / SlotMinutes * 40}px")">
+                        @for (var slot = lane.Start; slot < lane.End; slot = slot.AddMinutes(SlotMinutes))
+                        {
+                            var instant = slot;
+                            var isSelected = IsSlotSelected(laneIndex, instant);
+                            var isMuted = IsSlotMuted(instant);
+                            var isBlocked = BlockOutsideActiveHours && isMuted;
+                            @* 单击选中，双击新建。Enter 同样新建：其 keydown 先于浏览器
+                               合成的 click 触发，故编辑器打开、其后该槽被选中。Space 只
+                               会产生 click，因而它只用于选中。 *@
+                            <button type="button" disabled="@(ReadOnly || isBlocked)" data-scheduler-slot="@instant.ToUnixTimeMilliseconds()"
+                                    data-scheduler-muted="@isMuted.ToString().ToLowerInvariant()"
+                                    data-scheduler-blocked="@isBlocked.ToString().ToLowerInvariant()"
+                                    class="@SlotClass(isSelected, isMuted)"
+                                    style="@FormattableString.Invariant($"top:{(slot - lane.Start).TotalMinutes / SlotMinutes * 40}px;height:40px")"
+                                    aria-label="@SlotLabel(instant, lane.Resource, isMuted)"
+                                    aria-pressed="@isSelected.ToString().ToLowerInvariant()"
+                                    @onclick="@(() => SelectSlot(laneIndex, instant))"
+                                    @ondblclick="@(() => CreateEvent(instant, lane.Resource?.Id))"
+                                    @onkeydown="@(args => SlotKeyDown(args, instant, lane.Resource?.Id))"
+                                    @oncontextmenu="@(args => isBlocked ? Task.CompletedTask : ShowSlotMenuAsync(args, instant, lane.Resource))" @oncontextmenu:preventDefault="true">
+                                <span class="atom:whitespace-nowrap atom:px-1">@TimeLabel(slot)</span>
+                            </button>
+                        }
+                        @foreach (var placement in lane.Placements)
+                        {
+                            var occurrence = placement.Occurrence;
+                            <button @key="occurrence" type="button" data-scheduler-event="@occurrence.Event.Id" data-start="@occurrence.Start.ToUnixTimeMilliseconds()" data-end="@occurrence.End.ToUnixTimeMilliseconds()"
+                                    class="@ClassNames.cn("atom:group atom:absolute atom:flex atom:flex-col atom:items-start atom:justify-start atom:z-[1] atom:overflow-hidden atom:rounded atom:border atom:border-primary/30 atom:bg-primary/10 atom:px-2 atom:py-1 atom:text-start atom:text-xs atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:z-10", SelectedRing(IsOccurrenceSelected(occurrence)), !ReadOnly && AllowDrag ? "atom:cursor-grab atom:touch-none" : null)"
+                                    style="@PlacementStyle(lane, placement)" aria-label="@OccurrenceLabel(occurrence)"
+                                    aria-disabled="@ReadOnly.ToString().ToLowerInvariant()"
+                                    @onclick="@(() => SelectOccurrence(occurrence))"
+                                    @ondblclick="@(() => EditEvent(occurrence))"
+                                    @onkeydown="@(args => OccurrenceKeyDown(args, occurrence))"
+                                    @oncontextmenu="@(args => ShowEventMenuAsync(args, occurrence))" @oncontextmenu:preventDefault="true">
+                                @if (AllowResize && !ReadOnly && occurrence.Start >= lane.Start)
+                                {
+                                    <span data-scheduler-resize="start" aria-hidden="true" title="@Localizer["Scheduler.ResizeStart"]" class="atom:absolute atom:inset-x-0 atom:top-0 atom:z-10 atom:h-2 atom:cursor-ns-resize atom:touch-none atom:hover:bg-primary/30"></span>
+                                }
+                                @if (EventTemplate != null)
+                                {
+                                    @EventTemplate(occurrence)
+                                }
+                                else
+                                {
+                                    <span class="atom:block atom:font-medium">@occurrence.Event.Title</span>
+                                    <span data-scheduler-event-time>@TimeLabel(occurrence.Start)–@TimeLabel(occurrence.End)</span>
+                                }
+                                @if (AllowResize && !ReadOnly && occurrence.End <= lane.End)
+                                {
+                                    <span data-scheduler-resize="end" aria-hidden="true" title="@Localizer["Scheduler.ResizeEnd"]" class="atom:absolute atom:inset-x-0 atom:bottom-0 atom:z-10 atom:h-2 atom:cursor-ns-resize atom:touch-none atom:hover:bg-primary/30"></span>
+                                }
+                            </button>
+                        }
+                    </div>
+                </section>
+            }
+        </div>
+    </div>
+    }
+    }
+</section>
+
+<Dialog Open="@editorOpen" OpenChanged="SetEditorOpen">
+    <AtomBlazor.DialogContent CloseOnOverlayClick="false" Class="atom:max-w-lg atom:max-h-[90vh] atom:overflow-y-auto">
+        <DialogHeader>
+            <AtomBlazor.DialogTitle>@Localizer[editingOccurrence == null ? "Scheduler.Create" : "Scheduler.Edit"]</AtomBlazor.DialogTitle>
+            <AtomBlazor.DialogDescription>@Localizer[EnableTimeZones ? "Scheduler.EditorDescription" : "Scheduler.SingleZoneDescription"]</AtomBlazor.DialogDescription>
+        </DialogHeader>
+        @if (draft != null)
+        {
+            <fieldset disabled="@saving" class="atom:space-y-4">
+                @if (EditorContent is null)
+                {
+                    @DefaultEditorFields
+                }
+                else
+                {
+                    @EditorContent(BuildEditorContext(DefaultEditorFields))
+                }
+            </fieldset>
+        }
+        @if (editorError != null && !deleteConfirmationOpen)
+        {
+            <p role="alert" class="atom:text-sm atom:text-destructive">@editorError</p>
+        }
+        <DialogFooter>
+            @if (editingOccurrence != null)
+            {
+                <Button Variant="ButtonVariant.Destructive" Class="atom:sm:me-auto" Disabled="@saving" OnClick="RequestDelete" data-scheduler-delete="@editorId">@Localizer["Scheduler.Delete"]</Button>
+            }
+            <Button Variant="ButtonVariant.Outline" Disabled="@saving" OnClick="@(() => SetEditorOpen(false))">@Localizer["Scheduler.Cancel"]</Button>
+            <Button Disabled="@saving" OnClick="@(() => SaveAsync(false))">@Localizer["Scheduler.Save"]</Button>
+        </DialogFooter>
+    </AtomBlazor.DialogContent>
+</Dialog>
+
+@* 编辑器的删除按钮与右键菜单的删除项都会打开本对话框。它居于组件根
+   处而非编辑器对话框之内，因为从右键菜单删除时
+   从不打开编辑器。 *@
+<AlertDialog Open="@deleteConfirmationOpen" OpenChanged="SetDeleteConfirmationOpen">
+    <AtomBlazor.AlertDialogContent>
+        <AlertDialogHeader>
+            <AtomBlazor.AlertDialogTitle>@Localizer["Scheduler.ConfirmDelete"]</AtomBlazor.AlertDialogTitle>
+            <AtomBlazor.AlertDialogDescription>@DeleteDescription</AtomBlazor.AlertDialogDescription>
+        </AlertDialogHeader>
+        @if (editorError != null)
+        {
+            <p role="alert" class="atom:text-sm atom:text-destructive">@editorError</p>
+        }
+        <AlertDialogFooter>
+            <AtomBlazor.AlertDialogCancel><Button Variant="ButtonVariant.Outline" Disabled="@saving">@Localizer["Scheduler.Cancel"]</Button></AtomBlazor.AlertDialogCancel>
+            <Button Variant="ButtonVariant.Destructive" Disabled="@saving" OnClick="ConfirmDeleteAsync">@Localizer["Scheduler.Delete"]</Button>
+        </AlertDialogFooter>
+    </AtomBlazor.AlertDialogContent>
+</AlertDialog>
+
+@* 整个调度器共用一枚菜单，于指针处打开。它置于滚动网格之外：
+   其内容取 position:fixed，任何带 transform 或 contain 的祖先都会使它重新锚定。 *@
+<ContextMenu @ref="contextMenu">
+    <AtomBlazor.ContextMenuContent>
+        @if (slotMenuContext != null)
+        {
+            @(SlotContextMenuContent is null ? slotMenuContext.DefaultItems : SlotContextMenuContent(slotMenuContext))
+        }
+        else if (eventMenuContext != null)
+        {
+            @(EventContextMenuContent is null ? eventMenuContext.DefaultItems : EventContextMenuContent(eventMenuContext))
+        }
+    </AtomBlazor.ContextMenuContent>
+</ContextMenu>
+
+@code {
+    private RenderFragment DefaultEditorFields => @<text>
+        @if (draft != null)
+        {
+                    @if (editingOccurrence != null && !string.IsNullOrWhiteSpace(editingOccurrence.Event.RecurrenceRule))
+                    {
+                        <div class="atom:space-y-2">
+                            <Label For="@(editorId + "-scope")">@Localizer["Scheduler.Scope"]</Label>
+                            <Select TValue="SchedulerEditScope" Value="@editScope" ValueChanged="ScopeChanged" Disabled="@saving"
+                                      DisplayTextSelector="@(value => Localizer[value == SchedulerEditScope.Occurrence ? "Scheduler.Occurrence" : "Scheduler.Series"])">
+                                <AtomBlazor.SelectTrigger id="@(editorId + "-scope")"><AtomBlazor.SelectValue /></AtomBlazor.SelectTrigger>
+                                <AtomBlazor.SelectContent>
+                                    <AtomBlazor.SelectItem Value="SchedulerEditScope.Occurrence" Text="@Localizer["Scheduler.Occurrence"]" />
+                                    <AtomBlazor.SelectItem Value="SchedulerEditScope.Series" Text="@Localizer["Scheduler.Series"]" />
+                                </AtomBlazor.SelectContent>
+                            </Select>
+                        </div>
+                    }
+                    <div class="atom:space-y-2">
+                        <Label For="@(editorId + "-title")">@Localizer["Scheduler.Title"]</Label>
+                        <Input Id="@(editorId + "-title")" @bind-Value="draft.Title" Disabled="@saving" Required="true" />
+                    </div>
+                    <div class="atom:flex atom:items-center atom:gap-2">
+                        <Checkbox Id="@(editorId + "-all-day")" Checked="@draft.IsAllDay" CheckedChanged="AllDayChanged" Disabled="@saving" />
+                        <Label For="@(editorId + "-all-day")">@Localizer["Scheduler.AllDay"]</Label>
+                    </div>
+                    <div class="atom:grid atom:grid-cols-1 atom:gap-4 atom:sm:grid-cols-2">
+                        <div class="atom:space-y-2">
+                            <Label For="@(editorId + "-start")">@Localizer["Scheduler.Start"]</Label>
+                            @if (draft.IsAllDay)
+                            {
+                                <DatePicker id="@(editorId + "-start")" @bind-Value="localStart" Disabled="@saving" Class="atom:w-full" />
+                            }
+                            else
+                            {
+                                <DateTimePicker id="@(editorId + "-start")" @bind-Value="localStart" Disabled="@saving" Required="true" Class="atom:w-full" />
+                            }
+                        </div>
+                        <div class="atom:space-y-2">
+                            @* 全天的结束日期是事件所覆盖的最后一日，而非事件上所存的
+                               排他时刻。SaveAsync 负责两者之间的换算。 *@
+                            <Label For="@(editorId + "-end")">@Localizer[draft.IsAllDay ? "Scheduler.LastDay" : "Scheduler.End"]</Label>
+                            @if (draft.IsAllDay)
+                            {
+                                <DatePicker id="@(editorId + "-end")" @bind-Value="localEnd" Disabled="@saving" Class="atom:w-full" />
+                            }
+                            else
+                            {
+                                <DateTimePicker id="@(editorId + "-end")" @bind-Value="localEnd" Disabled="@saving" Required="true" Class="atom:w-full" />
+                            }
+                        </div>
+                    </div>
+                    @if (EnableTimeZones)
+                    {
+                        <div class="atom:space-y-2">
+                            <Label For="@(editorId + "-zone")">@Localizer["Scheduler.TimeZone"]</Label>
+                            <Select TValue="string" @bind-Value="draft.TimeZoneId" Disabled="@saving" DisplayTextSelector="TimeZoneTitle">
+                                <AtomBlazor.SelectTrigger id="@(editorId + "-zone")"><AtomBlazor.SelectValue /></AtomBlazor.SelectTrigger>
+                                <AtomBlazor.SelectContent>
+                                    @foreach (var zone in EditorTimeZones)
+                                    {
+                                        <AtomBlazor.SelectItem Value="@zone.Id" Text="@zone.Title" />
+                                    }
+                                </AtomBlazor.SelectContent>
+                            </Select>
+                        </div>
+                    }
+                    @if (IsAmbiguousTime(localStart))
+                    {
+                        <div class="atom:space-y-2">
+                            <Label For="@(editorId + "-offset")">@Localizer["Scheduler.StartRepeatedTime"]</Label>
+                            <Select TValue="SchedulerAmbiguousTimeResolution" @bind-Value="startResolution" Disabled="@saving" DisplayTextSelector="ResolutionLabel">
+                                <AtomBlazor.SelectTrigger id="@(editorId + "-offset")"><AtomBlazor.SelectValue /></AtomBlazor.SelectTrigger>
+                                <AtomBlazor.SelectContent>
+                                    <AtomBlazor.SelectItem Value="SchedulerAmbiguousTimeResolution.Earlier" Text="@Localizer["Scheduler.EarlierOffset"]" />
+                                    <AtomBlazor.SelectItem Value="SchedulerAmbiguousTimeResolution.Later" Text="@Localizer["Scheduler.LaterOffset"]" />
+                                </AtomBlazor.SelectContent>
+                            </Select>
+                        </div>
+                    }
+                    @if (IsAmbiguousTime(localEnd))
+                    {
+                        <div class="atom:space-y-2">
+                            <Label For="@(editorId + "-end-offset")">@Localizer["Scheduler.EndRepeatedTime"]</Label>
+                            <Select TValue="SchedulerAmbiguousTimeResolution" @bind-Value="endResolution" Disabled="@saving" DisplayTextSelector="ResolutionLabel">
+                                <AtomBlazor.SelectTrigger id="@(editorId + "-end-offset")"><AtomBlazor.SelectValue /></AtomBlazor.SelectTrigger>
+                                <AtomBlazor.SelectContent>
+                                    <AtomBlazor.SelectItem Value="SchedulerAmbiguousTimeResolution.Earlier" Text="@Localizer["Scheduler.EarlierOffset"]" />
+                                    <AtomBlazor.SelectItem Value="SchedulerAmbiguousTimeResolution.Later" Text="@Localizer["Scheduler.LaterOffset"]" />
+                                </AtomBlazor.SelectContent>
+                            </Select>
+                        </div>
+                    }
+                    @if (editingOccurrence == null || editScope == SchedulerEditScope.Series || string.IsNullOrWhiteSpace(editingOccurrence.Event.RecurrenceRule))
+                    {
+                        <div class="atom:space-y-2">
+                            <Label For="@(editorId + "-repeat")">@Localizer["Scheduler.Repeat"]</Label>
+                            <Select TValue="string" Value="@recurrenceFrequency" ValueChanged="FrequencyChanged" Disabled="@saving" DisplayTextSelector="@(value => Localizer[$"Scheduler.Repeat.{value}"])">
+                                <AtomBlazor.SelectTrigger id="@(editorId + "-repeat")"><AtomBlazor.SelectValue /></AtomBlazor.SelectTrigger>
+                                <AtomBlazor.SelectContent>
+                                    @if (recurrenceFrequency == "EXISTING")
+                                    {
+                                        <AtomBlazor.SelectItem Value="@("EXISTING")" Text="@Localizer["Scheduler.Repeat.EXISTING"]" />
+                                    }
+                                    @foreach (var frequency in recurrenceFrequencies)
+                                    {
+                                        <AtomBlazor.SelectItem Value="@frequency" Text="@Localizer[$"Scheduler.Repeat.{frequency}"]" />
+                                    }
+                                </AtomBlazor.SelectContent>
+                            </Select>
+                        </div>
+                        @if (recurrenceFrequency == "WEEKLY")
+                        {
+                            <fieldset class="atom:space-y-2">
+                                <legend class="atom:mb-2 atom:text-sm atom:font-medium">@Localizer["Scheduler.RepeatOn"]</legend>
+                                <div class="atom:grid atom:grid-cols-2 atom:gap-3 atom:sm:grid-cols-3">
+                                    @foreach (var day in RecurrenceWeekDays)
+                                    {
+                                        <div class="atom:flex atom:items-center atom:gap-2">
+                                            <Checkbox Id="@(editorId + "-repeat-" + day)" Checked="@recurrenceDays.Contains(day)"
+                                                        CheckedChanged="@(selected => ToggleRecurrenceDay(day, selected))" Disabled="@saving" />
+                                            <Label For="@(editorId + "-repeat-" + day)">@CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(day)</Label>
+                                        </div>
+                                    }
+                                </div>
+                            </fieldset>
+                        }
+                        @if (recurrenceFrequency == "MONTHLY" && localStart.HasValue)
+                        {
+                            <p class="atom:text-sm atom:text-muted-foreground">@Localizer["Scheduler.MonthlyOn", localStart.Value.Day]</p>
+                        }
+                        @if (recurrenceFrequency == "YEARLY" && localStart.HasValue)
+                        {
+                            <p class="atom:text-sm atom:text-muted-foreground">@Localizer["Scheduler.YearlyOn", localStart.Value.ToString("m", CultureInfo.CurrentCulture)]</p>
+                        }
+                        @if (recurrenceFrequency is not ("NONE" or "EXISTING"))
+                        {
+                            <div class="atom:flex atom:items-center atom:gap-2">
+                                <Checkbox Id="@(editorId + "-limit")" @bind-Checked="limitRecurrence" @bind-Checked:after="UpdateRecurrence" Disabled="@saving" />
+                                <Label For="@(editorId + "-limit")">@Localizer["Scheduler.LimitOccurrences"]</Label>
+                            </div>
+                            @if (limitRecurrence)
+                            {
+                                <div class="atom:space-y-2">
+                                    <Label For="@(editorId + "-count")">@Localizer["Scheduler.Count"]</Label>
+                                    <NumericInput TValue="int" Id="@(editorId + "-count")" Min="1" Value="@(recurrenceCount ?? 10)"
+                                                    ValueChanged="@(value => { recurrenceCount = value; UpdateRecurrence(); })" Disabled="@saving" />
+                                </div>
+                            }
+                        }
+                        @if (recurrenceFrequency == "EXISTING")
+                        {
+                            <p class="atom:text-sm atom:text-muted-foreground">@Localizer["Scheduler.ExistingRepeatHelp"]</p>
+                        }
+                    }
+                    @if (Resources.Count > 0)
+                    {
+                        <fieldset class="atom:space-y-2">
+                            <legend class="atom:mb-2 atom:text-sm atom:font-medium">@Localizer["Scheduler.Resources"]</legend>
+                            @foreach (var resource in Resources)
+                            {
+                                <div class="atom:flex atom:items-center atom:gap-2">
+                                    <Checkbox Id="@(editorId + "-resource-" + resource.Id)" Checked="@draft.ResourceIds.Contains(resource.Id)"
+                                                CheckedChanged="@(value => ToggleResource(resource.Id, value))" Disabled="@saving" />
+                                    <Label For="@(editorId + "-resource-" + resource.Id)">@resource.Title</Label>
+                                </div>
+                            }
+                        </fieldset>
+                    }
+        }
+    </text>;
+
+    private RenderFragment DefaultToolbar => @<text>
+        <div class="@("atom:grid atom:grid-cols-1 atom:items-center atom:gap-3 atom:@4xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]")" data-scheduler-toolbar>
+            <div class="atom:flex atom:items-center atom:gap-2 atom:justify-self-start" data-scheduler-navigation>
+                <Button Variant="ButtonVariant.Outline" OnClick="@(() => NavigateAsync(-1))" AriaLabel="@Localizer["Scheduler.Previous"]">&#8249;</Button>
+                <Button Variant="ButtonVariant.Outline" OnClick="NavigateToTodayAsync">@Localizer["Scheduler.Today"]</Button>
+                <Button Variant="ButtonVariant.Outline" OnClick="@(() => NavigateAsync(1))" AriaLabel="@Localizer["Scheduler.Next"]">&#8250;</Button>
+            </div>
+            @* row-start 须始终缀在 @4xl 之后：折叠为单列网格时它会把标题钉
+               在第 1 行，并将导航与视图控件挤到其下。 *@
+            <h2 class="@("atom:text-center atom:font-semibold atom:@4xl:col-start-2 atom:@4xl:row-start-1")" aria-live="polite">@RangeHeading</h2>
+            <div class="@("atom:flex atom:flex-wrap atom:items-center atom:gap-4 atom:@4xl:justify-end")" data-scheduler-view-controls>
+                @if (EnableTimeZones)
+                {
+                    <span class="atom:text-sm atom:text-muted-foreground">@TimeZoneTitle(TimeZoneId)</span>
+                }
+                @if (ShowResourceFilter && Resources.Count > 0)
+                {
+                    <MultiSelect TValue="string" Options="@ResourceFilterOptions" Values="@VisibleResourceIds" ValuesChanged="SetVisibleResourcesAsync"
+                                   Placeholder="@Localizer["Scheduler.Resources.FilterPlaceholder"]" SearchPlaceholder="@Localizer["Scheduler.Resources.FilterSearch"]"
+                                   EmptyMessage="@Localizer["Scheduler.Resources.FilterEmpty"]" Class="atom:w-auto atom:min-w-44"
+                                   aria-label="@Localizer["Scheduler.Resources.Filter"]" />
+                }
+                @if (View == SchedulerView.Week)
+                {
+                    <Select TValue="DayOfWeek" Value="@FirstDayOfWeek" ValueChanged="SetFirstDayOfWeekAsync" DisplayTextSelector="WeekStartLabel">
+                        <AtomBlazor.SelectTrigger Class="atom:w-auto atom:min-w-36" aria-label="@Localizer["Scheduler.WeekStartsOn"]"><AtomBlazor.SelectValue /></AtomBlazor.SelectTrigger>
+                        <AtomBlazor.SelectContent>
+                            <AtomBlazor.SelectItem Value="DayOfWeek.Monday" Text="@WeekStartLabel(DayOfWeek.Monday)" />
+                            <AtomBlazor.SelectItem Value="DayOfWeek.Sunday" Text="@WeekStartLabel(DayOfWeek.Sunday)" />
+                            @if (FirstDayOfWeek is not (DayOfWeek.Monday or DayOfWeek.Sunday))
+                            {
+                                <AtomBlazor.SelectItem Value="@FirstDayOfWeek" Text="@WeekStartLabel(FirstDayOfWeek)" />
+                            }
+                        </AtomBlazor.SelectContent>
+                    </Select>
+                }
+                @* 视图按钮同属一个控件组：彼此之间保留较紧的 gap-2，
+                   并整组换行而非在组中途拆散。 *@
+                <div class="atom:flex atom:items-center atom:gap-2" data-scheduler-view-buttons>
+                    <Button Variant="@(View == SchedulerView.Day ? ButtonVariant.Default : ButtonVariant.Outline)" aria-pressed="@((View == SchedulerView.Day).ToString().ToLowerInvariant())" OnClick="@(() => SetViewAsync(SchedulerView.Day))">@Localizer["Scheduler.Day"]</Button>
+                    <Button Variant="@(View == SchedulerView.Week ? ButtonVariant.Default : ButtonVariant.Outline)" aria-pressed="@((View == SchedulerView.Week).ToString().ToLowerInvariant())" OnClick="@(() => SetViewAsync(SchedulerView.Week))">@Localizer["Scheduler.Week"]</Button>
+                    <Button Variant="@(View == SchedulerView.WorkWeek ? ButtonVariant.Default : ButtonVariant.Outline)" aria-pressed="@((View == SchedulerView.WorkWeek).ToString().ToLowerInvariant())" OnClick="@(() => SetViewAsync(SchedulerView.WorkWeek))">@Localizer["Scheduler.WorkWeek"]</Button>
+                    <Button Variant="@(IsMonth ? ButtonVariant.Default : ButtonVariant.Outline)" aria-pressed="@(IsMonth.ToString().ToLowerInvariant())" OnClick="@(() => SetViewAsync(SchedulerView.Month))">@Localizer["Scheduler.Month"]</Button>
+                </div>
+            </div>
+        </div>
+    </text>;
+
+    private RenderFragment DefaultSlotMenuItems(DateTimeOffset start, string? resourceId) => @<text>
+        @if (!ReadOnly)
+        {
+            <AtomBlazor.ContextMenuItem OnClick="@(async () => { await CloseContextMenuAsync(); CreateEvent(start, resourceId); })">@Localizer["Scheduler.Menu.NewEvent"]</AtomBlazor.ContextMenuItem>
+        }
+    </text>;
+
+    private RenderFragment DefaultEventMenuItems(SchedulerOccurrence occurrence) => @<text>
+        @if (!ReadOnly)
+        {
+            <AtomBlazor.ContextMenuItem OnClick="@(async () => { await CloseContextMenuAsync(); EditEvent(occurrence); })">@Localizer["Scheduler.Menu.EditEvent"]</AtomBlazor.ContextMenuItem>
+            <AtomBlazor.ContextMenuSeparator />
+            <AtomBlazor.ContextMenuItem OnClick="@(async () => { await CloseContextMenuAsync(); RequestDeleteFor(occurrence); })">@Localizer["Scheduler.Menu.DeleteEvent"]</AtomBlazor.ContextMenuItem>
+        }
+    </text>;
+}

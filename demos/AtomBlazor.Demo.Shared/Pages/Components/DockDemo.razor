@@ -1,0 +1,918 @@
+@page "/components/dock"
+<PageTitle>@L.T("Dock 停靠 - Atom BlazorUI", "Dock Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-5xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">Dock</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("IDE 风格的停靠工作区。拖动面板的标签页即可把它重新停靠为标签组或分栏，脱离成浮动窗口，最大化某个分组，或关闭并重新打开面板——就是你在 Visual Studio、VS Code 与 dockspawn 中熟悉的那套停靠体验。", "An IDE-style docking workspace. Drag panels by their tabs to re-dock them as tabs or splits, detach them into floating windows, maximize a group, or close and reopen panels — the docking experience you know from Visual Studio, VS Code and dockspawn.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Interactions -->
+    <div class="rounded-lg border bg-muted/30 p-4">
+        <h2 class="mb-2 flex items-center gap-2 text-sm font-semibold">
+            <LucideIcon Name="move" Size="16" /> @L.T("试试这些交互", "Try these interactions")
+        </h2>
+        <ul class="grid gap-1.5 text-sm text-muted-foreground sm:grid-cols-2">
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <li>• <strong class="text-foreground">拖动某个标签页</strong>，拖到另一个面板的中心即可把它们合并为同一标签组。</li>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <li>• <strong class="text-foreground">Drag a tab</strong> onto another panel's center to combine them as tabs.</li>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <li>• <strong class="text-foreground">拖到面板</strong>（或停靠区）的边缘即可创建分栏。</li>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <li>• <strong class="text-foreground">Drag to an edge</strong> of a panel (or the dock) to create a split.</li>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <li>• <strong class="text-foreground">把标签页拖出</strong>停靠区，它就会浮动成自己的窗口。</li>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <li>• <strong class="text-foreground">Drag a tab outside</strong> the dock to float it in its own window.</li>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <li>• <strong class="text-foreground">拖动浮动窗口</strong>时请抓它的标签栏；从角落调整它的大小。</li>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <li>• <strong class="text-foreground">Drag a floating window</strong> by its tab strip; resize it from the corner.</li>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <li>• 用标签栏上的按钮可以 <strong class="text-foreground">最大化</strong> 某个分组。</li>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <li>• <strong class="text-foreground">Maximize</strong> a group with the button in the tab bar.</li>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <li>• 点标签页自己的 ✕ 可以 <strong class="text-foreground">关闭</strong> 它，随后可重新打开（见下文）。</li>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <li>• <strong class="text-foreground">Close</strong> a tab with its ✕, then reopen it (see below).</li>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <li>• <strong class="text-foreground">右键某个标签页</strong> 可以关闭其他、关闭全部，或把它固定到最前面。</li>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <li>• <strong class="text-foreground">Right-click a tab</strong> to close others, close all, or pin it to the front.</li>
+                        </text>
+}
+        </ul>
+    </div>
+
+    <!-- Basic -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基础用法", "Basic")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    面板通过 <code>Region</code> 摆放。共用同一个区域的面板会成为同一分组里的标签页。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Panels are placed by <code>Region</code>. Panels sharing a region become tabs in the same group.
+                </p>
+                        </text>
+}
+        </div>
+
+        <div class="h-[400px] border">
+            <Dock>
+                <DockPanel Id="b-editor" Title="@(L.T("编辑器", "Editor"))" Region="DockZone.Center" Closable="false">
+                    <div class="p-4 text-sm text-muted-foreground">@L.T("主编辑器内容", "Main editor content")</div>
+                </DockPanel>
+                <DockPanel Id="b-explorer" Title="@(L.T("资源管理器", "Explorer"))" Region="DockZone.Left">
+                    <div class="p-4 text-sm text-muted-foreground">@L.T("文件树", "File tree")</div>
+                </DockPanel>
+                <DockPanel Id="b-output" Title="@(L.T("输出", "Output"))" Region="DockZone.Bottom">
+                    <div class="p-4 text-sm text-muted-foreground">@L.T("生成输出", "Build output")</div>
+                </DockPanel>
+            </Dock>
+        </div>
+
+        <CodeBlock Source="Components/Dock/basic.txt" />
+    </div>
+
+    <!-- Tab reordering -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("标签页重排序", "Tab Reordering")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("沿标签栏拖动标签页即可重排它——插入线会标示它将落位的地方，周围布局保持不动。标签页也可以拖到另一个分组标签栏的精确位置上。", "Drag a tab along the strip to reorder it — an insertion line shows where it will land and the surrounding layout stays put. Tabs can also be dropped onto another group's strip at a precise position.")
+            </p>
+        </div>
+
+        <div class="h-[360px] border">
+            <Dock>
+                <DockPanel Id="r-home" Title="Home.razor" Region="DockZone.Center" Closable="false">
+                    <Icon><LucideIcon Name="house" Size="14" /></Icon>
+                    <ChildContent>
+                        <div class="p-4 text-sm text-muted-foreground">@L.T("拖动上面的标签页来重排它们。插入线标示落位槽。", "Drag the tabs above to reorder them. The insertion line marks the drop slot.")</div>
+                    </ChildContent>
+                </DockPanel>
+                <DockPanel Id="r-about" Title="About.razor" Region="DockZone.Center" Order="1">
+                    <Icon><LucideIcon Name="info" Size="14" /></Icon>
+                    <ChildContent><div class="p-4 text-sm text-muted-foreground">@L.T("关于页。", "About page.")</div></ChildContent>
+                </DockPanel>
+                <DockPanel Id="r-contact" Title="Contact.razor" Region="DockZone.Center" Order="2">
+                    <Icon><LucideIcon Name="mail" Size="14" /></Icon>
+                    <ChildContent><div class="p-4 text-sm text-muted-foreground">@L.T("联系页。", "Contact page.")</div></ChildContent>
+                </DockPanel>
+                <DockPanel Id="r-settings" Title="Settings.razor" Region="DockZone.Center" Order="3">
+                    <Icon><LucideIcon Name="settings" Size="14" /></Icon>
+                    <ChildContent><div class="p-4 text-sm text-muted-foreground">@L.T("设置页。", "Settings page.")</div></ChildContent>
+                </DockPanel>
+
+                <DockPanel Id="r-outline" Title="@(L.T("大纲", "Outline"))" Region="DockZone.Right">
+                    <Icon><LucideIcon Name="list-tree" Size="14" /></Icon>
+                    <ChildContent><div class="p-4 text-sm text-muted-foreground">@L.T("把标签页拖到这个标签栏上，就能把它精确地移到这里。", "Drop a tab onto this strip to move it here at a precise position.")</div></ChildContent>
+                </DockPanel>
+            </Dock>
+        </div>
+
+        <CodeBlock Source="Components/Dock/reorder.txt" />
+    </div>
+
+    <!-- Tab context menu -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <h2 class="text-2xl font-semibold">标签页右键菜单与固定</h2>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <h2 class="text-2xl font-semibold">Tab Context Menu &amp; Pinning</h2>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    右键任意标签页会弹出上下文菜单，包含 <strong>Close</strong>、
+                    <strong>Close Other Tabs</strong>（仅当分组内有不止一个标签页时可用）、
+                    <strong>Close All But Pinned</strong>、<strong>Close All Tabs</strong> 与
+                    <strong>Pin Tab</strong>。已固定的标签页会显示固定标记，并按固定先后排在标签栏最前面。
+                    固定标签页只能在彼此之间重排，未固定的标签页不能拖到它们前面。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Right-click any tab for a context menu with <strong>Close</strong>,
+                    <strong>Close Other Tabs</strong> (enabled only when the group has more than one tab),
+                    <strong>Close All But Pinned</strong>, <strong>Close All Tabs</strong> and
+                    <strong>Pin Tab</strong>. Pinned tabs show a pin
+                    marker and sit at the front of the strip in the order they were pinned. Pinned tabs can
+                    only be reordered amongst themselves, and unpinned tabs cannot be dragged ahead of them.
+                </p>
+                        </text>
+}
+        </div>
+
+        <div class="h-[360px] border">
+            <Dock>
+                <DockPanel Id="c-index" Title="Index.razor" Region="DockZone.Center">
+                    <Icon><LucideIcon Name="house" Size="14" /></Icon>
+                    <ChildContent>
+                        <div class="space-y-2 p-4 text-sm text-muted-foreground">
+                            <p>@L.T("右键上面任意标签页即可打开它的上下文菜单。", "Right-click any tab above to open its context menu.")</p>
+                            <p>@L.T("固定几个标签页，再拖动重排——固定标签页始终成组排在最前面。", "Pin a couple of tabs, then drag to reorder — pinned tabs stay grouped at the front.")</p>
+                        </div>
+                    </ChildContent>
+                </DockPanel>
+                <DockPanel Id="c-layout" Title="Layout.razor" Region="DockZone.Center" Order="1">
+                    <Icon><LucideIcon Name="layout-template" Size="14" /></Icon>
+                    <ChildContent><div class="p-4 text-sm text-muted-foreground">@L.T("共享布局。", "Shared layout.")</div></ChildContent>
+                </DockPanel>
+                <DockPanel Id="c-counter" Title="Counter.razor" Region="DockZone.Center" Order="2">
+                    <Icon><LucideIcon Name="plus" Size="14" /></Icon>
+                    <ChildContent><div class="p-4 text-sm text-muted-foreground">@L.T("计数器页。", "Counter page.")</div></ChildContent>
+                </DockPanel>
+                <DockPanel Id="c-weather" Title="Weather.razor" Region="DockZone.Center" Order="3">
+                    <Icon><LucideIcon Name="cloud-sun" Size="14" /></Icon>
+                    <ChildContent><div class="p-4 text-sm text-muted-foreground">@L.T("天气页。", "Weather page.")</div></ChildContent>
+                </DockPanel>
+                <DockPanel Id="c-fetch" Title="FetchData.razor" Region="DockZone.Center" Order="4">
+                    <Icon><LucideIcon Name="database" Size="14" /></Icon>
+                    <ChildContent><div class="p-4 text-sm text-muted-foreground">@L.T("数据获取页。", "Fetch data page.")</div></ChildContent>
+                </DockPanel>
+            </Dock>
+        </div>
+
+        <CodeBlock Source="Components/Dock/contextmenu.txt" />
+    </div>
+
+    <!-- Close & reopen -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <h2 class="text-2xl font-semibold">关闭与重新打开面板</h2>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <h2 class="text-2xl font-semibold">Close &amp; Reopen Panels</h2>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    关闭面板会触发 <code>OnPanelClosed</code>。用停靠区的
+                    <code>OpenPanelAsync</code> 方法就能把它带回来。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Closing a panel raises <code>OnPanelClosed</code>. Use the dock's
+                    <code>OpenPanelAsync</code> method to bring it back.
+                </p>
+                        </text>
+}
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+            @if (closedPanels.Count == 0)
+            {
+                <span class="text-sm text-muted-foreground">@L.T("关闭下面某个标签页，就能在这里重新打开它。", "Close a tab below to reopen it here.")</span>
+            }
+            @foreach (var id in closedPanels)
+            {
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <Button Size="ButtonSize.Small" Variant="ButtonVariant.Outline" OnClick="() => Reopen(id)">
+                        <LucideIcon Name="plus" Size="14" Class="mr-1" /> 重新打开 @titlesZh[id]
+                    </Button>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <Button Size="ButtonSize.Small" Variant="ButtonVariant.Outline" OnClick="() => Reopen(id)">
+                        <LucideIcon Name="plus" Size="14" Class="mr-1" /> Reopen @titles[id]
+                    </Button>
+                                </text>
+}
+            }
+        </div>
+
+        <div class="h-[420px] border">
+            <Dock @ref="reopenDock" OnPanelClosed="OnPanelClosed">
+                <DockPanel Id="document" Title="@(L.T("文档", "Document"))" Region="DockZone.Center">
+                    <Icon><LucideIcon Name="file-text" Size="14" /></Icon>
+                    <ChildContent>
+                        <div class="p-4 text-sm text-muted-foreground">@L.T("主文档。这个标签页可以关闭，也可以重新打开。", "The main document. This tab can be closed and reopened.")</div>
+                    </ChildContent>
+                </DockPanel>
+                <DockPanel Id="comments" Title="@(L.T("评论", "Comments"))" Region="DockZone.Right">
+                    <Icon><LucideIcon Name="message-square" Size="14" /></Icon>
+                    <ChildContent>
+                        <div class="p-4 text-sm text-muted-foreground">@L.T("评审者评论。", "Reviewer comments.")</div>
+                    </ChildContent>
+                </DockPanel>
+                <DockPanel Id="history" Title="@(L.T("历史", "History"))" Region="DockZone.Bottom">
+                    <Icon><LucideIcon Name="history" Size="14" /></Icon>
+                    <ChildContent>
+                        <div class="p-4 text-sm text-muted-foreground">@L.T("修订历史。", "Revision history.")</div>
+                    </ChildContent>
+                </DockPanel>
+            </Dock>
+        </div>
+
+        <CodeBlock Source="Components/Dock/reopen.txt" />
+    </div>
+
+
+    <!-- IDE workspace -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("IDE 工作区", "IDE Workspace")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一套完整布局：资源管理器、带标签页的编辑器、底部面板与检查器——每个面板都可以拖动、拆分、浮动、最大化或关闭。", "A full layout with an explorer, tabbed editors, a bottom panel and an inspector — every panel can be dragged, split, floated, maximized or closed.")
+            </p>
+        </div>
+
+        <div class="h-[600px] border">
+            <Dock OnLayoutChanged="() => layoutChanges++">
+                <DockPanel Id="explorer" Title="@(L.T("资源管理器", "Explorer"))" Region="DockZone.Left">
+                    <Icon><LucideIcon Name="files" Size="14" /></Icon>
+                    <ChildContent>
+                        <div class="p-2 text-sm">
+                            <div class="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">@L.T("工作区", "Workspace")</div>
+                            @foreach (var (name, icon) in explorerItems)
+                            {
+                                <div class="flex items-center gap-2 rounded px-2 py-1 hover:bg-accent hover:text-accent-foreground">
+                                    <LucideIcon Name="@icon" Size="14" Class="text-muted-foreground" />
+                                    <span>@name</span>
+                                </div>
+                            }
+                        </div>
+                    </ChildContent>
+                </DockPanel>
+
+                <DockPanel Id="search" Title="@(L.T("搜索", "Search"))" Region="DockZone.Left" Order="1">
+                    <Icon><LucideIcon Name="search" Size="14" /></Icon>
+                    <ChildContent>
+                        <div class="space-y-3 p-3 text-sm">
+                            <Input Placeholder="@(L.T("搜索文件…", "Search files..."))" />
+                            <p class="text-xs text-muted-foreground">@L.T("2 个文件里共 3 处结果", "3 results in 2 files")</p>
+                            <div class="space-y-1">
+                                <div class="rounded bg-muted/50 px-2 py-1 text-xs">Program.cs · @L.T("第 12 行", "line 12")</div>
+                                <div class="rounded bg-muted/50 px-2 py-1 text-xs">README.md · @L.T("第 4 行", "line 4")</div>
+                            </div>
+                        </div>
+                    </ChildContent>
+                </DockPanel>
+
+                <DockPanel Id="program" Title="Program.cs" Region="DockZone.Center" Closable="false">
+                    <Icon><LucideIcon Name="file-code" Size="14" /></Icon>
+                    <ChildContent>
+                        <pre class="h-full overflow-auto bg-background p-4 text-xs leading-relaxed"><code>@programSource</code></pre>
+                    </ChildContent>
+                </DockPanel>
+
+                <DockPanel Id="readme" Title="README.md" Region="DockZone.Center" Order="1">
+                    <Icon><LucideIcon Name="file-text" Size="14" /></Icon>
+                    <ChildContent>
+                        <div class="space-y-3 p-4 text-sm">
+                            <h3 class="text-lg font-semibold">Atom BlazorUI</h3>
+                            <p class="text-muted-foreground">@L.T("一个受 shadcn/ui 与 Radix 启发的两层 Blazor 组件库。", "A two-layer Blazor component library inspired by shadcn/ui and Radix.")</p>
+                            <p class="text-muted-foreground">@L.T("拖动这个标签页来观摩停靠效果。", "Drag this tab around to see docking in action.")</p>
+                        </div>
+                    </ChildContent>
+                </DockPanel>
+
+                <DockPanel Id="terminal" Title="@(L.T("终端", "Terminal"))" Region="DockZone.Bottom">
+                    <Icon><LucideIcon Name="square-terminal" Size="14" /></Icon>
+                    <ChildContent>
+                        <pre class="h-full overflow-auto bg-background p-3 font-mono text-xs leading-relaxed text-muted-foreground"><code>$ dotnet build
+  Determining projects to restore...
+  Restored AtomBlazor.Components (in 412 ms).
+  AtomBlazor.Components -> bin/Debug/net10.0/AtomBlazor.dll
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+$ _</code></pre>
+                    </ChildContent>
+                </DockPanel>
+
+                <DockPanel Id="problems" Title="@(L.T("问题", "Problems"))" Region="DockZone.Bottom" Order="1">
+                    <Icon><LucideIcon Name="circle-alert" Size="14" /></Icon>
+                    <ChildContent>
+                        <div class="divide-y text-sm">
+                            <div class="flex items-center gap-2 px-3 py-2">
+                                <LucideIcon Name="circle-x" Size="14" Class="text-destructive" />
+                                @if (L.IsChinese)
+                                {
+                                                                <text>
+                                                                    <span>未使用的变量 <code class="text-xs">temp</code></span>
+                                                                </text>
+}
+                                else
+                                {
+                                                                <text>
+                                                                    <span>Unused variable <code class="text-xs">temp</code></span>
+                                                                </text>
+}
+                                <span class="ml-auto text-xs text-muted-foreground">Program.cs:24</span>
+                            </div>
+                            <div class="flex items-center gap-2 px-3 py-2">
+                                <LucideIcon Name="triangle-alert" Size="14" Class="text-yellow-500" />
+                                <span>@L.T("缺少 XML 注释", "Missing XML comment")</span>
+                                <span class="ml-auto text-xs text-muted-foreground">Dock.cs:11</span>
+                            </div>
+                        </div>
+                    </ChildContent>
+                </DockPanel>
+
+                <DockPanel Id="properties" Title="@(L.T("属性", "Properties"))" Region="DockZone.Right">
+                    <Icon><LucideIcon Name="settings-2" Size="14" /></Icon>
+                    <ChildContent>
+                        <div class="space-y-3 p-3 text-sm">
+                            @foreach (var (label, value, labelZh) in properties)
+                            {
+                                <div class="flex items-center justify-between gap-2">
+                                    @if (L.IsChinese)
+                                    {
+                                                                        <text>
+                                                                            <span class="text-muted-foreground">@labelZh</span>
+                                                                        </text>
+}
+                                    else
+                                    {
+                                                                        <text>
+                                                                            <span class="text-muted-foreground">@label</span>
+                                                                        </text>
+}
+                                    <span class="font-medium">@value</span>
+                                </div>
+                            }
+                        </div>
+                    </ChildContent>
+                </DockPanel>
+            </Dock>
+        </div>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-xs text-muted-foreground">布局变更次数：@layoutChanges</p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-xs text-muted-foreground">Layout changes: @layoutChanges</p>
+                </text>
+}
+
+        <CodeBlock Source="Components/Dock/ide.txt" />
+    </div>
+
+
+    <!-- Size & movement constraints -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <h2 class="text-2xl font-semibold">尺寸与移动约束</h2>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <h2 class="text-2xl font-semibold">Size &amp; Movement Constraints</h2>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code>Locked</code> 可以把面板锁死在原地，让它无法被移动、浮动或关闭——非常适合
+                    必选的工具箱区域。用 <code>MinWidth</code>、<code>MinHeight</code>、<code>MaxWidth</code>
+                    和 <code>MaxHeight</code>（像素）约束面板尺寸。试着拖动、浮动或关闭已锁定的
+                    <strong>工具箱</strong>——它纹丝不动。把 <strong>检查器</strong> 拖成浮动窗口再调整大小：
+                    它不会缩到 240×200 以下，也不会宽过 420px。
+                    <strong>输出</strong> 标签可以重新停靠，但永远不能浮动（<code>CanFloat="false"</code>）。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Lock a panel in place with <code>Locked</code> so it can't be moved, floated or closed — ideal
+                    for a mandatory toolbox region. Constrain panel size with <code>MinWidth</code>,
+                    <code>MinHeight</code>, <code>MaxWidth</code> and <code>MaxHeight</code> (pixels). Try to drag,
+                    float or close the locked <strong>Toolbox</strong> — it stays put. Drag the <strong>Inspector</strong>
+                    out to a floating window and resize it: it won't shrink below 240×200 or grow past 420px wide.
+                    The <strong>Output</strong> tab can be re-docked but never floated (<code>CanFloat="false"</code>).
+                </p>
+                        </text>
+}
+        </div>
+
+        <div class="h-[600px] border">
+            <Dock>
+                <DockPanel Id="toolbox" Title="@(L.T("工具箱", "Toolbox"))" Region="DockZone.Left" Locked="true" MinWidth="200">
+                    <Icon><LucideIcon Name="wrench" Size="14" /></Icon>
+                    <ChildContent>
+                        <div class="space-y-1 p-2 text-sm">
+                            <div class="flex items-center gap-1 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                <LucideIcon Name="lock" Size="12" /> @L.T("已锁定区域", "Locked region")
+                            </div>
+                            @foreach (var (name, icon, nameZh) in toolboxItems)
+                            {
+                                <div class="flex items-center gap-2 rounded px-2 py-1 hover:bg-accent hover:text-accent-foreground">
+                                    <LucideIcon Name="@icon" Size="14" Class="text-muted-foreground" />
+                                    @if (L.IsChinese)
+                                    {
+                                                                        <text>
+                                                                            <span>@nameZh</span>
+                                                                        </text>
+}
+                                    else
+                                    {
+                                                                        <text>
+                                                                            <span>@name</span>
+                                                                        </text>
+}
+                                </div>
+                            }
+                        </div>
+                    </ChildContent>
+                </DockPanel>
+
+                <DockPanel Id="canvas" Title="@(L.T("画布", "Canvas"))" Region="DockZone.Center">
+                    <Icon><LucideIcon Name="layout-dashboard" Size="14" /></Icon>
+                    <ChildContent>
+                        <div class="space-y-2 p-4 text-sm text-muted-foreground">
+                            @if (L.IsChinese)
+                            {
+                                                        <text>
+                                                            <p>左侧的 <strong>工具箱</strong> 已锁定：它没有关闭按钮，也不能被拖动、重排、
+                                重新停靠或浮动。</p>
+                                                        </text>
+}
+                            else
+                            {
+                                                        <text>
+                                                            <p>The <strong>Toolbox</strong> on the left is locked: it has no close button and
+                                can't be dragged, reordered, re-docked or floated.</p>
+                                                        </text>
+}
+                            @if (L.IsChinese)
+                            {
+                                                        <text>
+                                                            <p>右侧的 <strong>检查器</strong> 在浮动状态下会强制执行它的最小/最大尺寸。</p>
+                                                        </text>
+}
+                            else
+                            {
+                                                        <text>
+                                                            <p>The <strong>Inspector</strong> on the right enforces its min/max size when floated.</p>
+                                                        </text>
+}
+                        </div>
+                    </ChildContent>
+                </DockPanel>
+
+                <DockPanel Id="inspector" Title="@(L.T("检查器", "Inspector"))" Region="DockZone.Right"
+                             MinWidth="240" MaxWidth="420" MinHeight="200">
+                    <Icon><LucideIcon Name="sliders-horizontal" Size="14" /></Icon>
+                    <ChildContent>
+                        <div class="space-y-3 p-3 text-sm">
+                            <p class="text-muted-foreground">@L.T("把这个标签页拖成浮动窗口，再调整它的大小。", "Drag this tab out to a floating window, then resize it.")</p>
+                            <p class="text-xs text-muted-foreground">@L.T("最小 240×200 · 最大宽 420px。", "Min 240×200 · Max width 420px.")</p>
+                        </div>
+                    </ChildContent>
+                </DockPanel>
+
+                <DockPanel Id="output" Title="@(L.T("输出", "Output"))" Region="DockZone.Bottom" CanFloat="false">
+                    <Icon><LucideIcon Name="terminal" Size="14" /></Icon>
+                    <ChildContent>
+                        <div class="p-3 text-xs text-muted-foreground">
+                            @L.T("这个面板可以重新停靠在任意位置，但把它拖到停靠区之外不会让它脱离。", "This panel can be re-docked anywhere, but dragging it outside the dock won't detach it.")
+                        </div>
+                    </ChildContent>
+                </DockPanel>
+            </Dock>
+        </div>
+
+        <CodeBlock Source="Components/Dock/constraints.txt" />
+    </div>
+
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    每个标签栏都是一个 <code>role="tablist"</code>；标签页使用 <code>role="tab"</code>，
+                    <code>aria-selected</code> 反映当前活动面板，并采用游走的 <code>tabindex</code>
+                    （活动标签页在 Tab 顺序里，其余的用方向键就能到达）。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Each tab strip is a <code>role="tablist"</code>; tabs use <code>role="tab"</code> with <code>aria-selected</code> reflecting the active panel and a roving <code>tabindex</code> (the active tab is in the tab order, the rest are reachable with the arrow keys).</AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    面板内容渲染在 <code>role="tabpanel"</code> 里，通过 <code>aria-controls</code> 与
+                    <code>aria-labelledby</code> 关联到它的标签页。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Panel content renders in a <code>role="tabpanel"</code> linked to its tab via <code>aria-controls</code> and <code>aria-labelledby</code>.</AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>关闭与最大化控件都暴露描述性的 <code>aria-label</code>。</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Close and maximize controls expose descriptive <code>aria-label</code>s.</AccessibilityItem>
+                        </text>
+}
+            <AccessibilityItem>@L.T("停靠面板之间的调整尺寸手柄复用 Resizable 的分隔符语义。", "Resize handles between docked panels reuse the Resizable separator semantics.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在同一标签栏的标签之间移动焦点", "Move focus between tabs in a strip"))">
+                <Kbd>Arrow Left</Kbd> / <Kbd>Arrow Right</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("把焦点移到第一个/最后一个标签页", "Move focus to the first / last tab"))">
+                <Kbd>Home</Kbd> / <Kbd>End</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("激活当前聚焦的标签页", "Activate the focused tab"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("调整面板之间分栏的尺寸", "Resize a split between panels"))">
+                <Kbd>Arrow Keys</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="Dock">
+                <ApiParameter Name="ChildContent" Type="RenderFragment?" Default="null">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            停靠区承载的 <code>DockPanel</code> 声明。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            The <code>DockPanel</code> declarations hosted by the dock.
+                                        </text>
+}
+                </ApiParameter>
+                <ApiParameter Name="EmptyContent" Type="RenderFragment?" Default="null">
+                    @L.T("没有任何打开的面板时显示的内容。", "Content shown when no panels are open.")
+                </ApiParameter>
+                <ApiParameter Name="OnLayoutChanged" Type="EventCallback" Default="—">
+                    @L.T("布局变化（停靠、浮动、关闭、重新打开）之后触发。", "Invoked after the layout changes (docking, floating, closing, reopening).")
+                </ApiParameter>
+                <ApiParameter Name="OnPanelClosed" Type="EventCallback&lt;string&gt;" Default="—">
+                    @L.T("用户关闭某个面板时带着该面板 id 触发。", "Invoked with the panel id when a panel is closed by the user.")
+                </ApiParameter>
+                <ApiParameter Name="OpenPanelAsync(string)" Type="Task" Default="—">
+                    @L.T("把一个已关闭的面板重新打开到默认位置的方法。", "Method that reopens a closed panel into a default location.")
+                </ApiParameter>
+                <ApiParameter Name="GetClosedPanelIds()" Type="IReadOnlyList&lt;string&gt;" Default="—">
+                    @L.T("返回当前处于关闭状态的面板 id 的方法。", "Method returning the ids of panels currently closed.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("附加到停靠面板表面的 CSS 类。", "Additional CSS classes for the dock surface.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="DockPanel">
+                <ApiParameter Name="Id" Type="string" Default="—">
+                    @L.T("必填的稳定标识，用于在布局变化中跟踪面板。", "Required stable identifier used to track the panel across layout changes.")
+                </ApiParameter>
+                <ApiParameter Name="Title" Type="string" Default="&quot;&quot;">
+                    @L.T("显示在面板标签页上的标题。", "The title shown on the panel's tab.")
+                </ApiParameter>
+                <ApiParameter Name="Icon" Type="RenderFragment?" Default="null">
+                    @L.T("可选图标，渲染在标签页标题之前。", "Optional icon rendered before the title on the tab.")
+                </ApiParameter>
+                <ApiParameter Name="Region" Type="DockZone" Default="Center">
+                    @L.T("初始摆放区域。可选值：Center、Left、Right、Top、Bottom。", "Initial placement region. Options: Center, Left, Right, Top, Bottom.")
+                </ApiParameter>
+                <ApiParameter Name="Order" Type="int" Default="0">
+                    @L.T("构建初始布局时同一区域内面板的排列次序。", "Ordering of panels within a region when the initial layout is built.")
+                </ApiParameter>
+                <ApiParameter Name="Closable" Type="bool" Default="true">
+                    @L.T("用户能否关闭该面板。", "Whether the panel can be closed by the user.")
+                </ApiParameter>
+                <ApiParameter Name="CanFloat" Type="bool" Default="true">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            面板能否被脱离成浮动窗口。<code>Locked</code> 为 true 时该项被忽略。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Whether the panel can be detached into a floating window. Ignored when <code>Locked</code> is true.
+                                        </text>
+}
+                </ApiParameter>
+                <ApiParameter Name="Locked" Type="bool" Default="false">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            为 true 时，面板不能被拖动以移动/重排/重新停靠、不能被脱离成浮动窗口，
+                        也不能被关闭。它会覆盖 <code>Closable</code> 和 <code>CanFloat</code>。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            When true, the panel can't be dragged to move/reorder/re-dock, detached into a floating window,
+                        or closed. Overrides <code>Closable</code> and <code>CanFloat</code>.
+                                        </text>
+}
+                </ApiParameter>
+                <ApiParameter Name="MinWidth" Type="int?" Default="null">
+                    @L.T("面板最小宽度（像素）。调整浮动窗口大小时强制生效；停靠时作为 CSS 约束应用。", "Minimum panel width in pixels. Enforced while resizing a floating window; applied as a CSS constraint when docked.")
+                </ApiParameter>
+                <ApiParameter Name="MinHeight" Type="int?" Default="null">
+                    @L.T("面板最小高度（像素）。调整浮动窗口大小时强制生效；停靠时作为 CSS 约束应用。", "Minimum panel height in pixels. Enforced while resizing a floating window; applied as a CSS constraint when docked.")
+                </ApiParameter>
+                <ApiParameter Name="MaxWidth" Type="int?" Default="null">
+                    @L.T("面板最大宽度（像素）。调整浮动窗口大小时强制生效；停靠时作为 CSS 约束应用。", "Maximum panel width in pixels. Enforced while resizing a floating window; applied as a CSS constraint when docked.")
+                </ApiParameter>
+                <ApiParameter Name="MaxHeight" Type="int?" Default="null">
+                    @L.T("面板最大高度（像素）。调整浮动窗口大小时强制生效；停靠时作为 CSS 约束应用。", "Maximum panel height in pixels. Enforced while resizing a floating window; applied as a CSS constraint when docked.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?" Default="null">
+                    @L.T("面板作为活动标签页时渲染的内容。", "The content rendered when the panel is the active tab.")
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+
+    <LocalizationSection
+        Description="@(L.T("Dock 标签页右键菜单项、按钮的 aria 标签/提示以及空状态都可以通过 ILocalizer 配置。", "Dock tab context-menu items, button aria-labels/tooltips, and the empty state are configurable via ILocalizer."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("Close", "Close", L.T("关闭当前标签页的右键菜单项", "Context-menu item that closes the active tab")),
+            new("CloseTab", "Close {0}", L.T("标签页关闭按钮上的 aria 标签/提示（{0} = 标签标题）", "Aria-label/tooltip on a tab's close button ({0} = tab title)")),
+            new("CloseOtherTabs", "Close Other Tabs", L.T("关闭分组内其他标签页的右键菜单项", "Context-menu item that closes the group's other tabs")),
+            new("CloseAllButPinned", "Close All But Pinned", L.T("关闭所有未固定标签页的右键菜单项", "Context-menu item that closes all unpinned tabs")),
+            new("CloseAllTabs", "Close All Tabs", L.T("关闭分组内每个标签页的右键菜单项", "Context-menu item that closes every tab in the group")),
+            new("PinTab", "Pin Tab", L.T("标签页未固定时显示的右键菜单项", "Context-menu item shown when the tab is unpinned")),
+            new("UnpinTab", "Unpin Tab", L.T("标签页已固定时显示的右键菜单项", "Context-menu item shown when the tab is pinned")),
+            new("ShowHiddenTabs", "Show {0} hidden tab(s)", L.T("溢出下拉按钮的 aria 标签/提示（{0} = 数量）", "Aria-label/tooltip on the overflow dropdown ({0} = count)")),
+            new("MaximizePanelGroup", "Maximize panel group", L.T("最大化按钮的 aria 标签/提示", "Aria-label/tooltip on the maximize button")),
+            new("RestorePanelGroup", "Restore panel group", L.T("还原按钮的 aria 标签/提示", "Aria-label/tooltip on the restore button")),
+            new("NoPanelsOpen", "No panels are open.", L.T("没有剩余面板时显示的默认空状态", "Default empty state shown when no panels remain")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""Dock.CloseAllTabs"", ""Alle Tabs schließen"");
+    localizer.Set(""Dock.PinTab"", ""Tab anheften"");
+    localizer.Set(""Dock.ShowHiddenTabs"", ""{0} ausgeblendete(s) Tab(s) anzeigen"");
+});")" />
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private int layoutChanges;
+
+    private Dock? reopenDock;
+    private readonly List<string> closedPanels = new();
+    private readonly Dictionary<string, string> titles = new()
+    {
+        ["document"] = "Document",
+        ["comments"] = "Comments",
+        ["history"] = "History",
+    };
+
+    /// <summary>重新打开按钮标题的中文写法（与 titles 一一对应，仅供中文分支使用）。</summary>
+    private readonly Dictionary<string, string> titlesZh = new()
+    {
+        ["document"] = "文档",
+        ["comments"] = "评论",
+        ["history"] = "历史",
+    };
+
+    private readonly (string Name, string Icon)[] explorerItems =
+    {
+        ("src", "folder"),
+        ("Program.cs", "file-code"),
+        ("README.md", "file-text"),
+        ("appsettings.json", "braces"),
+        (".gitignore", "file"),
+    };
+
+    /// <summary>工具箱工具名（NameZh 与 Name 对应，仅供中文分支使用）。</summary>
+    private readonly (string Name, string Icon, string NameZh)[] toolboxItems =
+    {
+        ("Select", "mouse-pointer-2", "选择"),
+        ("Pen", "pencil", "画笔"),
+        ("Shapes", "shapes", "形状"),
+        ("Text", "type", "文本"),
+        ("Colors", "palette", "颜色"),
+    };
+
+    /// <summary>属性面板标签（LabelZh 与 Label 对应，仅供中文分支使用）。</summary>
+    private readonly (string Label, string Value, string LabelZh)[] properties =
+    {
+        ("Name", "Program.cs", "名称"),
+        ("Encoding", "UTF-8", "编码"),
+        ("Line endings", "LF", "换行符"),
+        ("Language", "C#", "语言"),
+        ("Size", "1.4 KB", "大小"),
+    };
+
+    private const string programSource = @"using AtomBlazor;
+
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddAtomBlazorComponents();
+
+var app = builder.Build();
+app.MapRazorComponents<App>();
+app.Run();";
+
+    private void OnPanelClosed(string id)
+    {
+        if (titles.ContainsKey(id) && !closedPanels.Contains(id))
+        {
+            closedPanels.Add(id);
+        }
+    }
+
+    private async Task Reopen(string id)
+    {
+        closedPanels.Remove(id);
+        if (reopenDock is not null)
+        {
+            await reopenDock.OpenPanelAsync(id);
+        }
+    }
+}

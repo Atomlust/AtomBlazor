@@ -1,0 +1,76 @@
+@namespace AtomBlazor
+@inject ILocalizer Localizer
+
+<form class="@FormCssClass" novalidate @onsubmit="HandleSubmit" @onsubmit:preventDefault @attributes="AdditionalAttributes">
+
+    @if (Schema?.Title is not null || Schema?.Description is not null)
+    {
+        <div class="atom:space-y-1">
+            @if (Schema.Title is not null)
+            {
+                <h2 class="atom:text-lg atom:font-semibold">@Schema.Title</h2>
+            }
+            @if (Schema.Description is not null)
+            {
+                <p class="atom:text-sm atom:text-muted-foreground">@Schema.Description</p>
+            }
+        </div>
+    }
+
+    @if (ShowValidationSummary && HasErrors)
+    {
+        <Alert Variant="AlertVariant.Danger">
+            <AlertTitle>@Localizer["DynamicForm.ValidationErrors"]</AlertTitle>
+            <AlertDescription>
+                <ul class="atom:list-disc atom:ps-4 atom:space-y-1">
+                    @foreach (var error in ErrorSummary)
+                    {
+                        <li>@error</li>
+                    }
+                </ul>
+            </AlertDescription>
+        </Alert>
+    }
+
+    @if (Schema is not null)
+    {
+        @if (Schema.Sections.Count > 0)
+        {
+            @foreach (var sectionDef in Schema.Sections)
+            {
+                if (!IsSectionVisible(sectionDef))
+                {
+                    continue;
+                }
+
+                var columns = GetEffectiveColumns(sectionDef.Columns);
+
+                <FormSection Title="@sectionDef.Title"
+                             Description="@sectionDef.Description"
+                             Collapsible="@sectionDef.Collapsible"
+                             DefaultExpanded="@sectionDef.DefaultExpanded">
+                    @((RenderFragment)(builder => RenderFieldsGrid(builder, sectionDef.Fields, columns)))
+                </FormSection>
+            }
+        }
+        else if (Schema.Fields.Count > 0)
+        {
+            var columns = GetEffectiveColumns(null);
+            @((RenderFragment)(builder => RenderFieldsGrid(builder, Schema.Fields, columns)))
+        }
+    }
+
+    @ChildContent
+
+    @if (ShowSubmitButton)
+    {
+        <div class="atom:flex atom:justify-end atom:pt-2">
+            <Button Type="ButtonType.Submit"
+                    Loading="@isSubmitting"
+                    Disabled="@(Disabled || isSubmitting)">
+                @SubmitText
+            </Button>
+        </div>
+    }
+
+</form>

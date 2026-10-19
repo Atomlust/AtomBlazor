@@ -1,0 +1,613 @@
+@page "/guides/render-modes"
+
+<PageTitle>@L.T("渲染模式 - Atom BlazorUI", "Render Modes - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">
+            @if (L.IsChinese)
+            {
+                <text>
+                    渲染模式与交互式布局
+                </text>
+            }
+            else
+            {
+                <text>
+                    Render Modes &amp; Interactive Layouts
+                </text>
+            }
+        </h1>
+        @if (L.IsChinese)
+        {
+            <text>
+                <p class="text-xl text-muted-foreground">
+                    为什么布局里的按钮、开关和对话框有时点了没反应 &mdash; 以及如何让它们与静态的、依赖
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">HttpContext</code> 的页面一起工作。
+                </p>
+            </text>
+        }
+        else
+        {
+            <text>
+                <p class="text-xl text-muted-foreground">
+                    Why buttons, toggles, and dialogs in your layout sometimes do nothing &mdash; and how to make
+                    them work alongside static, <code class="text-xs bg-muted px-1 py-0.5 rounded">HttpContext</code>-dependent pages.
+                </p>
+            </text>
+        }
+    </div>
+
+    <div class="space-y-6">
+
+        <!-- Overview -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("为什么交互性重要", "Why interactivity matters")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        大多数 Atom BlazorUI 组件要响应用户输入（点击、键入、键盘导航），或调用 JavaScript interop
+                        （定位、滚动锁定、焦点）。这一切都需要一个
+                        <strong>交互式</strong>渲染模式 &mdash;
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">InteractiveServer</code>、
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">InteractiveWebAssembly</code> 或
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">InteractiveAuto</code>。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        Most Atom BlazorUI components respond to user input (clicks, typing, keyboard navigation)
+                        or call JavaScript interop (positioning, scroll-lock, focus). All of that requires an
+                        <strong>interactive</strong> render mode &mdash;
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">InteractiveServer</code>,
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">InteractiveWebAssembly</code>, or
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">InteractiveAuto</code>.
+                    </p>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        在<strong>静态服务端渲染（SSR）</strong>下 &mdash; 即未应用任何交互渲染模式时的 .NET 8 默认 &mdash;
+                        组件的 HTML 只生成一次，事件处理器永远不会接上。一个
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Button</code>
+                        照常渲染、看起来正确，点击时却悄无声息地什么都不做。
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">DarkModeToggle</code>、
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">ThemeSwitcher</code> 和任何浮层同理。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        Under <strong>static server-side rendering (SSR)</strong> &mdash; the .NET 8 default when no
+                        interactive render mode is applied &mdash; a component's HTML is produced once and its event
+                        handlers are never wired up. A <code class="text-xs bg-muted px-1 py-0.5 rounded">Button</code>
+                        renders, looks correct, and silently does nothing when clicked. The same applies to
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">DarkModeToggle</code>,
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">ThemeSwitcher</code>, and any overlay.
+                    </p>
+                </text>
+            }
+        </section>
+
+        <!-- The layout rule -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("布局沿用页面的渲染模式", "The layout adopts the page's render mode")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        这一点常让人意外。路由页面的<strong>布局继承被渲染页面的渲染模式</strong>。如果页面是静态的
+                        （或者你从未设置全局交互渲染模式），那么
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">MainLayout</code>
+                        —— 连同其中的一切 —— 也会静态渲染。放在布局里的按钮、主题开关、侧栏触发器
+                        与各种 Provider 都不会响应。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        This is the part that surprises people. A routed page's <strong>layout inherits the render
+                        mode of the page being rendered</strong>. If the page is static (or you never set a global
+                        interactive render mode), then <code class="text-xs bg-muted px-1 py-0.5 rounded">MainLayout</code>
+                        &mdash; and everything in it &mdash; renders statically too. Buttons, theme toggles, the sidebar
+                        trigger, and providers placed in the layout will not respond.
+                    </p>
+                </text>
+            }
+            <div class="p-4 border-l-4 border-primary bg-primary/5 rounded-r-lg">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">
+                            你<strong>不能</strong>靠把
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">@@rendermode</code> 加到
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">@@layout</code> 指令上或布局组件本身来解决这个问题。
+                            页面内容是从静态渲染的父级以
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">@@Body</code> 的形式流入布局的，
+                            而 Blazor 不允许该渲染片段跨越静态 → 交互的边界。渲染模式应用在一个组件被<em>使用</em>的地方，
+                            而不是布局被<em>定义</em>的地方。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">
+                            You <strong>cannot</strong> fix this by adding
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">@@rendermode</code> to the
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">@@layout</code> directive or to the layout
+                            component itself. The page content flows into the layout as
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">@@Body</code> from a statically-rendered
+                            parent, and Blazor does not allow that render-fragment to cross a static &rarr; interactive
+                            boundary. Render mode is applied where a component is <em>used</em>, not where a layout is
+                            <em>defined</em>.
+                        </p>
+                    </text>
+                }
+            </div>
+        </section>
+
+        <!-- Option 1 -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        方案 1 —— 全局交互（最简单）
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Option 1 &mdash; Global interactivity (simplest)
+                    </text>
+                }
+            </h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        如果你<strong>没有</strong>必须静态渲染的页面，就在
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">App.razor</code> 里的 router 上全局应用交互渲染模式。
+                        这正是 Atom BlazorUI 演示应用的做法，它让每一个组件 —— 包括你布局里的 ——
+                        无需额外工作即可交互。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        If you do <strong>not</strong> have pages that must render statically, apply an interactive
+                        render mode globally on the router in <code class="text-xs bg-muted px-1 py-0.5 rounded">App.razor</code>.
+                        This is what the Atom BlazorUI demo apps do, and it makes every component &mdash; including the
+                        ones in your layout &mdash; interactive with no further work.
+                    </p>
+                </text>
+            }
+            <div class="rounded-lg border bg-muted/50 p-4">
+                <pre class="text-sm overflow-x-auto"><code>&lt;!-- App.razor --&gt;
+&lt;head&gt;
+    ...
+    &lt;HeadOutlet @@rendermode="InteractiveServer" /&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;Routes @@rendermode="InteractiveServer" /&gt;
+    ...
+&lt;/body&gt;</code></pre>
+            </div>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        这样一来，你的
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">MainLayout</code> 里的
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">PortalHost</code>、
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">ToastProvider</code> 和
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">DialogProvider</code> 就会完全按文档所述工作。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        With this in place, <code class="text-xs bg-muted px-1 py-0.5 rounded">PortalHost</code>,
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">ToastProvider</code>, and
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">DialogProvider</code> in your
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">MainLayout</code> work exactly as documented.
+                    </p>
+                </text>
+            }
+        </section>
+
+        <!-- Option 2 -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        方案 2 —— 用岛屿做按页面交互
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Option 2 &mdash; Per-page interactivity with islands
+                    </text>
+                }
+            </h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        如果某些页面必须保持静态 —— 例如读写
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">HttpContext</code> 的认证页面，
+                        而它只在静态渲染期间可用 —— 就不要设置全局交互模式。改为：
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        If some pages must stay static &mdash; for example, authentication pages that read or write
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">HttpContext</code>, which is only available
+                        during static rendering &mdash; do not set a global interactive mode. Instead:
+                    </p>
+                </text>
+            }
+            <ol class="list-decimal list-inside space-y-2 text-muted-foreground leading-relaxed">
+                <li>@L.T("为每个交互页面标注按页面的渲染模式。", "Mark each interactive page with a per-page render mode.")</li>
+                <li>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            把布局里的交互 UI（主题开关、侧栏控制、你自己的按钮）移进小型子组件，
+                            用 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@rendermode</code> 渲染<em>它们</em> ——
+                            在其余部分静态的布局里创建一个<strong>交互岛屿</strong>。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Move the interactive UI that lives in your layout (theme toggle, sidebar controls, your
+                            own buttons) into small child components, and render <em>those</em> with
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">@@rendermode</code> &mdash; creating an
+                            <strong>interactivity island</strong> inside the otherwise static layout.
+                        </text>
+                    }
+                </li>
+            </ol>
+
+            <p class="text-muted-foreground leading-relaxed font-medium">@L.T("按页面交互：", "Per-page interactivity:")</p>
+            <div class="rounded-lg border bg-muted/50 p-4">
+                <pre class="text-sm overflow-x-auto"><code>@@page "/dashboard"
+@@rendermode InteractiveServer
+
+&lt;Button OnClick="DoSomething"&gt;Works&lt;/Button&gt;</code></pre>
+            </div>
+
+            <p class="text-muted-foreground leading-relaxed font-medium">@L.T("为共享布局外壳做一个岛屿：", "An island for shared layout chrome:")</p>
+            <div class="rounded-lg border bg-muted/50 p-4">
+                <pre class="text-sm overflow-x-auto"><code>@@* InteractiveChrome.razor &mdash; the bits of the layout that need to be live *@@
+&lt;div class="flex items-center gap-2"&gt;
+    &lt;DarkModeToggle /&gt;
+    &lt;ThemeSwitcher /&gt;
+&lt;/div&gt;</code></pre>
+            </div>
+            <div class="rounded-lg border bg-muted/50 p-4">
+                <pre class="text-sm overflow-x-auto"><code>@@* MainLayout.razor &mdash; static layout, interactive islands *@@
+@@inherits LayoutComponentBase
+
+&lt;header&gt;
+    &lt;InteractiveChrome @@rendermode="InteractiveServer" /&gt;
+&lt;/header&gt;
+
+&lt;main&gt;@@Body&lt;/main&gt;
+
+&lt;PortalHost @@rendermode="InteractiveServer" /&gt;
+&lt;ToastProvider @@rendermode="InteractiveServer" /&gt;
+&lt;DialogProvider @@rendermode="InteractiveServer" /&gt;</code></pre>
+            </div>
+            <div class="p-4 border-l-4 border-amber-500 bg-amber-500/5 rounded-r-lg space-y-2">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">
+                            <strong>岛屿的注意事项。</strong>你用
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">@@rendermode</code> 标注的组件收不到
+                            来自静态父级的<em>不可序列化</em>参数，也不能跨边界传递子内容
+                            （一个 <code class="text-xs bg-muted px-1 py-0.5 rounded">RenderFragment</code>）——
+                            这正是 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@Body</code>
+                            必须留在静态布局里的原因。岛屿最适合自包含的外壳。如果你的布局高度交互
+                            （可折叠侧栏、命令面板等），方案 1 通常是更好的选择 —— 你可以把认证留在静态端点，
+                            或迁移到对交互友好的认证流程（<code class="text-xs bg-muted px-1 py-0.5 rounded">AuthenticationStateProvider</code>），
+                            而不是 <code class="text-xs bg-muted px-1 py-0.5 rounded">HttpContext</code>。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">
+                            <strong>Caveats with islands.</strong> A component you mark with
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">@@rendermode</code> can't receive
+                            <em>non-serializable</em> parameters from its static parent, and you can't pass child
+                            content (a <code class="text-xs bg-muted px-1 py-0.5 rounded">RenderFragment</code>) across
+                            the boundary &mdash; which is exactly why <code class="text-xs bg-muted px-1 py-0.5 rounded">@@Body</code>
+                            has to stay in the static layout. Islands work best for self-contained chrome. If your
+                            layout is heavily interactive (a collapsible sidebar, command palette, etc.), Option 1 is
+                            usually the better fit &mdash; and you can keep authentication on static endpoints or move
+                            it to an interactivity-friendly auth flow (<code class="text-xs bg-muted px-1 py-0.5 rounded">AuthenticationStateProvider</code>)
+                            instead of <code class="text-xs bg-muted px-1 py-0.5 rounded">HttpContext</code>.
+                        </p>
+                    </text>
+                }
+            </div>
+        </section>
+
+        <!-- Prerendering note -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("关于预渲染的说明", "A note on prerendering")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        交互组件仍然先静态<strong>预渲染</strong>，等电路（Server）或运行时（WebAssembly）就绪后才变为交互。
+                        在那短暂的第一遍里事件处理器尚未接上 —— 这是预期行为，会自行解决。
+                        只有当组件<em>永远</em>达不到交互时才算缺陷，也就是上面静态布局的情形。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        Interactive components still <strong>prerender</strong> statically first, then become
+                        interactive once the circuit (Server) or runtime (WebAssembly) is ready. During that brief
+                        first pass, event handlers aren't attached yet &mdash; this is expected and resolves on its own.
+                        It only becomes a bug when the component <em>never</em> reaches interactivity, which is the
+                        static-layout situation above.
+                    </p>
+                </text>
+            }
+        </section>
+
+        <!-- Native overlays across render modes -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        跨越渲染模式边界的浮层（Dialog → 原生）
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Overlays across render-mode boundaries (Dialog &rarr; native)
+                    </text>
+                }
+            </h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        默认的基于 portal 的浮层要求
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">PortalHost</code>
+                        与打开它们的交互内容处于<strong>同一个</strong>渲染模式作用域。
+                        如果一个 <code class="text-xs bg-muted px-1 py-0.5 rounded">Dialog</code> 从
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">InteractiveWebAssembly</code> 岛屿里打开，
+                        而 host 在静态布局里，它们用的是不同的作用域
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">PortalService</code>
+                        实例 —— 你会得到「没有 &lt;PortalHost /&gt;」和「等待 PortalHost 渲染超时」的警告，对话框永远不出现。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        The default portal-based overlays need <code class="text-xs bg-muted px-1 py-0.5 rounded">PortalHost</code>
+                        to live in the <strong>same</strong> render-mode scope as the interactive content that opens them.
+                        If a <code class="text-xs bg-muted px-1 py-0.5 rounded">Dialog</code> is opened from an
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">InteractiveWebAssembly</code> island but the host is
+                        in a static layout, they use different scoped <code class="text-xs bg-muted px-1 py-0.5 rounded">PortalService</code>
+                        instances &mdash; you get &ldquo;No &lt;PortalHost /&gt; detected&rdquo; and a
+                        &ldquo;timed out waiting for PortalHost to render&rdquo; warning, and the dialog never appears.
+                    </p>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        对 <strong>Dialog</strong> 来说，有第二种方案可以完全绕开作用域服务的握手：
+                        把它渲染成原生的 <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;dialog&gt;</code> 元素。在
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Dialog</code> 上设置
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">RenderingStrategy="OverlayRenderingStrategy.Native"</code>，
+                        或者在你注册库的地方设置全局默认 ——
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AddAtomBlazorComponents(configureOverlays: o =&gt; o.DefaultStrategy = OverlayRenderingStrategy.Native)</code>，
+                        或者单独使用 primitives 时在
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AddAtomBlazorPrimitives</code> 上传同样的参数。
+                        两种调用顺序都可以。浏览器会在顶层显示对话框，带原生焦点陷阱、Escape 处理和一个
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">::backdrop</code> —— 不需要 portal host，
+                        不需要共享作用域服务，所以它能跨越
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">InteractiveWebAssembly</code>
+                        岛屿与静态布局工作。如果浏览器缺少
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">showModal()</code>，它会自动回落到 JS 路径。
+                        其他浮层组件（Popover、Tooltip、Select、Sheet、AlertDialog）目前仍走 portal 路径。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        For <strong>Dialog</strong> there is a second option that sidesteps the scoped-service handshake entirely:
+                        render it as a native <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;dialog&gt;</code> element. Set
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">RenderingStrategy="OverlayRenderingStrategy.Native"</code>
+                        on <code class="text-xs bg-muted px-1 py-0.5 rounded">Dialog</code>, or set the global default where you
+                        register the library &mdash;
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AddAtomBlazorComponents(configureOverlays: o =&gt; o.DefaultStrategy = OverlayRenderingStrategy.Native)</code>,
+                        or the same argument on
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AddAtomBlazorPrimitives</code> if you use the
+                        primitives on their own. Either call order works.
+                        The browser shows the dialog in the top layer with native focus trapping, Escape handling and a
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">::backdrop</code> &mdash; no portal host, no shared
+                        scoped service, so it works across <code class="text-xs bg-muted px-1 py-0.5 rounded">InteractiveWebAssembly</code>
+                        islands and static layouts. It falls back to the JS path automatically if the browser lacks
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">showModal()</code>. Other overlay components (Popover,
+                        Tooltip, Select, Sheet, AlertDialog) still use the portal path for now.
+                    </p>
+                </text>
+            }
+        </section>
+
+        <!-- Troubleshooting -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("排障清单", "Troubleshooting checklist")</h2>
+            <div class="space-y-2 text-sm text-muted-foreground">
+                <div class="flex items-start gap-2">
+                    <span class="text-primary mt-0.5">1.</span>
+                    <span>
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                一个 <code class="text-xs bg-muted px-1 py-0.5 rounded">Button</code> 渲染出来了，但它的
+                                <code class="text-xs bg-muted px-1 py-0.5 rounded">OnClick</code> 从不触发 → 组件在静态渲染。
+                                确认它的页面（或组件本身）带有交互渲染模式。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                A <code class="text-xs bg-muted px-1 py-0.5 rounded">Button</code> renders but its
+                                <code class="text-xs bg-muted px-1 py-0.5 rounded">OnClick</code> never fires &rarr; the
+                                component is rendering statically. Confirm its page (or the component itself) has an
+                                interactive render mode.
+                            </text>
+                        }
+                    </span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="text-primary mt-0.5">2.</span>
+                    <span>
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                只有加上全局
+                                <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;Routes @@rendermode="InteractiveServer" /&gt;</code>
+                                之后才好用 → 你的布局是静态的。用方案 1，或把交互外壳移进岛屿（方案 2）。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                It works only after adding a global
+                                <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;Routes @@rendermode="InteractiveServer" /&gt;</code>
+                                &rarr; your layout was static. Use Option 1, or move the interactive chrome into an island
+                                (Option 2).
+                            </text>
+                        }
+                    </span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="text-primary mt-0.5">3.</span>
+                    <span>
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                浮层（Dialog、Sheet、Popover、Tooltip、Toast）不出现 → 确认
+                                <code class="text-xs bg-muted px-1 py-0.5 rounded">PortalHost</code> 存在且处于交互上下文中，
+                                而不是在静态布局里。发生这种情况时，库会记录一条点名此事的警告。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Overlays (Dialog, Sheet, Popover, Tooltip, Toast) don't appear &rarr; ensure
+                                <code class="text-xs bg-muted px-1 py-0.5 rounded">PortalHost</code> is present and in an
+                                interactive context, not a static layout. The library logs a warning naming this
+                                when it happens.
+                            </text>
+                        }
+                    </span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="text-primary mt-0.5">4.</span>
+                    <span>
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                浮层在
+                                <code class="text-xs bg-muted px-1 py-0.5 rounded">InteractiveServer</code> 下好用，
+                                换到 <code class="text-xs bg-muted px-1 py-0.5 rounded">InteractiveWebAssembly</code>
+                                就失效 → host 现在必须跑在浏览器里，所以它必须位于
+                                <strong>client</strong> 项目加载的程序集里。服务器项目里的
+                                <code class="text-xs bg-muted px-1 py-0.5 rounded">MainLayout</code>
+                                可以在服务器上交互渲染，却无法在 WebAssembly 里运行，于是它的
+                                <code class="text-xs bg-muted px-1 py-0.5 rounded">PortalHost</code>
+                                永远到不了你组件所在的运行时。把布局 —— 或者只把 portal 外壳作为岛屿 ——
+                                移进 client 项目，或两个项目都引用的共享 razor 类库。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Overlays worked under
+                                <code class="text-xs bg-muted px-1 py-0.5 rounded">InteractiveServer</code> and stopped
+                                under <code class="text-xs bg-muted px-1 py-0.5 rounded">InteractiveWebAssembly</code>
+                                &rarr; the host has to run in the browser now, so it must live in an assembly the
+                                <strong>client</strong> project loads. A <code class="text-xs bg-muted px-1 py-0.5 rounded">MainLayout</code>
+                                in the server project can render interactively on the server but cannot run in
+                                WebAssembly, so its <code class="text-xs bg-muted px-1 py-0.5 rounded">PortalHost</code>
+                                never reaches the runtime your components are in. Move the layout &mdash; or just the
+                                portal chrome, as an island &mdash; into the client project or a shared razor class
+                                library both projects reference.
+                            </text>
+                        }
+                    </span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="text-primary mt-0.5">5.</span>
+                    <span>
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                认证页面在全局交互下出错 → 它们多半依赖
+                                <code class="text-xs bg-muted px-1 py-0.5 rounded">HttpContext</code>，
+                                而它在交互式渲染中不可用。让那些页面保持静态，其余部分用方案 2。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Auth pages break under global interactivity &rarr; they likely depend on
+                                <code class="text-xs bg-muted px-1 py-0.5 rounded">HttpContext</code>, which isn't
+                                available in interactive renders. Keep those pages static and use Option 2 for the rest.
+                            </text>
+                        }
+                    </span>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

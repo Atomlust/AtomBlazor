@@ -1,0 +1,91 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@inject ILocalizer Localizer
+
+<PaginationLink Href="@Href"
+                Size="@EffectiveSize"
+                Class="@CssClass"
+                Disabled="@IsDisabled"
+                OnClick="HandleClick"
+                @attributes="AdditionalAttributes">
+    @if (ShowText)
+    {
+        <span>@EffectiveText</span>
+    }
+    else
+    {
+        <span class="atom:sr-only">@EffectiveText</span>
+    }
+    <LucideIcon Name="chevron-right" Class="atom:h-4 atom:w-4" />
+</PaginationLink>
+
+@code {
+    [CascadingParameter]
+    private PaginationContext? Context { get; set; }
+
+    [Parameter]
+    public string? Href { get; set; }
+
+    /// <summary>
+    /// 显式禁用按钮。为 null 时，由分页状态自动判定。
+    /// </summary>
+    [Parameter]
+    public bool? Disabled { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 自定义点击处理器。使用分页状态时，导航是自动完成的。
+    /// </summary>
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    /// <summary>
+    /// 是否显示文本标签。默认：true
+    /// </summary>
+    [Parameter]
+    public bool ShowText { get; set; } = true;
+
+    /// <summary>
+    /// 按钮的自定义文本。为 null 时，使用 ILocalizer 的 "Pagination.Next" 键。
+    /// </summary>
+    [Parameter]
+    public string? Text { get; set; }
+
+    private string EffectiveText => Text ?? Localizer["Pagination.Next"];
+
+    /// <summary>
+    /// 分页链接的尺寸。默认：PaginationLinkSize.Default
+    /// </summary>
+    [Parameter]
+    public PaginationLinkSize Size { get; set; } = PaginationLinkSize.Default;
+
+    private bool IsDisabled => Disabled ?? (Context?.State != null && !Context.State.CanGoNext);
+
+    private PaginationLinkSize EffectiveSize => ShowText ? Size : PaginationLinkSize.Icon;
+
+    private async Task HandleClick()
+    {
+        if (Context?.State != null)
+        {
+            Context.State.NextPage();
+            if (Context.OnPageChanged != null)
+                await Context.OnPageChanged(Context.State.CurrentPage);
+        }
+
+        if (OnClick.HasDelegate)
+            await OnClick.InvokeAsync();
+    }
+
+    private string CssClass => ClassNames.cn(
+        ShowText ? "atom:gap-1 atom:pe-2.5" : "atom:h-8 atom:w-8",
+        Class
+    );
+}

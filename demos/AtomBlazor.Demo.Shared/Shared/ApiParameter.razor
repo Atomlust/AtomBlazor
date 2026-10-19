@@ -1,0 +1,28 @@
+<div>
+    <div class="flex flex-wrap items-center gap-2">
+        <code class="text-xs bg-muted px-1 py-0.5 rounded">@Name</code>
+        @if (Since is not null)
+        {
+            <ApiVersionBadge Version="@Since" />
+        }
+    </div>
+    <p class="text-muted-foreground mt-1">
+        <strong>@L.T("类型：", "Type:")</strong> <code>@Type</code><br />
+        @if (Default != null)
+        {
+            <strong>@L.T("默认值：", "Default:")</strong> <code>@Default</code><br />
+        }
+        @ChildContent
+    </p>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    [Parameter] public string Name { get; set; } = "";
+    [Parameter] public string Type { get; set; } = "";
+    [Parameter] public string? Default { get; set; }
+    [Parameter] public string? Since { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

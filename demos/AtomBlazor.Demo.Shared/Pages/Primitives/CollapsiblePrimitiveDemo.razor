@@ -1,0 +1,327 @@
+@page "/primitives/collapsible"
+<PageTitle>@L.T("Collapsible 基元 - Atom BlazorUI", "Collapsible Primitive - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Collapsible 基元", "Collapsible Primitive")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("用于自建可折叠组件的无样式、可访问基元组件。", "Unstyled, accessible primitive component for building custom collapsibles.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <!-- AsChild Pattern -->
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("AsChild 模式", "AsChild Pattern")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("使用 AsChild 把触发器组合到你自己的带样式元素上。", "Use AsChild to compose triggers with your own styled elements.")
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Without AsChild -->
+                <div class="space-y-3 p-4 border rounded-lg">
+                    <h3 class="text-lg font-medium">@L.T("不使用 AsChild", "Without AsChild")</h3>
+                    <p class="text-sm text-muted-foreground">
+                        @L.T("CollapsibleTrigger 会渲染自己的 button 元素。", "CollapsibleTrigger renders its own button element.")
+                    </p>
+                    <AtomBlazor.Primitives.CollapsiblePrimitive>
+                        <AtomBlazor.Primitives.CollapsibleTrigger class="h-9 px-3 py-2 border rounded text-sm cursor-pointer">
+                            @L.T("点击切换", "Click to toggle")
+                        </AtomBlazor.Primitives.CollapsibleTrigger>
+                        <AtomBlazor.Primitives.CollapsibleContent class="mt-2">
+                            @L.T("不使用 AsChild——内容由基元控制。", "Without AsChild - content controlled by the primitive.")
+                        </AtomBlazor.Primitives.CollapsibleContent>
+                    </AtomBlazor.Primitives.CollapsiblePrimitive>
+                </div>
+
+                <!-- With AsChild -->
+                <div class="space-y-3 p-4 border rounded-lg">
+                    <h3 class="text-lg font-medium">@L.T("使用 AsChild", "With AsChild")</h3>
+                    <p class="text-sm text-muted-foreground">
+                        @L.T("Button 通过 TriggerContext 获得点击行为。", "Button receives click behavior via TriggerContext.")
+                    </p>
+                    <AtomBlazor.Primitives.CollapsiblePrimitive>
+                        <AtomBlazor.Primitives.CollapsibleTrigger AsChild>
+                            <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small">
+                                @L.T("点击切换", "Click to toggle")
+                                <LucideIcon Name="chevron-down" Size="16" Class="ml-2" />
+                            </Button>
+                        </AtomBlazor.Primitives.CollapsibleTrigger>
+                        <AtomBlazor.Primitives.CollapsibleContent class="mt-2">
+                            @L.T("使用 AsChild——由 Button 处理触发行为。", "With AsChild - Button handles the trigger behavior.")
+                        </AtomBlazor.Primitives.CollapsibleContent>
+                    </AtomBlazor.Primitives.CollapsiblePrimitive>
+                </div>
+            </div>
+
+            <CodeBlock Source="Primitives/Collapsible/as-child.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基础无样式基元", "Basic Headless Primitive")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("基元只提供行为与无障碍支持，不带样式。", "The primitive provides behavior and accessibility without styling.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 max-w-md">
+                <AtomBlazor.Primitives.CollapsiblePrimitive>
+                    <AtomBlazor.Primitives.CollapsibleTrigger class="cursor-pointer">
+                        @L.T("点击切换（无样式基元）", "Click to toggle (unstyled primitive)")
+                    </AtomBlazor.Primitives.CollapsibleTrigger>
+                    <AtomBlazor.Primitives.CollapsibleContent class="mt-2">
+                        @L.T("此内容由无样式基元控制。想怎么加样式就怎么加！", "This content is controlled by the headless primitive. Style it however you want!")
+                    </AtomBlazor.Primitives.CollapsibleContent>
+                </AtomBlazor.Primitives.CollapsiblePrimitive>
+            </div>
+
+            <CodeBlock Source="Primitives/Collapsible/basic.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("受控状态", "Controlled State")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("在外部控制基元状态。", "Control the primitive state externally.")
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex gap-2">
+                    <button @onclick="@(() => isPrimitiveOpen = true)"
+                            class="px-3 py-2 border rounded text-sm">
+                        @L.T("打开", "Open")
+                    </button>
+                    <button @onclick="@(() => isPrimitiveOpen = false)"
+                            class="px-3 py-2 border rounded text-sm">
+                        @L.T("关闭", "Close")
+                    </button>
+                </div>
+
+                <div class="rounded-lg border bg-card p-6 max-w-md">
+                    <AtomBlazor.Primitives.CollapsiblePrimitive @bind-Open="isPrimitiveOpen">
+                        <AtomBlazor.Primitives.CollapsibleTrigger class="cursor-pointer">
+                            @L.T("受控基元（状态：", "Controlled Primitive (State: ")@(isPrimitiveOpen ? L.T("展开", "Open") : L.T("折叠", "Closed"))@L.T("）", ")")
+                        </AtomBlazor.Primitives.CollapsibleTrigger>
+                        <AtomBlazor.Primitives.CollapsibleContent class="mt-2">
+                            @L.T("外部按钮控制该基元的状态。", "External buttons control this primitive's state.")
+                        </AtomBlazor.Primitives.CollapsibleContent>
+                    </AtomBlazor.Primitives.CollapsiblePrimitive>
+                </div>
+
+                <CodeBlock Source="Primitives/Collapsible/controlled.txt" />
+            </div>
+        </section>
+
+        <AccessibilityList>
+            <AriaAttributes>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> 会自动应用到触发器上
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> automatically applied to trigger
+                        </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">data-state</code> 特性用于 CSS 样式（open|closed）
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">data-state</code> attribute for CSS styling (open|closed)
+                        </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="region"</code> 设在内容上，并带有正确的 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-hidden</code>
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="region"</code> on content with proper <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-hidden</code>
+                        </AccessibilityItem>
+                    </text>
+                }
+                <AccessibilityItem>
+                    @L.T("焦点管理，并带有可见的焦点指示器", "Focus management with visible focus indicators")
+                </AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            正确的 <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code> 特性与行为
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            Proper <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code> attribute and behavior
+                        </AccessibilityItem>
+                    </text>
+                }
+            </AriaAttributes>
+            <KeyboardNavigation>
+                <KeyboardShortcutItem Description="@(L.T("移动到触发器", "Navigate to trigger"))">
+                    <Kbd>Tab</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("切换折叠状态", "Toggle collapsible"))">
+                    <Kbd>Space</Kbd>
+                    <Kbd>Enter</Kbd>
+                </KeyboardShortcutItem>
+            </KeyboardNavigation>
+        </AccessibilityList>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("组件属性与参数。", "Component properties and parameters.")
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <ApiReference ComponentName="Collapsible">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="Open" Type="bool" Default="false">
+                                控制可折叠组件是否展开。支持通过 <code>@@bind-Open</code> 双向绑定。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="Open" Type="bool" Default="false">
+                                Controls whether the collapsible is expanded. Supports two-way binding with <code>@@bind-Open</code>.
+                            </ApiParameter>
+                        </text>
+                    }
+                    <ApiParameter Name="OpenChanged" Type="EventCallback&lt;bool&gt;">
+                        @L.T("打开状态发生变化时调用的回调。", "Callback invoked when the open state changes.")
+                    </ApiParameter>
+                    <ApiParameter Name="Disabled" Type="bool" Default="false">
+                        @L.T("为 true 时阻止切换。", "Prevents toggling when true.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在可折叠容器内部渲染的内容。", "Content rendered inside the collapsible container.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                应用到容器元素上的附加 HTML 特性（例如 <code>class</code>、<code>style</code>）。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                Additional HTML attributes applied to the container element (e.g. <code>class</code>, <code>style</code>).
+                            </ApiParameter>
+                        </text>
+                    }
+                </ApiReference>
+
+                <ApiReference ComponentName="CollapsibleTrigger">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="AsChild" Type="bool" Default="false">
+                                为 true 时不渲染自己的 button 元素，而是通过 <code>TriggerContext</code> 把触发行为传给子组件。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="AsChild" Type="bool" Default="false">
+                                When true, does not render its own button element. Instead passes trigger behavior via <code>TriggerContext</code> to child components.
+                            </ApiParameter>
+                        </text>
+                    }
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在触发按钮内部渲染的内容。", "Content rendered inside the trigger button.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                应用到 button 元素上的附加 HTML 特性（例如 <code>class</code>、<code>style</code>）。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                Additional HTML attributes applied to the button element (e.g. <code>class</code>, <code>style</code>).
+                            </ApiParameter>
+                        </text>
+                    }
+                </ApiReference>
+
+                <ApiReference ComponentName="CollapsibleContent">
+                    <ApiParameter Name="ForceMount" Type="bool" Default="false">
+                        @L.T("为 true 时，即使折叠内容也保持挂载。便于做 CSS 动画。", "When true, content remains mounted even when collapsed. Useful for CSS animations.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("折叠组件切换时显示/隐藏的内容。", "Content to be shown/hidden when collapsible is toggled.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                应用到内容容器元素上的附加 HTML 特性（例如 <code>class</code>、<code>style</code>）。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                Additional HTML attributes applied to the content container element (e.g. <code>class</code>, <code>style</code>).
+                            </ApiParameter>
+                        </text>
+                    }
+                </ApiReference>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    private bool isPrimitiveOpen = false;
+
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

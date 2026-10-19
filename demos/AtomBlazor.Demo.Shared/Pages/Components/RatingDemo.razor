@@ -1,0 +1,253 @@
+@page "/components/rating"
+<PageTitle>@L.T("Rating 评分组件 - Atom BlazorUI", "Rating Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Rating 评分组件", "Rating Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("可自定义的评分组件，支持星形、爱心、圆形图标与半星评分。", "A customizable rating component with star, heart, or circle icons and half-rating support.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Star Rating -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本星级评分", "Basic Star Rating")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("点击即可评分，再次点击同一颗星可以清除。", "Click to rate, click the same star again to clear.")
+            </p>
+        </div>
+        <Rating @bind-Value="_starValue" />
+        <p class="text-sm text-muted-foreground">@L.F("评分：{0} / 5", "Rating: {0} / 5", _starValue)</p>
+        <CodeBlock Source="Components/Rating/basic.txt" />
+    </div>
+
+    <!-- Heart Rating -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("爱心评分", "Heart Rating")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("使用爱心图标代替星星。", "Using heart icons instead of stars.")
+            </p>
+        </div>
+        <Rating @bind-Value="_heartValue" Icon="RatingIcon.Heart" />
+        <p class="text-sm text-muted-foreground">@L.F("评分：{0} / 5", "Rating: {0} / 5", _heartValue)</p>
+        <CodeBlock Source="Components/Rating/heart.txt" />
+    </div>
+
+    <!-- Circle Rating -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("圆形评分", "Circle Rating")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("使用圆形图标。", "Using circle icons.")
+            </p>
+        </div>
+        <Rating @bind-Value="_circleValue" Icon="RatingIcon.Circle" />
+        <p class="text-sm text-muted-foreground">@L.F("评分：{0} / 5", "Rating: {0} / 5", _circleValue)</p>
+        <CodeBlock Source="Components/Rating/circle.txt" />
+    </div>
+
+    <!-- Half Rating -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("半星评分", "Half Rating Support")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("允许半星评分以获得更高精度。使用方向键可以精确调节。", "Allows half-star ratings for more precision. Use arrow keys for precise control.")
+            </p>
+        </div>
+        <Rating @bind-Value="_halfValue" AllowHalf="true" />
+        <p class="text-sm text-muted-foreground">@L.F("评分：{0} / 5", "Rating: {0} / 5", _halfValue)</p>
+        <CodeBlock Source="Components/Rating/half.txt" />
+    </div>
+
+    <!-- Custom Max -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义上限（10 颗星）", "Custom Max (10 Stars)")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("最多 10 颗星的评分。", "Rating with 10 stars maximum.")
+            </p>
+        </div>
+        <Rating @bind-Value="_maxValue" Max="10" Size="RatingSize.Small" />
+        <p class="text-sm text-muted-foreground">@L.F("评分：{0} / 10", "Rating: {0} / 10", _maxValue)</p>
+        <CodeBlock Source="Components/Rating/custom-max.txt" />
+    </div>
+
+    <!-- Sizes -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("尺寸", "Sizes")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("小、默认与大三种图标尺寸。", "Small, default, and large icon sizes.")
+            </p>
+        </div>
+        <div class="space-y-4">
+            <div class="flex items-center gap-4">
+                <span class="text-sm text-muted-foreground w-16">@L.T("小：", "Small:")</span>
+                <Rating @bind-Value="_sizeSmall" Size="RatingSize.Small" />
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-sm text-muted-foreground w-16">@L.T("默认：", "Default:")</span>
+                <Rating @bind-Value="_sizeDefault" Size="RatingSize.Default" />
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-sm text-muted-foreground w-16">@L.T("大：", "Large:")</span>
+                <Rating @bind-Value="_sizeLarge" Size="RatingSize.Large" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/Rating/sizes.txt" />
+    </div>
+
+    <!-- Read-Only -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("只读", "Read-Only")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("仅展示的评分（无法更改）。", "Display-only rating (cannot be changed).")
+            </p>
+        </div>
+        <div class="space-y-2">
+            <div class="flex items-center gap-2">
+                <Rating Value="4" ReadOnly="true" />
+                <span class="text-sm text-muted-foreground">4.0</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <Rating Value="3.5" ReadOnly="true" AllowHalf="true" />
+                <span class="text-sm text-muted-foreground">3.5</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <Rating Value="2" ReadOnly="true" Icon="RatingIcon.Heart" />
+                <span class="text-sm text-muted-foreground">2.0</span>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Rating/read-only.txt" />
+    </div>
+
+    <!-- No Clear -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁止清除", "Disable Clear")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("评分设置后无法清除（至少 1 颗星）。", "Cannot clear the rating once set (minimum 1 star).")
+            </p>
+        </div>
+        <Rating @bind-Value="_noClearValue" AllowClear="false" />
+        <p class="text-sm text-muted-foreground">@L.F("评分：{0} / 5", "Rating: {0} / 5", _noClearValue)</p>
+        <CodeBlock Source="Components/Rating/no-clear.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用状态", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个被禁用的评分组件。", "A disabled rating component.")
+            </p>
+        </div>
+        <Rating Value="3" Disabled="true" />
+        <CodeBlock Source="Components/Rating/disabled.txt" />
+    </div>
+
+    <!-- API Reference -->
+
+        <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("评分控件会暴露带标签的 radiogroup 与带标签的评分选项。用 AriaLabel 说明被评分的对象。", "The rating control exposes a labelled radiogroup and labelled rating options. Use AriaLabel to explain what is being rated.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("禁用与只读评分会被排除在 Tab 顺序之外。设置 AllowHalf 后键盘步进会变为半分。", "Disabled and read-only ratings are excluded from the tab sequence. AllowHalf changes the keyboard increment to half a point.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("聚焦可编辑的评分控件", "Focus the editable rating"))"><Kbd>Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("提高评分", "Increase the rating"))"><Kbd>ArrowRight</Kbd> / <Kbd>ArrowUp</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("降低评分", "Decrease the rating"))"><Kbd>ArrowLeft</Kbd> / <Kbd>ArrowDown</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("将评分设为零或最大值", "Set the rating to zero or the maximum"))"><Kbd>Home</Kbd> / <Kbd>End</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="Rating">
+                <ApiParameter Name="Value" Type="double">
+                    @L.T("当前评分值。", "Current rating value.")
+                </ApiParameter>
+                <ApiParameter Name="Max" Type="int" Default="5">
+                    @L.T("最高评分。", "Maximum rating.")
+                </ApiParameter>
+                <ApiParameter Name="AllowHalf" Type="bool" Default="false">
+                    @L.T("允许半星评分。", "Enable half ratings.")
+                </ApiParameter>
+                <ApiParameter Name="AllowClear" Type="bool" Default="true">
+                    @L.T("允许通过再次点击相同值来清除评分。", "Allow clearing by clicking same value.")
+                </ApiParameter>
+                <ApiParameter Name="ReadOnly" Type="bool" Default="false">
+                    @L.T("仅展示模式。", "Display-only mode.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("禁用评分。", "Disables the rating.")
+                </ApiParameter>
+                <ApiParameter Name="Icon" Type="RatingIcon" Default="Star">
+                    @L.T("图标类型（Star、Heart、Circle）。", "Icon type (Star, Heart, Circle).")
+                </ApiParameter>
+                <ApiParameter Name="Size" Type="RatingSize" Default="Default">
+                    @L.T("图标尺寸（Small、Default、Large）。", "Icon size (Small, Default, Large).")
+                </ApiParameter>
+                <ApiParameter Name="ActiveColor" Type="string?">
+                    @L.T("已填充图标的自定义颜色。", "Custom color for filled icons.")
+                </ApiParameter>
+                <ApiParameter Name="InactiveColor" Type="string?">
+                    @L.T("空图标的自定义颜色。", "Custom color for empty icons.")
+                </ApiParameter>
+                <ApiParameter Name="IconTemplate" Type="RenderFragment<RatingIconContext>?">
+                    @L.T("自定义图标模板。", "Custom icon template.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+
+<LocalizationSection
+        Description="@(L.T("评分组件的 aria 标签可以配置。", "The rating component aria label is configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("Rating", "Rating", L.T("评分组的 ARIA 标签。", "Aria label for the rating group")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""Rating.Rating"", ""Bewertung"");
+});")" />
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private double _starValue = 0;
+    private double _heartValue = 0;
+    private double _circleValue = 0;
+    private double _halfValue = 0;
+    private double _maxValue = 7;
+    private double _sizeSmall = 3;
+    private double _sizeDefault = 3;
+    private double _sizeLarge = 3;
+    private double _noClearValue = 1;
+}

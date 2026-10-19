@@ -1,0 +1,156 @@
+@namespace AtomBlazor
+@using PrimitiveOrientation = AtomBlazor.Primitives.ScrollAreaOrientation
+
+<AtomBlazor.Primitives.ScrollAreaPrimitive Orientation="@MappedOrientation"
+                                                class="@CssClass"
+                                                style="@MergedRootStyle"
+                                                @attributes="@InlineStyleMerge.WithoutStyle(AdditionalAttributes)">
+    <AtomBlazor.Primitives.ScrollAreaViewport class="@ComputedViewportClass"
+                                                            style="@ViewportStyle">
+        @ChildContent
+    </AtomBlazor.Primitives.ScrollAreaViewport>
+
+    @if (Type != ScrollAreaType.Hidden)
+    {
+        @if (Orientation is ScrollAreaOrientation.Vertical or ScrollAreaOrientation.Both)
+        {
+            <AtomBlazor.Primitives.ScrollAreaScrollbar
+                Orientation="PrimitiveOrientation.Vertical"
+                class="@VerticalScrollbarClass">
+                <AtomBlazor.Primitives.ScrollAreaThumb class="@ThumbClass" />
+            </AtomBlazor.Primitives.ScrollAreaScrollbar>
+        }
+        @if (Orientation is ScrollAreaOrientation.Horizontal or ScrollAreaOrientation.Both)
+        {
+            <AtomBlazor.Primitives.ScrollAreaScrollbar
+                Orientation="PrimitiveOrientation.Horizontal"
+                class="@HorizontalScrollbarClass">
+                <AtomBlazor.Primitives.ScrollAreaThumb class="@ThumbClass" />
+            </AtomBlazor.Primitives.ScrollAreaScrollbar>
+        }
+    }
+</AtomBlazor.Primitives.ScrollAreaPrimitive>
+
+@code {
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter]
+    public string? ViewportClass { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public ScrollAreaType Type { get; set; } = ScrollAreaType.Hover;
+
+    [Parameter]
+    public ScrollAreaOrientation Orientation { get; set; } = ScrollAreaOrientation.Vertical;
+
+    [Parameter]
+    public string? Height { get; set; }
+
+    [Parameter]
+    public string? MaxHeight { get; set; }
+
+    /// <summary>
+    /// 为 true 时，自动填满弹性列向父容器的剩余纵向空间。
+    /// 父元素必须使用 <c>display: flex; flex-direction: column</c> 且高度受限。
+    /// 设置后优先于 <see cref="Height"/> 与 <see cref="MaxHeight"/>。
+    /// </summary>
+    [Parameter]
+    public bool FillContainer { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private PrimitiveOrientation MappedOrientation => Orientation switch
+    {
+        ScrollAreaOrientation.Vertical => PrimitiveOrientation.Vertical,
+        ScrollAreaOrientation.Horizontal => PrimitiveOrientation.Horizontal,
+        ScrollAreaOrientation.Both => PrimitiveOrientation.Both,
+        _ => PrimitiveOrientation.Vertical
+    };
+
+    private string? RootStyle
+    {
+        get
+        {
+            if (FillContainer)
+            {
+                return null;
+            }
+
+            var styles = new List<string>();
+            if (!string.IsNullOrEmpty(Height))
+            {
+                styles.Add($"height: {Height}");
+            }
+            if (!string.IsNullOrEmpty(MaxHeight))
+            {
+                styles.Add($"max-height: {MaxHeight}");
+            }
+            return styles.Count > 0 ? string.Join("; ", styles) : null;
+        }
+    }
+
+    private string? MergedRootStyle => InlineStyleMerge.Merge(RootStyle, AdditionalAttributes);
+
+    private string? ViewportStyle
+    {
+        get
+        {
+            if (FillContainer)
+            {
+                return null;
+            }
+
+            // MaxHeight 也需要落在 viewport 上，否则 height: 100%
+            // 会解析为 auto（循环依赖），viewport 无法滚动。
+            if (!string.IsNullOrEmpty(MaxHeight))
+            {
+                return $"max-height: {MaxHeight}";
+            }
+
+            return null;
+        }
+    }
+
+    private string CssClass => ClassNames.cn(
+        "atom:relative atom:group/scrollarea",
+        FillContainer ? "atom:flex-1 atom:min-h-0" : null,
+        Class
+    );
+
+    private string ComputedViewportClass => ClassNames.cn(
+        "atom:w-full atom:rounded-[inherit]",
+        FillContainer ? "atom:h-full" : null,
+        ViewportClass
+    );
+
+    private string ScrollbarVisibilityClass => Type switch
+    {
+        ScrollAreaType.Always => "",
+        ScrollAreaType.Hover => "atom:opacity-0 atom:transition-opacity atom:group-hover/scrollarea:opacity-100",
+        ScrollAreaType.Auto => "atom:data-[state=hidden]:opacity-0 atom:transition-opacity",
+        _ => ""
+    };
+
+    // 滚动条必须脱离文档流定位。viewport 的宽高是根元素的 100%，
+    // 因此处于流内的滚动条会被排到它之后，并被根元素的
+    // overflow: hidden 裁掉——这正是纵向滚动条从不出现、即便 Type.Always 也是如此的原因（#483）。
+    private string VerticalScrollbarClass => ClassNames.cn(
+        "atom:absolute atom:end-0 atom:top-0 atom:bottom-0 atom:z-10 atom:flex atom:touch-none atom:select-none atom:w-2.5 atom:border-s atom:border-s-transparent atom:p-[1px]",
+        ScrollbarVisibilityClass
+    );
+
+    private string HorizontalScrollbarClass => ClassNames.cn(
+        "atom:absolute atom:bottom-0 atom:inset-x-0 atom:z-10 atom:flex atom:touch-none atom:select-none atom:flex-col atom:h-2.5 atom:border-t atom:border-t-transparent atom:p-[1px]",
+        ScrollbarVisibilityClass
+    );
+
+    private string ThumbClass => "atom:relative atom:rounded-full atom:bg-border atom:flex-1";
+}

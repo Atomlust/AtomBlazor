@@ -1,0 +1,76 @@
+@namespace AtomBlazor
+
+@*
+    带样式的 Accordion 组件封装。
+    以 shadcn/ui 样式包裹 Accordion 基元。
+*@
+
+<AtomBlazor.Primitives.AccordionPrimitive Value="@Value"
+                                              ValueChanged="@ValueChanged"
+                                              DefaultValue="@DefaultValue"
+                                              OnValueChange="@OnValueChange"
+                                              Type="@Type"
+                                              Collapsible="@Collapsible"
+                                              class="@CssClass"
+                                              @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.AccordionPrimitive>
+
+@code {
+    /// <summary>
+    /// 在 Accordion 内渲染的子内容。
+    /// 应当包含 AccordionItem 组件。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 控制哪些条目处于展开状态（受控模式）。
+    /// </summary>
+    [Parameter]
+    public HashSet<string>? Value { get; set; }
+
+    /// <summary>
+    /// 展开条目变化时调用的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<HashSet<string>> ValueChanged { get; set; }
+
+    /// <summary>
+    /// 非受控模式下的初始展开条目集合。
+    /// </summary>
+    [Parameter]
+    public HashSet<string>? DefaultValue { get; set; }
+
+    /// <summary>
+    /// 展开条目变化时调用的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<HashSet<string>> OnValueChange { get; set; }
+
+    /// <summary>
+    /// Accordion 的类型（单开或多开）。
+    /// </summary>
+    [Parameter]
+    public AccordionType Type { get; set; } = AccordionType.Single;
+
+    /// <summary>
+    /// 单开模式下条目是否允许收起。
+    /// </summary>
+    [Parameter]
+    public bool Collapsible { get; set; } = false;
+
+    /// <summary>
+    /// 要应用到 Accordion 的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CssClass => ClassNames.cn(Class);
+}

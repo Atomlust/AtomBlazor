@@ -1,0 +1,33 @@
+@namespace AtomBlazor
+@typeparam TData where TData : class
+
+<tr role="row" class="@ClassNames.cn("atom:group/row atom:border-b atom:bg-background", Class)" @attributes="AdditionalAttributes">
+    @foreach (var column in ParentGrid!.VisibleColumnsForDetailRow)
+    {
+        var isSelectColumn = column.ColumnId == "__select";
+        var isExpandColumn = column.ColumnId == "__expand";
+
+        <DataGridCell
+            @key="@column.ColumnId"
+            Class="@ParentGrid.ComputeDetailCellClass(column)"
+            style="@ParentGrid.ComputeDetailPinnedStyle(column)"
+            data-pinned="@(column.Pinned != ColumnPinning.None ? "true" : null)">
+            @if (!isSelectColumn && !isExpandColumn)
+            {
+                @if (column.CellTemplate != null)
+                {
+                    @column.CellTemplate(new DataGridCellContext<TData>
+                    {
+                        Item = Item!,
+                        Column = column,
+                        Value = column.GetValue(Item!)
+                    })
+                }
+                else
+                {
+                    @(column.GetValue(Item!)?.ToString() ?? "")
+                }
+            }
+        </DataGridCell>
+    }
+</tr>

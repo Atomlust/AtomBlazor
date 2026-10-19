@@ -1,0 +1,48 @@
+@namespace AtomBlazor
+@inject ILocalizer Localizer
+
+<div class="@CssClass" @attributes="AdditionalAttributes">
+    @if (Context?.State != null)
+    {
+        var state = Context.State;
+        <span>@string.Format(EffectiveFormat, state.CurrentPage, state.TotalPages)</span>
+    }
+    else
+    {
+        @ChildContent
+    }
+</div>
+
+@code {
+    [CascadingParameter]
+    private PaginationContext? Context { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 显示页码信息的格式串。{0} 为当前页、{1} 为总页数。
+    /// 未提供时回退到本地化默认值。
+    /// </summary>
+    [Parameter]
+    public string? Format { get; set; }
+
+    private string EffectiveFormat => Format ?? Localizer["Pagination.PageFormat"];
+
+    /// <summary>
+    /// 不使用分页状态时显示的自定义内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private string CssClass => ClassNames.cn(
+        "atom:flex atom:w-[100px] atom:items-center atom:justify-center atom:text-sm atom:font-medium",
+        Class
+    );
+}

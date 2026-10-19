@@ -1,0 +1,172 @@
+@page "/components"
+
+
+<PageTitle>@L.T("组件 - Atom BlazorUI", "Components - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-6xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("组件", "Components")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("基于 Tailwind CSS 打造的精美、无障碍组件。可直接放入你的 Blazor 应用程序，其开箱即用的预置样式默认值灵感来自 shadcn/ui。",
+                 "Beautiful, accessible components built with Tailwind CSS. Ready to drop into your Blazor application with pre-styled defaults inspired by shadcn/ui.")
+        </p>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("什么是组件？", "What are Components?")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("组件是构建在我们的基础构件层之上的预置样式、可生产使用的 UI 元素。它们提供精美的默认样式，同时通过 Tailwind CSS 类保持完全可定制。",
+                         "Components are pre-styled, production-ready UI elements built on top of our primitives. They provide beautiful defaults while remaining fully customizable through Tailwind CSS classes.")
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-4">
+                <div class="p-4 border rounded-lg">
+                    <div class="flex items-start gap-2 mb-2">
+                        <span class="text-green-600 dark:text-green-400 text-lg">✓</span>
+                        <div>
+                            <h3 class="font-semibold">@L.T("预置样式默认值", "Pre-Styled Defaults")</h3>
+                            <p class="text-sm text-muted-foreground mt-1">
+                                @L.T("开箱即用的 shadcn/ui 风格设计，支持暗色模式", "Beautiful shadcn/ui-inspired design out of the box with dark mode support")
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 border rounded-lg">
+                    <div class="flex items-start gap-2 mb-2">
+                        <span class="text-green-600 dark:text-green-400 text-lg">✓</span>
+                        <div>
+                            <h3 class="font-semibold">@L.T("完全可定制", "Fully Customizable")</h3>
+                            <p class="text-sm text-muted-foreground mt-1">
+                                @L.T("使用 Tailwind 类覆盖样式，或构建你自己的变体", "Override styles with Tailwind classes or build your own variants")
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 border rounded-lg">
+                    <div class="flex items-start gap-2 mb-2">
+                        <span class="text-green-600 dark:text-green-400 text-lg">✓</span>
+                        <div>
+                            <h3 class="font-semibold">@L.T("生产就绪", "Production Ready")</h3>
+                            <p class="text-sm text-muted-foreground mt-1">
+                                @L.T("经过测试，可直接用于真实应用", "Tested and ready to use in real applications")
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("可用组件", "Available Components")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("这里可以浏览与侧栏相同的组件页面及相关分组。点击条目即可查看其演示、示例、API 文档与使用指南。",
+                         "Browse the same component pages and related groups as the sidebar. Click an entry to view its demos, examples, API documentation, and usage guides.")
+                </p>
+            </div>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                @foreach (var group in ComponentCatalog.NavigationGroups)
+                {
+                    var entry = group.Entry;
+                    <div @key="entry.Url" class="rounded-lg border overflow-hidden">
+                        <a href="@entry.Url" class="group block p-5 hover:bg-accent transition-colors no-underline">
+                            <h3 class="flex flex-wrap items-center gap-2 font-semibold text-lg mb-2 group-hover:text-primary">
+                                <span>@entry.Name</span>
+                                @if (entry.IsNew)
+                                {
+                                    <ApiVersionBadge />
+                                }
+                            </h3>
+                            <p class="text-sm text-muted-foreground">@L.T(ComponentCatalogZh.Description(entry), entry.Description)</p>
+                        </a>
+                        @if (group.Children.Count > 0)
+                        {
+                            <ul class="border-t px-5 py-3 space-y-2">
+                                @foreach (var child in group.Children)
+                                {
+                                    <li>
+                                        <a href="@child.Url" class="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary hover:underline">
+                                            <span>@ComponentCatalog.NavigationLabel(entry, child)</span>
+                                            @if (child.IsNew)
+                                            {
+                                                <ApiVersionBadge />
+                                            }
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                }
+            </div>
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("为什么要使用这些组件？", "Why Use These Components?")</h2>
+            </div>
+
+            <div class="rounded-lg border p-6 space-y-4 bg-muted/30">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="space-y-3">
+                        <h3 class="font-semibold">@L.T("适合：", "Perfect For:")</h3>
+                        <ul class="space-y-2 text-sm text-muted-foreground">
+                            <li class="flex items-start gap-2">
+                                <span class="text-green-600 dark:text-green-400">✓</span>
+                                <span>@L.T("以精美默认样式快速开发应用", "Rapid application development with beautiful defaults")</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-green-600 dark:text-green-400">✓</span>
+                                <span>@L.T("希望在 Blazor 中使用 shadcn/ui 设计的项目", "Projects that want shadcn/ui design in Blazor")</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-green-600 dark:text-green-400">✓</span>
+                                <span>@L.T("偏好预置样式、开箱即用组件的团队", "Teams that prefer pre-styled, ready-to-use components")</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-green-600 dark:text-green-400">✓</span>
+                                <span>@L.T("已经集成 Tailwind CSS 的应用", "Applications with Tailwind CSS already integrated")</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="space-y-3">
+                        <h3 class="font-semibold">@L.T("需要完全掌控？", "Need Full Control?")</h3>
+                        @if (L.IsChinese)
+                        {
+                                                <text>
+                                                    <p class="text-sm text-muted-foreground">
+                                如果你想要完全无样式的组件并全面掌控样式，
+                                请查看我们的 <a href="/primitives" class="text-primary hover:underline">无样式基础构件</a>。
+                                这些组件正是构建在这些相同的基础构件之上。
+                            </p>
+                                                </text>
+}
+                        else
+                        {
+                                                <text>
+                                                    <p class="text-sm text-muted-foreground">
+                                If you want completely unstyled components with full control over styling,
+                                check out our <a href="/primitives" class="text-primary hover:underline">headless primitives</a>.
+                                These components are built on top of those same primitives.
+                            </p>
+                                                </text>
+}
+                        <a href="/primitives" class="inline-flex items-center px-4 py-2 border rounded text-sm hover:bg-accent transition-colors no-underline">
+                            @L.T("查看无样式基础构件 →", "View Headless Primitives →")
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

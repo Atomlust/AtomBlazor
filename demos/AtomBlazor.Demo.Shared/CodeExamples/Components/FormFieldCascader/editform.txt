@@ -1,0 +1,23 @@
+<EditForm Model="model" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <FormFieldCascader TItem="Node"
+                         @bind-Value="model.CategoryId"
+                         Label="Category"
+                         HelperText="Required."
+                         Required="true"
+                         Items="categories"
+                         ValueField="n => n.Id"
+                         TextField="n => n.Name"
+                         ChildrenProperty="n => n.Children" />
+    <Button Type="ButtonType.Submit">Submit</Button>
+</EditForm>
+
+@code {
+    private readonly Model model = new();
+
+    private sealed class Model
+    {
+        [Required(ErrorMessage = "Choose a category.")]
+        public string? CategoryId { get; set; }
+    }
+}

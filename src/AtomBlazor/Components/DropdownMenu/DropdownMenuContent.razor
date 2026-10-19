@@ -1,0 +1,138 @@
+@namespace AtomBlazor
+
+@* 经过样式封装的 DropdownMenuContent - 使用 shadcn Tailwind 类的封装 *@
+<AtomBlazor.Primitives.DropdownMenuContent ForceMount="false"
+                                                            class="@CssClass"
+                                                            style="@MergedStyle"
+                                                            CloseOnEscape="@CloseOnEscape"
+                                                            CloseOnClickOutside="@CloseOnClickOutside"
+                                                            Side="@Side"
+                                                            Align="@Align"
+                                                            Offset="@Offset"
+                                                            OnEscapeKeyDown="@OnEscapeKeyDown"
+                                                            OnClickOutside="@OnClickOutside"
+                                                            Loop="@Loop"
+                                                            Strategy="@Strategy"
+                                                            MatchTriggerWidth="@MatchTriggerWidth"
+                                                            ZIndex="@ZIndex"
+                                                            @attributes="@InlineStyleMerge.WithoutStyle(AdditionalAttributes)">
+    <div class="atom:p-1">
+        @ChildContent
+    </div>
+</AtomBlazor.Primitives.DropdownMenuContent>
+
+@code {
+    /// <summary>
+    /// 要在下拉菜单中渲染的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用于内容容器的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 按下 Esc 键是否应关闭下拉菜单。
+    /// </summary>
+    [Parameter]
+    public bool CloseOnEscape { get; set; } = true;
+
+    /// <summary>
+    /// 点击外部是否应关闭下拉菜单。
+    /// </summary>
+    [Parameter]
+    public bool CloseOnClickOutside { get; set; } = true;
+
+    /// <summary>
+    /// 定位时偏好的方向（side）。
+    /// </summary>
+    [Parameter]
+    public PopoverSide Side { get; set; } = PopoverSide.Bottom;
+
+    /// <summary>
+    /// 相对于触发元素的对齐方式。
+    /// </summary>
+    [Parameter]
+    public PopoverAlign Align { get; set; } = PopoverAlign.Start;
+
+    /// <summary>
+    /// 距离触发元素的偏移量（像素）。
+    /// </summary>
+    [Parameter]
+    public int Offset { get; set; } = 4;
+
+    /// <summary>
+    /// 按下 Esc 键时触发的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<KeyboardEventArgs> OnEscapeKeyDown { get; set; }
+
+    /// <summary>
+    /// 点击外部时触发的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback OnClickOutside { get; set; }
+
+    /// <summary>
+    /// 是否启用键盘循环导航。
+    /// </summary>
+    [Parameter]
+    public bool Loop { get; set; } = true;
+
+    /// <summary>
+    /// 定位策略："absolute" 或 "fixed"。
+    /// 当下拉菜单需要脱离层叠上下文（例如在侧边栏中）时，使用 "fixed"。
+    /// 默认值为 "absolute"。
+    /// </summary>
+    [Parameter]
+    public PositioningStrategy Strategy { get; set; } = PositioningStrategy.Absolute;
+
+    /// <summary>
+    /// 是否匹配触发元素的宽度。
+    /// 默认值为 false。
+    /// </summary>
+    [Parameter]
+    public bool MatchTriggerWidth { get; set; } = false;
+
+    /// <summary>
+    /// 下拉内容的 z-index。
+    /// 默认值为 50。
+    /// </summary>
+    [Parameter]
+    public int ZIndex { get; set; } = 50;
+
+    /// <summary>
+    /// 应用于下拉内容的行内样式。
+    /// </summary>
+    [Parameter]
+    public string? Style { get; set; }
+
+    /// <summary>
+    /// <see cref="Style"/>，后接随其传入的任意 <c>style</c> 特性。
+    /// </summary>
+    /// <remarks>
+    /// 两者均来自使用者，而先前的 splat 会静默地用松散特性替换 <see cref="Style"/>。
+    /// 现已将两者合并，因此都不会丢失。
+    /// </remarks>
+    private string? MergedStyle => InlineStyleMerge.Merge(Style, AdditionalAttributes);
+
+    /// <summary>
+    /// 获取或设置应用于根元素的额外 HTML 特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string CssClass => ClassNames.cn(
+        "atom:z-50 atom:min-w-[8rem] atom:overflow-hidden atom:rounded-md atom:border atom:bg-(--atom-menu-surface) atom:outline-none",
+        "atom:text-(--atom-menu-foreground) atom:shadow-(--atom-menu-shadow) atom:backdrop-blur-(--atom-menu-blur)",
+        "atom:data-[state=open]:animate-in atom:data-[state=closed]:animate-out",
+        "atom:data-[state=closed]:fade-out-0 atom:data-[state=open]:fade-in-0",
+        "atom:data-[state=closed]:zoom-out-95 atom:data-[state=open]:zoom-in-95",
+        "atom:data-[side=bottom]:slide-in-from-top-2 atom:data-[side=left]:slide-in-from-right-2",
+        "atom:data-[side=right]:slide-in-from-left-2 atom:data-[side=top]:slide-in-from-bottom-2",
+        Class
+    );
+}

@@ -1,0 +1,60 @@
+@inject IJSRuntime JSRuntime
+@using AtomBlazor.Primitives.Services
+@namespace AtomBlazor.Primitives
+@implements IAsyncDisposable
+
+<div @ref="root" role="menubar" @attributes="AdditionalAttributes">
+    <CascadingValue Value="context" IsFixed="false">
+        @ChildContent
+    </CascadingValue>
+</div>
+
+@code {
+
+    private ElementReference root;
+    private IJSObjectReference? keyboardModule;
+    private bool disposed;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            keyboardModule ??= await JsModules.GetAsync(JSRuntime, "./_content/AtomBlazor.Primitives/js/menu-triggers.js");
+            await keyboardModule.InvokeVoidAsync("initialize", root, false, true);
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or JSException or InvalidOperationException or TaskCanceledException or ObjectDisposedException) { }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (disposed) return;
+        disposed = true;
+        if (keyboardModule is not null)
+        {
+            try { await keyboardModule.InvokeVoidAsync("dispose", root); }
+            catch (Exception ex) when (ex is JSDisconnectedException or JSException or TaskCanceledException or ObjectDisposedException) { }
+        }
+        GC.SuppressFinalize(this);
+    }
+
+    private MenubarContext context = null!;
+
+    /// <summary>
+    /// 子内容（MenubarMenu 组件）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用于根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// Menubar 上下文，向 Components 层中的子组件公开。
+    /// </summary>
+    public MenubarContext Context => context;
+
+    protected override void OnInitialized() =>
+        context = new MenubarContext(StateHasChanged);
+}

@@ -1,0 +1,21 @@
+<Select TValue="BarcodeType" Label="Symbology" Options="typeOptions" @bind-Value="type" />
+<Input Label="Value" @bind-Value="value"
+         UpdateTiming="UpdateTiming.Debounced" DebounceInterval="250" />
+
+@* A sentence describing what this symbology accepts, for a form hint. *@
+<p>@BarcodeEncoder.DescribeInput(type)</p>
+
+@* OnEncoded, not @ref and Symbol: a parent builds its markup before its children
+   re-render, so reading Symbol here would show the previous symbol. *@
+<Barcode Value="@value" Type="type" OnEncoded="@(s => symbol = s)" />
+
+@if (symbol is { } code)
+{
+    <p>@code.Value &mdash; @code.ModuleCount modules, @code.Bars.Count bars</p>
+}
+
+@code {
+    private BarcodeType type = BarcodeType.Code128;
+    private string value = "BB-2026-0917";
+    private BarcodeSymbol? symbol;
+}

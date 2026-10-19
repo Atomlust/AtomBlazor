@@ -1,0 +1,515 @@
+@page "/components/date-time-picker"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("日期时间选择器 - Atom BlazorUI", "Date Time Picker Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("日期时间选择器", "Date Time Picker Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("日期与时间合一的选择器，弹出层内含日历与时间选择。", "A combined date and time picker with a popover calendar and time selectors.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本示例", "Basic Example")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    点击按钮打开弹出层。选择日期会保留时间部分，调整时间也会保留日期。
+                    弹出层保持打开，可一次设置完成——点击外部或按 Escape 关闭。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Click the button to open the popover. Selecting a date keeps the time portion,
+                    and adjusting the time keeps the date. The popover stays open so both can be set
+                    in one go — click outside or press Escape to close.
+                </p>
+                        </text>
+}
+        </div>
+        <DateTimePicker AriaLabel="@(L.T("选择日期和时间", "Choose a date and time"))" @bind-Value="_basicValue" />
+        <p class="text-sm text-muted-foreground">
+            @L.F("已选择：{0}。", "Selected: {0}", _basicValue?.ToString("g") ?? L.T("无", "None"))
+        </p>
+        <CodeBlock Source="Components/DateTimePicker/basic.txt" />
+    </div>
+
+    <!-- 24-Hour Format -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("24 小时制", "24-Hour Format")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">TimeFormat="TimeFormat.Hour24"</code>
+                    可隐藏 AM/PM 切换按钮，并让小时数从 00 循环到 23。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">TimeFormat="TimeFormat.Hour24"</code>
+                    to hide the AM/PM toggle and cycle hours from 00 to 23.
+                </p>
+                        </text>
+}
+        </div>
+        <DateTimePicker @bind-Value="_hour24Value" TimeFormat="TimeFormat.Hour24" />
+        <CodeBlock Source="Components/DateTimePicker/24-hour.txt" />
+    </div>
+
+    <!-- With Seconds -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("显示秒数", "With Seconds")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowSeconds</code> 启用秒选择器。
+                    触发器的显示会自动切换为与区域设置一致的 "G" 格式。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Enable the seconds selector with <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowSeconds</code>.
+                    The trigger display switches to the culture-aware "G" format automatically.
+                </p>
+                        </text>
+}
+        </div>
+        <DateTimePicker @bind-Value="_secondsValue" ShowSeconds="true" />
+        <CodeBlock Source="Components/DateTimePicker/with-seconds.txt" />
+    </div>
+
+    <!-- Minute Step -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("分钟间隔", "Minute Intervals")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">MinuteStep</code> 让分钟数按固定步长递增。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">MinuteStep</code> to increment
+                    minutes in fixed intervals.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="flex flex-wrap gap-4">
+            <div>
+                <p class="text-sm mb-2">@L.T("5 分钟间隔", "5-minute intervals")@L.T("：", ":")</p>
+                <DateTimePicker @bind-Value="_step5Value" MinuteStep="5" />
+            </div>
+            <div>
+                <p class="text-sm mb-2">@L.T("15 分钟间隔", "15-minute intervals")@L.T("：", ":")</p>
+                <DateTimePicker @bind-Value="_step15Value" MinuteStep="15" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/DateTimePicker/minute-step.txt" />
+    </div>
+
+    <!-- Custom Format & Placeholder -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <h2 class="text-2xl font-semibold">自定义格式与占位符</h2>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <h2 class="text-2xl font-semibold">Custom Format &amp; Placeholder</h2>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">DateTimeFormat</code> 自定义触发器的显示，
+                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">Placeholder</code> 自定义空状态文案。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Customize the trigger display with <code class="text-xs bg-muted px-1 py-0.5 rounded">DateTimeFormat</code>
+                    and the empty-state text with <code class="text-xs bg-muted px-1 py-0.5 rounded">Placeholder</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <DateTimePicker @bind-Value="_formatValue"
+                          DateTimeFormat="MMMM d, yyyy 'at' h:mm tt"
+                          Placeholder="@(L.T("安排会议", "Schedule meeting"))" />
+        <CodeBlock Source="Components/DateTimePicker/custom-format.txt" />
+    </div>
+
+    <!-- Date Constraints -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("日期限制", "Date Constraints")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">MinDate</code> /
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">MaxDate</code> 限定可选日期范围，
+                    或用 <code class="text-xs bg-muted px-1 py-0.5 rounded">DisabledDates</code> 禁用特定日期
+                    （例如周末）。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Limit the selectable date range with <code class="text-xs bg-muted px-1 py-0.5 rounded">MinDate</code> /
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">MaxDate</code>, or disable specific dates
+                    (e.g. weekends) with <code class="text-xs bg-muted px-1 py-0.5 rounded">DisabledDates</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-4">
+            <div>
+                <p class="text-sm mb-2">@L.T("仅限未来 30 天", "Next 30 days only")@L.T("：", ":")</p>
+                <DateTimePicker @bind-Value="_rangeValue" MinDate="@DateTime.Today" MaxDate="@DateTime.Today.AddDays(30)" />
+            </div>
+            <div>
+                <p class="text-sm mb-2">@L.T("不可选周末", "No weekends")@L.T("：", ":")</p>
+                <DateTimePicker @bind-Value="_noWeekendsValue" DisabledDates="@IsWeekend" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/DateTimePicker/constraints.txt" />
+    </div>
+
+    <!-- Form Validation with EditForm -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表单校验", "Form Validation")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    DateTimePicker 与 Blazor 的 EditForm、EditContext 集成，支持模型校验。
+                    在 EditForm 内使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code>，
+                    校验错误会自动通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> 应用错误样式。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    DateTimePicker integrates with Blazor's EditForm and EditContext for model validation.
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code> within an EditForm and
+                    validation errors will automatically apply error styling via <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <EditForm Model="_formModel" OnValidSubmit="HandleFormSubmit" class="max-w-md space-y-4">
+            <DataAnnotationsValidator />
+
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("预约时间", "Appointment")</label>
+                <DateTimePicker @bind-Value="_formModel.Appointment" Placeholder="@(L.T("选择预约时间", "Select appointment time"))" />
+                <ValidationMessage For="@(() => _formModel.Appointment)" class="text-sm text-destructive" />
+            </div>
+
+            <div class="flex gap-4">
+                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Default">@L.T("提交", "Submit")</Button>
+                <Button Type="ButtonType.Button" Variant="ButtonVariant.Outline" OnClick="ResetForm">@L.T("重置", "Reset")</Button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_formMessage))
+            {
+                <div class="p-4 bg-card rounded-lg border">
+                    <p class="text-sm">@_formMessage</p>
+                </div>
+            }
+        </EditForm>
+    </div>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    触发按钮经由 Popover 基元带上了 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-haspopup</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    Trigger button includes <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-haspopup</code> and <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> via the Popover primitive
+                                </text>
+}
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    日历使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="grid"</code>，每一天都是 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="gridcell"</code>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    Calendar uses <code class="text-xs bg-muted px-1 py-0.5 rounded">role="grid"</code> with <code class="text-xs bg-muted px-1 py-0.5 rounded">role="gridcell"</code> on each day
+                                </text>
+}
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-selected</code> 标记当前选中的日期
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-selected</code> indicates the currently selected date
+                                </text>
+}
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    时间步进按钮带有描述性的 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code>（"Increment hour"、"Decrement minute" 等）
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    Time stepper buttons include descriptive <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> ("Increment hour", "Decrement minute", etc.)
+                                </text>
+}
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    被禁用的日期会在日期按钮上带上 <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code> 属性
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    Disabled dates have the <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code> attribute on day buttons
+                                </text>
+}
+            </AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("移动到前一天/后一天", "Move to the previous/next day"))">
+                <Kbd>ArrowLeft</Kbd> / <Kbd>ArrowRight</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("移动到上周/下周的同一天", "Move to the same day in the previous/next week"))">
+                <Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("跳转到本月第一天/最后一天", "Jump to the first/last day of the month"))">
+                <Kbd>Home</Kbd> / <Kbd>End</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("转到上个月/下个月（按住 Shift 则按年）", "Go to the previous/next month (or year with Shift)"))">
+                <Kbd>PageUp</Kbd> / <Kbd>PageDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("选中当前聚焦的日期", "Select the focused date"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在各个时间步进按钮之间移动", "Move between the time stepper buttons"))">
+                <Kbd>Tab</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭弹出层", "Close the popover"))">
+                <Kbd>Escape</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="DateTimePicker">
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">@L.T("转发给交互控件或分组的无障碍名称。", "Accessible name forwarded to the interactive control or group.")</ApiParameter>
+                <ApiParameter Name="Value" Type="DateTime?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            选定的日期与时间。支持与 <code>@@bind-Value</code> 双向绑定。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            The selected date and time. Use @@bind-Value for two-way binding.
+                                        </text>
+}
+                </ApiParameter>
+                <ApiParameter Name="DateTimeFormat" Type="string?" Default="null">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            用于显示值的格式字符串。为 null 时，若 ShowSeconds 为 true 则使用 "G"（含秒），否则使用 "g"。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Format string for displaying the value. When null, uses "G" (with seconds) if ShowSeconds is true, otherwise "g".
+                                        </text>
+}
+                </ApiParameter>
+                <ApiParameter Name="Placeholder" Type="string?" Default="&quot;Pick a date and time&quot;">
+                    @L.T("未选择值时显示的占位文案。", "Placeholder text when no value is selected.")
+                </ApiParameter>
+                <ApiParameter Name="MinDate" Type="DateTime?">
+                    @L.T("可选的最小日期。", "Minimum selectable date.")
+                </ApiParameter>
+                <ApiParameter Name="MaxDate" Type="DateTime?">
+                    @L.T("可选的最大日期。", "Maximum selectable date.")
+                </ApiParameter>
+                <ApiParameter Name="DisabledDates" Type="Func&lt;DateTime, bool&gt;?">
+                    @L.T("用于判断某个日期是否应被禁用的函数。", "Function to determine if a date should be disabled.")
+                </ApiParameter>
+                <ApiParameter Name="FirstDayOfWeek" Type="DayOfWeek?" Default="null">
+                    @L.T("一周的第一天。默认跟随当前区域设置。", "The first day of the week. Defaults to the current culture setting.")
+                </ApiParameter>
+                <ApiParameter Name="DayTemplate" Type="RenderFragment&lt;CalendarDayContext&gt;?" Default="null">
+                    @L.T("用于在每个日历日期按钮内渲染自定义内容的模板。为 null 时渲染日期数字。", "Template for rendering custom content inside each calendar day button. When null, the day number is rendered.")
+                </ApiParameter>
+                <ApiParameter Name="DayClassFunc" Type="Func&lt;DateTime, string?&gt;?" Default="null">
+                    @L.T("为特定日历日期按钮返回附加 CSS 类的函数。", "Function returning additional CSS classes for a specific calendar day button.")
+                </ApiParameter>
+                <ApiParameter Name="TimeFormat" Type="TimeFormat" Default="Hour12">
+                    @L.T("时间选择器的格式（12 小时制带 AM/PM，或 24 小时制）。", "The time format for the time selectors (12-hour with AM/PM or 24-hour).")
+                </ApiParameter>
+                <ApiParameter Name="ShowSeconds" Type="bool" Default="false">
+                    @L.T("是否显示秒选择器。", "Whether to show the seconds selector.")
+                </ApiParameter>
+                <ApiParameter Name="MinuteStep" Type="int" Default="1">
+                    @L.T("分钟步进间隔。", "The minute step interval.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("日期时间选择器是否被禁用。", "Whether the date time picker is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">
+                    @L.T("日期时间选择器是否为必填。", "Whether the date time picker is required.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("附加到触发按钮上的 CSS 类。", "Additional CSS classes for the trigger button.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+
+    <LocalizationSection
+        Description="@(L.T("日期时间选择器的占位文案、时间选择器标签与操作按钮都可以配置。", "The date time picker placeholder, time selector labels, and action buttons are configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("Placeholder", "Pick a date and time", L.T("未选择值时显示的占位文案", "Placeholder text when no value is selected")),
+            new("Hour", "Hour", L.T("小时选择器上方的标签", "Label above the hour selector")),
+            new("Minute", "Min", L.T("分钟选择器上方的标签", "Label above the minute selector")),
+            new("Second", "Sec", L.T("秒选择器上方的标签", "Label above the second selector")),
+            new("Now", "Now", L.T("把值设为当前日期与时间的按钮", "Button that sets the value to the current date and time")),
+            new("Clear", "Clear", L.T("清空已选值的按钮", "Button that clears the selected value")),
+        })"
+        CultureAware="true"
+        CultureDescription="@(L.T("内部日历使用 CultureInfo.CurrentCulture 来渲染月份与星期名称。DateTimeFormat 参数接受遵循当前区域设置的 .NET 标准格式字符串。", "The internal calendar uses CultureInfo.CurrentCulture for month/day names. The DateTimeFormat parameter accepts standard .NET format strings that respect the current culture."))"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""DateTimePicker.Placeholder"", ""Datum und Uhrzeit auswählen"");
+});")" />
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private DateTime? _basicValue;
+    private DateTime? _hour24Value;
+    private DateTime? _secondsValue;
+    private DateTime? _step5Value;
+    private DateTime? _step15Value;
+    private DateTime? _formatValue;
+    private DateTime? _rangeValue;
+    private DateTime? _noWeekendsValue;
+
+    private bool IsWeekend(DateTime date)
+    {
+        return date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
+    }
+
+    private DateTimeFormModel _formModel = new();
+    private string? _formMessage;
+
+    private void HandleFormSubmit()
+    {
+        _formMessage = L.IsChinese
+            ? $"表单已提交！预约时间：{_formModel.Appointment?.ToString("g")}"
+            : $"Form submitted! Appointment: {_formModel.Appointment?.ToString("g")}";
+    }
+
+    private void ResetForm()
+    {
+        _formModel = new();
+        _formMessage = null;
+    }
+
+    private class DateTimeFormModel
+    {
+        [Required(ErrorMessage = "Please select an appointment time.")]
+        public DateTime? Appointment { get; set; }
+    }
+}

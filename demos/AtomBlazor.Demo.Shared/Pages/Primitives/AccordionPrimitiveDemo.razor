@@ -1,0 +1,424 @@
+@page "/primitives/accordion"
+
+<PageTitle>@L.T("Accordion 手风琴基础构件 - Atom BlazorUI", "Accordion Primitive - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Accordion 手风琴基础构件", "Accordion Primitive")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("无头、无样式的手风琴基础构件，内置键盘支持与 ARIA 属性。", "Headless, unstyled accordion primitive with keyboard support and ARIA attributes.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("无头基础构件", "Basic Headless Primitive")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("最基础的手风琴，不带任何样式，演示纯粹的无头行为。", "The most basic accordion with no styling. Demonstrates the raw, headless behavior.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 max-w-md">
+                <AtomBlazor.Primitives.AccordionPrimitive DefaultValue="@(new HashSet<string> { "item-1" })" class="border rounded">
+                    <AtomBlazor.Primitives.AccordionItem Value="item-1" class="border-b last:border-0">
+                        <AtomBlazor.Primitives.AccordionTrigger class="w-full p-4 text-left cursor-pointer hover:bg-muted/50">
+                            @L.T("可以自定义吗？", "Is it customizable?")
+                        </AtomBlazor.Primitives.AccordionTrigger>
+                        <AtomBlazor.Primitives.AccordionContent class="p-4 pt-0">
+                            @L.T("可以。它内置了 ARIA 属性与键盘支持。", "Yes. It includes ARIA attributes and keyboard support.")
+                        </AtomBlazor.Primitives.AccordionContent>
+                    </AtomBlazor.Primitives.AccordionItem>
+
+                    <AtomBlazor.Primitives.AccordionItem Value="item-2" class="border-b last:border-0">
+                        <AtomBlazor.Primitives.AccordionTrigger class="w-full p-4 text-left cursor-pointer hover:bg-muted/50">
+                            @L.T("自带样式吗？", "Is it styled?")
+                        </AtomBlazor.Primitives.AccordionTrigger>
+                        <AtomBlazor.Primitives.AccordionContent class="p-4 pt-0">
+                            @L.T("不带。它是一个无头基础构件，只提供行为、不做任何样式。", "No. It's a headless primitive that provides behavior without any styling.")
+                        </AtomBlazor.Primitives.AccordionContent>
+                    </AtomBlazor.Primitives.AccordionItem>
+
+                    <AtomBlazor.Primitives.AccordionItem Value="item-3" class="border-b last:border-0">
+                        <AtomBlazor.Primitives.AccordionTrigger class="w-full p-4 text-left cursor-pointer hover:bg-muted/50">
+                            @L.T("可以做动画吗？", "Can it be animated?")
+                        </AtomBlazor.Primitives.AccordionTrigger>
+                        <AtomBlazor.Primitives.AccordionContent class="p-4 pt-0">
+                            @L.T("可以！你可以用 CSS 或 JavaScript 为展开/收起过程添加动画。", "Yes! You can animate the open/close transition using CSS or JavaScript.")
+                        </AtomBlazor.Primitives.AccordionContent>
+                    </AtomBlazor.Primitives.AccordionItem>
+                </AtomBlazor.Primitives.AccordionPrimitive>
+            </div>
+
+            <CodeBlock Source="Primitives/Accordion/basic.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("受控状态", "Controlled State")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("使用 @@bind-Value 以编程方式控制哪些条目处于展开状态。", "Control which items are open programmatically using @@bind-Value.")
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex gap-2">
+                    <button @onclick="OpenFirstItem"
+                            class="px-3 py-2 border rounded text-sm">
+                        @L.T("展开条目 1", "Open Item 1")
+                    </button>
+                    <button @onclick="OpenSecondItem"
+                            class="px-3 py-2 border rounded text-sm">
+                        @L.T("展开条目 2", "Open Item 2")
+                    </button>
+                    <button @onclick="CloseAll"
+                            class="px-3 py-2 border rounded text-sm">
+                        @L.T("全部关闭", "Close All")
+                    </button>
+                </div>
+
+                <p class="text-sm text-muted-foreground">
+                    @if (L.IsChinese)
+                    {
+                        <text>已展开条目：<strong>@string.Join(", ", controlledValue)</strong></text>
+                    }
+                    else
+                    {
+                        <text>Open items: <strong>@string.Join(", ", controlledValue)</strong></text>
+                    }
+                </p>
+
+                <div class="rounded-lg border bg-card p-6 max-w-md">
+                    <AtomBlazor.Primitives.AccordionPrimitive @bind-Value="controlledValue" Type="AccordionType.Single" Collapsible="true" class="border rounded">
+                        <AtomBlazor.Primitives.AccordionItem Value="controlled-1" class="border-b last:border-0">
+                            <AtomBlazor.Primitives.AccordionTrigger class="w-full p-4 text-left cursor-pointer hover:bg-muted/50">
+                                @L.T("受控条目 1", "Controlled Item 1")
+                            </AtomBlazor.Primitives.AccordionTrigger>
+                            <AtomBlazor.Primitives.AccordionContent class="p-4 pt-0">
+                                @L.T("该条目的状态由外部控制。", "This item's state is controlled externally.")
+                            </AtomBlazor.Primitives.AccordionContent>
+                        </AtomBlazor.Primitives.AccordionItem>
+
+                        <AtomBlazor.Primitives.AccordionItem Value="controlled-2" class="border-b last:border-0">
+                            <AtomBlazor.Primitives.AccordionTrigger class="w-full p-4 text-left cursor-pointer hover:bg-muted/50">
+                                @L.T("受控条目 2", "Controlled Item 2")
+                            </AtomBlazor.Primitives.AccordionTrigger>
+                            <AtomBlazor.Primitives.AccordionContent class="p-4 pt-0">
+                                @L.T("用上方的按钮控制哪个条目处于展开状态。", "Use the buttons above to control which item is open.")
+                            </AtomBlazor.Primitives.AccordionContent>
+                        </AtomBlazor.Primitives.AccordionItem>
+                    </AtomBlazor.Primitives.AccordionPrimitive>
+                </div>
+
+                <CodeBlock Source="Primitives/Accordion/controlled.txt" />
+            </div>
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("单选模式（可收起）", "Single Mode (Collapsible)")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("在开启可收起的单选模式下，点击已展开的条目会将其关闭，使所有条目都处于收起状态。", "In single mode with collapsible enabled, clicking an open item closes it, leaving all items closed.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 max-w-md">
+                <AtomBlazor.Primitives.AccordionPrimitive Type="AccordionType.Single" Collapsible="true" class="border rounded">
+                    <AtomBlazor.Primitives.AccordionItem Value="item-1" class="border-b last:border-0">
+                        <AtomBlazor.Primitives.AccordionTrigger class="w-full p-4 text-left cursor-pointer hover:bg-muted/50">@L.T("条目 1", "Item 1")</AtomBlazor.Primitives.AccordionTrigger>
+                        <AtomBlazor.Primitives.AccordionContent class="p-4 pt-0">
+                            @L.T("内容 1 - 再次点击可收起。", "Content 1 - Click again to collapse.")
+                        </AtomBlazor.Primitives.AccordionContent>
+                    </AtomBlazor.Primitives.AccordionItem>
+
+                    <AtomBlazor.Primitives.AccordionItem Value="item-2" class="border-b last:border-0">
+                        <AtomBlazor.Primitives.AccordionTrigger class="w-full p-4 text-left cursor-pointer hover:bg-muted/50">@L.T("条目 2", "Item 2")</AtomBlazor.Primitives.AccordionTrigger>
+                        <AtomBlazor.Primitives.AccordionContent class="p-4 pt-0">
+                            @L.T("内容 2 - 再次点击可收起。", "Content 2 - Click again to collapse.")
+                        </AtomBlazor.Primitives.AccordionContent>
+                    </AtomBlazor.Primitives.AccordionItem>
+                </AtomBlazor.Primitives.AccordionPrimitive>
+            </div>
+
+            <CodeBlock Source="Primitives/Accordion/single-collapsible.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("多选模式", "Multiple Mode")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("在多选模式下，多个条目可以同时处于展开状态。", "In multiple mode, multiple items can be open at the same time.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 max-w-md">
+                <AtomBlazor.Primitives.AccordionPrimitive Type="AccordionType.Multiple" class="border rounded" DefaultValue="@(new HashSet<string> { "multiple-1" })">
+                    <AtomBlazor.Primitives.AccordionItem Value="multiple-1" class="border-b last:border-0">
+                        <AtomBlazor.Primitives.AccordionTrigger class="w-full p-4 text-left cursor-pointer hover:bg-muted/50">@L.T("第一节", "First Section")</AtomBlazor.Primitives.AccordionTrigger>
+                        <AtomBlazor.Primitives.AccordionContent class="p-4 pt-0">
+                            @L.T("它可以与其他小节同时展开。", "This can be open alongside other sections.")
+                        </AtomBlazor.Primitives.AccordionContent>
+                    </AtomBlazor.Primitives.AccordionItem>
+
+                    <AtomBlazor.Primitives.AccordionItem Value="multiple-2" class="border-b last:border-0">
+                        <AtomBlazor.Primitives.AccordionTrigger class="w-full p-4 text-left cursor-pointer hover:bg-muted/50">@L.T("第二节", "Second Section")</AtomBlazor.Primitives.AccordionTrigger>
+                        <AtomBlazor.Primitives.AccordionContent class="p-4 pt-0">
+                            @L.T("同时展开两个小节，就能一起查看它们。", "Open both sections at once to see them together.")
+                        </AtomBlazor.Primitives.AccordionContent>
+                    </AtomBlazor.Primitives.AccordionItem>
+
+                    <AtomBlazor.Primitives.AccordionItem Value="multiple-3" class="border-b last:border-0">
+                        <AtomBlazor.Primitives.AccordionTrigger class="w-full p-4 text-left cursor-pointer hover:bg-muted/50">@L.T("第三节", "Third Section")</AtomBlazor.Primitives.AccordionTrigger>
+                        <AtomBlazor.Primitives.AccordionContent class="p-4 pt-0">
+                            @L.T("在多选模式下，三节可以同时全部展开。", "All three can be open simultaneously in multiple mode.")
+                        </AtomBlazor.Primitives.AccordionContent>
+                    </AtomBlazor.Primitives.AccordionItem>
+                </AtomBlazor.Primitives.AccordionPrimitive>
+            </div>
+
+            <CodeBlock Source="Primitives/Accordion/multiple.txt" />
+        </section>
+
+        <AccessibilityList>
+            <AriaAttributes>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="region"</code> 用在内容面板上，便于读屏软件识别
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="region"</code> on content panels for screen readers
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> 标明展开/收起状态
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> indicates open/closed state
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-controls</code> 把触发器关联到内容
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-controls</code> links trigger to content
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-labelledby</code> 把内容关联到触发器
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-labelledby</code> links content to trigger
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled</code> 用在被禁用的条目上
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled</code> on disabled items
+                        </text>
+                    }
+                </AccessibilityItem>
+            </AriaAttributes>
+            <KeyboardNavigation>
+                <KeyboardShortcutItem Description="@(L.T("移到各个触发器", "Navigate to triggers"))">
+                    <Kbd>Tab</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("展开或收起手风琴条目", "Toggle accordion item"))">
+                    <Kbd>Enter</Kbd>
+                    <span class="text-muted-foreground">@L.T("或", "or")</span>
+                    <Kbd>Space</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("在各个触发器之间移动", "Navigate between triggers"))">
+                    <Kbd>&#8593;</Kbd>
+                    <Kbd>&#8595;</Kbd>
+                </KeyboardShortcutItem>
+            </KeyboardNavigation>
+        </AccessibilityList>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+                <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+            </div>
+            <div class="space-y-4">
+                <ApiReference ComponentName="Accordion">
+                    <ApiParameter Name="Type" Type="AccordionType" Default="AccordionType.Single">
+                        @L.T("决定同一时刻可以展开一个还是多个条目（Single | Multiple）。", "Determines if one or multiple items can be open at once (Single | Multiple).")
+                    </ApiParameter>
+                    <ApiParameter Name="Collapsible" Type="bool" Default="false">
+                        @L.T("在 Single 模式下为 true 时，允许关闭所有条目。", "When true in Single mode, allows closing all items.")
+                    </ApiParameter>
+                    <ApiParameter Name="DefaultValue" Type="HashSet&lt;string&gt;">
+                        @L.T("非受控模式下初始展开的条目。", "Initial open items when in uncontrolled mode.")
+                    </ApiParameter>
+                    <ApiParameter Name="Value" Type="HashSet&lt;string&gt;">
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                决定哪些条目处于展开状态（受控模式）。与 <code>@@bind-Value</code> 搭配使用。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Controls which items are open (controlled mode). Use with <code>@@bind-Value</code>.
+                            </text>
+                        }
+                    </ApiParameter>
+                    <ApiParameter Name="ValueChanged" Type="EventCallback&lt;HashSet&lt;string&gt;&gt;">
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                展开条目发生变化时调用的回调。与 <code>@@bind-Value</code> 搭配使用。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Callback invoked when the open items change. Used with <code>@@bind-Value</code>.
+                            </text>
+                        }
+                    </ApiParameter>
+                    <ApiParameter Name="OnValueChange" Type="EventCallback&lt;HashSet&lt;string&gt;&gt;">
+                        @L.T("展开条目发生变化时调用的额外回调。", "Additional callback invoked when the open items change.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                要渲染的子内容。应包含 <code>AccordionItem</code> 组件。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                The child content to render. Should contain <code>AccordionItem</code> components.
+                            </text>
+                        }
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                应用到根 div 元素上的额外 HTML 属性（例如 <code>class</code>、<code>style</code>）。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Additional HTML attributes applied to the root div element (e.g. <code>class</code>, <code>style</code>).
+                            </text>
+                        }
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="AccordionItem">
+                    <ApiParameter Name="Value" Type="string">
+                        @L.T("该手风琴条目的唯一标识，必填。", "Unique identifier for this accordion item. Required.")
+                    </ApiParameter>
+                    <ApiParameter Name="Disabled" Type="bool" Default="false">
+                        @L.T("为 true 时禁止与该条目交互。", "Prevents interaction with this item when true.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                子内容。应包含 <code>AccordionTrigger</code> 和 <code>AccordionContent</code>。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                The child content. Should contain <code>AccordionTrigger</code> and <code>AccordionContent</code>.
+                            </text>
+                        }
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到条目容器 div 元素上的额外 HTML 属性。", "Additional HTML attributes applied to the item container div element.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="AccordionTrigger">
+                    <ApiParameter Name="Class" Type="string?">
+                        @L.T("应用到触发按钮元素上的 CSS 类。", "CSS classes to apply to the trigger button element.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("触发按钮的内容。", "The trigger button content.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到触发按钮元素上的额外 HTML 属性。", "Additional HTML attributes applied to the trigger button element.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="AccordionContent">
+                    <ApiParameter Name="ForceMount" Type="bool" Default="false">
+                        @L.T("为 true 时，即使收起也保持内容挂载（便于做 CSS 动画）。", "When true, content stays mounted even when closed (useful for CSS animations).")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("条目展开时渲染的面板内容。", "The panel content rendered when the item is open.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到内容区域元素上的额外 HTML 属性。", "Additional HTML attributes applied to the content region element.")
+                    </ApiParameter>
+                </ApiReference>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private HashSet<string> controlledValue = new();
+
+    private void OpenFirstItem()
+    {
+        controlledValue = new HashSet<string> { "controlled-1" };
+    }
+
+    private void OpenSecondItem()
+    {
+        controlledValue = new HashSet<string> { "controlled-2" };
+    }
+
+    private void CloseAll()
+    {
+        controlledValue = new HashSet<string>();
+    }
+}

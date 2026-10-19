@@ -1,0 +1,23 @@
+@* Group on the real value and label it afterwards. Grouping on the formatted string
+   would sort the months alphabetically: Apr, Aug, Dec. *@
+<PivotField TItem="Sale" Title="Month" Value="@(s => s.Month)"
+              Label="@(v => CultureInfo.CurrentCulture.DateTimeFormat
+                              .GetAbbreviatedMonthName((int)v!))" />
+
+@* A bucket needs its own order, because Large, Medium, Small is not the one wanted. *@
+<PivotField TItem="Sale" Title="Order size" Value="@(s => Band(s.Amount))"
+              Comparer="@bandOrder" />
+
+@code {
+    private static readonly string[] Bands = ["Small", "Medium", "Large"];
+
+    private readonly IComparer<object?> bandOrder = Comparer<object?>.Create((a, b) =>
+        Array.IndexOf(Bands, a?.ToString()).CompareTo(Array.IndexOf(Bands, b?.ToString())));
+
+    private static string Band(decimal amount) => amount switch
+    {
+        < 500m => "Small",
+        < 2000m => "Medium",
+        _ => "Large",
+    };
+}

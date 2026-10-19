@@ -1,0 +1,638 @@
+@page "/components/toast"
+@inject ToastService ToastService
+
+<PageTitle>@L.T("Toast 吐司提示组件 - Atom BlazorUI", "Toast Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Toast 吐司提示组件", "Toast Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("临时显示、用于通知用户的简短消息。", "A succinct message that is displayed temporarily to notify users.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Setup Instructions -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("配置", "Setup")</h2>
+            <p class="text-sm text-muted-foreground">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        把 ToastProvider 添加到你的根布局中。调用 <code class="text-xs bg-muted px-1 py-0.5 rounded">AddAtomBlazorComponents()</code> 时，ToastService 会自动注册。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Add the ToastProvider to your root layout. The ToastService is automatically registered when you call <code class="text-xs bg-muted px-1 py-0.5 rounded">AddAtomBlazorComponents()</code>.
+                    </text>
+                }
+            </p>
+        </div>
+        <div class="border rounded-lg p-6 space-y-4 bg-muted/50">
+            <p class="text-sm font-medium">@L.T("在布局中添加 ToastProvider：", "Add ToastProvider to your layout:")</p>
+            <pre class="text-sm bg-muted p-3 rounded overflow-x-auto"><code>&lt;ToastProvider Position="ToastPosition.BottomRight" PauseOnHover="true" /&gt;</code></pre>
+        </div>
+    </div>
+
+    <!-- Basic Examples -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本示例", "Basic Examples")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("点击按钮触发不同的吐司提示消息。", "Click the buttons to trigger different toast messages.")
+            </p>
+        </div>
+        <div class="flex flex-wrap gap-4">
+            <Button OnClick="@ShowDefaultToast">
+                @L.T("显示提示", "Show Toast")
+            </Button>
+            <Button Variant="ButtonVariant.Outline" OnClick="@ShowTitleToast">
+                @L.T("带标题", "With Title")
+            </Button>
+            <Button Variant="ButtonVariant.Destructive" OnClick="@ShowErrorToast">
+                @L.T("错误提示", "Error Toast")
+            </Button>
+        </div>
+
+        <CodeBlock Source="Components/Toast/basic.txt" />
+    </div>
+
+    <!-- Toast Variants -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("样式变体", "Variants")</h2>
+            <p class="text-sm text-muted-foreground">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        吐司提示共有 5 种变体，语义化变体会自动显示对应图标。为便于调用，请使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">ToastService</code> 上的工厂方法。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Toasts come in 5 variants, each with automatic icons for semantic variants. Use the factory methods on <code class="text-xs bg-muted px-1 py-0.5 rounded">ToastService</code> for convenience.
+                    </text>
+                }
+            </p>
+        </div>
+        <div class="flex flex-wrap gap-4">
+            <Button Variant="ButtonVariant.Outline" OnClick="@(() => ToastService.Show("A general notification.", "Default"))">
+                Default
+            </Button>
+            <Button Variant="ButtonVariant.Secondary" OnClick="@(() => ToastService.Success("Your changes have been saved.", "Success"))">
+                Success
+            </Button>
+            <Button Variant="ButtonVariant.Secondary" OnClick="@(() => ToastService.Info("A new version is available.", "Info"))">
+                Info
+            </Button>
+            <Button Variant="ButtonVariant.Secondary" OnClick="@(() => ToastService.Warning("Your session is about to expire.", "Warning"))">
+                Warning
+            </Button>
+            <Button Variant="ButtonVariant.Destructive" OnClick="@(() => ToastService.Error("Something went wrong.", "Error"))">
+                Error
+            </Button>
+        </div>
+
+        <CodeBlock Source="Components/Toast/variants.txt" />
+    </div>
+
+    <!-- Compact Size -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("紧凑尺寸", "Compact Size")</h2>
+            <p class="text-sm text-muted-foreground">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">ToastSize.Compact</code> 可获得内边距与字号都更小的吐司提示，适合嵌入对话框或信息密集的布局。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Use <code class="text-xs bg-muted px-1 py-0.5 rounded">ToastSize.Compact</code> for smaller toasts with reduced padding and font sizes. Ideal for dialog-embedded or dense layouts.
+                    </text>
+                }
+            </p>
+        </div>
+        <div class="flex flex-wrap gap-4">
+            <Button Variant="ButtonVariant.Outline" OnClick="@ShowCompactToast">
+                @L.T("紧凑提示", "Compact Toast")
+            </Button>
+            <Button Variant="ButtonVariant.Outline" OnClick="@ShowCompactSuccessToast">
+                @L.T("紧凑成功提示", "Compact Success")
+            </Button>
+            <Button Variant="ButtonVariant.Outline" OnClick="@ShowCompactWithAction">
+                @L.T("带操作的紧凑提示", "Compact with Action")
+            </Button>
+        </div>
+
+        <CodeBlock Source="Components/Toast/compact.txt" />
+    </div>
+
+    <!-- Auto Icons -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自动图标", "Auto Icons")</h2>
+            <p class="text-sm text-muted-foreground">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        语义化变体（Success、Info、Warning、Destructive）会自动显示图标。设置 <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowIcon = false</code> 即可隐藏它们。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Semantic variants (Success, Info, Warning, Destructive) automatically display icons. Set <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowIcon = false</code> to hide them.
+                    </text>
+                }
+            </p>
+        </div>
+        <div class="flex flex-wrap gap-4">
+            <Button Variant="ButtonVariant.Secondary" OnClick="@(() => ToastService.Success("With auto icon.", "Success"))">
+                @L.T("带图标", "With Icon")
+            </Button>
+            <Button Variant="ButtonVariant.Outline" OnClick="@ShowNoIconToast">
+                @L.T("不带图标", "Without Icon")
+            </Button>
+        </div>
+
+        <CodeBlock Source="Components/Toast/auto-icons.txt" />
+    </div>
+
+    <!-- With Action -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带操作", "With Action")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("吐司提示可以包含一个操作按钮。", "Toasts can include an action button.")
+            </p>
+        </div>
+        <Button OnClick="@ShowActionToast">
+            @L.T("显示带操作的提示", "Show with Action")
+        </Button>
+
+        <CodeBlock Source="Components/Toast/with-action.txt" />
+    </div>
+
+    <!-- Position Options -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("位置", "Position")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("通过 ToastProvider 配置吐司提示在屏幕上的出现位置，也可以按单条提示覆盖。", "Configure where toasts appear on the screen via the ToastProvider, or override per-toast.")
+            </p>
+        </div>
+        <div class="border rounded-lg p-6 space-y-4 bg-muted/50">
+            <p class="text-sm font-medium">@L.T("Provider 位置（所有提示）：", "Provider position (all toasts):")</p>
+            <div class="grid grid-cols-3 gap-2 text-center text-sm">
+                @foreach (var pos in positions)
+                {
+                    <Button Variant="@(selectedPosition == pos.Value ? ButtonVariant.Default : ButtonVariant.Outline)"
+                            OnClick="@(() => ShowPositionToast(pos.Value))">
+                        @pos.Label
+                    </Button>
+                }
+            </div>
+            <p class="text-sm font-medium mt-4">@L.T("单条提示的位置覆盖：", "Per-toast position override:")</p>
+            <Button Variant="ButtonVariant.Outline" OnClick="@ShowPerToastPosition">
+                @L.T("在左上方显示", "Show in Top-Left")
+            </Button>
+            <pre class="text-sm bg-muted p-3 rounded overflow-x-auto"><code>&lt;ToastProvider Position="ToastPosition.@(selectedPosition)" /&gt;</code></pre>
+        </div>
+
+        <CodeBlock Source="Components/Toast/position.txt" />
+    </div>
+
+    <!-- Countdown Bar -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("倒计时进度条", "Countdown Bar")</h2>
+            <p class="text-sm text-muted-foreground">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        在吐司提示底部显示可视化的倒计时进度条。可通过 ToastProvider 上的 <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowCountdown</code> 全局启用，或按单条提示通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">ToastData.ShowCountdown</code> 设置。鼠标悬停在提示上时进度条会暂停。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Show a visual countdown progress bar at the bottom of the toast. Enable globally via <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowCountdown</code> on ToastProvider, or per-toast via <code class="text-xs bg-muted px-1 py-0.5 rounded">ToastData.ShowCountdown</code>. The bar pauses when you hover over the toast.
+                    </text>
+                }
+            </p>
+        </div>
+        <div class="flex flex-wrap gap-4">
+            <Button Variant="ButtonVariant.Outline" OnClick="@ShowCountdownToast">
+                @L.T("带倒计时", "With Countdown")
+            </Button>
+            <Button Variant="ButtonVariant.Outline" OnClick="@ShowCountdownSuccessToast">
+                @L.T("带倒计时的成功提示", "Success with Countdown")
+            </Button>
+            <Button Variant="ButtonVariant.Outline" OnClick="@ShowCountdownLongToast">
+                @L.T("10 秒倒计时", "10s Countdown")
+            </Button>
+        </div>
+
+        <CodeBlock Source="Components/Toast/countdown.txt" />
+    </div>
+
+    <!-- Custom Duration -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义时长", "Custom Duration")</h2>
+            <p class="text-sm text-muted-foreground">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        控制吐司提示的显示时长。把鼠标移到提示上可暂停其自动消失计时（需启用 <code class="text-xs bg-muted px-1 py-0.5 rounded">PauseOnHover</code>）。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Control how long the toast is displayed. Hover over a toast to pause its auto-dismiss timer (when <code class="text-xs bg-muted px-1 py-0.5 rounded">PauseOnHover</code> is enabled).
+                    </text>
+                }
+            </p>
+        </div>
+        <div class="flex flex-wrap gap-4">
+            <Button Variant="ButtonVariant.Outline" OnClick="@(() => ToastService.Show("This disappears quickly!", duration: 2000))">
+                @L.T("2 秒", "2 seconds")
+            </Button>
+            <Button Variant="ButtonVariant.Outline" OnClick="@(() => ToastService.Show("This stays longer.", duration: 10000))">
+                @L.T("10 秒", "10 seconds")
+            </Button>
+            <Button Variant="ButtonVariant.Outline" OnClick="@ShowPersistentToast">
+                @L.T("常驻（不自动消失）", "Persistent (no auto-dismiss)")
+            </Button>
+        </div>
+
+        <CodeBlock Source="Components/Toast/custom-duration.txt" />
+    </div>
+
+    <!-- Programmatic Control -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("编程控制", "Programmatic Control")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("以代码方式关闭吐司提示。", "Dismiss toasts programmatically.")
+            </p>
+        </div>
+        <div class="flex flex-wrap gap-4">
+            <Button Variant="ButtonVariant.Outline" OnClick="@ShowMultipleToasts">
+                @L.T("显示 3 条提示", "Show 3 Toasts")
+            </Button>
+            <Button Variant="ButtonVariant.Secondary" OnClick="@(() => ToastService.DismissAll())">
+                @L.T("关闭全部", "Dismiss All")
+            </Button>
+        </div>
+
+        <CodeBlock Source="Components/Toast/programmatic-control.txt" />
+    </div>
+
+    <!-- Custom Styling -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义样式", "Custom Styling")</h2>
+            <p class="text-sm text-muted-foreground">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">ToastData</code> 上的 <code class="text-xs bg-muted px-1 py-0.5 rounded">Class</code> 属性创建自定义样式的吐司提示。TailwindMerge 会确保你的类覆盖内置变体样式。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Use the <code class="text-xs bg-muted px-1 py-0.5 rounded">Class</code> property on <code class="text-xs bg-muted px-1 py-0.5 rounded">ToastData</code> to create custom-styled toasts. TailwindMerge ensures your classes override the built-in variant styles.
+                    </text>
+                }
+            </p>
+        </div>
+        <div class="flex flex-wrap gap-4">
+            <Button Variant="ButtonVariant.Outline" OnClick="@ShowBrandStyledToast">
+                @L.T("品牌样式", "Brand Style")
+            </Button>
+        </div>
+
+        <CodeBlock Source="Components/Toast/custom-styling.txt" />
+    </div>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        每条提示都使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="alert"</code>，向辅助技术播报通知内容
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Each toast uses <code class="text-xs bg-muted px-1 py-0.5 rounded">role="alert"</code> to announce notifications to assistive technology
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        关闭按钮包含 <code class="text-xs bg-muted px-1 py-0.5 rounded">sr-only</code> 文本（"Close"），供屏幕阅读器朗读
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Close button includes <code class="text-xs bg-muted px-1 py-0.5 rounded">sr-only</code> text ("Close") for screen readers
+                    </text>
+                }
+            </AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("移动到操作/关闭按钮", "Navigate to action/close buttons"))">
+                <Kbd>Tab</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("激活获得焦点的按钮", "Activate the focused button"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件的属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="ToastService Methods">
+                <ApiParameter Name="Show(ToastData toast)" Type="void">
+                    @L.T("以完全控制权显示一条提示", "Show a toast with full control")
+                </ApiParameter>
+                <ApiParameter Name="Show(description, title?, variant?, duration?)" Type="void">
+                    @L.T("快捷显示提示", "Quick toast")
+                </ApiParameter>
+                <ApiParameter Name="Success(description, title?)" Type="void">
+                    @L.T("显示成功提示（绿色强调色、圆形对勾图标）", "Show success toast (green accent, circle-check icon)")
+                </ApiParameter>
+                <ApiParameter Name="Info(description, title?)" Type="void">
+                    @L.T("显示信息提示（蓝色强调色、信息图标）", "Show info toast (blue accent, info icon)")
+                </ApiParameter>
+                <ApiParameter Name="Warning(description, title?)" Type="void">
+                    @L.T("显示警告提示（琥珀色强调色、三角警告图标）", "Show warning toast (amber accent, triangle-alert icon)")
+                </ApiParameter>
+                <ApiParameter Name="Error(description, title?)" Type="void">
+                    @L.T("显示错误提示（红色强调色、圆形叉号图标）", "Show error toast (red accent, circle-x icon)")
+                </ApiParameter>
+                <ApiParameter Name="Dismiss(id)" Type="void">
+                    @L.T("关闭指定的提示", "Dismiss specific toast")
+                </ApiParameter>
+                <ApiParameter Name="DismissAll()" Type="void">
+                    @L.T("关闭全部提示", "Dismiss all toasts")
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="ToastProvider">
+                <ApiParameter Name="Position" Type="ToastPosition" Default="BottomRight">
+                    @L.T("提示出现的位置（TopRight、TopLeft、TopCenter、BottomRight、BottomLeft、BottomCenter）", "Where toasts appear (TopRight, TopLeft, TopCenter, BottomRight, BottomLeft, BottomCenter)")
+                </ApiParameter>
+                <ApiParameter Name="MaxToasts" Type="int" Default="5">
+                    @L.T("最多同时显示的提示数量。", "Maximum visible toasts.")
+                </ApiParameter>
+                <ApiParameter Name="PauseOnHover" Type="bool" Default="true">
+                    @L.T("鼠标悬停在提示上时暂停自动消失。", "Pause auto-dismiss when the mouse hovers over a toast.")
+                </ApiParameter>
+                <ApiParameter Name="ShowCountdown" Type="bool" Default="false">
+                    @L.T("为所有提示显示可视化倒计时进度条。单条提示可通过 ToastData.ShowCountdown 覆盖。", "Show a visual countdown progress bar on all toasts. Individual toasts can override via ToastData.ShowCountdown.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            应用到根 <code>&lt;div&gt;</code> 元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="ToastData">
+                <ApiParameter Name="Title" Type="string?">
+                    @L.T("可选的标题文本", "Optional title text")
+                </ApiParameter>
+                <ApiParameter Name="Description" Type="string">
+                    @L.T("主要消息内容", "Main message content")
+                </ApiParameter>
+                <ApiParameter Name="Variant" Type="ToastVariant" Default="Default">
+                    @L.T("Default、Success、Info、Warning 或 Destructive", "Default, Success, Info, Warning, or Destructive")
+                </ApiParameter>
+                <ApiParameter Name="Size" Type="ToastSize" Default="Default">
+                    @L.T("Default 或 Compact", "Default or Compact")
+                </ApiParameter>
+                <ApiParameter Name="Position" Type="ToastPosition?">
+                    @L.T("单条提示的位置覆盖。设置后会渲染在独立的容器中。", "Per-toast position override. When set, renders in a separate container.")
+                </ApiParameter>
+                <ApiParameter Name="ShowIcon" Type="bool" Default="true">
+                    @L.T("显示对应变体的图标（Default 变体没有图标）。", "Show variant-specific icon (Default variant has no icon).")
+                </ApiParameter>
+                <ApiParameter Name="Duration" Type="int" Default="5000">
+                    @L.T("自动消失的时间，单位毫秒（0 表示不自动消失）。", "Auto-dismiss time in ms (0 for no auto-dismiss).")
+                </ApiParameter>
+                <ApiParameter Name="ShowClose" Type="bool" Default="true">
+                    @L.T("显示关闭按钮。", "Show close button.")
+                </ApiParameter>
+                <ApiParameter Name="ActionText" Type="string?">
+                    @L.T("可选的操作按钮文本", "Optional action button text")
+                </ApiParameter>
+                <ApiParameter Name="OnAction" Type="Action?">
+                    @L.T("操作按钮的回调", "Action button callback")
+                </ApiParameter>
+                <ApiParameter Name="ShowCountdown" Type="bool?" Default="null">
+                    @L.T("显示倒计时进度条。为 null 时采用 ToastProvider 的 ShowCountdown 设置。", "Show countdown bar. When null, uses ToastProvider's ShowCountdown setting.")
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private ToastPosition selectedPosition = ToastPosition.BottomRight;
+
+    private readonly record struct PositionOption(string Label, ToastPosition Value);
+
+    private static readonly PositionOption[] positions =
+    [
+        new("TopLeft", ToastPosition.TopLeft),
+        new("TopCenter", ToastPosition.TopCenter),
+        new("TopRight", ToastPosition.TopRight),
+        new("BottomLeft", ToastPosition.BottomLeft),
+        new("BottomCenter", ToastPosition.BottomCenter),
+        new("BottomRight (default)", ToastPosition.BottomRight),
+    ];
+
+    private void ShowPositionToast(ToastPosition position)
+    {
+        selectedPosition = position;
+        ToastService.SetPosition(position);
+        ToastService.Show($"Position set to {position}");
+    }
+
+    private void ShowDefaultToast()
+    {
+        ToastService.Show("Your message has been sent.");
+    }
+
+    private void ShowTitleToast()
+    {
+        ToastService.Show("Friday, February 10, 2023 at 5:57 PM", "Scheduled: Catch up");
+    }
+
+    private void ShowErrorToast()
+    {
+        ToastService.Error("There was a problem with your request.", "Uh oh! Something went wrong.");
+    }
+
+    private void ShowActionToast()
+    {
+        ToastService.Show(new ToastData
+        {
+            Title = "Undo action",
+            Description = "Your post has been deleted.",
+            ActionText = "Undo",
+            OnAction = () => ToastService.Success("Post restored!")
+        });
+    }
+
+    private void ShowPersistentToast()
+    {
+        ToastService.Show(new ToastData
+        {
+            Title = "Persistent Toast",
+            Description = "This toast won't auto-dismiss. Click X to close.",
+            Duration = 0
+        });
+    }
+
+    private void ShowMultipleToasts()
+    {
+        ToastService.Show("First notification");
+        ToastService.Info("Second notification is informational", "Info");
+        ToastService.Error("Third notification is an error");
+    }
+
+    private void ShowCompactToast()
+    {
+        ToastService.Show(new ToastData
+        {
+            Title = "Compact",
+            Description = "A smaller toast with reduced padding.",
+            Size = ToastSize.Compact
+        });
+    }
+
+    private void ShowCompactSuccessToast()
+    {
+        ToastService.Show(new ToastData
+        {
+            Title = "Saved",
+            Description = "Your changes have been saved.",
+            Variant = ToastVariant.Success,
+            Size = ToastSize.Compact
+        });
+    }
+
+    private void ShowCompactWithAction()
+    {
+        ToastService.Show(new ToastData
+        {
+            Title = "Deleted",
+            Description = "Item removed.",
+            Variant = ToastVariant.Destructive,
+            Size = ToastSize.Compact,
+            ActionText = "Undo",
+            OnAction = () => ToastService.Success("Item restored!")
+        });
+    }
+
+    private void ShowNoIconToast()
+    {
+        ToastService.Show(new ToastData
+        {
+            Title = "Success",
+            Description = "Saved without the icon.",
+            Variant = ToastVariant.Success,
+            ShowIcon = false
+        });
+    }
+
+    private void ShowPerToastPosition()
+    {
+        ToastService.Show(new ToastData
+        {
+            Title = "Top-Left Toast",
+            Description = "This toast appears in the top-left corner.",
+            Variant = ToastVariant.Info,
+            Position = ToastPosition.TopLeft
+        });
+    }
+
+    private void ShowCountdownToast()
+    {
+        ToastService.Show(new ToastData
+        {
+            Description = "This toast has a countdown bar.",
+            ShowCountdown = true
+        });
+    }
+
+    private void ShowCountdownSuccessToast()
+    {
+        ToastService.Show(new ToastData
+        {
+            Title = "Saved",
+            Description = "Your changes have been saved.",
+            Variant = ToastVariant.Success,
+            ShowCountdown = true
+        });
+    }
+
+    private void ShowCountdownLongToast()
+    {
+        ToastService.Show(new ToastData
+        {
+            Title = "Long Countdown",
+            Description = "This toast has a 10-second countdown. Hover to pause.",
+            Duration = 10000,
+            ShowCountdown = true
+        });
+    }
+
+    private void ShowBrandStyledToast()
+    {
+        ToastService.Show(new ToastData
+        {
+            Title = "Brand Notification",
+            Description = "A custom-styled toast matching your brand colors.",
+            Class = "border-purple-500/30 bg-gradient-to-r from-purple-600 to-pink-600 text-white"
+        });
+    }
+}

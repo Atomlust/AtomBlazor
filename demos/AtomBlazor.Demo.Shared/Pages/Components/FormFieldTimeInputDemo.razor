@@ -1,0 +1,225 @@
+@page "/components/form-field-time-input"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("FormFieldTimeInput 时间输入字段 - Atom BlazorUI", "FormFieldTimeInput Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">FormFieldTimeInput</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("带内置标签、辅助文本与错误提示的 TimeInput 表单字段封装。", "A form field wrapper for TimeInput with built-in label, helper text, and error messages.")
+        </p>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("小时与分钟是分开的分段，按你所用区域设置的 12 或 24 小时制呈现。", "Hours and minutes are separate segments, on your culture's 12- or 24-hour clock.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldTimeInput @bind-Value="_startTime"
+                                  Label="@(L.T("开始时间", "Start time"))"
+                                  HelperText="@(L.T("可逐位输入，也可使用方向键。", "Type each part, or use the arrow keys."))" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("值：", "Value:")</p>
+            <p class="text-sm font-mono">@(_startTime?.ToString(@"hh\:mm") ?? L.T("（无）", "(none)"))</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldTimeInput/basic.txt" />
+    </div>
+
+    <!-- Format -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("格式与步进", "Format and Steps")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Format</code> 可覆盖区域设置的时钟制。
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">MinuteStep</code> 设定分钟的步进，
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowPicker</code> 会加上一个时钟按钮。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Format</code> overrides the culture's clock.
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">MinuteStep</code> sets the minute increment, and
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowPicker</code> adds a clock button.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldTimeInput @bind-Value="_shiftStart"
+                                  Label="@(L.T("班次开始时间", "Shift start"))"
+                                  HelperText="@(L.T("以 15 分钟为步进。", "Quarter-hour steps."))"
+                                  Format="TimeFormat.Hour24"
+                                  MinuteStep="15"
+                                  ShowPicker="true" />
+        </div>
+        <CodeBlock Source="Components/FormFieldTimeInput/format.txt" />
+    </div>
+
+    <!-- Validation -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("校验", "Validation")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("在 EditForm 中校验错误会自动显示。", "Validation errors display automatically inside an EditForm.")
+                @L.T("留空该字段并提交即可看到一条。", "Submit with the field empty to see one.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <EditForm Model="_formModel" OnValidSubmit="HandleFormSubmit">
+                <DataAnnotationsValidator />
+                <div class="space-y-4">
+                    <FormFieldTimeInput @bind-Value="_formModel.StartTime"
+                                          Label="@(L.T("开始时间", "Start time"))"
+                                          HelperText="@(L.T("必填。", "Required."))" />
+                    <Button Type="ButtonType.Submit">@L.T("提交", "Submit")</Button>
+                </div>
+            </EditForm>
+            @if (_formSubmitted)
+            {
+                <div class="mt-4 rounded-lg border border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800 p-4">
+                    <p class="text-sm font-medium text-green-800 dark:text-green-200">
+                        @L.F("已提交：{0}", "Submitted: {0}", _formModel.StartTime?.ToString(@"hh\:mm"))
+                    </p>
+                </div>
+            }
+        </div>
+        <CodeBlock Source="Components/FormFieldTimeInput/editform.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("一个处于禁用状态的时间输入表单字段。", "A disabled time input form field.")</p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldTimeInput Value="_openingTime"
+                                  Label="@(L.T("营业时间", "Opening time"))"
+                                  HelperText="@(L.T("由门店的排班表设定。", "Set by the store's schedule."))"
+                                  Disabled="true" />
+        </div>
+        <CodeBlock Source="Components/FormFieldTimeInput/disabled.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>标签通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">for</code> 与第一个分段关联</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Label associated with the first segment through <code class="text-xs bg-muted px-1 py-0.5 rounded">for</code></AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>辅助与错误文本通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code> 关联</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Helper and error text linked with <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code></AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>每个分段都是一个 <code class="text-xs bg-muted px-1 py-0.5 rounded">spinbutton</code>，会上报自身的取值与范围</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Each segment is a <code class="text-xs bg-muted px-1 py-0.5 rounded">spinbutton</code> reporting its own value and bounds</AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可用的表单控件之间移动", "Move between enabled form controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在各分段之间移动", "Move between segments"))"><Kbd>ArrowLeft</Kbd> / <Kbd>ArrowRight</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("增加或减少当前聚焦分段的值", "Increase or decrease the focused segment"))"><Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="FormFieldTimeInput">
+                <ApiParameter Name="Label" Type="string?" Default="null">@L.T("标签文本。", "The label text.")</ApiParameter>
+                <ApiParameter Name="HelperText" Type="string?" Default="null">@L.T("输入框下方的辅助文本。", "Helper text below the input.")</ApiParameter>
+                <ApiParameter Name="ErrorText" Type="string?" Default="null">@L.T("手动错误文本覆盖。", "Manual error text override.")</ApiParameter>
+                <ApiParameter Name="Value" Type="TimeSpan?" Default="null">@L.T("所选的时间。使用 @bind-Value。", "The selected time. Use @bind-Value.")</ApiParameter>
+                <ApiParameter Name="ValueChanged" Type="EventCallback&lt;TimeSpan?&gt;">@L.T("时间发生变化时调用的回调。", "Callback when the time changes.")</ApiParameter>
+                <ApiParameter Name="Culture" Type="CultureInfo?" Default="null">@L.T("分隔符与 12/24 小时制的默认值。默认跟随当前区域设置。", "Separators and the 12/24-hour default. Defaults to the current culture.")</ApiParameter>
+                <ApiParameter Name="Format" Type="TimeFormat?" Default="null">@L.T("覆盖区域设置默认的 12 或 24 小时制。", "Overrides the culture's 12- or 24-hour clock.")</ApiParameter>
+                <ApiParameter Name="MinTime" Type="TimeSpan?" Default="null">@L.T("可选的最早时间（含边界）。", "Earliest selectable time, inclusive.")</ApiParameter>
+                <ApiParameter Name="MaxTime" Type="TimeSpan?" Default="null">@L.T("可选的最晚时间（含边界）。", "Latest selectable time, inclusive.")</ApiParameter>
+                <ApiParameter Name="MinuteStep" Type="int" Default="1">@L.T("分钟分段每次步进的量。", "The increment the minute segment steps by.")</ApiParameter>
+                <ApiParameter Name="ShowSeconds" Type="bool" Default="false">@L.T("是否显示秒分段。", "Show a seconds segment.")</ApiParameter>
+                <ApiParameter Name="ShowPicker" Type="bool" Default="false">@L.T("是否显示时钟选择按钮。", "Show a clock picker button.")</ApiParameter>
+                <ApiParameter Name="ReadOnly" Type="bool" Default="false">@L.T("各分段是否为只读。", "Whether the segments are read-only.")</ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("输入框是否被禁用。", "Whether the input is disabled.")</ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">@L.T("该字段是否为必填。", "Whether the field is required.")</ApiParameter>
+                <ApiParameter Name="Orientation" Type="FieldOrientation" Default="Vertical">@L.T("标签相对于控件的摆放位置。", "Label placement relative to the control.")</ApiParameter>
+                <ApiParameter Name="InputClass" Type="string?" Default="null">@L.T("内部时间输入框的 CSS 类。", "CSS classes for the inner time input.")</ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private TimeSpan? _startTime;
+    private TimeSpan? _shiftStart = new(9, 0, 0);
+    private readonly TimeSpan _openingTime = new(9, 0, 0);
+    private readonly FormModel _formModel = new();
+    private bool _formSubmitted;
+
+    private void HandleFormSubmit() => _formSubmitted = true;
+
+    private sealed class FormModel
+    {
+        [Required(ErrorMessage = "A start time is required.")]
+        public TimeSpan? StartTime { get; set; }
+    }
+}

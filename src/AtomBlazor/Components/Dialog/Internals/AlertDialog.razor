@@ -1,0 +1,25 @@
+@using AtomBlazor.Components.Dialog.Internals.Shared
+@inject DialogService DialogService
+
+
+<DialogHeader Title="@Dialog.Title"
+              Description="@Dialog.Description"
+              TitleId="@TitleId"
+              DescriptionId="@DescriptionId" />
+
+<div class="atom:flex atom:justify-end">
+    <Button OnClick="Acknowledge">
+        @Dialog.Options.ButtonText
+    </Button>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public AlertDialogData Dialog { get; set; } = default!;
+
+    [Parameter] public string? TitleId { get; set; }
+    [Parameter] public string? DescriptionId { get; set; }
+
+    private void Acknowledge()
+        => DialogService.Resolve(Dialog.Id, DialogResult.Ok());
+}

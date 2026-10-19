@@ -1,0 +1,264 @@
+@typeparam TValue
+@namespace AtomBlazor.Primitives
+@attribute [CascadingTypeParameter(nameof(TValue))]
+@implements IDisposable
+@inject AtomBlazor.Primitives.Services.DropdownManagerService? DropdownManager
+
+@* Select 根组件——headless，只带行为、不带样式 *@
+<CascadingValue Value="@_context" IsFixed="false">
+    <div @attributes="AdditionalAttributes">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    private SelectContext<TValue> _context = new();
+    private UseControllableState<TValue?> _state = null!;
+
+    /// <summary>
+    /// 要在 Select 上下文中渲染的子内容。
+    /// 通常包含 SelectTrigger 与 SelectContent。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 要应用到根元素的附加特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 当前选中的值（受控模式）。
+    /// 为 null 时由 Select 自行管理状态（非受控模式）。
+    /// </summary>
+    [Parameter]
+    public TValue? Value { get; set; }
+
+    /// <summary>
+    /// 选中值变化时触发的事件回调。
+    /// 与 <c>@bind-Value</c> 搭配可实现双向绑定。
+    /// </summary>
+    [Parameter]
+    public EventCallback<TValue?> ValueChanged { get; set; }
+
+    /// <summary>
+    /// 非受控模式下的默认值。
+    /// </summary>
+    [Parameter]
+    public TValue? DefaultValue { get; set; }
+
+    /// <summary>
+    /// Select 值变化时触发的事件回调。
+    /// 接收新值作为参数。
+    /// </summary>
+    [Parameter]
+    public EventCallback<TValue?> OnValueChange { get; set; }
+
+    /// <summary>
+    /// Select 是否禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 获取或设置 Select 在表单上下文中是否必填。
+    /// 为 true 时在触发器上设置 aria-required="true"，供屏幕阅读器识别。
+    /// </summary>
+    [Parameter]
+    public bool Required { get; set; }
+
+    /// <summary>
+    /// 控制下拉列表是否打开（受控模式）。
+    /// 为 null 时由 Select 自行管理开合状态（非受控模式）。
+    /// </summary>
+    [Parameter]
+    public bool? Open { get; set; }
+
+    /// <summary>
+    /// 开合状态变化时触发的事件回调。
+    /// 与 <c>@bind-Open</c> 搭配可实现双向绑定。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>
+    /// 非受控模式下的默认开合状态。
+    /// </summary>
+    [Parameter]
+    public bool DefaultOpen { get; set; } = false;
+
+    /// <summary>
+    /// 可选：从选中值推导展示文本的函数。
+    /// 当你有预选中值、希望直接显示其展示文本，
+    /// 而不必等下拉项渲染并注册时使用。
+    /// 值变化时展示文本会自动保持同步。
+    /// </summary>
+    [Parameter]
+    public Func<TValue, string>? DisplayTextSelector { get; set; }
+
+    /// <summary>
+    /// 应用到所有 SelectItem 子级的默认 CSS 类。
+    /// 经上下文级联下发，项可把它与自身的类合并。
+    /// </summary>
+    [Parameter]
+    public string? ItemClass { get; set; }
+
+    protected override void OnInitialized()
+    {
+        // 为值初始化受控状态
+        _state = new UseControllableState<TValue?>(DefaultValue)
+        {
+            ControlledValue = Value,
+            OnValueChanged = ValueChanged,
+            IsControlled = ValueChanged.HasDelegate
+        };
+
+        // 把初始值同步进上下文
+        _context.State.Value = _state.Value;
+        _context.State.Disabled = Disabled;
+        _context.State.Required = Required;
+        // 用 DisplayTextSelector 或 Value.ToString() 设置初始 DisplayText。
+        // 项经 ForceMount 门户注册后会用正确的展示文本更新它。
+        _context.SetDisplayText(GetDisplayText(_state.Value));
+
+        // 订阅上下文的值变化
+        _context.OnValueChange = async (newValue) =>
+        {
+            await _state.SetValueAsync(newValue);
+
+            if (OnValueChange.HasDelegate)
+            {
+                await OnValueChange.InvokeAsync(newValue);
+            }
+
+            StateHasChanged();
+        };
+
+        // 订阅上下文的状态变化
+        _context.OnStateChanged += HandleContextStateChanged;
+    }
+
+    protected override void OnParametersSet()
+    {
+        // 更新禁用状态
+        if (_context.Disabled != Disabled)
+        {
+            _context.SetDisabled(Disabled);
+        }
+
+        // 更新必填状态
+        _context.SetRequired(Required);
+
+        // 受控值变化时更新
+        if (_state.IsControlled)
+        {
+            var valueChanged = !EqualityComparer<TValue>.Default.Equals(_state.ControlledValue, Value);
+            _state.ControlledValue = Value;
+            _context.State.Value = Value;
+
+            // 仅当值确实变化时才更新 DisplayText。
+            // 没有这个守卫，父级每次重渲染（例如兄弟控件变化）都会重置 DisplayText。
+            // ForceMount="false" 时下拉关闭后项已被销毁，
+            // GetDisplayTextForValue 返回 null，回退逻辑会产出 Value.ToString()
+            // （"apple" 而不是 "Apple"）。
+            if (valueChanged)
+            {
+                _context.SetDisplayText(_context.GetDisplayTextForValue(Value)
+                    ?? GetDisplayText(Value));
+            }
+        }
+
+        // 把 ItemClass 同步进上下文
+        _context.ItemClass = ItemClass;
+
+        // 处理受控开合状态
+        if (Open.HasValue && _context.IsOpen != Open.Value)
+        {
+            if (Open.Value)
+            {
+                _context.Open();
+            }
+            else
+            {
+                _context.Close();
+            }
+        }
+    }
+
+    private void HandleContextStateChanged()
+    {
+        // 开合状态变化时向下拉管理器注册/注销
+        if (DropdownManager != null)
+        {
+            if (_context.IsOpen)
+            {
+                // 把本下拉注册为打开态；若已有其他下拉打开，它会被关闭
+                DropdownManager.RegisterOpen(_context.ContentId, () =>
+                {
+                    _context.Close();
+                    InvokeAsync(StateHasChanged); // 确保与 UI 线程同步
+                });
+            }
+            else
+            {
+                // 自然关闭时注销
+                DropdownManager.Unregister(_context.ContentId);
+            }
+        }
+
+        // 上下文状态变化时（例如来自 SelectTrigger 或点击外部），
+        // 若 Open 受外部控制则通知父级
+        if (OpenChanged.HasDelegate)
+        {
+            var newOpenState = _context.IsOpen;
+            if (!Open.HasValue || Open.Value != newOpenState)
+            {
+                _ = OpenChanged.InvokeAsync(newOpenState);
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// 获取值的展示文本：优先用 DisplayTextSelector，
+    /// 否则回退到 Value.ToString()。
+    /// 未提供 DisplayTextSelector 时，值类型的默认值（例如 int 的 0）返回 null；
+    /// 选择器抛异常时优雅回退。
+    /// </summary>
+    private string? GetDisplayText(TValue? value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+
+        if (DisplayTextSelector != null)
+        {
+            try
+            {
+                return DisplayTextSelector(value);
+            }
+            catch
+            {
+                // DisplayTextSelector 可能处理不了默认/未选中的值——
+                // 回退为 null，让占位符顶上来显示。
+                return null;
+            }
+        }
+
+        return value.ToString();
+    }
+
+    public void Dispose()
+    {
+        _context.OnStateChanged -= HandleContextStateChanged;
+
+        // 释放时从下拉管理器注销
+        if (DropdownManager != null && _context?.IsOpen == true)
+        {
+            DropdownManager.Unregister(_context.ContentId);
+        }
+    }
+}

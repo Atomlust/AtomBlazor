@@ -1,0 +1,50 @@
+@namespace AtomBlazor
+
+@*
+    带样式的 DialogClose 组件包装器。
+    渲染一个用于关闭对话框的按钮。
+*@
+
+<AtomBlazor.Primitives.DialogClose
+    AsChild="@AsChild"
+    OnClick="@OnClick"
+    PreventClose="@PreventClose"
+    @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.DialogClose>
+
+@code {
+    /// <summary>
+    /// 在关闭按钮内显示的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 为 true 时，关闭组件不渲染自身的按钮元素。
+    /// 而是经由 TriggerContext 将触发器行为传递给子组件。
+    /// 当你希望自定义组件（如 Button）充当关闭按钮时使用此项。
+    /// </summary>
+    [Parameter]
+    public bool AsChild { get; set; } = true;
+
+    /// <summary>
+    /// 自定义点击处理程序。在对话框关闭后调用。
+    /// </summary>
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    /// <summary>
+    /// 是否阻止默认的关闭行为。
+    /// 为 true 时，仅调用 OnClick 处理程序。
+    /// 默认值为 false（点击即关闭对话框）。
+    /// </summary>
+    [Parameter]
+    public bool PreventClose { get; set; } = false;
+
+    /// <summary>
+    /// 应用到关闭按钮的附加特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}

@@ -1,0 +1,25 @@
+@* Only ListTemplate is set — the view locks into list mode with no toggle.
+   Scroll-based auto-loading: ScrollHeight constrains the container.
+   The data-view.js module measures the container as a whole, so detection
+   works correctly for both flex lists and multi-column CSS grids. *@
+<DataView TItem="Person" Data="@people"
+            EnableInfiniteScroll="true" ScrollHeight="480px" InitialPageSize="6">
+    <ListTemplate Context="person">
+        <Card Class="flex items-center gap-4 p-4 shadow-none hover:bg-accent/50 transition-colors">
+            <Avatar>
+                <AvatarFallback>@GetInitials(person.Name)</AvatarFallback>
+            </Avatar>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold truncate">@person.Name</p>
+                <TypographyMuted Class="truncate">@person.Email</TypographyMuted>
+                <TypographyMuted Class="text-xs">@person.Department · @person.Role</TypographyMuted>
+            </div>
+            <Badge Variant="BadgeVariant.Outline">@person.Age yrs</Badge>
+        </Card>
+    </ListTemplate>
+    <Fields>
+        <DataViewColumn TItem="Person" TValue="string" Property="@(p => p.Name)" Header="Name" Sortable Filterable />
+        <DataViewColumn TItem="Person" TValue="string" Property="@(p => p.Role)" Header="Role" Sortable Filterable />
+        <DataViewColumn TItem="Person" TValue="int"    Property="@(p => p.Age)"  Header="Age"  Sortable />
+    </Fields>
+</DataView>

@@ -1,0 +1,632 @@
+@page "/components/switch"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("Switch 开关 - Atom BlazorUI", "Switch Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Switch 开关", "Switch Component")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("一种开关控件，让用户在选中与未选中两种状态之间切换。", "A toggle control that allows users to switch between checked and unchecked states.")
+        </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+    </div>
+
+    <!-- Basic Usage -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("用双向绑定把开关与标签组合在一起的简单示例。", "Simple switch with label using two-way binding.")
+            </p>
+        </div>
+        <div class="space-y-3">
+            <div class="flex items-center space-x-2">
+                <Switch @bind-Checked="basicChecked" Id="basic-switch" />
+                <label for="basic-switch" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    @L.T("飞行模式", "Airplane Mode")
+                </label>
+            </div>
+            <p class="text-sm text-muted-foreground">
+                @L.F("当前状态：{0}", "Current state: {0}", basicChecked ? L.T("开启 ✓", "On ✓") : L.T("关闭", "Off"))
+            </p>
+        </div>
+        <CodeBlock Source="Components/Switch/basic.txt" />
+    </div>
+
+    <!-- Size Variants -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("尺寸变体", "Size Variants")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("开关有三种尺寸：Small、Medium（默认）和 Large。", "Switches come in three sizes: Small, Medium (default), and Large.")
+            </p>
+        </div>
+        <div class="space-y-3">
+            <div class="flex items-center space-x-2">
+                <Switch @bind-Checked="smallChecked" Size="SwitchSize.Small" Id="small-switch" />
+                <label for="small-switch" class="text-sm font-medium leading-none">
+                    @L.T("小尺寸开关", "Small switch")
+                </label>
+            </div>
+            <div class="flex items-center space-x-2">
+                <Switch @bind-Checked="mediumChecked" Size="SwitchSize.Medium" Id="medium-switch" />
+                <label for="medium-switch" class="text-sm font-medium leading-none">
+                    @L.T("中尺寸开关（默认）", "Medium switch (default)")
+                </label>
+            </div>
+            <div class="flex items-center space-x-2">
+                <Switch @bind-Checked="largeChecked" Size="SwitchSize.Large" Id="large-switch" />
+                <label for="large-switch" class="text-sm font-medium leading-none">
+                    @L.T("大尺寸开关", "Large switch")
+                </label>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Switch/sizes.txt" />
+    </div>
+
+    <!-- Settings Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("设置面板", "Settings Panel")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("用于应用设置的一组开关。", "Group of switches for application settings.")
+            </p>
+        </div>
+        <div class="space-y-3">
+            <div class="flex items-center space-x-2">
+                <Switch @bind-Checked="notifications" Id="notifications" />
+                <label for="notifications" class="text-sm font-medium leading-none">
+                    @L.T("开启通知", "Enable notifications")
+                </label>
+            </div>
+            <div class="flex items-center space-x-2">
+                <Switch @bind-Checked="autoSave" Id="auto-save" />
+                <label for="auto-save" class="text-sm font-medium leading-none">
+                    @L.T("自动保存更改", "Auto-save changes")
+                </label>
+            </div>
+            <div class="flex items-center space-x-2">
+                <Switch @bind-Checked="analytics" Id="analytics" />
+                <label for="analytics" class="text-sm font-medium leading-none">
+                    @L.T("发送使用统计数据", "Send usage analytics")
+                </label>
+            </div>
+            <p class="text-sm text-muted-foreground">
+                @L.F("已开启的设置：{0}", "Active settings: {0}", string.Join(", ", GetActiveSettings()))
+            </p>
+        </div>
+        <CodeBlock Source="Components/Switch/settings-panel.txt" />
+    </div>
+
+    <!-- Disabled State -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用状态", "Disabled State")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("无法交互的开关。", "Switches that cannot be interacted with.")
+            </p>
+        </div>
+        <div class="space-y-3">
+            <div class="flex items-center space-x-2">
+                <Switch Disabled="true" Checked="false" Id="disabled-off" />
+                <label for="disabled-off" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    @L.T("禁用（关闭）", "Disabled (off)")
+                </label>
+            </div>
+            <div class="flex items-center space-x-2">
+                <Switch Disabled="true" Checked="true" Id="disabled-on" />
+                <label for="disabled-on" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    @L.T("禁用（开启）", "Disabled (on)")
+                </label>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Switch/disabled.txt" />
+    </div>
+
+    <!-- Form Validation -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表单校验", "Form Validation")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("开关与 Blazor 的 EditForm 及校验机制集成的示例。", "Switch integrated with Blazor's EditForm and validation.")
+            </p>
+        </div>
+        <EditForm Model="formModel" OnValidSubmit="HandleValidSubmit" class="space-y-4">
+            <DataAnnotationsValidator />
+
+            <div class="space-y-3">
+                <div class="flex items-center space-x-2">
+                    <Switch @bind-Checked="formModel.AcceptTerms" Id="terms" />
+                    <label for="terms" class="text-sm font-medium leading-none">
+                        @L.T("我接受条款与条件", "I accept the terms and conditions")
+                    </label>
+                </div>
+                <ValidationMessage For="@(() => formModel.AcceptTerms)" class="text-sm text-destructive" />
+            </div>
+
+            <div class="space-y-3">
+                <div class="flex items-center space-x-2">
+                    <Switch @bind-Checked="formModel.EnableMarketing" Id="marketing" />
+                    <label for="marketing" class="text-sm font-medium leading-none">
+                        @L.T("接收营销邮件（可选）", "Enable marketing emails (optional)")
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Default">@L.T("提交", "Submit")</Button>
+                <Button Type="ButtonType.Button" Variant="ButtonVariant.Outline" OnClick="ResetForm">@L.T("重置", "Reset")</Button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(formMessage))
+            {
+                <div class="p-4 bg-card rounded-lg border">
+                    <p class="text-sm">@formMessage</p>
+                </div>
+            }
+        </EditForm>
+        <CodeBlock Source="Components/Switch/form-validation.txt" />
+    </div>
+
+    <!-- Interactive Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("交互演示", "Interactive")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带自定义变更处理程序的开关。", "Switch with custom change handler.")
+            </p>
+        </div>
+        <div class="space-y-3">
+            <div class="flex items-center space-x-2">
+                <Switch @bind-Checked="interactiveChecked" Id="interactive" />
+                <label for="interactive" class="text-sm font-medium leading-none">
+                    @L.T("开启深色模式", "Enable dark mode")
+                </label>
+            </div>
+            @if (interactiveChecked)
+            {
+                <div class="p-4 bg-primary/10 rounded-lg border border-primary">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <p class="text-sm">✓ 已开启深色模式！最近一次切换于 @lastToggleTime</p>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <p class="text-sm">✓ Dark mode enabled! Last toggled at @lastToggleTime</p>
+                        </text>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="p-4 bg-muted rounded-lg">
+                    <p class="text-sm text-muted-foreground">@L.T("深色模式已关闭", "Dark mode disabled")</p>
+                </div>
+            }
+        </div>
+        <CodeBlock Source="Components/Switch/interactive.txt" />
+    </div>
+
+    <!-- Card Layout -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("设置卡片", "Settings Cards")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("把开关放进卡片容器，做出更精致的设置界面。", "Switches within card containers for a polished settings interface.")
+            </p>
+        </div>
+        <div class="space-y-3">
+            <div class="flex items-center justify-between rounded-lg border p-4">
+                <div class="space-y-0.5">
+                    <div class="text-sm font-medium leading-none">
+                        @L.T("邮件通知", "Email Notifications")
+                    </div>
+                    <div class="text-sm text-muted-foreground">
+                        @L.T("接收有关账户活动的邮件", "Receive email about your account activity")
+                    </div>
+                </div>
+                <Switch @bind-Checked="cardNotifications" Id="card-notifications" />
+            </div>
+            <div class="flex items-center justify-between rounded-lg border p-4">
+                <div class="space-y-0.5">
+                    <div class="text-sm font-medium leading-none">
+                        @L.T("营销邮件", "Marketing Emails")
+                    </div>
+                    <div class="text-sm text-muted-foreground">
+                        @L.T("接收有关新产品与新功能的邮件", "Receive emails about new products and features")
+                    </div>
+                </div>
+                <Switch @bind-Checked="cardMarketing" Id="card-marketing" />
+            </div>
+            <div class="flex items-center justify-between rounded-lg border p-4">
+                <div class="space-y-0.5">
+                    <div class="text-sm font-medium leading-none">
+                        @L.T("社交通知", "Social Notifications")
+                    </div>
+                    <div class="text-sm text-muted-foreground">
+                        @L.T("接收来自社交互动的通知", "Receive notifications from social interactions")
+                    </div>
+                </div>
+                <Switch @bind-Checked="cardSocial" Id="card-social" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/Switch/settings-cards.txt" />
+    </div>
+
+    <!-- Icon Thumb -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("图标滑块", "Icon Thumb")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        用 <code class="text-xs bg-muted px-1 py-0.5 rounded">ThumbContent</code> 可以在滑块内部渲染自定义内容。
+                        上下文参数会给出选中状态，方便据此做条件渲染。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Render custom content inside the thumb using <code class="text-xs bg-muted px-1 py-0.5 rounded">ThumbContent</code>.
+                        The context parameter provides the checked state for conditional rendering.
+                    </p>
+                </text>
+            }
+        </div>
+        <div class="space-y-3">
+            <div class="flex items-center space-x-2">
+                <Switch @bind-Checked="iconTheme" Size="SwitchSize.Large" Id="icon-theme"
+                        ThumbCheckedClass="bg-slate-800 text-white"
+                        ThumbUncheckedClass="bg-amber-400 text-amber-900">
+                    <ThumbContent>
+                        @if (context)
+                        {
+                            <LucideIcon Name="moon" Size="14" />
+                        }
+                        else
+                        {
+                            <LucideIcon Name="sun" Size="14" />
+                        }
+                    </ThumbContent>
+                </Switch>
+                <label for="icon-theme" class="text-sm font-medium leading-none">
+                    @(iconTheme ? L.T("深色模式", "Dark mode") : L.T("浅色模式", "Light mode"))
+                </label>
+            </div>
+            <div class="flex items-center space-x-2">
+                <Switch @bind-Checked="iconSound" Size="SwitchSize.Large" Id="icon-sound"
+                        ThumbCheckedClass="bg-primary text-primary-foreground"
+                        ThumbUncheckedClass="text-muted-foreground">
+                    <ThumbContent>
+                        @if (context)
+                        {
+                            <LucideIcon Name="volume-2" Size="14" />
+                        }
+                        else
+                        {
+                            <LucideIcon Name="volume-x" Size="14" />
+                        }
+                    </ThumbContent>
+                </Switch>
+                <label for="icon-sound" class="text-sm font-medium leading-none">
+                    @(iconSound ? L.T("声音开启", "Sound on") : L.T("声音关闭", "Sound off"))
+                </label>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Switch/icon-thumb.txt" />
+    </div>
+
+    <!-- Custom Styling -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义样式", "Custom Styling")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        分别自定义轨道和滑块。用 <code class="text-xs bg-muted px-1 py-0.5 rounded">ThumbCheckedClass</code>
+                        和 <code class="text-xs bg-muted px-1 py-0.5 rounded">ThumbUncheckedClass</code> 为不同状态指定滑块样式。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Customize the track and thumb independently. Use <code class="text-xs bg-muted px-1 py-0.5 rounded">ThumbCheckedClass</code>
+                        and <code class="text-xs bg-muted px-1 py-0.5 rounded">ThumbUncheckedClass</code> for state-dependent thumb styles.
+                    </p>
+                </text>
+            }
+        </div>
+        <div class="space-y-3">
+            <div class="flex items-center space-x-2">
+                <Switch @bind-Checked="styled1" Class="shadow-lg" Id="styled1" />
+                <label for="styled1" class="text-sm font-medium leading-none">
+                    @L.T("带阴影的轨道", "Track with shadow")
+                </label>
+            </div>
+            <div class="flex items-center space-x-2">
+                <Switch @bind-Checked="styled2" ThumbClass="bg-primary" Id="styled2" />
+                <label for="styled2" class="text-sm font-medium leading-none">
+                    @L.T("始终着色的滑块", "Colored thumb (always)")
+                </label>
+            </div>
+            <div class="flex items-center space-x-2">
+                <Switch @bind-Checked="styled3"
+                        ThumbCheckedClass="bg-green-500"
+                        ThumbUncheckedClass="bg-red-500"
+                        Id="styled3" />
+                <label for="styled3" class="text-sm font-medium leading-none">
+                    @L.T("随状态变化的滑块颜色", "State-dependent thumb color")
+                </label>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Switch/custom-styling.txt" />
+    </div>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        禁用状态的开关不可聚焦（tabindex="-1"）
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Disabled switches are not focusable (tabindex="-1")
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        ARIA 属性设置正确（<code class="text-xs bg-muted px-1 py-0.5 rounded">role="switch"</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">aria-checked</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled</code>）
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        ARIA attributes set correctly (<code class="text-xs bg-muted px-1 py-0.5 rounded">role="switch"</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-checked</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled</code>)
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        键盘聚焦时显示焦点环（focus-visible:ring-2）
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Focus ring appears on keyboard focus (focus-visible:ring-2)
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        色彩对比度按可读性要求设计
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Color contrast designed for readability
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        用 htmlFor 属性建立语义化的标签关联
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Semantic label association using htmlFor attribute
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        使用 role="switch" 与 aria-checked，为辅助技术提供语境
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Uses role="switch" and aria-checked for assistive technology context
+                    </text>
+                }
+            </AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("按顺序在各开关之间移动焦点", "Focus switches in sequence"))">
+                <Kbd>Tab</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("切换当前聚焦的开关", "Toggle focused switch"))">
+                <Kbd>Space</Kbd> or <Kbd>Enter</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="Switch">
+                <ApiParameter Name="Checked" Type="bool" Default="false">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            开关是否处于选中（开启）状态。支持与 <code>@@bind-Checked</code> 双向绑定。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Whether the switch is checked (on). Supports two-way binding with <code>@@bind-Checked</code>.
+                        </text>
+                    }
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("开关是否被禁用。禁用后无法交互，并会降低不透明度。", "Whether the switch is disabled. Prevents interaction and reduces opacity.")
+                </ApiParameter>
+                <ApiParameter Name="Size" Type="SwitchSize" Default="Medium">
+                    @L.T("尺寸变体。可选值：Small、Medium、Large。", "Size variant. Options: Small, Medium, Large.")
+                </ApiParameter>
+                <ApiParameter Name="Id" Type="string?" Default="null">
+                    @L.T("HTML id 属性，用于与 label 元素建立关联。", "HTML id attribute. Used for associating with a label element.")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                    @L.T("没有可见标签时，提供给辅助技术的开关名称。", "Accessible name for the switch when no visible label is present.")
+                </ApiParameter>
+                <ApiParameter Name="AriaDescribedBy" Type="string?" Default="null">
+                    @L.T("包含屏幕阅读器帮助文本的那个元素的 ID。", "ID of the element containing help text for screen readers.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到开关轨道元素上的额外 CSS 类。", "Additional CSS classes for the switch track element.")
+                </ApiParameter>
+                <ApiParameter Name="ThumbClass" Type="string?" Default="null">
+                    @L.T("应用到开关滑块元素上的额外 CSS 类。", "Additional CSS classes for the switch thumb element.")
+                </ApiParameter>
+                <ApiParameter Name="ThumbCheckedClass" Type="string?" Default="null">
+                    @L.T("选中状态下应用到滑块上的额外 CSS 类。", "Additional CSS classes applied to the thumb when checked.")
+                </ApiParameter>
+                <ApiParameter Name="ThumbUncheckedClass" Type="string?" Default="null">
+                    @L.T("未选中状态下应用到滑块上的额外 CSS 类。", "Additional CSS classes applied to the thumb when unchecked.")
+                </ApiParameter>
+                <ApiParameter Name="ThumbContent" Type="RenderFragment&lt;bool&gt;?" Default="null">
+                    @L.T("在滑块内部渲染的自定义内容。上下文参数即选中状态。", "Custom content to render inside the thumb. The context parameter is the checked state.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    // 基础开关
+    private bool basicChecked = false;
+
+    // 尺寸变体
+    private bool smallChecked = false;
+    private bool mediumChecked = true;
+    private bool largeChecked = false;
+
+    // 设置面板
+    private bool notifications = true;
+    private bool autoSave = false;
+    private bool analytics = true;
+
+    // 交互式
+    private bool _interactiveChecked = false;
+    private bool interactiveChecked
+    {
+        get => _interactiveChecked;
+        set
+        {
+            _interactiveChecked = value;
+            if (value)
+            {
+                lastToggleTime = DateTime.Now.ToString("HH:mm:ss");
+            }
+        }
+    }
+    private string lastToggleTime = "";
+
+    // 卡片布局
+    private bool cardNotifications = true;
+    private bool cardMarketing = false;
+    private bool cardSocial = true;
+
+    // 图标 thumb
+    private bool iconTheme = false;
+    private bool iconSound = true;
+
+    // 自定义样式
+    private bool styled1 = false;
+    private bool styled2 = false;
+    private bool styled3 = false;
+
+    // 表单校验
+    private FormModel formModel = new();
+    private string formMessage = "";
+
+    private List<string> GetActiveSettings()
+    {
+        var active = new List<string>();
+        if (notifications) active.Add(L.T("通知", "Notifications"));
+        if (autoSave) active.Add(L.T("自动保存", "Auto-save"));
+        if (analytics) active.Add(L.T("使用统计", "Analytics"));
+        return active.Count > 0 ? active : new List<string> { L.T("无", "None") };
+    }
+
+    private void HandleValidSubmit()
+    {
+        formMessage = L.IsChinese
+            ? $"表单提交成功，时间 {DateTime.Now:HH:mm:ss}。已接受条款：{formModel.AcceptTerms}，营销邮件：{formModel.EnableMarketing}"
+            : $"Form submitted successfully at {DateTime.Now:HH:mm:ss}. " +
+                     $"Terms accepted: {formModel.AcceptTerms}, " +
+                     $"Marketing: {formModel.EnableMarketing}";
+    }
+
+    private void ResetForm()
+    {
+        formModel = new FormModel();
+        formMessage = "";
+    }
+
+    public class FormModel
+    {
+        [Required(ErrorMessage = "You must accept the terms and conditions")]
+        [Range(typeof(bool), "true", "true", ErrorMessage = "You must accept the terms and conditions")]
+        public bool AcceptTerms { get; set; }
+
+        public bool EnableMarketing { get; set; }
+    }
+}

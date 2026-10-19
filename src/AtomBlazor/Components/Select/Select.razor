@@ -1,0 +1,233 @@
+@typeparam TValue
+@namespace AtomBlazor
+@using AtomBlazor
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Linq.Expressions
+@attribute [CascadingTypeParameter(nameof(TValue))]
+
+@* Select 基元的带样式包装 *@
+<CascadingValue Value="this" IsFixed="false">
+<AtomBlazor.Primitives.SelectPrimitive TValue="TValue"
+                 Value="@Value"
+                 ValueChanged="@HandleValueChanged"
+                 Open="@EffectiveOpen"
+                 OpenChanged="@HandleOpenChangedAsync"
+                 Disabled="Disabled"
+                 Required="Required"
+                 DisplayTextSelector="@GetDisplayTextSelector()"
+                 class="@CssClass"
+                 @attributes="AdditionalAttributes">
+    @if (Options is not null)
+    {
+        <AtomBlazor.SelectTrigger TValue="TValue">
+            <AtomBlazor.SelectValue Placeholder="@Placeholder" />
+        </AtomBlazor.SelectTrigger>
+        <AtomBlazor.SelectContent TValue="TValue" OnLoadMore="@OnLoadMore" IsLoading="@IsLoading" EndOfListMessage="@EndOfListMessage">
+            @foreach (var option in Options)
+            {
+                <AtomBlazor.SelectItem TValue="TValue" Value="@option.Value" Text="@option.Text" />
+            }
+        </AtomBlazor.SelectContent>
+    }
+    else
+    {
+        @ChildContent
+    }
+</AtomBlazor.Primitives.SelectPrimitive>
+</CascadingValue>
+
+@code {
+    /// <summary>控件的无障碍名称。</summary>
+    [Parameter] public string? AriaLabel { get; set; }
+
+
+    /// <summary>以浮动列表或模态底部抽屉展示选项。</summary>
+    [Parameter] public SelectPresentation Presentation { get; set; }
+    /// <summary>底部抽屉的标题。</summary>
+    [Parameter] public string? SheetTitle { get; set; }
+
+    private FieldIdentifier _fieldIdentifier;
+    private EditContext? _editContext;
+
+    /// <summary>
+    /// 获取或设置从上级 EditForm 级联而来的 EditContext。
+    /// </summary>
+    [CascadingParameter]
+    private EditContext? CascadedEditContext { get; set; }
+    /// <summary>
+    /// 获取或设置当前选中的值。
+    /// </summary>
+    [Parameter]
+    public TValue? Value { get; set; }
+
+    /// <summary>
+    /// 获取或设置选中值变化时调用的回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<TValue?> ValueChanged { get; set; }
+
+    /// <summary>
+    /// 获取或设置标识绑定值的表达式。
+    /// </summary>
+    [Parameter]
+    public Expression<Func<TValue?>>? ValueExpression { get; set; }
+
+    /// <summary>
+    /// 获取或设置 Select 是否禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 获取或设置 Select 是否为必填。
+    /// </summary>
+    [Parameter]
+    public bool Required { get; set; }
+
+    /// <summary>
+    /// 获取或设置下拉列表是否打开（受控模式）。
+    /// </summary>
+    [Parameter]
+    public bool? Open { get; set; }
+
+    /// <summary>
+    /// 获取或设置开合状态变化时调用的回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到 Select 容器的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的附加 HTML 特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 可选：从值推导展示文本的函数。
+    /// 组合式模式下，它控制预选中值在触发器上的显示。
+    /// 提供 <see cref="Options"/> 时忽略（文本从集合中查找）。
+    /// 为 null 时回退到 <c>ToString()</c>。
+    /// </summary>
+    [Parameter]
+    public Func<TValue, string>? DisplayTextSelector { get; set; }
+
+    /// <summary>
+    /// 获取或设置要展示的值/标签配对集合。
+    /// 每个选项包含一个值（选中时绑定）与展示文本（显示在下拉列表与触发器中）。
+    /// 提供后，组件会自动生成触发器、值展示与下拉内容。
+    /// 优先于 <see cref="ChildContent"/>。
+    /// </summary>
+    [Parameter]
+    public IEnumerable<SelectOption<TValue>>? Options { get; set; }
+
+    /// <summary>
+    /// 获取或设置未选中任何值时展示的占位文本。
+    /// 用于数据绑定模式（Options）。组合式模式下，占位符请直接在 SelectValue 组件上设置。
+    /// </summary>
+    [Parameter]
+    public string? Placeholder { get; set; }
+
+    /// <summary>
+    /// 获取或设置用户在下拉列表接近底部滚动时调用的回调。
+    /// 用于无限滚动场景下加载后续条目。
+    /// 仅在 Options 模式生效；组合式模式下请直接在 SelectContent 上设置。
+    /// </summary>
+    [Parameter]
+    public EventCallback OnLoadMore { get; set; }
+
+    /// <summary>
+    /// 获取或设置是否正在加载后续条目。
+    /// 为 true 时在列表底部显示加载指示，并在加载结束前抑制
+    /// <see cref="OnLoadMore"/>。
+    /// 仅在 Options 模式生效；组合式模式下请直接在 SelectContent 上设置。
+    /// </summary>
+    [Parameter]
+    public bool IsLoading { get; set; }
+
+    /// <summary>
+    /// 获取或设置在全部条目加载完毕后显示于列表底部的消息。
+    /// 仅在 <see cref="IsLoading"/> 为 false 时显示。设为 <c>null</c> 或空串即隐藏。
+    /// 仅在 Options 模式生效；组合式模式下请直接在 SelectContent 上设置。
+    /// </summary>
+    [Parameter]
+    public string? EndOfListMessage { get; set; }
+
+    /// <summary>
+    /// 获取或设置要在 Select 组件内部渲染的内容。
+    /// 应包含 SelectTrigger 与 SelectContent 组件。
+    /// 提供 Options 时忽略。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 调用方不控制开合时的打开状态。
+    /// </summary>
+    private bool internalOpen;
+
+    /// <summary>
+    /// 实际交给基元的状态。
+    /// </summary>
+    /// <remarks>
+    /// <see cref="Open"/> 与 <see cref="OpenChanged"/> 曾在这个包装组件上声明后
+    /// 却从未下传：标记把基元绑到了一个私有字段，于是
+    /// 在 Select 上写 <c>@bind-Open</c> 既打不开列表，也不会报告用户的开合动作。
+    /// </remarks>
+    private bool EffectiveOpen => Open ?? internalOpen;
+
+    private async Task HandleOpenChangedAsync(bool open)
+    {
+        internalOpen = open;
+        await OpenChanged.InvokeAsync(open);
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (CascadedEditContext != null && ValueExpression != null)
+        {
+            _editContext = CascadedEditContext;
+            _fieldIdentifier = FieldIdentifier.Create(ValueExpression);
+        }
+    }
+
+    private async Task HandleValueChanged(TValue? value)
+    {
+        Value = value;
+        await ValueChanged.InvokeAsync(value);
+
+        if (_editContext != null && ValueExpression != null && _fieldIdentifier.FieldName != null)
+        {
+            _editContext.NotifyFieldChanged(_fieldIdentifier);
+        }
+    }
+
+    /// <summary>
+    /// 为基元层返回一个展示文本选择器。
+    /// Options 模式：从 Options 集合中查找文本。
+    /// 组合式模式：原样透传 DisplayTextSelector。
+    /// </summary>
+    private Func<TValue, string>? GetDisplayTextSelector()
+    {
+        if (Options is not null)
+        {
+            return v => Options
+                .FirstOrDefault(o => EqualityComparer<TValue>.Default.Equals(o.Value, v))
+                ?.Text ?? v?.ToString() ?? "";
+        }
+
+        return DisplayTextSelector;
+    }
+
+    /// <summary>
+    /// 获取 Select 容器计算出的 CSS 类。
+    /// </summary>
+    private string CssClass => ClassNames.cn("atom:relative", Class);
+}

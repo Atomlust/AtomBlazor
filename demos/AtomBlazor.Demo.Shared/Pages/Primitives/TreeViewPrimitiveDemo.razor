@@ -1,0 +1,441 @@
+@page "/primitives/tree-view"
+<PageTitle>@L.T("Tree View 树视图原语 - Atom BlazorUI", "Tree View Primitive - Atom BlazorUI")</PageTitle>
+
+<style>
+    .tree-demo [role="treeitem"][data-depth="1"] > .tree-node { padding-left: 1.5rem; }
+    .tree-demo [role="treeitem"][data-depth="2"] > .tree-node { padding-left: 3rem; }
+    .tree-demo [role="treeitem"][data-depth="3"] > .tree-node { padding-left: 4.5rem; }
+    .tree-demo [role="treeitem"]:focus { outline: none; }
+    .tree-demo [role="treeitem"]:focus > .tree-node { background: hsl(var(--accent)); border-radius: 0.375rem; }
+    .tree-demo [role="treeitem"][data-selected="true"]:focus > .tree-node { background: hsl(var(--accent)); }
+    .tree-demo [role="treeitem"][data-state="open"] > .tree-node .tree-chevron { transform: rotate(90deg); }
+    .tree-demo .tree-chevron { transition: transform 150ms ease; }
+    .tree-demo [role="treeitem"][aria-checked="true"] > .tree-node .tree-check-on { display: inline; }
+    .tree-demo [role="treeitem"][aria-checked="mixed"] > .tree-node .tree-check-mixed { display: inline; }
+    .tree-demo [role="treeitem"][aria-checked="true"] > .tree-node .tree-checkbox,
+    .tree-demo [role="treeitem"][aria-checked="mixed"] > .tree-node .tree-checkbox { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+    .tree-demo [role="treeitem"][data-selected="true"] > .tree-node .tree-label { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); border-radius: 0.25rem; }
+    .tree-demo [role="treeitem"] > .tree-node .tree-label:hover { background: hsl(var(--accent)); border-radius: 0.25rem; }
+    .tree-demo [role="treeitem"][data-selected="true"] > .tree-node .tree-label:hover { background: hsl(var(--primary)); }
+</style>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Tree View 树视图原语", "Tree View Primitive")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("无头、无样式的树视图原语，内置键盘导航、选择与复选框支持。", "Headless, unstyled tree view primitive with keyboard navigation, selection, and checkbox support.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基础树视图", "Basic Tree View")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("支持单选一棵树。点击节点进行选择，点击箭头展开/折叠。", "A tree with single selection. Click a node to select it, click the chevron to expand/collapse.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <AtomBlazor.Primitives.TreeViewPrimitive
+                    AriaLabel="@(L.T("文件浏览器", "File explorer"))"
+                    SelectionMode="AtomBlazor.Primitives.TreeSelectionMode.Single"
+                    @bind-SelectedValue="selectedNode"
+                    DefaultExpandAll="true"
+                    class="tree-demo">
+                    <AtomBlazor.Primitives.TreeItem Value="documents">
+                        <NodeContent>
+                            <div class="tree-node flex items-center gap-1 py-1 px-2 cursor-pointer">
+                                <button data-tree-toggle class="w-4 h-4 flex items-center justify-center text-muted-foreground hover:text-foreground shrink-0" tabindex="-1">
+                                    <svg class="w-3 h-3 tree-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                                </button>
+                                <span class="tree-label text-sm py-0.5 px-1.5">Documents</span>
+                            </div>
+                        </NodeContent>
+                        <ChildContent>
+                            <AtomBlazor.Primitives.TreeItem Value="resume">
+                                <NodeContent>
+                                    <div class="tree-node flex items-center gap-1 py-1 px-2 cursor-pointer">
+                                        <span class="w-4 shrink-0"></span>
+                                        <span class="tree-label text-sm py-0.5 px-1.5">Resume.pdf</span>
+                                    </div>
+                                </NodeContent>
+                            </AtomBlazor.Primitives.TreeItem>
+                            <AtomBlazor.Primitives.TreeItem Value="cover-letter">
+                                <NodeContent>
+                                    <div class="tree-node flex items-center gap-1 py-1 px-2 cursor-pointer">
+                                        <span class="w-4 shrink-0"></span>
+                                        <span class="tree-label text-sm py-0.5 px-1.5">Cover Letter.docx</span>
+                                    </div>
+                                </NodeContent>
+                            </AtomBlazor.Primitives.TreeItem>
+                        </ChildContent>
+                    </AtomBlazor.Primitives.TreeItem>
+                    <AtomBlazor.Primitives.TreeItem Value="photos">
+                        <NodeContent>
+                            <div class="tree-node flex items-center gap-1 py-1 px-2 cursor-pointer">
+                                <button data-tree-toggle class="w-4 h-4 flex items-center justify-center text-muted-foreground hover:text-foreground shrink-0" tabindex="-1">
+                                    <svg class="w-3 h-3 tree-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                                </button>
+                                <span class="tree-label text-sm py-0.5 px-1.5">Photos</span>
+                            </div>
+                        </NodeContent>
+                        <ChildContent>
+                            <AtomBlazor.Primitives.TreeItem Value="vacation">
+                                <NodeContent>
+                                    <div class="tree-node flex items-center gap-1 py-1 px-2 cursor-pointer">
+                                        <span class="w-4 shrink-0"></span>
+                                        <span class="tree-label text-sm py-0.5 px-1.5">Vacation.jpg</span>
+                                    </div>
+                                </NodeContent>
+                            </AtomBlazor.Primitives.TreeItem>
+                        </ChildContent>
+                    </AtomBlazor.Primitives.TreeItem>
+                    <AtomBlazor.Primitives.TreeItem Value="music">
+                        <NodeContent>
+                            <div class="tree-node flex items-center gap-1 py-1 px-2 cursor-pointer">
+                                <span class="tree-label text-sm py-0.5 px-1.5">Music</span>
+                            </div>
+                        </NodeContent>
+                    </AtomBlazor.Primitives.TreeItem>
+                </AtomBlazor.Primitives.TreeViewPrimitive>
+
+                <p class="text-sm text-muted-foreground">@L.T("已选择：", "Selected:") @(selectedNode ?? "none")</p>
+            </div>
+
+            <CodeBlock Source="Primitives/TreeView/basic.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("可勾选树视图", "Checkable Tree View")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("带复选框的树。勾选父节点会级联到所有子节点。", "A tree with checkboxes. Checking a parent cascades to all children.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <AtomBlazor.Primitives.TreeViewPrimitive
+                    AriaLabel="@(L.T("可勾选树", "Checkable tree"))"
+                    Checkable="true"
+                    @bind-CheckedValues="checkedValues"
+                    DefaultExpandAll="true"
+                    class="tree-demo">
+                    <AtomBlazor.Primitives.TreeItem Value="frontend">
+                        <NodeContent>
+                            <div class="tree-node flex items-center gap-1 py-1 px-2">
+                                <button data-tree-toggle class="w-4 h-4 flex items-center justify-center text-muted-foreground hover:text-foreground shrink-0" tabindex="-1">
+                                    <svg class="w-3 h-3 tree-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                                </button>
+                                <button data-tree-checkbox class="tree-checkbox w-4 h-4 border rounded flex items-center justify-center text-xs shrink-0" tabindex="-1">
+                                    <span class="tree-check-on hidden">&#10003;</span>
+                                    <span class="tree-check-mixed hidden">&#8722;</span>
+                                </button>
+                                <span class="text-sm">Frontend</span>
+                            </div>
+                        </NodeContent>
+                        <ChildContent>
+                            <AtomBlazor.Primitives.TreeItem Value="react">
+                                <NodeContent>
+                                    <div class="tree-node flex items-center gap-1 py-1 px-2">
+                                        <span class="w-4 shrink-0"></span>
+                                        <button data-tree-checkbox class="tree-checkbox w-4 h-4 border rounded flex items-center justify-center text-xs shrink-0" tabindex="-1">
+                                            <span class="tree-check-on hidden">&#10003;</span>
+                                        </button>
+                                        <span class="text-sm">React</span>
+                                    </div>
+                                </NodeContent>
+                            </AtomBlazor.Primitives.TreeItem>
+                            <AtomBlazor.Primitives.TreeItem Value="vue">
+                                <NodeContent>
+                                    <div class="tree-node flex items-center gap-1 py-1 px-2">
+                                        <span class="w-4 shrink-0"></span>
+                                        <button data-tree-checkbox class="tree-checkbox w-4 h-4 border rounded flex items-center justify-center text-xs shrink-0" tabindex="-1">
+                                            <span class="tree-check-on hidden">&#10003;</span>
+                                        </button>
+                                        <span class="text-sm">Vue</span>
+                                    </div>
+                                </NodeContent>
+                            </AtomBlazor.Primitives.TreeItem>
+                            <AtomBlazor.Primitives.TreeItem Value="angular">
+                                <NodeContent>
+                                    <div class="tree-node flex items-center gap-1 py-1 px-2">
+                                        <span class="w-4 shrink-0"></span>
+                                        <button data-tree-checkbox class="tree-checkbox w-4 h-4 border rounded flex items-center justify-center text-xs shrink-0" tabindex="-1">
+                                            <span class="tree-check-on hidden">&#10003;</span>
+                                        </button>
+                                        <span class="text-sm">Angular</span>
+                                    </div>
+                                </NodeContent>
+                            </AtomBlazor.Primitives.TreeItem>
+                        </ChildContent>
+                    </AtomBlazor.Primitives.TreeItem>
+                    <AtomBlazor.Primitives.TreeItem Value="backend">
+                        <NodeContent>
+                            <div class="tree-node flex items-center gap-1 py-1 px-2">
+                                <button data-tree-toggle class="w-4 h-4 flex items-center justify-center text-muted-foreground hover:text-foreground shrink-0" tabindex="-1">
+                                    <svg class="w-3 h-3 tree-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                                </button>
+                                <button data-tree-checkbox class="tree-checkbox w-4 h-4 border rounded flex items-center justify-center text-xs shrink-0" tabindex="-1">
+                                    <span class="tree-check-on hidden">&#10003;</span>
+                                    <span class="tree-check-mixed hidden">&#8722;</span>
+                                </button>
+                                <span class="text-sm">Backend</span>
+                            </div>
+                        </NodeContent>
+                        <ChildContent>
+                            <AtomBlazor.Primitives.TreeItem Value="dotnet">
+                                <NodeContent>
+                                    <div class="tree-node flex items-center gap-1 py-1 px-2">
+                                        <span class="w-4 shrink-0"></span>
+                                        <button data-tree-checkbox class="tree-checkbox w-4 h-4 border rounded flex items-center justify-center text-xs shrink-0" tabindex="-1">
+                                            <span class="tree-check-on hidden">&#10003;</span>
+                                        </button>
+                                        <span class="text-sm">.NET</span>
+                                    </div>
+                                </NodeContent>
+                            </AtomBlazor.Primitives.TreeItem>
+                            <AtomBlazor.Primitives.TreeItem Value="node">
+                                <NodeContent>
+                                    <div class="tree-node flex items-center gap-1 py-1 px-2">
+                                        <span class="w-4 shrink-0"></span>
+                                        <button data-tree-checkbox class="tree-checkbox w-4 h-4 border rounded flex items-center justify-center text-xs shrink-0" tabindex="-1">
+                                            <span class="tree-check-on hidden">&#10003;</span>
+                                        </button>
+                                        <span class="text-sm">Node.js</span>
+                                    </div>
+                                </NodeContent>
+                            </AtomBlazor.Primitives.TreeItem>
+                        </ChildContent>
+                    </AtomBlazor.Primitives.TreeItem>
+                </AtomBlazor.Primitives.TreeViewPrimitive>
+
+                <p class="text-sm text-muted-foreground">@L.T("已勾选：", "Checked:") @(checkedValues.Count > 0 ? string.Join(", ", checkedValues) : "none")</p>
+            </div>
+
+            <CodeBlock Source="Primitives/TreeView/checkable.txt" />
+        </section>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">role="tree"</code> @L.T("位于根容器上", "on the root container")
+            </AccessibilityItem>
+            <AccessibilityItem>
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">role="treeitem"</code> @L.T("位于每个节点上", "on each node")
+            </AccessibilityItem>
+            <AccessibilityItem>
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> @L.T("在父节点上标明展开/折叠状态", "indicates expand/collapse state on parent nodes")
+            </AccessibilityItem>
+            <AccessibilityItem>
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-selected</code> @L.T("标明选中状态", "indicates selection state")
+            </AccessibilityItem>
+            <AccessibilityItem>
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-checked</code> @L.T("可勾选时设为 \"true\"、\"false\" 或 \"mixed\"（不确定态）", "set to \"true\", \"false\", or \"mixed\" (indeterminate) when checkable")
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-level</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">aria-posinset</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-setsize</code> 传达树形结构
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-level</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-posinset</code>, and <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-setsize</code> convey tree structure
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-multiselectable</code> @L.T("使用多选时设置在根节点上", "set on root when using multiple selection")
+            </AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("将焦点移动到下一个可见节点", "Move focus to the next visible node"))">
+                <Kbd>ArrowDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("将焦点移动到上一个可见节点", "Move focus to the previous visible node"))">
+                <Kbd>ArrowUp</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("展开聚焦的节点或移动到第一个子节点", "Expand the focused node or move to first child"))">
+                <Kbd>ArrowRight</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("折叠聚焦的节点或移动到父节点", "Collapse the focused node or move to parent"))">
+                <Kbd>ArrowLeft</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("将焦点移动到第一个节点", "Move focus to the first node"))">
+                <Kbd>Home</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("将焦点移动到最后一个可见节点", "Move focus to the last visible node"))">
+                <Kbd>End</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("选择或激活聚焦的节点", "Select or activate the focused node"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件的属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="TreeView">
+                <ApiParameter Name="SelectionMode" Type="TreeSelectionMode" Default="TreeSelectionMode.None">
+                    @L.T("选择行为：None、Single 或 Multiple。", "Selection behavior: None, Single, or Multiple.")
+                </ApiParameter>
+                <ApiParameter Name="SelectedValue" Type="string?" Default="null">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            单选模式下的选中节点值。支持 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-SelectedValue</code>。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            The selected node value in single selection mode. Supports <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-SelectedValue</code>.
+                        </text>
+                    }
+                </ApiParameter>
+                <ApiParameter Name="SelectedValues" Type="HashSet&lt;string&gt;?" Default="null">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            多选模式下的选中节点值集合。支持 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-SelectedValues</code>。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            The selected node values in multiple selection mode. Supports <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-SelectedValues</code>.
+                        </text>
+                    }
+                </ApiParameter>
+                <ApiParameter Name="ExpandedValues" Type="HashSet&lt;string&gt;?" Default="null">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            控制哪些节点处于展开状态。支持 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-ExpandedValues</code>。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Controls which nodes are expanded. Supports <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-ExpandedValues</code>.
+                        </text>
+                    }
+                </ApiParameter>
+                <ApiParameter Name="Checkable" Type="bool" Default="false">
+                    @L.T("节点是否显示复选框。", "Whether nodes display checkboxes.")
+                </ApiParameter>
+                <ApiParameter Name="CheckStrictly" Type="bool" Default="false">
+                    @L.T("为 true 时，勾选父节点不会级联到子节点。", "When true, checking a parent does not cascade to children.")
+                </ApiParameter>
+                <ApiParameter Name="CheckedValues" Type="HashSet&lt;string&gt;?" Default="null">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            已勾选的节点值。支持 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-CheckedValues</code>。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            The checked node values. Supports <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-CheckedValues</code>.
+                        </text>
+                    }
+                </ApiParameter>
+                <ApiParameter Name="DefaultExpandAll" Type="bool" Default="false">
+                    @L.T("初始渲染时是否展开所有节点。", "Whether to expand all nodes on initial render.")
+                </ApiParameter>
+                <ApiParameter Name="DefaultExpandDepth" Type="int?" Default="null">
+                    @L.T("初始渲染时展开到该深度的节点。", "Expand nodes up to this depth on initial render.")
+                </ApiParameter>
+                <ApiParameter Name="ShowLines" Type="bool" Default="false">
+                    @L.T("是否在节点之间显示连接线。", "Whether to show connecting lines between nodes.")
+                </ApiParameter>
+                <ApiParameter Name="ShowIcons" Type="bool" Default="true">
+                    @L.T("是否显示展开/折叠图标。", "Whether to show expand/collapse icons.")
+                </ApiParameter>
+                <ApiParameter Name="ExpandOnClick" Type="bool" Default="false">
+                    @L.T("点击节点是否展开/折叠它（在展开图标之外）。", "Whether clicking a node expands/collapses it (in addition to the expand icon).")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                    @L.T("树的无障碍标签。", "Accessible label for the tree.")
+                </ApiParameter>
+                <ApiParameter Name="OnNodeClick" Type="EventCallback&lt;string&gt;">
+                    @L.T("点击节点时的回调。", "Callback when a node is clicked.")
+                </ApiParameter>
+                <ApiParameter Name="OnNodeExpand" Type="EventCallback&lt;string&gt;">
+                    @L.T("展开节点时的回调。", "Callback when a node is expanded.")
+                </ApiParameter>
+                <ApiParameter Name="OnNodeCollapse" Type="EventCallback&lt;string&gt;">
+                    @L.T("折叠节点时的回调。", "Callback when a node is collapsed.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            应用到根 <code>&lt;div&gt;</code> 元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="TreeItem">
+                <ApiParameter Name="Value" Type="string" Default="">
+                    @L.T("此树条目的唯一标识。必填。", "Unique identifier for this tree item. Required.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("此条目是否被禁用。", "Whether this item is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="IsLeaf" Type="bool?" Default="null">
+                    @L.T("覆盖是否将此条目视为叶节点。为 null 时，由其是否拥有子节点决定。", "Override whether this item is treated as a leaf node. When null, determined by whether it has children.")
+                </ApiParameter>
+                <ApiParameter Name="NodeContent" Type="RenderFragment?">
+                    @L.T("为节点标签区域渲染的内容。", "Content rendered for the node label area.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("嵌套在此节点下的子树条目。", "Child tree items nested under this node.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            应用到根 <code>&lt;div&gt;</code> 元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    // TreeView 基元演示页仅维护选中与勾选两组状态。
+    private string? selectedNode;
+    private HashSet<string> checkedValues = new();
+}

@@ -1,0 +1,17 @@
+<EditForm Model="model" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <FormFieldQuantityStepper @bind-Value="model.Quantity"
+                                Label="Quantity"
+                                HelperText="At least one." />
+    <Button Type="ButtonType.Submit">Submit</Button>
+</EditForm>
+
+@code {
+    private readonly Model model = new();
+
+    private sealed class Model
+    {
+        [Range(1, 99, ErrorMessage = "Order at least one.")]
+        public int Quantity { get; set; }
+    }
+}

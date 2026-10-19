@@ -1,0 +1,188 @@
+@page "/architecture"
+
+<PageTitle>@L.T("架构 - Atom BlazorUI", "Architecture - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("架构", "Architecture")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("理解两层式 Primitives 架构", "Understanding the two-tier primitives architecture")
+        </p>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("概述", "Overview")</h2>
+            <p class="text-muted-foreground leading-relaxed">
+                @L.T("Atom BlazorUI 沿用 Radix UI + shadcn/ui 那套久经验证的架构模式，并针对 Blazor 做了适配。行为与呈现相互分离，既给出最大灵活性，又保留美观的默认样式。", "Atom BlazorUI follows the proven architecture pattern of Radix UI + shadcn/ui, adapted for Blazor. This separation between behavior and presentation provides maximum flexibility while maintaining beautiful defaults.")
+            </p>
+        </section>
+
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("两层架构", "Two-Tier Architecture")</h2>
+
+            <div class="space-y-4">
+                <div class="p-6 border rounded-lg space-y-3 bg-card">
+                    <div class="flex items-center gap-2">
+                        <div class="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            <span class="text-primary font-semibold">1</span>
+                        </div>
+                        <h3 class="text-lg font-semibold">@L.T("Primitives 层", "Primitives Layer")</h3>
+                    </div>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <p class="text-sm text-muted-foreground">
+                            位于 <code class="text-xs bg-muted px-1.5 py-0.5 rounded">Primitives/</code> 的无样式、headless 组件。
+                        </p>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <p class="text-sm text-muted-foreground">
+                            Unstyled, headless components located in <code class="text-xs bg-muted px-1.5 py-0.5 rounded">Primitives/</code>.
+                        </p>
+                                        </text>
+}
+                    <ul class="text-sm text-muted-foreground space-y-2 list-disc list-inside">
+                        <li>@L.T("承载全部行为与交互逻辑", "Handles all behavior and interaction logic")</li>
+                        <li>@L.T("落实无障碍支持（ARIA、键盘导航）", "Implements accessibility (ARIA, keyboard navigation)")</li>
+                        <li>@L.T("管理组件状态", "Manages component state")</li>
+                        <li>@L.T("在需要之处提供 JavaScript interop", "Provides JavaScript interop where needed")</li>
+                        <li>@L.T("零样式——完全 headless", "Zero styling - completely headless")</li>
+                    </ul>
+                </div>
+
+                <div class="p-6 border rounded-lg space-y-3 bg-card">
+                    <div class="flex items-center gap-2">
+                        <div class="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            <span class="text-primary font-semibold">2</span>
+                        </div>
+                        <h3 class="text-lg font-semibold">@L.T("Components 层", "Components Layer")</h3>
+                    </div>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <p class="text-sm text-muted-foreground">
+                            位于 <code class="text-xs bg-muted px-1.5 py-0.5 rounded">Components/</code> 的带样式包装件。
+                        </p>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <p class="text-sm text-muted-foreground">
+                            Styled wrappers located in <code class="text-xs bg-muted px-1.5 py-0.5 rounded">Components/</code>.
+                        </p>
+                                        </text>
+}
+                    <ul class="text-sm text-muted-foreground space-y-2 list-disc list-inside">
+                        <li>@L.T("以 shadcn/ui 样式包装 Primitives", "Wraps primitives with shadcn/ui styling")</li>
+                        <li>@L.T("套用 Tailwind 工具类", "Applies Tailwind utility classes")</li>
+                        <li>@L.T("用 CSS 变量做主题化", "Uses CSS variables for theming")</li>
+                        <li>@L.T("提供美观的默认样式", "Provides beautiful defaults")</li>
+                        <li>@L.T("零行为逻辑", "Zero behavioral logic")</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("各自适用的场景", "When to Use Each")</h2>
+
+            <div class="grid gap-4 md:grid-cols-2">
+                <div class="p-5 border rounded-lg space-y-3">
+                    <h3 class="font-semibold text-primary">@L.T("适合使用 Primitives，当你需要：", "Use Primitives When:")</h3>
+                    <ul class="text-sm text-muted-foreground space-y-2">
+                        <li>✓ @L.T("搭建自有设计体系", "Building a custom design system")</li>
+                        <li>✓ @L.T("完全掌控样式", "Need complete control over styling")</li>
+                        <li>✓ @L.T("接入自己的 CSS 框架", "Want to apply your own CSS framework")</li>
+                        <li>✓ @L.T("做出与众不同的视觉设计", "Creating unique visual designs")</li>
+                    </ul>
+                </div>
+
+                <div class="p-5 border rounded-lg space-y-3">
+                    <h3 class="font-semibold text-primary">@L.T("适合使用 Components，当你需要：", "Use Components When:")</h3>
+                    <ul class="text-sm text-muted-foreground space-y-2">
+                        <li>✓ @L.T("开箱即用的 shadcn/ui 设计", "Want shadcn/ui design out of the box")</li>
+                        <li>✓ @L.T("快速落地实现", "Need quick implementation")</li>
+                        <li>✓ @L.T("满意于默认样式", "Like the default styling")</li>
+                        <li>✓ @L.T("偏好约定优于配置", "Prefer convention over configuration")</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("基础设施服务", "Infrastructure Services")</h2>
+            <p class="text-muted-foreground">
+                @L.T("Primitives 建立在下列共享基础设施服务之上：", "Primitives are built on top of shared infrastructure services:")
+            </p>
+
+            <div class="grid gap-3 sm:grid-cols-2">
+                <div class="p-4 border rounded-lg">
+                    <h4 class="font-medium mb-1">PortalService</h4>
+                    <p class="text-sm text-muted-foreground">@L.T("把内容渲染到 DOM 层级之外", "Renders content outside DOM hierarchy")</p>
+                </div>
+                <div class="p-4 border rounded-lg">
+                    <h4 class="font-medium mb-1">FocusManager</h4>
+                    <p class="text-sm text-muted-foreground">@L.T("焦点锁定与焦点还原", "Focus trapping and restoration")</p>
+                </div>
+                <div class="p-4 border rounded-lg">
+                    <h4 class="font-medium mb-1">PositioningService</h4>
+                    <p class="text-sm text-muted-foreground">@L.T("对接 Floating UI 完成定位", "Floating UI integration for positioning")</p>
+                </div>
+                <div class="p-4 border rounded-lg">
+                    <h4 class="font-medium mb-1">IdGenerator</h4>
+                    <p class="text-sm text-muted-foreground">@L.T("为 ARIA 关联生成唯一 ID", "Unique IDs for ARIA relationships")</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("关键模式", "Key Patterns")</h2>
+
+            <div class="space-y-3">
+                <div class="p-4 border-l-4 border-primary bg-primary/5 rounded-r-lg">
+                    <h4 class="font-medium mb-2">@L.T("受控/非受控状态", "Controlled/Uncontrolled State")</h4>
+                    <p class="text-sm text-muted-foreground">
+                        @L.T("所有 Primitives 同时支持两种模式——既可在组件内部自行管理状态，也可由父组件传入。", "All primitives support both patterns - manage state internally or pass it from parent.")
+                    </p>
+                </div>
+
+                <div class="p-4 border-l-4 border-primary bg-primary/5 rounded-r-lg">
+                    <h4 class="font-medium mb-2">@L.T("通过 RenderFragment 组合", "Composition via RenderFragment")</h4>
+                    <p class="text-sm text-muted-foreground">
+                        @L.T("借助 Blazor 的 RenderFragment 做组件组合，弹性最大。", "Flexible component composition using Blazor's RenderFragment for maximum flexibility.")
+                    </p>
+                </div>
+
+                <div class="p-4 border-l-4 border-primary bg-primary/5 rounded-r-lg">
+                    <h4 class="font-medium mb-2">@L.T("通过 CascadingValue 传递上下文", "Context via CascadingValue")</h4>
+                    <p class="text-sm text-muted-foreground">
+                        @L.T("借助 Blazor 的 CascadingValue 实现组件间通信，父子关系清爽。", "Component communication using Blazor's CascadingValue for clean parent-child relationships.")
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("无障碍", "Accessibility")</h2>
+            <p class="text-muted-foreground">
+                @L.T("所有 Primitives 在设计阶段就把无障碍作为前提：", "All primitives are built with accessibility in mind:")
+            </p>
+            <ul class="text-sm text-muted-foreground space-y-2 list-disc list-inside ml-4">
+                <li>@L.T("支持键盘交互（Tab、Enter、Space、Escape、方向键）", "Keyboard interaction support (Tab, Enter, Space, Escape, Arrow keys)")</li>
+                <li>@L.T("自动附加 ARIA 属性（角色、标签、描述、状态）", "Automatic ARIA attributes (roles, labels, descriptions, states)")</li>
+                <li>@L.T("带可视指示的焦点管理", "Focus management with visual indicators")</li>
+                <li>@L.T("语义化的 HTML 结构", "Semantic HTML structure")</li>
+            </ul>
+        </section>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

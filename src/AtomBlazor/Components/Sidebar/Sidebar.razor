@@ -1,0 +1,26 @@
+@namespace AtomBlazor
+
+@*
+    主 Sidebar 组件：移动端渲染为 Sheet，桌面端渲染为侧边栏。
+    为所有侧边栏内容提供容器。
+*@
+
+@if (Context != null)
+{
+    @if (Context.IsMobile)
+    {
+        @* 移动端：渲染为 Sheet *@
+        <Sheet Open="@MobileOpen" OpenChanged="@(value => MobileOpen = value)" Side="@GetSheetSide()">
+            <SheetContent Class="@GetMobileClasses()" ShowClose="false" @attributes="AdditionalAttributes">
+                @ChildContent
+            </SheetContent>
+        </Sheet>
+    }
+    else
+    {
+        @* 桌面端：渲染为侧边栏 *@
+        <aside class="@GetDesktopClasses()" @attributes="AdditionalAttributes" data-state="@GetDataState()" data-collapsible="@(!Context.Open && Context.CollapsedMode == SidebarCollapsedMode.Pill ? "pill" : Collapsible && !Context.Open ? "icon" : "none")" inert="@(GetDataState() == "closed")" aria-hidden="@(GetDataState() == "closed" ? "true" : null)" data-variant="@Context.Variant.ToString().ToLowerInvariant()" data-side="@Context.Side.ToString().ToLowerInvariant()">
+            @ChildContent
+        </aside>
+    }
+}

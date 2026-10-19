@@ -1,0 +1,17 @@
+<PivotDataGrid TItem="Sale" Data="@sales" OnCellClick="OnDrillDown">
+    ...
+</PivotDataGrid>
+
+@if (drilled is not null)
+{
+    <p>@drilled.Value.Row.Label &times; @drilled.Value.Column.Label &mdash;
+       @drilled.Value.Items.Count orders</p>
+}
+
+@code {
+    private PivotCellContext<Sale>? drilled;
+
+    // The context carries the items behind the cell, worked out only when read.
+    // Behind a total they are every item under it.
+    private void OnDrillDown(PivotCellContext<Sale> cell) => drilled = cell;
+}

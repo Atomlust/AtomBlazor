@@ -1,0 +1,23 @@
+@* 已随 恢复源 组件形态（→Button）。 *@
+<Button Variant="ButtonVariant.Ghost"
+        Size="ButtonSize.Icon"
+        AriaLabel="@(IsRtl ? L.T("切换为从左到右", "Switch to left-to-right") : L.T("切换为从右到左", "Switch to right-to-left"))"
+        OnClick="Toggle">
+    <LucideIcon Name="@(IsRtl ? "pilcrow-right" : "pilcrow-left")" Size="18" />
+</Button>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    /// <summary>当前书写方向。</summary>
+    [Parameter] public TextDirection Direction { get; set; } = TextDirection.LeftToRight;
+
+    /// <summary>切换方向时触发。</summary>
+    [Parameter] public EventCallback<TextDirection> DirectionChanged { get; set; }
+
+    private bool IsRtl => Direction == TextDirection.RightToLeft;
+
+    private Task Toggle() => DirectionChanged.InvokeAsync(
+        IsRtl ? TextDirection.LeftToRight : TextDirection.RightToLeft);
+}

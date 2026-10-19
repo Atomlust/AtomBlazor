@@ -1,0 +1,16 @@
+@* OnSwipeMove tracks the pointer; OnSwipeCancel springs back when it does not commit. *@
+<SwipeArea Axis="SwipeAxis.Horizontal"
+             TouchAction="SwipeTouchAction.PanY"
+             OnSwipeMove="@(e => offset = e.DeltaX)"
+             OnSwipe="@(e => { dismissed = true; offset = 0; })"
+             OnSwipeCancel="@(() => offset = 0)"
+             class="...your-styles...">
+    <div style="transform: translateX(@(offset.ToString(CultureInfo.InvariantCulture))px)">
+        Drag me sideways
+    </div>
+</SwipeArea>
+
+@code {
+    private double offset;
+    private bool dismissed;
+}

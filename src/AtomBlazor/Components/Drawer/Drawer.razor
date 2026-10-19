@@ -1,0 +1,83 @@
+@namespace AtomBlazor
+
+@* 抽屉 - 一种基于 Sheet 基元构建、对移动端友好的滑出面板 *@
+<CascadingValue Value="this" IsFixed="false">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public bool? Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public bool DefaultOpen { get; set; }
+
+    [Parameter]
+    public DrawerDirection Direction { get; set; } = DrawerDirection.Bottom;
+
+    /// <summary>视口的升序比例值（大于 0，最大为 1）。为空时使用内容的自然高度。</summary>
+    [Parameter] public IReadOnlyList<double> SnapPoints { get; set; } = [];
+    /// <summary>当前激活的、以零为基准的吸附点。</summary>
+    [Parameter] public int SnapIndex { get; set; }
+    /// <summary>当当前激活的吸附点发生变化时调用。</summary>
+    [Parameter] public EventCallback<int> SnapIndexChanged { get; set; }
+    /// <summary>允许拖拽到最小吸附点的一半以下以关闭抽屉。</summary>
+    [Parameter] public bool DismissOnDrag { get; set; } = true;
+
+    protected override void OnParametersSet()
+    {
+        for (var i = 0; i < SnapPoints.Count; i++)
+        {
+            if (!double.IsFinite(SnapPoints[i]) || SnapPoints[i] <= 0 || SnapPoints[i] > 1 || (i > 0 && SnapPoints[i] <= SnapPoints[i - 1]))
+            {
+                throw new ArgumentException("SnapPoints must be ascending viewport fractions greater than 0 and at most 1.", nameof(SnapPoints));
+            }
+        }
+        if (SnapPoints.Count > 0 && (SnapIndex < 0 || SnapIndex >= SnapPoints.Count)) { throw new ArgumentOutOfRangeException(nameof(SnapIndex)); }
+    }
+
+    internal async Task SetSnapIndexAsync(int index)
+    {
+        if (index < 0 || index >= SnapPoints.Count || index == SnapIndex) { return; }
+        SnapIndex = index;
+        await SnapIndexChanged.InvokeAsync(index);
+        StateHasChanged();
+    }
+
+    internal bool IsControlled => Open.HasValue;
+    internal bool IsOpen => Open ?? _internalOpen;
+    internal ElementReference? TriggerElement { get; set; }
+    private bool _internalOpen;
+
+    internal async Task SetOpen(bool open)
+    {
+        if (IsControlled)
+        {
+            await OpenChanged.InvokeAsync(open);
+            return;
+        }
+
+        // 抽屉过去总是自行保留状态而不发出任何通知，因此监听 OpenChanged 但未绑定 Open 的页面
+        // 永远听不到它打开或关闭。Dialog 与 Sheet 在两种模式下都会上报；现在本组件也一样。
+        // 仅上报真正发生的变化：抽屉自身的状态始终是最新的，因此与它比较不会像受控值那样过时。
+        if (_internalOpen == open)
+        {
+            return;
+        }
+
+        _internalOpen = open;
+        StateHasChanged();
+        await OpenChanged.InvokeAsync(open);
+    }
+
+    protected override void OnInitialized()
+    {
+        _internalOpen = DefaultOpen;
+    }
+}

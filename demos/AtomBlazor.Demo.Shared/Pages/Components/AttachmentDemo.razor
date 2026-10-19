@@ -1,0 +1,442 @@
+@page "/components/attachment"
+
+<PageTitle>@L.T("Attachment 附件 - Atom BlazorUI", "Attachment Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Attachment 附件组件", "Attachment Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("展示文件或图片，带元信息、上传状态、操作按钮，以及可选的整卡触发层。", "Displays files or images with metadata, upload states, actions, and optional trigger overlays.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本附件", "Basic Attachment")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("把媒体区、内容区和操作区组合成一行文件条目。", "Compose media, content, and actions for a file row.")
+            </p>
+        </div>
+        <div class="rounded-lg border p-4">
+            <div class="mx-auto flex w-full max-w-sm flex-col gap-2 py-12">
+                <Attachment>
+                    <AttachmentMedia>
+                        <LucideIcon Name="file-text" Size="18"/>
+                    </AttachmentMedia>
+                    <AttachmentContent>
+                        <AttachmentTitle>sales-dashboard.pdf</AttachmentTitle>
+                        <AttachmentDescription>PDF · 2.4 MB</AttachmentDescription>
+                    </AttachmentContent>
+                    <AttachmentActions>
+                        <AttachmentAction aria-label="@(L.T("移除 sales-dashboard.pdf", "Remove sales-dashboard.pdf"))">
+                            <LucideIcon Name="x" Size="14"/>
+                        </AttachmentAction>
+                    </AttachmentActions>
+                </Attachment>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Attachment/basic.txt"/>
+    </div>
+
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("各种状态", "States")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("覆盖上传生命周期各阶段的视觉状态。", "Visual state support for upload lifecycle.")
+            </p>
+        </div>
+        <div class="space-y-2 rounded-lg border p-4">
+            <div class="mx-auto flex w-full max-w-sm flex-col gap-2 py-12">
+                <Attachment State="AttachmentState.Idle" Class="w-full">
+                    <AttachmentMedia>
+                        <LucideIcon Name="clock"/>
+                    </AttachmentMedia>
+                    <AttachmentContent>
+                        <AttachmentTitle>selected-file.pdf</AttachmentTitle>
+                        <AttachmentDescription>PDF · 2.4 MB</AttachmentDescription>
+                    </AttachmentContent>
+                    <AttachmentActions>
+                        <AttachmentAction aria-label="@(L.T("移除 selected-file.pdf", "Remove selected-file.pdf"))">
+                            <LucideIcon Name="x"/>
+                        </AttachmentAction>
+                    </AttachmentActions>
+                </Attachment>
+                <Attachment State="AttachmentState.Uploading" Class="w-full">
+                    <AttachmentMedia>
+                        <Spinner/>
+                    </AttachmentMedia>
+                    <AttachmentContent>
+                        <AttachmentTitle>design-system.zip</AttachmentTitle>
+                        <AttachmentDescription>@L.T("上传中 · 64%", "Uploading · 64%")</AttachmentDescription>
+                    </AttachmentContent>
+                    <AttachmentActions>
+                        <AttachmentAction aria-label="@(L.T("移除 design-system.zip", "Remove design-system.zip"))">
+                            <LucideIcon Name="x"/>
+                        </AttachmentAction>
+                    </AttachmentActions>
+                </Attachment>
+                <Attachment State="AttachmentState.Processing" Class="w-full">
+                    <AttachmentMedia>
+                        <LucideIcon Name="file-text"/>
+                    </AttachmentMedia>
+                    <AttachmentContent>
+                        <AttachmentTitle>market-research.pdf</AttachmentTitle>
+                        <AttachmentDescription>@L.T("正在处理文档", "Processing document")</AttachmentDescription>
+                    </AttachmentContent>
+                    <AttachmentActions>
+                        <AttachmentAction aria-label="@(L.T("移除 market-research.pdf", "Remove market-research.pdf"))">
+                            <LucideIcon Name="x"/>
+                        </AttachmentAction>
+                    </AttachmentActions>
+                </Attachment>
+                <Attachment State="AttachmentState.Error" Class="w-full">
+                    <AttachmentMedia>
+                        <LucideIcon Name="triangle-alert"/>
+                    </AttachmentMedia>
+                    <AttachmentContent>
+                        <AttachmentTitle>financial-model.xlsx</AttachmentTitle>
+                        <AttachmentDescription>@L.T("上传失败，请重试。", "Upload failed. Try again.")</AttachmentDescription>
+                    </AttachmentContent>
+                    <AttachmentActions>
+                        <AttachmentAction aria-label="@(L.T("移除 financial-model.xlsx", "Remove financial-model.xlsx"))">
+                            <LucideIcon Name="x"/>
+                        </AttachmentAction>
+                    </AttachmentActions>
+                </Attachment>
+                <Attachment State="AttachmentState.Done" Class="w-full">
+                    <AttachmentMedia>
+                        <LucideIcon Name="check"/>
+                    </AttachmentMedia>
+                    <AttachmentContent>
+                        <AttachmentTitle>uploaded-report.pdf</AttachmentTitle>
+                        <AttachmentDescription>@L.T("已上传 · 1.8 MB", "Uploaded · 1.8 MB")</AttachmentDescription>
+                    </AttachmentContent>
+                    <AttachmentActions>
+                        <AttachmentAction aria-label="@(L.T("移除 uploaded-report.pdf", "Remove uploaded-report.pdf"))">
+                            <LucideIcon Name="x"/>
+                        </AttachmentAction>
+                    </AttachmentActions>
+                </Attachment>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Attachment/states.txt"/>
+    </div>
+
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("尺寸与朝向", "Sizes and Orientation")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    在不同场景下用 <code class="text-xs bg-muted px-1 py-0.5 rounded">Size</code> 和 <code
+                        class="text-xs bg-muted px-1 py-0.5 rounded">Orientation</code> 调整。纵向卡片把媒体区堆在内容区上方，
+                    很适合搭配 <code class="text-xs bg-muted px-1 py-0.5 rounded">AttachmentMediaVariant.Image</code> 预览。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">Size</code> and <code
+                        class="text-xs bg-muted px-1 py-0.5 rounded">Orientation</code> for different contexts. Vertical
+                    cards stack the media above the content and pair well with
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">AttachmentMediaVariant.Image</code> previews.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-2 rounded-lg border p-4">
+            <div class="mx-auto flex w-full max-w-sm flex-col gap-2 py-12">
+                <Attachment Size="AttachmentSize.Default" Class="w-full">
+                    <AttachmentMedia>
+                        <LucideIcon Name="file"/>
+                    </AttachmentMedia>
+                    <AttachmentContent>
+                        <AttachmentTitle>@L.T("默认尺寸附件", "Default attachment")</AttachmentTitle>
+                        <AttachmentDescription>PDF · 2.4 MB</AttachmentDescription>
+                    </AttachmentContent>
+                </Attachment>
+                <Attachment Size="AttachmentSize.Sm" Class="w-full">
+                    <AttachmentMedia>
+                        <LucideIcon Name="file"/>
+                    </AttachmentMedia>
+                    <AttachmentContent>
+                        <AttachmentTitle>@L.T("小尺寸附件", "Small attachment")</AttachmentTitle>
+                        <AttachmentDescription>PDF · 2.4 MB</AttachmentDescription>
+                    </AttachmentContent>
+                </Attachment>
+                <Attachment Size="AttachmentSize.Xs" Class="w-full">
+                    <AttachmentMedia>
+                        <LucideIcon Name="file"/>
+                    </AttachmentMedia>
+                    <AttachmentContent>
+                        <AttachmentTitle>@L.T("超小尺寸附件", "Extra small attachment")</AttachmentTitle>
+                        <AttachmentDescription>PDF · 2.4 MB</AttachmentDescription>
+                    </AttachmentContent>
+                </Attachment>
+                <div class="flex items-start justify-center gap-3 pt-4">
+                    <Attachment Orientation="AttachmentOrientation.Vertical">
+                        <AttachmentMedia>
+                            <LucideIcon Name="file-text"/>
+                        </AttachmentMedia>
+                        <AttachmentContent>
+                            <AttachmentTitle>release-notes.md</AttachmentTitle>
+                            <AttachmentDescription>MD · 8 KB</AttachmentDescription>
+                        </AttachmentContent>
+                    </Attachment>
+                    <Attachment Orientation="AttachmentOrientation.Vertical">
+                        <AttachmentMedia Variant="AttachmentMediaVariant.Image">
+                            <img src="_content/AtomBlazor.Demo.Shared/images/atom.png"
+                                 alt="@(L.T("atom-logo.png 的预览图", "Preview of atom-logo.png"))"/>
+                        </AttachmentMedia>
+                        <AttachmentContent>
+                            <AttachmentTitle>atom-logo.png</AttachmentTitle>
+                            <AttachmentDescription>PNG · 24 KB</AttachmentDescription>
+                        </AttachmentContent>
+                    </Attachment>
+                </div>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Attachment/sizes-orientation.txt"/>
+    </div>
+
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("附件组与触发层", "Group and Trigger")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("用横向分组排列附件，并让整卡触发层可点击，同时保证操作按钮仍可点。", "Use a horizontal group and full-card trigger overlays while keeping actions clickable.")
+            </p>
+        </div>
+        <div class="space-y-3 rounded-lg border p-4">
+            <AttachmentGroup>
+                <Attachment Class="min-w-64">
+                    <AttachmentMedia>
+                        <LucideIcon Name="file-code" Size="18"/>
+                    </AttachmentMedia>
+                    <AttachmentContent>
+                        <AttachmentTitle>renderer.tsx</AttachmentTitle>
+                        <AttachmentDescription>TSX · 12 KB</AttachmentDescription>
+                    </AttachmentContent>
+                </Attachment>
+                <Attachment Class="min-w-64">
+                    <AttachmentMedia>
+                        <LucideIcon Name="file-text" Size="18"/>
+                    </AttachmentMedia>
+                    <AttachmentContent>
+                        <AttachmentTitle>briefing-notes.pdf</AttachmentTitle>
+                        <AttachmentDescription>PDF · 1.4 MB</AttachmentDescription>
+                    </AttachmentContent>
+                </Attachment>
+            </AttachmentGroup>
+
+            <Attachment>
+                <AttachmentTrigger AriaLabel="@(L.T("打开 research-summary.pdf 的预览", "Open research-summary.pdf preview"))"
+                                   @onclick="() => previewOpen = true"/>
+                <AttachmentMedia>
+                    <LucideIcon Name="file-search" Size="18"/>
+                </AttachmentMedia>
+                <AttachmentContent>
+                    <AttachmentTitle>research-summary.pdf</AttachmentTitle>
+                    <AttachmentDescription>@L.T("打开预览对话框", "Open preview dialog")</AttachmentDescription>
+                </AttachmentContent>
+                <AttachmentActions>
+                    <AttachmentAction aria-label="@(L.T("复制 research-summary.pdf 链接", "Copy research-summary.pdf link"))">
+                        <LucideIcon Name="copy" Size="14"/>
+                    </AttachmentAction>
+                </AttachmentActions>
+            </Attachment>
+
+            <Attachment>
+                <AttachmentTrigger Href="#" AriaLabel="@(L.T("打开 annual-report.pdf", "Open annual-report.pdf"))"/>
+                <AttachmentMedia>
+                    <LucideIcon Name="file-text" Size="18"/>
+                </AttachmentMedia>
+                <AttachmentContent>
+                    <AttachmentTitle>annual-report.pdf</AttachmentTitle>
+                    <AttachmentDescription>@L.T("整张卡片链接到文件", "Whole card links to the file")</AttachmentDescription>
+                </AttachmentContent>
+            </Attachment>
+
+            <Dialog @bind-Open="previewOpen">
+                <AtomBlazor.DialogContent>
+                    <DialogHeader>
+                        <AtomBlazor.DialogTitle>research-summary.pdf</AtomBlazor.DialogTitle>
+                        <AtomBlazor.DialogDescription>@L.T("所附文档的预览。", "Preview of the attached document.")</AtomBlazor.DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button Variant="ButtonVariant.Outline" @onclick="() => previewOpen = false">@L.T("关闭", "Close")</Button>
+                    </DialogFooter>
+                </AtomBlazor.DialogContent>
+            </Dialog>
+        </div>
+        <CodeBlock Source="Components/Attachment/group-trigger.txt"/>
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    只有图标的附件操作要用描述性的 <code>aria-label</code> 加标签。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Label icon-only attachment actions with descriptive <code>aria-label</code> values.
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    <code>AttachmentTrigger</code> 有一个本地化的默认名称。它没有可见文字，请用 <code>AriaLabel</code> 指明具体是哪个文件。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    <code>AttachmentTrigger</code> uses a localized default name. Set <code>AriaLabel</code> to identify the individual file because it has no
+                    visible text.
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    出错状态请把失败原因写进 <code>AttachmentDescription</code>。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Include failure reason text in <code>AttachmentDescription</code> for error states.
+                </AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件的属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <ApiReference ComponentName="Attachment">
+            <ApiParameter Name="State" Type="AttachmentState" Default="Done">
+                @L.T("上传状态。可选值：Idle、Uploading、Processing、Error、Done。", "Upload state. Options: Idle, Uploading, Processing, Error, Done.")
+            </ApiParameter>
+            <ApiParameter Name="Size" Type="AttachmentSize" Default="Default">
+                @L.T("卡片尺寸选项。可选值：Default、Sm、Xs。", "Card sizing option. Options: Default, Sm, Xs.")
+            </ApiParameter>
+            <ApiParameter Name="Orientation" Type="AttachmentOrientation" Default="Horizontal">
+                @L.T("排列方向。可选值：Horizontal、Vertical。", "Layout direction. Options: Horizontal, Vertical.")
+            </ApiParameter>
+            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    应用到根 <code>&lt;div&gt;</code> 元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                </text>
+}
+            </ApiParameter>
+        </ApiReference>
+
+        <ApiReference ComponentName="AttachmentMedia">
+            <ApiParameter Name="Variant" Type="AttachmentMediaVariant" Default="Icon">
+                @L.T("媒体渲染模式。可选值：Icon、Image。", "Media rendering mode. Options: Icon, Image.")
+            </ApiParameter>
+            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    应用到根 <code>&lt;div&gt;</code> 元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                </text>
+}
+            </ApiParameter>
+        </ApiReference>
+
+        <ApiReference ComponentName="AttachmentAction">
+            <ApiParameter Name="Variant" Type="ButtonVariant" Default="Ghost">
+                @L.T("操作按钮使用的按钮变体。", "Button variant for the action control.")
+            </ApiParameter>
+            <ApiParameter Name="Size" Type="ButtonSize" Default="IconSmall">
+                @L.T("操作按钮使用的按钮尺寸。", "Button size for the action control.")
+            </ApiParameter>
+            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    应用到组件根元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                </text>
+}
+            </ApiParameter>
+        </ApiReference>
+
+        <ApiReference ComponentName="AttachmentTrigger">
+        <ApiParameter Name="AriaLabel" Type="string?" Default="null">@L.T("无障碍名称；默认为本地化后的“打开附件”操作名。", "Accessible name; defaults to the localized Open attachment action.")</ApiParameter>
+            <ApiParameter Name="AsChild" Type="AttachmentTriggerElement" Default="Button">
+                @L.T("要渲染的元素类型。可选值：Button、Anchor。设置了 Href 时会自动切换为 Anchor。", "Element type to render. Options: Button, Anchor. Automatically switches to Anchor when Href is set.")
+            </ApiParameter>
+            <ApiParameter Name="Href" Type="string?">
+                @L.T("以链接形式渲染时的目标地址。", "Link target when rendering as an anchor.")
+            </ApiParameter>
+            <ApiParameter Name="Class" Type="string?">
+                @L.T("触发覆盖层的额外 CSS 类。", "Additional CSS classes for the trigger overlay.")
+            </ApiParameter>
+            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    应用到根 <code>&lt;a&gt;</code> 元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    Additional HTML attributes applied to the root <code>&lt;a&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                </text>
+}
+            </ApiParameter>
+        </ApiReference>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private bool previewOpen;
+}

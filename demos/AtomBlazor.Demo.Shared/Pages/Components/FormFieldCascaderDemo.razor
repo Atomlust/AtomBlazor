@@ -1,0 +1,229 @@
+@page "/components/form-field-cascader"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("FormFieldCascader 级联选择表单域 - Atom BlazorUI", "FormFieldCascader Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">FormFieldCascader</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("为 Cascader 提供表单域包装，自带标签、辅助文字与错误提示。", "A form field wrapper for Cascader with built-in label, helper text, and error messages.")
+        </p>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("每一层都会打开新的一列；搜索会匹配完整路径。", "Each level opens a new column. Search matches the full path.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldCascader TItem="Category"
+                                 @bind-Value="_selected"
+                                 Label="@(L.T("分类", "Category"))"
+                                 HelperText="@(L.T("逐列选择，也可以直接搜索完整路径。", "Navigate the columns, or search the full path."))"
+                                 Items="_categories"
+                                 ValueField="@(c => c.Id)"
+                                 TextField="@(c => c.Name)"
+                                 ChildrenProperty="@(c => c.Children)" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Value:")</p>
+            <p class="text-sm font-mono">@(_selected ?? L.T("(无)", "(none)"))</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldCascader/basic.txt" />
+    </div>
+
+    <!-- Branches -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("可选中的分支", "Selectable Branches")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">ChangeOnSelect</code> 让分支本身也能成为答案，
+                    同时它的下级依然可以继续展开。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">ChangeOnSelect</code> lets a branch be the answer
+                    while its children stay navigable.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldCascader TItem="Category"
+                                 @bind-Value="_branch"
+                                 Label="@(L.T("地区", "Region"))"
+                                 HelperText="@(L.T("选到部门就够了，选到团队更精确。", "A department is enough; a team is more precise."))"
+                                 ChangeOnSelect="true"
+                                 Items="_categories"
+                                 ValueField="@(c => c.Id)"
+                                 TextField="@(c => c.Name)"
+                                 ChildrenProperty="@(c => c.Children)" />
+        </div>
+        <CodeBlock Source="Components/FormFieldCascader/branches.txt" />
+    </div>
+
+    <!-- Validation -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表单校验", "Validation")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("在 EditForm 中，校验错误会自动显示出来。什么都不选直接提交就能看到。", "Validation errors display automatically inside an EditForm. Submit with nothing chosen to see one.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <EditForm Model="_formModel" OnValidSubmit="HandleFormSubmit">
+                <DataAnnotationsValidator />
+                <div class="space-y-4">
+                    <FormFieldCascader TItem="Category"
+                                         @bind-Value="_formModel.CategoryId"
+                                         Label="@(L.T("分类", "Category"))"
+                                         HelperText="@(L.T("必填。", "Required."))"
+                                         Required="true"
+                                         Items="_categories"
+                                         ValueField="@(c => c.Id)"
+                                         TextField="@(c => c.Name)"
+                                         ChildrenProperty="@(c => c.Children)" />
+                    <Button Type="ButtonType.Submit">@L.T("提交", "Submit")</Button>
+                </div>
+            </EditForm>
+            @if (_formSubmitted)
+            {
+                <div class="mt-4 rounded-lg border border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800 p-4">
+                    <p class="text-sm font-medium text-green-800 dark:text-green-200">
+                        @L.F("已提交：{0}", "Submitted: {0}", _formModel.CategoryId)
+                    </p>
+                </div>
+            }
+        </div>
+        <CodeBlock Source="Components/FormFieldCascader/editform.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用状态", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("一个被禁用的级联选择表单域。", "A disabled cascader form field.")</p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldCascader TItem="Category"
+                                 Value="@("runtime")"
+                                 Label="@(L.T("分类", "Category"))"
+                                 HelperText="@(L.T("由你账号的账单地址决定。", "Set by your account's billing address."))"
+                                 Disabled="true"
+                                 Items="_categories"
+                                 ValueField="@(c => c.Id)"
+                                 TextField="@(c => c.Name)"
+                                 ChildrenProperty="@(c => c.Children)" />
+        </div>
+        <CodeBlock Source="Components/FormFieldCascader/disabled.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>标签通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">for</code> 与触发器关联</AccessibilityItem>
+                    <AccessibilityItem>辅助文字与错误文字通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code> 关联</AccessibilityItem>
+                    <AccessibilityItem>触发器会播报 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-required</code>；每一列都是一个有标签的分组</AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>Label associated with the trigger through <code class="text-xs bg-muted px-1 py-0.5 rounded">for</code></AccessibilityItem>
+                    <AccessibilityItem>Helper and error text linked with <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code></AccessibilityItem>
+                    <AccessibilityItem>Trigger reports <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> and <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-required</code>; each column is a labelled group</AccessibilityItem>
+                </text>
+            }
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可用的表单控件之间移动", "Move between enabled form controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("打开各列", "Open the columns"))"><Kbd>Enter</Kbd> / <Kbd>Space</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在同一列内移动", "Move within a column"))"><Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在各列之间移动", "Move between columns"))"><Kbd>ArrowRight</Kbd> / <Kbd>ArrowLeft</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("不做选择直接关闭", "Close without choosing"))"><Kbd>Escape</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="FormFieldCascader&lt;TItem&gt;">
+                <ApiParameter Name="TItem" Type="Type">@L.T("层级中每个元素的类型。", "The type of an item in the hierarchy.")</ApiParameter>
+                <ApiParameter Name="Label" Type="string?" Default="null">@L.T("标签文本。", "The label text.")</ApiParameter>
+                <ApiParameter Name="HelperText" Type="string?" Default="null">@L.T("控件下方的辅助文字。", "Helper text below the control.")</ApiParameter>
+                <ApiParameter Name="ErrorText" Type="string?" Default="null">@L.T("手动覆盖的错误提示文本。", "Manual error text override.")</ApiParameter>
+                <ApiParameter Name="Items" Type="IEnumerable&lt;TItem&gt;">@L.T("层级的根节点。", "The root items of the hierarchy.")</ApiParameter>
+                <ApiParameter Name="ValueField" Type="Func&lt;TItem, string&gt;">@L.T("用于取得元素唯一键的选择器。", "Selector for an item's unique key.")</ApiParameter>
+                <ApiParameter Name="TextField" Type="Func&lt;TItem, string&gt;">@L.T("用于取得元素显示文本的选择器。", "Selector for an item's display text.")</ApiParameter>
+                <ApiParameter Name="ChildrenProperty" Type="Func&lt;TItem, IEnumerable&lt;TItem&gt;?&gt;">@L.T("用于取得元素子级的选择器。", "Selector for an item's children.")</ApiParameter>
+                <ApiParameter Name="Value" Type="string?" Default="null">@L.T("已选节点的键。请使用 @@bind-Value。", "The selected node's key. Use @bind-Value.")</ApiParameter>
+                <ApiParameter Name="ValueChanged" Type="EventCallback&lt;string?&gt;">@L.T("选择发生变化时的回调。", "Callback when the selection changes.")</ApiParameter>
+                <ApiParameter Name="ChangeOnSelect" Type="bool" Default="false">@L.T("允许选中分支，同时其下级仍可继续展开。", "Allow selecting a branch while its children stay navigable.")</ApiParameter>
+                <ApiParameter Name="ShowSearch" Type="bool" Default="true">@L.T("显示完整路径搜索框。", "Show the full-path search box.")</ApiParameter>
+                <ApiParameter Name="Clearable" Type="bool" Default="true">@L.T("显示清空按钮。", "Show a clear button.")</ApiParameter>
+                <ApiParameter Name="Placeholder" Type="string?" Default="null">@L.T("未作选择时显示的文本。", "Shown when nothing is selected.")</ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("控件是否被禁用。", "Whether the control is disabled.")</ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">@L.T("该字段是否为必填。", "Whether the field is required.")</ApiParameter>
+                <ApiParameter Name="Orientation" Type="FieldOrientation" Default="Vertical">@L.T("标签相对于控件的摆放位置。", "Label placement relative to the control.")</ApiParameter>
+                <ApiParameter Name="InputClass" Type="string?" Default="null">@L.T("内层级联选择器的 CSS 类。", "CSS classes for the inner cascader.")</ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到底层组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string? _selected = "runtime";
+    private string? _branch = "engineering";
+    private readonly FormModel _formModel = new();
+    private bool _formSubmitted;
+
+    private readonly List<Category> _categories =
+    [
+        new("engineering", "Engineering", [new("platform", "Platform", [new("runtime", "Runtime", []), new("tools", "Tools", [])]), new("web", "Web", [])]),
+        new("design", "Design", [new("product", "Product", []), new("brand", "Brand", [])])
+    ];
+
+    private void HandleFormSubmit() => _formSubmitted = true;
+
+    private sealed record Category(string Id, string Name, List<Category> Children);
+
+    private sealed class FormModel
+    {
+        [Required(ErrorMessage = "Choose a category.")]
+        public string? CategoryId { get; set; }
+    }
+}

@@ -1,0 +1,127 @@
+@namespace AtomBlazor
+@using AtomBlazor.Primitives.Services
+@inject IKeyboardShortcutService KeyboardShortcuts
+@implements IAsyncDisposable
+
+<Dialog @bind-Open="_isOpen" OnOpenChange="HandleOpenChange" @attributes="AdditionalAttributes">
+    <DialogContent Class="@ClassNames.cn("atom:overflow-hidden atom:p-0 atom:shadow-lg", Class)">
+        <Command OnValueChange="HandleValueChange"
+                 SearchQueryChanged="SearchQueryChanged"
+                 FilterFunction="FilterFunction">
+            @ChildContent
+        </Command>
+    </DialogContent>
+</Dialog>
+
+@code {
+    private bool _isOpen;
+    private IDisposable? _shortcutRegistration;
+
+    /// <summary>
+    /// 要在命令对话框内部渲染的内容（CommandInput、CommandList 等）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 要应用到对话框内容的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 控制对话框是否打开。
+    /// </summary>
+    [Parameter]
+    public bool Open { get; set; }
+
+    /// <summary>
+    /// 打开状态变化时调用的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>
+    /// 用于切换对话框开/关状态的键盘快捷键（例如 "Ctrl+K"）。
+    /// 会自动向键盘快捷键服务注册与注销。
+    /// </summary>
+    [Parameter]
+    public string? Shortcut { get; set; }
+
+    /// <summary>
+    /// 命令项被选中时调用的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> OnValueChange { get; set; }
+
+    /// <summary>
+    /// 命令项被选中时是否关闭对话框。默认：true。
+    /// </summary>
+    [Parameter]
+    public bool CloseOnSelect { get; set; } = true;
+
+    /// <summary>
+    /// 搜索查询变化时（防抖之后）调用的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> SearchQueryChanged { get; set; }
+
+    /// <summary>
+    /// 命令项的自定义过滤函数。提供时，覆盖默认的包含匹配过滤。
+    /// 接收项元数据与当前搜索查询。
+    /// </summary>
+    [Parameter]
+    public Func<CommandItemMetadata, string, bool>? FilterFunction { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        _isOpen = Open;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !string.IsNullOrEmpty(Shortcut))
+        {
+            _shortcutRegistration = await KeyboardShortcuts.RegisterAsync(Shortcut, () =>
+            {
+                _isOpen = !_isOpen;
+                StateHasChanged();
+                return Task.CompletedTask;
+            });
+        }
+    }
+
+    private async Task HandleOpenChange(bool open)
+    {
+        _isOpen = open;
+        if (OpenChanged.HasDelegate)
+        {
+            await OpenChanged.InvokeAsync(open);
+        }
+    }
+
+    private async Task HandleValueChange(string value)
+    {
+        if (OnValueChange.HasDelegate)
+        {
+            await OnValueChange.InvokeAsync(value);
+        }
+
+        if (CloseOnSelect)
+        {
+            await HandleOpenChange(false);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _shortcutRegistration?.Dispose();
+        await ValueTask.CompletedTask;
+    }
+}

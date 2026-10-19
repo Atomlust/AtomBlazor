@@ -1,0 +1,32 @@
+    <div id="components-reconnect-modal">
+        <div class="atom-reconnect-dialog" role="alertdialog" aria-modal="true" aria-live="assertive" aria-labelledby="atom-reconnect-heading">
+            <div class="atom-reconnect-spinner" aria-hidden="true"></div>
+
+            <h2 id="atom-reconnect-heading" class="atom-reconnect-heading">
+                <span data-when="show retrying">Reconnecting</span>
+                <span data-when="paused">Connection paused</span>
+                <span data-when="failed">Could not reconnect</span>
+                <span data-when="resume-failed">Could not resume</span>
+                <span data-when="rejected">Session expired</span>
+            </h2>
+
+            <p class="atom-reconnect-text">
+                <span data-when="show">The connection to the server was lost. Trying to restore it.</span>
+                <span data-when="retrying">Next attempt in <span id="components-seconds-to-next-attempt">0</span>s.</span>
+                <span data-when="paused">The connection was paused. It will resume on its own.</span>
+                <span data-when="failed">The server did not answer. Your work is still here.</span>
+                <span data-when="resume-failed">The paused session could not be resumed.</span>
+                <span data-when="rejected">The server could not restore this session. Reloading will start a new one.</span>
+            </p>
+
+            <p class="atom-reconnect-attempt" data-when="show retrying">
+                Attempt <span id="components-reconnect-current-attempt">1</span> of <span id="components-reconnect-max-retries">8</span>
+            </p>
+
+            <div class="atom-reconnect-actions">
+                <button type="button" class="atom-reconnect-button" data-when="failed resume-failed" onclick="Blazor.reconnect()">Try again</button>
+                <button type="button" class="atom-reconnect-button" data-variant="secondary" data-when="failed resume-failed" onclick="location.reload()">Reload</button>
+                <button type="button" class="atom-reconnect-button" data-when="rejected" onclick="location.reload()">Reload</button>
+            </div>
+        </div>
+    </div>

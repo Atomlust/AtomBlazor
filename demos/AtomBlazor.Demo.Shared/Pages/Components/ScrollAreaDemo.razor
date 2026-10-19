@@ -1,0 +1,226 @@
+@page "/components/scroll-area"
+<PageTitle>@L.T("Scroll Area 滚动区域 - Atom BlazorUI", "Scroll Area Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Scroll Area 滚动区域组件", "Scroll Area Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("以自定义样式增强原生滚动能力。", "Augments native scroll functionality with custom styling.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本示例", "Basic Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带垂直滚动的可滚动区域。", "A scrollable area with vertical scrolling.")
+            </p>
+        </div>
+        <ScrollArea Height="200px" Class="w-[350px] rounded-md border p-4">
+            <div class="space-y-4">
+                <h4 class="text-sm font-medium leading-none">@L.T("标签", "Tags")</h4>
+                @foreach (var tag in _tags)
+                {
+                    <div class="text-sm">@tag</div>
+                    <Separator />
+                }
+            </div>
+        </ScrollArea>
+        <CodeBlock Source="Components/ScrollArea/basic.txt" />
+    </div>
+
+    <!-- Horizontal Scrolling -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("水平滚动", "Horizontal Scrolling")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带水平滚动的可滚动区域。", "A scrollable area with horizontal scrolling.")
+            </p>
+        </div>
+        <ScrollArea Orientation="AtomBlazor.ScrollAreaOrientation.Horizontal" Class="w-full whitespace-nowrap rounded-md border">
+            <div class="flex w-max space-x-4 p-4">
+                @for (int i = 1; i <= 10; i++)
+                {
+                    <div class="shrink-0">
+                        <div class="overflow-hidden rounded-md">
+                            <div class="h-[150px] w-[250px] bg-muted flex items-center justify-center">
+                                <span class="text-2xl font-semibold">@L.T("图片", "Image") @i</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </ScrollArea>
+        <CodeBlock Source="Components/ScrollArea/horizontal.txt" />
+    </div>
+
+    <!-- Long Content -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("长内容", "Long Content")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("内容很多的滚动区域。", "Scroll area with extensive content.")
+            </p>
+        </div>
+        <ScrollArea MaxHeight="300px" Class="w-[350px] rounded-md border p-4">
+            <div class="space-y-4">
+                <h4 class="text-sm font-medium leading-none mb-4">Lorem Ipsum</h4>
+                @for (int i = 0; i < 5; i++)
+                {
+                    <p class="text-sm text-muted-foreground">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                    </p>
+                }
+            </div>
+        </ScrollArea>
+        <CodeBlock Source="Components/ScrollArea/long-content.txt" />
+    </div>
+
+    <!-- Always Visible -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("始终可见", "Always Visible")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="text-xs">ScrollAreaType.Always</code> 让滚动条一直留在界面上，
+                    而不是在悬停时才显示。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="text-xs">ScrollAreaType.Always</code> keeps the scrollbar on screen
+                    instead of revealing it on hover.
+                </p>
+                        </text>
+}
+        </div>
+        <ScrollArea Type="ScrollAreaType.Always" Height="200px" Class="w-[350px] rounded-md border p-4">
+            <div class="space-y-4">
+                <h4 class="text-sm font-medium leading-none">@L.T("标签", "Tags")</h4>
+                @foreach (var tag in _tags)
+                {
+                    <div class="text-sm">@tag</div>
+                    <Separator />
+                }
+            </div>
+        </ScrollArea>
+        <CodeBlock Source="Components/ScrollArea/always-visible.txt" />
+    </div>
+
+    <!-- Fill Container -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("填满容器", "Fill Container")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("自动填满 flex 纵向父容器中剩余的垂直空间。滚动区域会排除页眉、页脚这类同级元素。", "Automatically fills remaining vertical space in a flex column parent. The scroll area excludes sibling elements like headers and footers.")
+            </p>
+        </div>
+        <div class="h-[400px] border rounded-md flex flex-col">
+            <div class="flex h-12 items-center border-b px-4 shrink-0">
+                <h4 class="text-sm font-medium">@L.T("页眉（不参与滚动）", "Header (excluded from scroll)")</h4>
+            </div>
+            <ScrollArea FillContainer="true" Class="px-4">
+                <div class="space-y-4 py-4">
+                    <h4 class="text-sm font-medium leading-none">@L.T("可滚动内容", "Scrollable Content")</h4>
+                    @for (int i = 1; i <= 30; i++)
+                    {
+                        <div class="text-sm">@L.T("条目", "Item") @i</div>
+                        <Separator />
+                    }
+                </div>
+            </ScrollArea>
+            <div class="flex h-12 items-center border-t px-4 shrink-0">
+                <span class="text-sm text-muted-foreground">@L.T("页脚（不参与滚动）", "Footer (excluded from scroll)")</span>
+            </div>
+        </div>
+        <CodeBlock Source="Components/ScrollArea/fill-container.txt" />
+    </div>
+
+    <!-- API Reference -->
+
+
+    <!-- Accessibility Notes -->
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                @L.T("纯展示型组件，用自定义滚动条样式包裹内容", "Purely presentational component that wraps content with custom scrollbar styling")
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @L.T("使用浏览器原生滚动——内容可通过标准滚动行为访问", "Uses native browser scrolling — content is accessible via standard scroll behaviors")
+            </AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("上下滚动内容", "Scroll content up/down"))">
+                <Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("按页滚动", "Scroll by page"))">
+                <Kbd>PageUp</Kbd> / <Kbd>PageDown</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="ScrollArea">
+                <ApiParameter Name="Orientation" Type="ScrollAreaOrientation" Default="Vertical">
+                    @L.T("滚动区域的方向。选项：Vertical（默认）、Horizontal 或 Both。", "The orientation of the scroll area. Options: Vertical (default), Horizontal, or Both.")
+                </ApiParameter>
+                <ApiParameter Name="Type" Type="ScrollAreaType" Default="Hover">
+                    @L.T("控制滚动条的可见性行为。Hover（默认）在指针悬停于区域上方时让滚动条淡入，Always 使其一直留在屏幕上，Auto 仅在内容溢出时显示，Hidden 则完全不渲染滚动条。", "Controls scrollbar visibility behavior. Hover (default) fades the scrollbar in while the pointer is over the area, Always keeps it on screen, Auto shows it only when the content overflows, and Hidden renders no scrollbar at all.")
+                </ApiParameter>
+                <ApiParameter Name="Height" Type="string?">
+                    @L.T("以内联样式应用的固定高度（例如 \"200px\"）。", "Fixed height applied as an inline style (e.g., \"200px\").")
+                </ApiParameter>
+                <ApiParameter Name="MaxHeight" Type="string?">
+                    @L.T("以内联样式应用的最大高度（例如 \"300px\"）。", "Maximum height applied as an inline style (e.g., \"300px\").")
+                </ApiParameter>
+                <ApiParameter Name="FillContainer" Type="bool" Default="false">
+                    @L.T("为 true 时，自动填满 flex 纵向父容器中剩余的垂直空间，并排除同级元素。优先级高于 Height 与 MaxHeight。", "When true, automatically fills remaining vertical space in a flex column parent container, excluding sibling elements. Takes precedence over Height and MaxHeight.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的附加 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private readonly string[] _tags = new[]
+    {
+        "React", "Vue", "Angular", "Svelte", "Blazor",
+        "Next.js", "Nuxt", "Gatsby", "Remix", "Astro",
+        "TypeScript", "JavaScript", "C#", "Python", "Go"
+    };
+}

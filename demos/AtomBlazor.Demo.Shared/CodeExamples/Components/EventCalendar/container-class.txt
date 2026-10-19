@@ -1,0 +1,28 @@
+@* Class styles the root, which wraps the toolbar as well as the view.
+   ContainerClass styles the view itself — the month grid, the week grid,
+   or the agenda list — so a height set here is the height of the calendar.
+
+   Make the root a column flex box, then let the view grow into what the
+   toolbar leaves behind. *@
+<div class="h-[28rem]">
+    <EventCalendar Items="events"
+                     EventStart="e => e.Start"
+                     EventEnd="e => e.End"
+                     EventTitle="e => e.Title"
+                     Class="flex h-full flex-col"
+                     ContainerClass="grow overflow-auto" />
+</div>
+
+@code {
+    private sealed record DemoEvent(string Title, DateTime Start, DateTime? End);
+
+    private static readonly DateTime today = DateTime.Today;
+
+    private readonly List<DemoEvent> events = new()
+    {
+        new("Standup", today.AddHours(9), today.AddHours(9.25)),
+        new("Sprint planning", today.AddHours(10), today.AddHours(11.5)),
+        new("Design review", today.AddDays(1).AddHours(13), today.AddDays(1).AddHours(14)),
+        new("DotNet Conf", today.AddDays(7), today.AddDays(9)),
+    };
+}

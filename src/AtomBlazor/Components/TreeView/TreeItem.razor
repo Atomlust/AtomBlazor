@@ -1,0 +1,84 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+
+@*
+    带样式的 TreeItem 组件。
+    在 TreeItem 基元之上叠加 Tailwind 样式、图标、徽章与操作区。
+*@
+
+<AtomBlazor.Primitives.TreeItem @ref="primitiveRef"
+                                                  Value="@Value"
+                                                  Disabled="@Disabled"
+                                                  IsLeaf="@IsLeaf"
+                                                  @attributes="AdditionalAttributes">
+    <NodeContent>
+        <div class="@NodeCssClass"
+             style="@NodeStyle"
+             data-tree-node>
+            @* 展开/折叠切换 *@
+            @if (HasExpandableChildren)
+            {
+                <button type="button"
+                        class="atom:inline-flex atom:h-5 atom:w-5 atom:items-center atom:justify-center atom:rounded-sm atom:hover:bg-accent/80 atom:shrink-0"
+                        data-tree-toggle
+                        tabindex="-1"
+                        aria-hidden="true">
+                    <svg class="@ChevronCssClass"
+                         xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                         viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
+            }
+            else
+            {
+                <span class="atom:inline-flex atom:h-5 atom:w-5 atom:shrink-0"></span>
+            }
+
+            @* 复选框（仅展示；切换由 tree-keyboard.js 处理） *@
+            @if (ShowCheckbox)
+            {
+                <span data-tree-checkbox class="atom:inline-flex atom:shrink-0 atom:cursor-pointer">
+                    <Checkbox Checked="@IsChecked"
+                                Indeterminate="@IsIndeterminate"
+                                Disabled="@Disabled"
+                                Class="atom:h-4 atom:w-4 atom:pointer-events-none" />
+                </span>
+            }
+
+            @* 图标 *@
+            @if (TreeContext?.State.ShowIcons == true && !string.IsNullOrEmpty(Icon))
+            {
+                <LucideIcon Name="@Icon" Size="16" Class="atom:shrink-0 atom:text-muted-foreground" />
+            }
+
+            @* 标签 *@
+            @if (LabelTemplate != null)
+            {
+                @LabelTemplate
+            }
+            else if (!string.IsNullOrEmpty(Label))
+            {
+                <span class="atom:truncate">@Label</span>
+            }
+
+            @* 徽章 *@
+            @if (!string.IsNullOrEmpty(Badge))
+            {
+                <Badge Variant="BadgeVariant.Secondary" Class="atom:ms-auto atom:text-xs atom:px-1.5 atom:py-0 atom:h-5">@Badge</Badge>
+            }
+
+            @* 操作区（悬停时显现） *@
+            @if (ActionsTemplate != null)
+            {
+                <span class="atom:ms-auto atom:opacity-0 atom:group-hover/treeitem:opacity-100 atom:transition-opacity atom:shrink-0 atom:flex atom:items-center atom:gap-0.5">
+                    @ActionsTemplate
+                </span>
+            }
+        </div>
+    </NodeContent>
+    <ChildContent>
+        @ChildContent
+    </ChildContent>
+</AtomBlazor.Primitives.TreeItem>

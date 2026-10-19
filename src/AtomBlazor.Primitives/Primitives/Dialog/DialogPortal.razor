@@ -1,0 +1,182 @@
+@namespace AtomBlazor.Primitives
+@using AtomBlazor.Primitives.Services
+@using Microsoft.Extensions.Logging
+@inject IPortalService PortalService
+@inject INativeOverlayService NativeOverlayService
+@inject ILogger<DialogPortal> Logger
+@implements IDisposable
+
+@*
+    DialogPortal 使用 PortalService 将内容渲染到文档主体层级。
+    这确保了浮层正确的 z-index 堆叠。
+    当设置了 Container 时，改为内联渲染（适用于受约束的场景）。
+    当生效的渲染策略为 Native 时，同样内联渲染：原生的 <dialog> 元素
+    无论 DOM 位置如何都位于浏览器顶层，因此无需门户重定位或共享作用域服务。
+    这正是对话框能够跨越 Blazor 渲染模式边界（例如 InteractiveWebAssembly）工作的原因。
+*@
+
+@if (!_useNative && string.IsNullOrEmpty(Container))
+{
+    @* 默认：通过 PortalService 渲染（JS 策略）。 *@
+}
+else if (Context.IsOpen || ForceMount)
+{
+    <CascadingValue Value="Context" IsFixed="false">
+        @ChildContent
+    </CascadingValue>
+}
+
+@code {
+    [CascadingParameter]
+    private DialogContext Context { get; set; } = null!;
+
+    [CascadingParameter(Name = "DialogRenderingStrategy")]
+    private OverlayRenderingStrategy? RenderingStrategy { get; set; }
+
+    /// <summary>
+    /// 接受此参数以便带样式的包装组件可以把自己的属性铺展到该门户上，但它没有任何效果：
+    /// DialogPortal 不会渲染自身的元素——它只是重定位其子内容。
+    /// 请将额外的属性放到 DialogContent 或 DialogOverlay 上。
+    /// 在此处提供属性会在每个组件实例中记录一次警告。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private bool rootAttributesWarningLogged;
+
+    /// <summary>
+    /// 在门户中渲染的内容（通常为 DialogOverlay 与 DialogContent）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 门户要渲染到的容器元素。
+    /// 为 null（默认）时，通过 PortalService 渲染到文档主体。
+    /// 设置后，在当前组件树内内联渲染，从而允许内容被具有 CSS 包含性
+    /// （例如 transform: translateZ(0)）的父元素所约束。
+    /// </summary>
+    [Parameter]
+    public string? Container { get; set; }
+
+    /// <summary>
+    /// 是否强制在门户中渲染。
+    /// 为 false 时，仅当对话框打开时才使用门户。
+    /// 默认值为 false。
+    /// </summary>
+    [Parameter]
+    public bool ForceMount { get; set; } = false;
+
+    private string _portalId = string.Empty;
+    private bool _isRegistered = false;
+    private bool _useNative;
+
+    protected override void OnInitialized()
+    {
+        if (Context == null)
+        {
+            throw new InvalidOperationException(
+                "DialogPortal must be used within a Dialog component. " +
+                "Ensure DialogPortal is a child of a Dialog component.");
+        }
+
+        _portalId = $"{Context.Id}-portal";
+
+        // Resolve the effective rendering strategy synchronously for this render.
+        _useNative = NativeOverlayService.ResolveStrategy(RenderingStrategy) == OverlayRenderingStrategy.Native;
+
+        // Subscribe to context changes to update portal content
+        Context.OnStateChanged += HandleStateChanged;
+
+        // When Container is set or the native strategy is active, content renders inline —
+        // skip portal registration.
+        if (string.IsNullOrEmpty(Container) && !_useNative)
+        {
+            // Register initial portal if dialog is open or force mount
+            if (Context.IsOpen || ForceMount)
+            {
+                RegisterPortal();
+            }
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        rootAttributesWarningLogged = ContextRootAttributes.WarnOnce(
+            Logger,
+            rootAttributesWarningLogged,
+            "DialogPortal",
+            "Put extra attributes on DialogContent or DialogOverlay instead.",
+            AdditionalAttributes);
+
+        // Re-resolve every time: a browser without <dialog>.showModal() makes the service fall back
+        // to the JavaScript strategy after the first render, and this portal has to start doing its
+        // job when that happens.
+        _useNative = NativeOverlayService.ResolveStrategy(RenderingStrategy) == OverlayRenderingStrategy.Native;
+
+        // When Container is set or native strategy is active, content renders inline — skip portal registration
+        if (!string.IsNullOrEmpty(Container) || _useNative)
+        {
+            UnregisterPortal();
+            return;
+        }
+
+        if (Context.IsOpen || ForceMount)
+        {
+            if (!_isRegistered)
+            {
+                RegisterPortal();
+            }
+            else
+            {
+                PortalService.RefreshPortal(_portalId);
+            }
+        }
+        else
+        {
+            UnregisterPortal();
+        }
+    }
+
+    private void HandleStateChanged()
+    {
+        StateHasChanged();
+    }
+
+    private void RegisterPortal()
+    {
+        if (!_isRegistered && ChildContent != null)
+        {
+            PortalService.RegisterPortal(_portalId, GetPortalContent(), PortalCategory.Container);
+            _isRegistered = true;
+        }
+    }
+
+    private RenderFragment GetPortalContent() => builder =>
+    {
+        builder.OpenComponent<CascadingValue<DialogContext>>(0);
+        builder.AddAttribute(1, "Value", Context);
+        builder.AddAttribute(2, "IsFixed", false);
+        builder.AddAttribute(3, "ChildContent", ChildContent);
+        builder.CloseComponent();
+    };
+
+    private void UnregisterPortal()
+    {
+        if (_isRegistered)
+        {
+            PortalService.UnregisterPortal(_portalId);
+            _isRegistered = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        UnregisterPortal();
+
+        if (Context != null)
+        {
+            Context.OnStateChanged -= HandleStateChanged;
+        }
+    }
+}

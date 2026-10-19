@@ -1,0 +1,268 @@
+@page "/charts/funnel"
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("漏斗图 - Atom BlazorUI", "Funnel Chart - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-6xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("漏斗图", "Funnel Chart")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("用来呈现转化链路、销售流程，以及层层收窄的筛选阶段。", "Visualize conversion pipelines, sales processes, and progressive filtering stages.")
+            </p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("漏斗图", "Funnel Chart")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("销售转化漏斗", "Sales Pipeline")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <FunnelChart Data="@(L.IsChinese ? _funnelDataZh : _funnelData)" Height="250px">
+                        <ChartTooltip />
+                        <Funnel DataKey="value" NameKey="stage" />
+                    </FunnelChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("默认由大到小排列的漏斗", "Default descending funnel")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("展示转化的各个环节", "Showing conversion pipeline stages")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/FunnelChart/default.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("升序", "Ascending")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("倒置的漏斗", "Inverted funnel")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <FunnelChart Data="@(L.IsChinese ? _funnelDataZh : _funnelData)" Height="250px">
+                        <ChartTooltip />
+                        <Funnel DataKey="value" NameKey="stage" Sort="FunnelSort.Ascending" />
+                    </FunnelChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("上小下大", "Smallest at top, largest at bottom")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("用 FunnelSort.Ascending 得到倒置视图", "FunnelSort.Ascending for inverted view")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/FunnelChart/ascending.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("带图例", "With Legend")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("销售转化漏斗", "Sales Pipeline")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <FunnelChart Data="@(L.IsChinese ? _funnelDataZh : _funnelData)" Height="250px">
+                        <ChartTooltip />
+                        <ChartLegend />
+                        <Funnel DataKey="value" NameKey="stage" />
+                    </FunnelChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("图中加入了图例组件", "Legend component included")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("图例可交互，用来筛选环节", "Interactive legend for stage filtering")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/FunnelChart/legend.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("左对齐", "Left Aligned")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("对齐到左边缘", "Aligned to left edge")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <FunnelChart Data="@(L.IsChinese ? _funnelDataZh : _funnelData)" Height="250px">
+                        <ChartTooltip />
+                        <Funnel DataKey="value" NameKey="stage" Align="FunnelAlign.Left" />
+                    </FunnelChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("采用 FunnelAlign.Left 对齐", "FunnelAlign.Left alignment")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("各段沿左边缘对齐", "Segments align to the left edge")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/FunnelChart/left-align.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("无间隙", "No Gap")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("段间无缝", "Seamless segments")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <FunnelChart Data="@(L.IsChinese ? _funnelDataZh : _funnelData)" Height="250px">
+                        <ChartTooltip />
+                        <Funnel DataKey="value" NameKey="stage" Gap="0" />
+                    </FunnelChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("Gap 设为 0", "Gap set to 0")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("段间不留空隙的连续漏斗", "Continuous funnel without segment gaps")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/FunnelChart/no-gap.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("自定义标签", "Custom Labels")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("按格式显示标签", "Formatted label display")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <FunnelChart Data="@(L.IsChinese ? _funnelDataZh : _funnelData)" Height="250px">
+                        <ChartTooltip />
+                        <Funnel DataKey="value" NameKey="stage" LabelFormatter="{b}: {c}" LabelColor="white" />
+                    </FunnelChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("自定义标签格式", "Custom label formatting")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("同时显示环节名与数值", "Showing stage name and value")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/FunnelChart/custom-labels.txt" />
+        </div>
+    </div>
+
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+        </div>
+        <div class="border rounded-lg p-6 space-y-4">
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Funnel.Sort</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">FunnelSort</code>（默认值：<code class="text-xs bg-muted px-1 py-0.5 rounded">Descending</code>）
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">FunnelSort</code> (default: <code class="text-xs bg-muted px-1 py-0.5 rounded">Descending</code>)
+                    </p>
+                                </text>
+}
+                <p class="text-sm text-muted-foreground">
+                    @L.T("各段的排序方式。可选值：Descending、Ascending、None。", "Sort order for segments. Options: Descending, Ascending, None.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Funnel.Align</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">FunnelAlign</code>（默认值：<code class="text-xs bg-muted px-1 py-0.5 rounded">Center</code>）
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">FunnelAlign</code> (default: <code class="text-xs bg-muted px-1 py-0.5 rounded">Center</code>)
+                    </p>
+                                </text>
+}
+                <p class="text-sm text-muted-foreground">
+                    @L.T("漏斗各段的水平对齐方式。可选值：Center、Left、Right。", "Horizontal alignment of funnel segments. Options: Center, Left, Right.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Funnel.Gap</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">int</code>（默认值：<code class="text-xs bg-muted px-1 py-0.5 rounded">2</code>）
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">int</code> (default: <code class="text-xs bg-muted px-1 py-0.5 rounded">2</code>)
+                    </p>
+                                </text>
+}
+                <p class="text-sm text-muted-foreground">
+                    @L.T("漏斗段与段之间的间隙（像素）。", "Gap between funnel segments in pixels.")
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    public class FunnelData
+    {
+        public string Stage { get; set; } = "";
+        public int Value { get; set; }
+    }
+
+    // 同一份漏斗数据的中文环节名：数值与顺序与 _funnelData 一致，仅供中文分支使用。
+    private readonly List<FunnelData> _funnelDataZh =
+    [
+        new() { Stage = "已访问", Value = 5000 },
+        new() { Stage = "已咨询", Value = 3200 },
+        new() { Stage = "已下单", Value = 2100 },
+        new() { Stage = "已付款", Value = 1500 },
+        new() { Stage = "已完成", Value = 1200 }
+    ];
+
+    private readonly List<FunnelData> _funnelData =
+    [
+        new() { Stage = "Visited", Value = 5000 },
+        new() { Stage = "Inquired", Value = 3200 },
+        new() { Stage = "Ordered", Value = 2100 },
+        new() { Stage = "Paid", Value = 1500 },
+        new() { Stage = "Completed", Value = 1200 }
+    ];
+}

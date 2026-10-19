@@ -1,0 +1,19 @@
+<Gantt TItem="PlanTask"
+         Data="@plan"
+         IdSelector="@(t => t.Id)"
+         ParentIdSelector="@(t => t.Parent)"
+         TextSelector="@(t => t.Name)"
+         StartSelector="@(t => t.Start)"
+         EndSelector="@(t => t.End)"
+         @bind-CollapsedIds="closed"
+         Height="24rem" />
+
+@code {
+    // The closed set is named rather than the open one, unlike DataGrid's ExpandedNodes.
+    // A plan is read open, so empty is the state a reader wants first.
+    private HashSet<string> closed = [];
+}
+
+@* DefaultExpandAll="false" starts every branch folded instead.
+   ExpandAllAsync() and CollapseAllAsync() do the same from code, and the built-in toolbar
+   offers both. *@

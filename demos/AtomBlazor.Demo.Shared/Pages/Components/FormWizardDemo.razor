@@ -1,0 +1,788 @@
+@page "/components/form-wizard"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("Form Wizard 表单向导 - Atom BlazorUI", "Form Wizard Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">Form Wizard</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("带步骤指示、导航与逐步校验的多步表单向导。", "A multi-step form wizard with step indicators, navigation, and per-step validation.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-4 text-sm text-muted-foreground">
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p>
+                用 <code class="text-xs bg-muted px-1 py-0.5 rounded">FormWizard</code> 作为容器，
+                每一步用一个 <code class="text-xs bg-muted px-1 py-0.5 rounded">WizardStep</code> 子元素组合而成。
+                导航、步骤指示与视觉状态都由向导自动处理。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p>
+                Compose a wizard using <code class="text-xs bg-muted px-1 py-0.5 rounded">FormWizard</code> as
+                the container and <code class="text-xs bg-muted px-1 py-0.5 rounded">WizardStep</code> children
+                for each step. The wizard handles navigation, step indicators, and visual state automatically.
+            </p>
+                </text>
+}
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p>
+                要做校验，把向导包在带
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">DataAnnotationsValidator</code> 的
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">EditForm</code> 里，照常把模型属性绑定到表单字段。
+                然后在每个步骤上设置
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">FieldNames</code>，声明该步骤对应哪些
+                模型属性 &mdash; 用户点击“Next”时向导只校验这些字段，各步骤的校验彼此独立。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p>
+                For validation, wrap the wizard inside an
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">EditForm</code> with a
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">DataAnnotationsValidator</code> and bind your
+                model properties to form fields as usual. Then set
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">FieldNames</code> on each step to declare which
+                model properties belong to that step &mdash; the wizard will validate only those fields when the
+                user clicks "Next", keeping each step's validation independent.
+            </p>
+                </text>
+}
+        <p>
+            @L.T("步骤可以标记为可选、显示图标，或完全禁用。向导支持横向与纵向两种布局、受控与非受控的步骤导航，以及完全自定义的导航按钮。", "Steps can be marked as optional, display icons, or be completely disabled. The wizard supports both horizontal and vertical layouts, controlled and uncontrolled step navigation, and fully custom navigation buttons.")
+        </p>
+    </div>
+
+    <!-- Basic Wizard -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基础向导", "Basic Wizard")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个简单的三步向导。可用“上一步/下一步”按钮导航，也可点击已访问过的步骤指示。", "A simple wizard with three steps. Navigate using Back/Next buttons or by clicking visited step indicators.")
+            </p>
+        </div>
+        <div class="rounded-lg border p-6">
+            <FormWizard>
+                <WizardStep Title="@(L.T("账户", "Account"))">
+                    <div class="space-y-4">
+                        <FormFieldInput TValue="string"
+                                          @bind-Value="_basicName"
+                                          Label="@(L.T("姓名", "Name"))"
+                                          Placeholder="@(L.T("请输入你的姓名", "Enter your name"))" />
+                        <FormFieldInput TValue="string"
+                                          @bind-Value="_basicEmail"
+                                          Label="@(L.T("邮箱", "Email"))"
+                                          Placeholder='@("you@example.com")' />
+                    </div>
+                </WizardStep>
+                <WizardStep Title="@(L.T("资料", "Profile"))">
+                    <div class="space-y-4">
+                        <FormFieldInput TValue="string"
+                                          @bind-Value="_basicBio"
+                                          Label="@(L.T("简介", "Bio"))"
+                                          Placeholder="@(L.T("介绍一下你自己", "Tell us about yourself"))" />
+                    </div>
+                </WizardStep>
+                <WizardStep Title="@(L.T("确认", "Confirm"))">
+                    <div class="space-y-3">
+                        <p class="text-sm text-muted-foreground">@L.T("请核对你的信息：", "Please review your information:")</p>
+                        <div class="rounded-lg bg-muted/50 p-4 space-y-2 text-sm">
+                            <p><span class="font-medium">@L.T("姓名：", "Name:")</span> @(string.IsNullOrEmpty(_basicName) ? L.T("未填写", "Not provided") : _basicName)</p>
+                            <p><span class="font-medium">@L.T("邮箱：", "Email:")</span> @(string.IsNullOrEmpty(_basicEmail) ? L.T("未填写", "Not provided") : _basicEmail)</p>
+                            <p><span class="font-medium">@L.T("简介：", "Bio:")</span> @(string.IsNullOrEmpty(_basicBio) ? L.T("未填写", "Not provided") : _basicBio)</p>
+                        </div>
+                    </div>
+                </WizardStep>
+            </FormWizard>
+        </div>
+        <CodeBlock Source="Components/FormWizard/basic.txt" />
+    </div>
+
+    <!-- Wizard with Validation -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("逐步校验", "Per-Step Validation")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    每个步骤通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">FieldNames</code> 声明自己的字段。
+                    点击“下一步”只校验当前步骤的字段。步骤指示会显示校验状态。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Each step declares its fields via <code class="text-xs bg-muted px-1 py-0.5 rounded">FieldNames</code>.
+                    Clicking "Next" validates only the current step's fields. The step indicator shows validation state.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="rounded-lg border p-6">
+            <EditForm Model="_validationModel">
+                <DataAnnotationsValidator />
+                <FormWizard OnComplete="HandleValidationSubmit">
+                    <WizardStep Title="@(L.T("个人信息", "Personal Info"))" Icon="user"
+                                  FieldNames='@(new[] { "FirstName", "LastName" })'>
+                        <div class="space-y-4">
+                            <FormFieldInput TValue="string"
+                                              @bind-Value="_validationModel.FirstName"
+                                              Label="@(L.T("名字", "First Name"))"
+                                              Placeholder="John" />
+                            <FormFieldInput TValue="string"
+                                              @bind-Value="_validationModel.LastName"
+                                              Label="@(L.T("姓氏", "Last Name"))"
+                                              Placeholder="Doe" />
+                        </div>
+                    </WizardStep>
+                    <WizardStep Title="@(L.T("联系方式", "Contact"))" Icon="mail"
+                                  FieldNames='@(new[] { "Email" })'>
+                        <div class="space-y-4">
+                            <FormFieldInput TValue="string"
+                                              @bind-Value="_validationModel.Email"
+                                              Label="@(L.T("电子邮箱地址", "Email Address"))"
+                                              Placeholder='@("john@example.com")' />
+                        </div>
+                    </WizardStep>
+                    <WizardStep Title="@(L.T("复核", "Review"))" Icon="circle-check">
+                        <div class="space-y-3">
+                            <p class="text-sm text-muted-foreground">@L.T("都没问题？点击“完成”即可结束。", "Everything looks good? Click \"Complete\" to finish.")</p>
+                            <div class="rounded-lg bg-muted/50 p-4 space-y-2 text-sm">
+                                <p><span class="font-medium">@L.T("姓名：", "Name:")</span> @_validationModel.FirstName @_validationModel.LastName</p>
+                                <p><span class="font-medium">@L.T("邮箱：", "Email:")</span> @_validationModel.Email</p>
+                            </div>
+                        </div>
+                    </WizardStep>
+                </FormWizard>
+            </EditForm>
+            @if (_validationSubmitted)
+            {
+                <div class="mt-4 rounded-lg border border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800 p-4">
+                    <p class="text-sm font-medium text-green-800 dark:text-green-200">@L.T("向导已成功完成！", "Wizard completed successfully!")</p>
+                </div>
+            }
+        </div>
+        <CodeBlock Source="Components/FormWizard/validation.txt" />
+    </div>
+
+    <!-- Optional Step -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("可选/可跳过步骤", "Optional / Skippable Step")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    设置了 <code class="text-xs bg-muted px-1 py-0.5 rounded">IsOptional="true"</code> 的步骤会显示
+                    “跳过”按钮，允许用户不经校验直接绕过。
+                    点击“下一步”仍会校验；点击“跳过”则不会。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Steps with <code class="text-xs bg-muted px-1 py-0.5 rounded">IsOptional="true"</code> show
+                    a "Skip" button, allowing users to bypass them without validation.
+                    Clicking "Next" still validates; clicking "Skip" does not.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="rounded-lg border p-6">
+            <EditForm Model="_optionalModel">
+                <DataAnnotationsValidator />
+                <FormWizard OnComplete="HandleOptionalSubmit">
+                    <WizardStep Title="@(L.T("必填信息", "Required Info"))" Icon="user"
+                                  FieldNames='@(new[] { "FullName" })'>
+                        <div class="space-y-4">
+                            <FormFieldInput TValue="string"
+                                              @bind-Value="_optionalModel.FullName"
+                                              Label="@(L.T("全名", "Full Name"))"
+                                              Placeholder="@(L.T("请输入你的姓名", "Enter your name"))" />
+                        </div>
+                    </WizardStep>
+                    <WizardStep Title="@(L.T("偏好设置", "Preferences"))" Icon="palette" IsOptional="true"
+                                  FieldNames='@(new[] { "Theme" })'>
+                        <div class="space-y-4">
+                            <FormFieldSelect TValue="string"
+                                               @bind-Value="_optionalModel.Theme"
+                                               Label="@(L.T("主题偏好", "Theme Preference"))"
+                                               Placeholder="@(L.T("选择一个主题…", "Select a theme..."))"
+                                               Options="_themeOptions" />
+                            <p class="text-xs text-muted-foreground">@L.T("这一步是可选的。你可以跳过，也可以填写。", "This step is optional. You can skip it or fill it in.")</p>
+                        </div>
+                    </WizardStep>
+                    <WizardStep Title="@(L.T("完成", "Done"))" Icon="circle-check">
+                        <div class="space-y-3">
+                            <p class="text-sm text-muted-foreground">@L.T("全部设置好了！下面是摘要：", "You're all set! Here's a summary:")</p>
+                            <div class="rounded-lg bg-muted/50 p-4 space-y-2 text-sm">
+                                <p><span class="font-medium">@L.T("姓名：", "Name:")</span> @(string.IsNullOrEmpty(_optionalModel.FullName) ? L.T("未填写", "Not provided") : _optionalModel.FullName)</p>
+                                <p><span class="font-medium">@L.T("主题：", "Theme:")</span> @(string.IsNullOrEmpty(_optionalModel.Theme) ? L.T("已跳过", "Skipped") : _optionalModel.Theme)</p>
+                            </div>
+                        </div>
+                    </WizardStep>
+                </FormWizard>
+            </EditForm>
+            @if (_optionalSubmitted)
+            {
+                <div class="mt-4 rounded-lg border border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800 p-4">
+                    <p class="text-sm font-medium text-green-800 dark:text-green-200">@L.T("向导已成功完成！", "Wizard completed successfully!")</p>
+                </div>
+            }
+        </div>
+        <CodeBlock Source="Components/FormWizard/optional.txt" />
+    </div>
+
+    <!-- Vertical Layout -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("纵向布局", "Vertical Layout")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">Layout="WizardLayout.Vertical"</code> 可以把步骤指示放在左侧，内容放在右侧。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Use <code class="text-xs bg-muted px-1 py-0.5 rounded">Layout="WizardLayout.Vertical"</code> to
+                place the step indicator on the left side with content on the right.
+            </p>
+                </text>
+            }
+        </div>
+        <div class="rounded-lg border p-6">
+            <FormWizard Layout="WizardLayout.Vertical">
+                <WizardStep Title="@(L.T("步骤一", "Step One"))" Description="@(L.T("第一步的详细内容", "First step details"))">
+                    <div class="space-y-4">
+                        <FormFieldInput TValue="string"
+                                          @bind-Value="_verticalField1"
+                                          Label="@(L.T("字段一", "Field One"))"
+                                          Placeholder="@(L.T("请输入内容", "Enter something"))" />
+                    </div>
+                </WizardStep>
+                <WizardStep Title="@(L.T("步骤二", "Step Two"))" Description="@(L.T("第二步的详细内容", "Second step details"))">
+                    <div class="space-y-4">
+                        <FormFieldInput TValue="string"
+                                          @bind-Value="_verticalField2"
+                                          Label="@(L.T("字段二", "Field Two"))"
+                                          Placeholder="@(L.T("请输入其他内容", "Enter something else"))" />
+                    </div>
+                </WizardStep>
+                <WizardStep Title="@(L.T("步骤三", "Step Three"))" Description="@(L.T("最后一步", "Final step"))">
+                    <p class="text-sm text-muted-foreground">@L.T("你已经走到纵向向导的末尾。", "You've reached the end of the vertical wizard.")</p>
+                </WizardStep>
+            </FormWizard>
+        </div>
+        <CodeBlock Source="Components/FormWizard/vertical.txt" />
+    </div>
+
+    <!-- With Icons -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("步骤图标", "Step Icons")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">Icon</code> 参数为步骤设置 Lucide 图标名。步骤完成后图标会被替换成对勾。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Add Lucide icon names to steps via the <code class="text-xs bg-muted px-1 py-0.5 rounded">Icon</code> parameter.
+                Icons are replaced by checkmarks when the step is completed.
+            </p>
+                </text>
+            }
+        </div>
+        <div class="rounded-lg border p-6">
+            <FormWizard>
+                <WizardStep Title="@(L.T("账户", "Account"))" Icon="user">
+                    <p class="text-sm text-muted-foreground">@L.T("设置你的账户信息。", "Set up your account details.")</p>
+                </WizardStep>
+                <WizardStep Title="@(L.T("设置", "Settings"))" Icon="settings">
+                    <p class="text-sm text-muted-foreground">@L.T("配置你的偏好。", "Configure your preferences.")</p>
+                </WizardStep>
+                <WizardStep Title="@(L.T("账单", "Billing"))" Icon="credit-card">
+                    <p class="text-sm text-muted-foreground">@L.T("添加你的支付信息。", "Add your payment information.")</p>
+                </WizardStep>
+                <WizardStep Title="@(L.T("完成", "Complete"))" Icon="circle-check">
+                    <p class="text-sm text-muted-foreground">@L.T("全部完成！你的账户已就绪。", "All done! Your account is ready.")</p>
+                </WizardStep>
+            </FormWizard>
+        </div>
+        <CodeBlock Source="Components/FormWizard/icons.txt" />
+    </div>
+
+    <!-- Custom Navigation -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义导航", "Custom Navigation")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">NavigationTemplate</code> 把你自己的按钮替换掉默认导航。
+                        通过级联参数访问向导。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Replace the default navigation buttons with your own using
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">NavigationTemplate</code>.
+                Access the wizard via a cascading parameter.
+            </p>
+                </text>
+            }
+        </div>
+        <div class="rounded-lg border p-6">
+            <FormWizard @bind-CurrentStep="_customNavStep" ShowNavigation="false">
+                <WizardStep Title="@(L.T("步骤 1", "Step 1"))">
+                    <p class="text-sm text-muted-foreground">@L.T("自定义导航示例 - 步骤 1", "Custom navigation example - Step 1")</p>
+                </WizardStep>
+                <WizardStep Title="@(L.T("步骤 2", "Step 2"))">
+                    <p class="text-sm text-muted-foreground">@L.T("自定义导航示例 - 步骤 2", "Custom navigation example - Step 2")</p>
+                </WizardStep>
+                <WizardStep Title="@(L.T("步骤 3", "Step 3"))">
+                    <p class="text-sm text-muted-foreground">@L.T("自定义导航示例 - 步骤 3", "Custom navigation example - Step 3")</p>
+                </WizardStep>
+            </FormWizard>
+            <div class="flex gap-2 mt-4">
+                <Button Variant="ButtonVariant.Outline"
+                          Disabled="@(_customNavStep <= 0)"
+                          OnClick="() => _customNavStep = Math.Max(0, _customNavStep - 1)">
+                    @L.T("上一步", "Previous")
+                </Button>
+                <Button Disabled="@(_customNavStep >= 2)"
+                          OnClick="() => _customNavStep = Math.Min(2, _customNavStep + 1)">
+                    @L.T("继续", "Continue")
+                </Button>
+            </div>
+        </div>
+        <CodeBlock Source="Components/FormWizard/custom-navigation.txt" />
+    </div>
+
+    <!-- Controlled Wizard -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("受控向导", "Controlled Wizard")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-CurrentStep</code> 以编程方式控制当前显示哪一步。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Use <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-CurrentStep</code> to
+                programmatically control which step is displayed.
+            </p>
+                </text>
+            }
+        </div>
+        <div class="rounded-lg border p-6">
+            <div class="flex gap-2 mb-4">
+                <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small"
+                          OnClick="() => _controlledStep = 0">@L.T("跳到步骤 1", "Go to Step 1")</Button>
+                <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small"
+                          OnClick="() => _controlledStep = 1">@L.T("跳到步骤 2", "Go to Step 2")</Button>
+                <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small"
+                          OnClick="() => _controlledStep = 2">@L.T("跳到步骤 3", "Go to Step 3")</Button>
+            </div>
+            <p class="text-xs text-muted-foreground mb-4">@L.T("当前步骤：", "Current step:") <strong>@_controlledStep</strong></p>
+            <FormWizard @bind-CurrentStep="_controlledStep" AllowSkipAhead="true">
+                <WizardStep Title="@(L.T("概览", "Overview"))">
+                    <p class="text-sm text-muted-foreground">@L.T("这是概览步骤。", "This is the overview step.")</p>
+                </WizardStep>
+                <WizardStep Title="@(L.T("详情", "Details"))">
+                    <p class="text-sm text-muted-foreground">@L.T("这是详情步骤。", "This is the details step.")</p>
+                </WizardStep>
+                <WizardStep Title="@(L.T("摘要", "Summary"))">
+                    <p class="text-sm text-muted-foreground">@L.T("这是摘要步骤。", "This is the summary step.")</p>
+                </WizardStep>
+            </FormWizard>
+        </div>
+        <CodeBlock Source="Components/FormWizard/controlled.txt" />
+    </div>
+
+    <!-- Retain Step State -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("返回时重置", "Reset on Back")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        把 <code class="text-xs bg-muted px-1 py-0.5 rounded">RetainStepState="false"</code> 打开，向后导航时会清除后续步骤的完成状态与模型数据。
+                        把两个步骤都填好，再点“上一步”——前方步骤的数据与进度会被重置。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Set <code class="text-xs bg-muted px-1 py-0.5 rounded">RetainStepState="false"</code> to
+                clear the completed state and model data of future steps when navigating backwards.
+                Fill in both steps, then press "Back" &mdash; the forward step's data and progress are reset.
+            </p>
+                </text>
+            }
+        </div>
+        <div class="rounded-lg border p-6">
+            <EditForm Model="_resetModel">
+                <DataAnnotationsValidator />
+                <FormWizard RetainStepState="false">
+                    <WizardStep Title="@(L.T("你的信息", "Your Info"))"
+                                  FieldNames='@(new[] { "Username" })'>
+                        <div class="space-y-4">
+                            <FormFieldInput TValue="string"
+                                              @bind-Value="_resetModel.Username"
+                                              Label="@(L.T("用户名", "Username"))"
+                                              Placeholder="@(L.T("想一个用户名", "Pick a username"))" />
+                        </div>
+                    </WizardStep>
+                    <WizardStep Title="@(L.T("地址", "Address"))"
+                                  FieldNames='@(new[] { "City" })'>
+                        <div class="space-y-4">
+                            <FormFieldInput TValue="string"
+                                              @bind-Value="_resetModel.City"
+                                              Label="@(L.T("城市", "City"))"
+                                              Placeholder="@(L.T("请输入你所在的城市", "Enter your city"))" />
+                        </div>
+                    </WizardStep>
+                    <WizardStep Title="@(L.T("确认", "Confirm"))">
+                        <div class="space-y-3">
+                            <p class="text-sm text-muted-foreground">@L.T("核对一下你的信息：", "Review your details:")</p>
+                            <div class="rounded-lg bg-muted/50 p-4 space-y-2 text-sm">
+                                <p><span class="font-medium">@L.T("用户名：", "Username:")</span> @(string.IsNullOrEmpty(_resetModel.Username) ? L.T("未填写", "Not provided") : _resetModel.Username)</p>
+                                <p><span class="font-medium">@L.T("城市：", "City:")</span> @(string.IsNullOrEmpty(_resetModel.City) ? L.T("未填写", "Not provided") : _resetModel.City)</p>
+                            </div>
+                        </div>
+                    </WizardStep>
+                </FormWizard>
+            </EditForm>
+        </div>
+        <CodeBlock Source="Components/FormWizard/retain-step-state.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>步骤指示用 <code>aria-label="Wizard progress"</code> 供屏幕阅读器识别</AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>Step indicator uses <code>aria-label="Wizard progress"</code> for screen readers</AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>当前步骤用 <code>aria-current="step"</code> 标记</AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>Active step is marked with <code>aria-current="step"</code></AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>禁用/不可达的步骤，其指示按钮上带有 <code>disabled</code> 属性</AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>Disabled/unreachable steps have <code>disabled</code> attribute on their indicator buttons</AccessibilityItem>
+                </text>
+            }
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在步骤指示之间移动焦点", "Navigate between step indicators"))">
+                <Kbd>Tab</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("激活某个步骤指示", "Activate a step indicator"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="FormWizard">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="CurrentStep" Type="int" Default="0">
+                            当前活动步骤的从零开始的索引。支持用 <code>@@bind-CurrentStep</code> 双向绑定。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="CurrentStep" Type="int" Default="0">
+                    The zero-based index of the active step. Supports two-way binding with <code>@@bind-CurrentStep</code>.
+                </ApiParameter>
+                    </text>
+                }
+                <ApiParameter Name="OnComplete" Type="EventCallback" Default="null">
+                    @L.T("用户在最后一步点击完成按钮时触发。", "Fired when the user clicks the complete button on the last step.")
+                </ApiParameter>
+                <ApiParameter Name="OnStepChanged" Type="EventCallback&lt;int&gt;" Default="null">
+                    @L.T("活动步骤发生变化时触发。接收新的步骤索引。", "Fired when the active step changes. Receives the new step index.")
+                </ApiParameter>
+                <ApiParameter Name="Layout" Type="WizardLayout" Default="Horizontal">
+                    @L.T("步骤指示的布局：Horizontal（顶部）或 Vertical（左侧）。", "Step indicator layout: Horizontal (top) or Vertical (left side).")
+                </ApiParameter>
+                <ApiParameter Name="ShowNavigation" Type="bool" Default="true">
+                    @L.T("是否显示内置的上一步/下一步/完成导航按钮。", "Whether to show the built-in Back/Next/Complete navigation buttons.")
+                </ApiParameter>
+                <ApiParameter Name="NavigationTemplate" Type="RenderFragment?" Default="null">
+                    @L.T("替换默认按钮的自定义导航内容。", "Custom navigation content replacing the default buttons.")
+                </ApiParameter>
+                <ApiParameter Name="AllowSkipAhead" Type="bool" Default="false">
+                    @L.T("用户是否可以点击指示器里尚未访问的后续步骤。", "Whether users can click unvisited future steps in the indicator.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="RetainStepState" Type="bool" Default="true">
+                            向后导航时，已完成的步骤是否保留其已勾选/已访问状态。设为 <code>false</code> 时，返回会清除目标步骤之后所有步骤的状态。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="RetainStepState" Type="bool" Default="true">
+                    Whether completed steps keep their checked/visited state when navigating backwards.
+                    When <code>false</code>, going back clears the state of all steps after the destination.
+                </ApiParameter>
+                    </text>
+                }
+                <ApiParameter Name="BackLabel" Type="string?" Default="&quot;Back&quot;">
+                    @L.T("上一步按钮的自定义文案。", "Custom label for the back button.")
+                </ApiParameter>
+                <ApiParameter Name="NextLabel" Type="string?" Default="&quot;Next&quot;">
+                    @L.T("下一步按钮的自定义文案。", "Custom label for the next button.")
+                </ApiParameter>
+                <ApiParameter Name="CompleteLabel" Type="string?" Default="&quot;Complete&quot;">
+                    @L.T("完成按钮的自定义文案。", "Custom label for the complete button.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到根容器的额外 CSS 类。", "Additional CSS classes for the root container.")
+                </ApiParameter>
+                <ApiParameter Name="IndicatorClass" Type="string?" Default="null">
+                    @L.T("应用到步骤指示 nav 的额外 CSS 类。", "Additional CSS classes for the step indicator nav.")
+                </ApiParameter>
+                <ApiParameter Name="ContentClass" Type="string?" Default="null">
+                    @L.T("应用到内容区的额外 CSS 类。", "Additional CSS classes for the content area.")
+                </ApiParameter>
+                <ApiParameter Name="NavigationClass" Type="string?" Default="null">
+                    @L.T("应用到导航区的额外 CSS 类。", "Additional CSS classes for the navigation area.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到根 <code>&lt;div&gt;</code> 元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                </ApiParameter>
+                    </text>
+                }
+            </ApiReference>
+
+            <ApiReference ComponentName="WizardStep">
+                <ApiParameter Name="Title" Type="string" Default="(required)">
+                    @L.T("在步骤指示中显示的步骤标题。", "The step title shown in the step indicator.")
+                </ApiParameter>
+                <ApiParameter Name="Description" Type="string?" Default="null">
+                    @L.T("显示在标题下方的可选说明（纵向布局下可见）。", "Optional description shown below the title (visible in vertical layout).")
+                </ApiParameter>
+                <ApiParameter Name="Icon" Type="string?" Default="null">
+                    @L.T("步骤指示圆圈使用的 Lucide 图标名。", "Lucide icon name for the step indicator circle.")
+                </ApiParameter>
+                <ApiParameter Name="IsOptional" Type="bool" Default="false">
+                    @L.T("该步骤是否可以跳过而不做校验。", "Whether the step can be skipped without validation.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("该步骤是否被禁用且无法导航到。", "Whether the step is disabled and cannot be navigated to.")
+                </ApiParameter>
+                <ApiParameter Name="FieldNames" Type="string[]?" Default="null">
+                    @L.T("点击下一步时需要校验的模型属性名。与 EditForm + DataAnnotationsValidator 配合使用。", "Model property names to validate when clicking Next. Works with EditForm + DataAnnotationsValidator.")
+                </ApiParameter>
+                <ApiParameter Name="Validator" Type="Func&lt;bool&gt;?" Default="null">
+                    @L.T("自定义校验函数。必须返回 true，该步骤才会被视为有效。", "Custom validation function. Must return true for the step to be considered valid.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到步骤内容包裹层的额外 CSS 类。", "Additional CSS classes for the step content wrapper.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到根 <code>&lt;div&gt;</code> 元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                </ApiParameter>
+                    </text>
+                }
+            </ApiReference>
+        </div>
+    </section>
+
+    <LocalizationSection
+        Description="@(L.T("表单向导的导航按钮文案可以配置。", "Form wizard navigation button labels are configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("WizardProgress", "Wizard progress", L.T("步骤指示的无障碍标签。", "Aria label for the step indicator")),
+            new("Back", "Back", L.T("上一步按钮的文案。", "Label for the back button")),
+            new("Next", "Next", L.T("下一步按钮的文案。", "Label for the next button")),
+            new("Skip", "Skip", L.T("可选步骤上跳过按钮的文案。", "Label for the skip button on optional steps")),
+            new("Complete", "Complete", L.T("最后一步提交按钮的文案。", "Label for the final step submit button")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""FormWizard.Back"", ""Zurück"");
+    localizer.Set(""FormWizard.Next"", ""Weiter"");
+    localizer.Set(""FormWizard.Complete"", ""Abschließen"");
+});")" />
+</div>
+
+@code {
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    // Basic wizard
+    private string? _basicName;
+    private string? _basicEmail;
+    private string? _basicBio;
+
+    // Validation wizard
+    private ValidationModel _validationModel = new();
+    private bool _validationSubmitted;
+
+    // Optional step
+    private OptionalModel _optionalModel = new();
+    private bool _optionalSubmitted;
+    private readonly SelectOption<string>[] _themeOptions =
+    [
+        new("Light", "Light"),
+        new("Dark", "Dark"),
+        new("System", "System")
+    ];
+
+    // Vertical layout
+    private string? _verticalField1;
+    private string? _verticalField2;
+
+    // Custom navigation
+    private int _customNavStep;
+
+    // Controlled wizard
+    private int _controlledStep;
+
+    // Reset on back
+    private ResetModel _resetModel = new();
+
+    private void HandleValidationSubmit()
+    {
+        _validationSubmitted = true;
+    }
+
+    private void HandleOptionalSubmit()
+    {
+        _optionalSubmitted = true;
+    }
+
+    private class ResetModel
+    {
+        [Required(ErrorMessage = "Username is required.")]
+        public string? Username { get; set; }
+
+        [Required(ErrorMessage = "City is required.")]
+        public string? City { get; set; }
+    }
+
+    private class OptionalModel
+    {
+        [Required(ErrorMessage = "Full name is required.")]
+        public string? FullName { get; set; }
+
+        [Required(ErrorMessage = "Please select a theme.")]
+        public string? Theme { get; set; }
+    }
+
+    private class ValidationModel
+    {
+        [Required(ErrorMessage = "First name is required.")]
+        public string? FirstName { get; set; }
+
+        [Required(ErrorMessage = "Last name is required.")]
+        public string? LastName { get; set; }
+
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Please enter a valid email address.")]
+        public string? Email { get; set; }
+    }
+}

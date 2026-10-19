@@ -1,0 +1,221 @@
+@page "/components/form-field-file-upload"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("FormFieldFileUpload 文件上传字段 - Atom BlazorUI", "FormFieldFileUpload Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">FormFieldFileUpload</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("带内置标签、辅助文本与错误提示的 FileUpload 表单字段封装。", "A form field wrapper for FileUpload with built-in label, helper text, and error messages.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带标签与辅助文本的单文件上传。", "A single file upload with a label and helper text.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldFileUpload AriaLabel="@(L.T("附件", "Attachment"))" @bind-Files="_singleFile"
+                                  Label="@(L.T("附件", "Attachment"))"
+                                  HelperText="@(L.T("上传一个文件（最大 10 MB）。", "Upload a file (max 10 MB)."))" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("文件：", "Files:")</p>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm font-mono">@((_singleFile?.Any() == true) ? string.Join("、", _singleFile.Select(f => f.Name)) : "（无）")</p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm font-mono">@((_singleFile?.Any() == true) ? string.Join(", ", _singleFile.Select(f => f.Name)) : "(none)")</p>
+                        </text>
+}
+        </div>
+        <CodeBlock Source="Components/FormFieldFileUpload/basic.txt" />
+    </div>
+
+    <!-- Multiple Files with Type Restriction -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("多张图片", "Multiple Images")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("接受多个图片文件并显示预览。", "Accept multiple image files with preview.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldFileUpload @bind-Files="_imageFiles"
+                                  Label="@(L.T("照片", "Photos"))"
+                                  HelperText="@(L.T("最多上传 5 张图片（PNG、JPG、GIF）。", "Upload up to 5 images (PNG, JPG, GIF)."))"
+                                  Multiple="true"
+                                  MaxFileCount="5"
+                                  Accept="image/png, image/jpeg, image/gif" />
+        </div>
+        <CodeBlock Source="Components/FormFieldFileUpload/images.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("一个处于禁用状态的文件上传表单字段。", "A disabled file upload form field.")</p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldFileUpload Label="@(L.T("文档（已锁定）", "Documents (locked)"))"
+                                  HelperText="@(L.T("当前已停用上传。", "Upload is currently disabled."))"
+                                  Disabled="true" />
+        </div>
+        <CodeBlock Source="Components/FormFieldFileUpload/disabled.txt" />
+    </div>
+
+    <!-- Error Text -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("手动错误", "Manual Error")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">ErrorText</code> 显示手写的错误提示。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">ErrorText</code> to display a manual error message.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldFileUpload @bind-Files="_errorFiles"
+                                  Label="@(L.T("简历", "Resume"))"
+                                  HelperText="@(L.T("仅限 PDF 文件。", "PDF files only."))"
+                                  Accept=".pdf"
+                                  ErrorText="@_uploadError" />
+            @if (string.IsNullOrEmpty(_uploadError))
+            {
+                <Button Class="mt-2" Variant="ButtonVariant.Outline" OnClick="@(() => _uploadError = L.T("请上传您的简历以继续。", "Please upload your resume to continue."))">
+                    @L.T("模拟错误", "Simulate error")
+                </Button>
+            }
+            else
+            {
+                <Button Class="mt-2" Variant="ButtonVariant.Outline" OnClick="@(() => _uploadError = null)">
+                    @L.T("清除错误", "Clear error")
+                </Button>
+            }
+        </div>
+        <CodeBlock Source="Components/FormFieldFileUpload/error.txt" />
+    </div>
+
+    <section class="space-y-4" data-testid="editform-validation">
+        <h2 class="text-2xl font-semibold">@L.T("EditForm 校验", "EditForm validation")</h2>
+        <p>@L.T("双向绑定会自动提供 FilesExpression。使用显式回调时，请提供该表达式以标识模型字段。手工错误仍可使用 ErrorText。", "Two-way binding supplies FilesExpression automatically. With explicit callbacks, supply the expression to identify the model field. ErrorText remains available for manual errors.")</p>
+        <EditForm Model="validationModel" FormName="FormFieldFileUploadValidation">
+    <DataAnnotationsValidator />
+    <FormFieldFileUpload @bind-Files="validationModel.Files" Label="@(L.T("佐证材料", "Supporting files"))" AriaLabel="@(L.T("佐证材料", "Supporting files"))" />
+    <Button Type="ButtonType.Submit" Class="mt-3">@L.T("校验所选内容", "Validate selection")</Button>
+</EditForm>
+        <CodeBlock Source="Components/FormFieldFileUpload/editform.txt" />
+    </section>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("标签与文件上传控件在视觉上关联", "Label visually associated with the file upload")</AccessibilityItem>
+            <AccessibilityItem>@L.T("描述通过 aria-describedby 关联", "Description linked via aria-describedby")</AccessibilityItem>
+        </AriaAttributes>
+            <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可用的表单控件之间移动", "Move between enabled form controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("打开文件选择器，或激活某个文件操作", "Open the file chooser or activate a file action"))"><Kbd>Enter</Kbd> / <Kbd>Space</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="FormFieldFileUpload">
+                <ApiParameter Name="FilesExpression" Type="Expression&lt;Func&lt;IReadOnlyList&lt;FileUploadItem&gt;?&gt;&gt;?" Default="null">@L.T("标识 EditForm 中的字段。由 @bind-Files 自动提供；用于字段通知与校验信息。", "Identifies the EditForm field. Supplied by @bind-Files; enables field notifications and validation messages.")</ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">@L.T("转发给交互控件或分组的可读名称。", "Accessible name forwarded to the interactive control or group.")</ApiParameter>
+                <ApiParameter Name="Label" Type="string?" Default="null">@L.T("标签文本。", "The label text.")</ApiParameter>
+                <ApiParameter Name="HelperText" Type="string?" Default="null">@L.T("上传控件下方的辅助文本。", "Helper text below the upload.")</ApiParameter>
+                <ApiParameter Name="ErrorText" Type="string?" Default="null">@L.T("手动错误文本覆盖。", "Manual error text override.")</ApiParameter>
+                <ApiParameter Name="Files" Type="IReadOnlyList&lt;FileUploadItem&gt;?" Default="null">@L.T("所选的文件。使用 @bind-Files。", "The selected files. Use @bind-Files.")</ApiParameter>
+                <ApiParameter Name="FilesChanged" Type="EventCallback&lt;IReadOnlyList&lt;FileUploadItem&gt;&gt;">@L.T("文件发生变化时的回调。", "Callback when files change.")</ApiParameter>
+                <ApiParameter Name="Multiple" Type="bool" Default="false">@L.T("是否允许多选文件。", "Allow multiple file selection.")</ApiParameter>
+                <ApiParameter Name="Accept" Type="string?" Default="null">@L.T("接受的文件类型（MIME 或扩展名）。", "Accepted file types (MIME or extension).")</ApiParameter>
+                <ApiParameter Name="MaxFileSize" Type="long" Default="10485760">@L.T("以字节计的最大文件大小（10 MB）。", "Maximum file size in bytes (10 MB).")</ApiParameter>
+                <ApiParameter Name="MaxFileCount" Type="int" Default="10">@L.T("文件数量上限。", "Maximum number of files.")</ApiParameter>
+                <ApiParameter Name="ShowPreview" Type="bool" Default="true">@L.T("是否显示图片预览。", "Show image previews.")</ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("上传是否被禁用。", "Whether the upload is disabled.")</ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">@L.T("文件上传是否为必填。", "Whether the file upload is required.")</ApiParameter>
+                <ApiParameter Name="DropzoneContent" Type="RenderFragment?" Default="null">@L.T("自定义拖放区内容。", "Custom dropzone content.")</ApiParameter>
+                <ApiParameter Name="InputClass" Type="string?" Default="null">@L.T("内部 FileUpload 的 CSS 类。", "CSS classes for the inner FileUpload.")</ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private readonly ValidationModel validationModel = new();
+
+    protected override void OnParametersSet()
+    {
+        validationModel.L = L;
+    }
+
+    private sealed class ValidationModel : IValidatableObject
+    {
+        /// <summary>显示语言快照（由所属组件同步下发）。</summary>
+        public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+        public IReadOnlyList<FileUploadItem>? Files { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (Files is null || Files.Count == 0)
+            {
+                yield return new ValidationResult(L.T("请做出选择。", "Please make a selection."), [nameof(Files)]);
+            }
+        }
+    }
+
+    private IReadOnlyList<FileUploadItem>? _singleFile;
+    private IReadOnlyList<FileUploadItem>? _imageFiles;
+    private IReadOnlyList<FileUploadItem>? _errorFiles;
+    private string? _uploadError;
+}

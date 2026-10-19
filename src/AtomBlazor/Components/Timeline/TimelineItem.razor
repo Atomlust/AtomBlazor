@@ -1,0 +1,103 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+
+<li class="@CssClass" @attributes="AdditionalAttributes">
+    <div class="@ContentGridClass">
+        @if (Align == TimelineAlign.Left)
+        {
+            @* 左对齐：图标 + 内容 *@
+            @IconColumn
+            <div class="@ContentWrapperClass">@ContentBody</div>
+        }
+        else if (Align == TimelineAlign.Right)
+        {
+            @* 右对齐：内容 + 图标 *@
+            <div class="@ContentWrapperEndClass" data-timeline-end>@ContentBody</div>
+            @IconColumn
+        }
+        else if (IsReversed)
+        {
+            @* Alternate 奇数项：内容（右对齐）+ 图标 + 日期 *@
+            <div class="@ContentWrapperEndClass" data-timeline-end>@ContentBody</div>
+            @IconColumn
+            @DateColumn
+        }
+        else
+        {
+            @* Center / Alternate 偶数项：日期 + 图标 + 内容 *@
+            @DateColumn
+            @IconColumn
+            <div class="@ContentWrapperClass">@ContentBody</div>
+        }
+    </div>
+</li>
+
+@code {
+    private RenderFragment IconColumn => __builder =>
+    {
+        <div class="atom:flex atom:flex-col atom:items-center atom:self-stretch">
+            <div class="@iconWrapperClass">
+                @if (IconContent != null)
+                {
+                    @IconContent
+                }
+                else
+                {
+                    <TimelineIcon Color="@IconColor" Size="@IconSize" Status="@Status" Variant="@IconVariant" Loading="@Loading" />
+                }
+            </div>
+            @if (ShowConnector)
+            {
+                <TimelineConnector Status="@Status" Color="@ConnectorColor" ConnectorStyle="@ConnectorStyle" Class="@ComputedConnectorClass" />
+            }
+        </div>
+    };
+
+    private RenderFragment DateColumn => __builder =>
+    {
+        <div class="@DateColumnClass">
+            @if (TimeContent != null)
+            {
+                @TimeContent
+            }
+            else if (UseShorthand && Time != null)
+            {
+                <TimelineTime Class="atom:text-end atom:pe-4">@Time</TimelineTime>
+            }
+        </div>
+    };
+
+    private RenderFragment ContentBody => __builder =>
+    {
+        @if (UseShorthand)
+        {
+            <TimelineContent>
+                <TimelineHeader>
+                    <TimelineTitle>@Title</TimelineTitle>
+                </TimelineHeader>
+                @if (Description != null)
+                {
+                    <TimelineDescription>@Description</TimelineDescription>
+                }
+            </TimelineContent>
+        }
+        else if (IsCollapsible && DetailContent != null)
+        {
+            <Collapsible DefaultOpen="@DefaultOpen">
+                <AtomBlazor.CollapsibleTrigger AsChild="false" Class="atom:flex atom:w-full atom:items-center atom:gap-2 atom:cursor-pointer">
+                    <div class="atom:flex-1">
+                        @ChildContent
+                    </div>
+                    <LucideIcon Name="chevron-down" Size="16" Class="atom:transition-transform atom:duration-200 atom:group-data-[state=open]:rotate-180 atom:shrink-0" />
+                </AtomBlazor.CollapsibleTrigger>
+                <AtomBlazor.CollapsibleContent>
+                    @DetailContent
+                </AtomBlazor.CollapsibleContent>
+            </Collapsible>
+        }
+        else
+        {
+            @ChildContent
+        }
+    };
+}

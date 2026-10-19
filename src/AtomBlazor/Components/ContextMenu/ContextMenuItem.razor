@@ -1,0 +1,50 @@
+@namespace AtomBlazor
+
+<AtomBlazor.Primitives.ContextMenuItem
+    OnClick="@OnClick"
+    Disabled="@Disabled"
+    class="@CssClass"
+    @attributes="AdditionalAttributes">
+    @if (Icon != null)
+    {
+        <span class="atom:me-2 atom:h-4 atom:w-4 atom:shrink-0 atom:[&>svg]:h-4 atom:[&>svg]:w-4">@Icon</span>
+    }
+    @ChildContent
+</AtomBlazor.Primitives.ContextMenuItem>
+
+@code {
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用于根元素的额外 HTML 特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 在菜单项内容前显示的可选图标。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? Icon { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public bool Inset { get; set; }
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    private string CssClass => ClassNames.cn(
+        "atom:relative atom:flex atom:cursor-default atom:select-none atom:items-center atom:rounded-sm atom:px-2 atom:py-1.5 atom:text-sm atom:outline-none",
+        "atom:hover:bg-(--atom-menu-accent) atom:hover:text-(--atom-menu-accent-foreground) atom:focus:bg-(--atom-menu-accent) atom:focus:text-(--atom-menu-accent-foreground)",
+        Disabled ? "atom:pointer-events-none atom:opacity-50" : null,
+        Inset ? "atom:ps-8" : null,
+        Class
+    );
+}

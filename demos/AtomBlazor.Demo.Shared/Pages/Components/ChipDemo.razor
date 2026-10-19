@@ -1,0 +1,508 @@
+@page "/components/chip"
+
+<PageTitle>@L.T("Chip 标签片 - Atom BlazorUI", "Chip - Atom BlazorUI")</PageTitle>
+
+<div class="max-w-4xl space-y-8">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("标签片", "Chip")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("紧凑的胶囊形状元素，用来表示某个属性、某个筛选条件或某个选择。与徽标不同，标签片是可交互的：它可以被选中、被移除，或两者皆可。", "A compact pill that represents an attribute, a filter or a choice. Unlike a badge, a chip is interactive: it can be selected, dismissed, or both.")
+        </p>
+    </div>
+
+    @* Variants *@
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("变体", "Variants")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("五种变体。每种变体的选中态样式见下文。", "Five variants. Each one also carries a selected treatment, shown further down.")
+            </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 rounded-lg border p-6">
+            <Chip>Default</Chip>
+            <Chip Variant="ChipVariant.Secondary">Secondary</Chip>
+            <Chip Variant="ChipVariant.Outline">Outline</Chip>
+            <Chip Variant="ChipVariant.Destructive">Destructive</Chip>
+            <Chip Variant="ChipVariant.Soft">Soft</Chip>
+        </div>
+        <CodeBlock Source="Components/Chip/variants.txt" />
+    </section>
+
+    @* Sizes *@
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("尺寸", "Sizes")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("三种尺寸：高度分别为 24px、32px 与 40px。", "Three sizes: 24px, 32px and 40px tall.")</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 rounded-lg border p-6">
+            <Chip Size="ChipSize.Small">Small</Chip>
+            <Chip Size="ChipSize.Default">Default</Chip>
+            <Chip Size="ChipSize.Large">Large</Chip>
+        </div>
+        <CodeBlock Source="Components/Chip/sizes.txt" />
+    </section>
+
+    @* Dismissible *@
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("可移除", "Dismissible")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("移除按钮只负责上报点击事件。把标签片从标记里删掉仍由你决定，因此留出撤销的可能。", "The dismiss button reports the click. Removing the chip from the markup stays your job, so an undo step remains possible.")
+            </p>
+        </div>
+        <div class="space-y-3 rounded-lg border p-6">
+            <div class="flex flex-wrap items-center gap-3">
+                @foreach (var label in labels)
+                {
+                    var current = label;
+                    <Chip @key="current" Dismissible="true" OnDismiss="@(() => Remove(current))">
+                        @current
+                    </Chip>
+                }
+                @if (labels.Count == 0)
+                {
+                    <p class="text-sm text-muted-foreground">@L.T("标签片都被移除了。", "Every chip is gone.")</p>
+                }
+            </div>
+            <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="ResetLabels">
+                @L.T("重置", "Reset")
+            </Button>
+        </div>
+        <CodeBlock Source="Components/Chip/dismissible.txt" />
+    </section>
+
+    @* Leading content *@
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("图标与头像", "Icons and avatars")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Icon</code> 片段会渲染在标签文字之前。它可以放任意内容，因此头像与图标同样适用。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    The <code class="text-xs bg-muted px-1 py-0.5 rounded">Icon</code> fragment renders
+                    before the label. It takes any content, so an avatar works as well as an icon.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="flex flex-wrap items-center gap-3 rounded-lg border p-6">
+            <Chip Variant="ChipVariant.Soft">
+                <Icon><LucideIcon Name="tag" Class="h-3.5 w-3.5" /></Icon>
+                <ChildContent>@L.T("发票", "Invoice")</ChildContent>
+            </Chip>
+            <Chip>
+                <Icon>
+                    <Avatar Class="h-5 w-5">
+                        <AvatarFallback Class="text-[10px]">MT</AvatarFallback>
+                    </Avatar>
+                </Icon>
+                <ChildContent>Mathew</ChildContent>
+            </Chip>
+            <Chip Variant="ChipVariant.Outline" Dismissible="true" OnDismiss="@(() => status = L.T("已清除位置标签片", "Location cleared"))">
+                <Icon><LucideIcon Name="map-pin" Class="h-3.5 w-3.5" /></Icon>
+                <ChildContent>@L.T("曼谷", "Bangkok")</ChildContent>
+            </Chip>
+        </div>
+        <CodeBlock Source="Components/Chip/with-icon.txt" />
+    </section>
+
+    @* Own selected state *@
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("单独持有选中态", "Selectable on its own")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    单个标签片也能通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Selected</code> 自己管理选中态，不必放进标签片组。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    A single chip can own its selected state through
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Selected</code>, with no
+                    set around it.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-3 rounded-lg border p-6">
+            <Chip Selectable="true" @bind-Selected="showArchived" Variant="ChipVariant.Outline">
+                @L.T("已归档", "Archived")
+            </Chip>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p role="status" class="text-sm text-muted-foreground">
+                    归档项当前 @(showArchived ? "可见" : "隐藏")。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p role="status" class="text-sm text-muted-foreground">
+                    Archived items are @(showArchived ? "shown" : "hidden").
+                </p>
+                        </text>
+}
+        </div>
+        <CodeBlock Source="Components/Chip/selectable.txt" />
+    </section>
+
+    @* Single selection set *@
+    <section class="space-y-4">
+        <span id="chip-set" class="block scroll-mt-20" aria-hidden="true"></span>
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("单选", "Single choice")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    由 <code class="text-xs bg-muted px-1 py-0.5 rounded">ChipSet</code> 统一掌握组内标签片的选中情况。每个参与选择的标签片都要提供
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code>。再次点击已选中的标签片会清空它，除非该组设置了
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Required</code>。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    A <code class="text-xs bg-muted px-1 py-0.5 rounded">ChipSet</code> owns the
+                    selection for its chips. Each chip that takes part supplies a
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code>. Clicking the
+                    selected chip clears it, unless the set is
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Required</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-3 rounded-lg border p-6">
+            <ChipSet TValue="string" @bind-Value="statusFilter" Variant="ChipVariant.Outline">
+                <Chip Value="@("open")">@L.T("进行中", "Open")</Chip>
+                <Chip Value="@("paused")">@L.T("已暂停", "Paused")</Chip>
+                <Chip Value="@("closed")">@L.T("已关闭", "Closed")</Chip>
+                <Chip Value="@("blocked")" Disabled="true">@L.T("已受阻", "Blocked")</Chip>
+            </ChipSet>
+            <p role="status" class="text-sm text-muted-foreground">
+                @L.T("状态：", "Status:") @(statusFilter ?? L.T("不限", "any"))
+            </p>
+        </div>
+        <CodeBlock Source="Components/Chip/single-select.txt" />
+    </section>
+
+    @* Multiple selection set *@
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("多选", "Multiple choice")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    改为绑定 <code class="text-xs bg-muted px-1 py-0.5 rounded">Values</code>。对勾是可选的；它出现时会把标签片撑宽，因此适合不必保持宽度一致的标签片组。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Bind <code class="text-xs bg-muted px-1 py-0.5 rounded">Values</code> instead. The
+                    check mark is optional; it widens the chip as it appears, so it suits a set that
+                    does not need to hold its width.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-3 rounded-lg border p-6">
+            <ChipSet TValue="string"
+                     SelectionMode="ChipSelectionMode.Multiple"
+                     ShowCheckMark="true"
+                     @bind-Values="teams">
+                <Chip Value="@("design")">@L.T("设计", "Design")</Chip>
+                <Chip Value="@("platform")">@L.T("平台", "Platform")</Chip>
+                <Chip Value="@("support")">@L.T("支持", "Support")</Chip>
+                <Chip Value="@("finance")">@L.T("财务", "Finance")</Chip>
+            </ChipSet>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p role="status" class="text-sm text-muted-foreground">
+                    团队：@(teams.Count == 0 ? "无" : string.Join("、", teams))
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p role="status" class="text-sm text-muted-foreground">
+                    Teams: @(teams.Count == 0 ? "none" : string.Join(", ", teams))
+                </p>
+                        </text>
+}
+        </div>
+        <CodeBlock Source="Components/Chip/multi-select.txt" />
+    </section>
+
+    @* Dismiss inside a set *@
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("组内移除", "Dismiss inside a set")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    被移除的值会先从选中集合里去掉，然后通过该组的 <code class="text-xs bg-muted px-1 py-0.5 rounded">OnDismiss</code> 上报。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    A dismissed value is dropped from the selection first, then reported through the
+                    set's <code class="text-xs bg-muted px-1 py-0.5 rounded">OnDismiss</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-3 rounded-lg border p-6">
+            <ChipSet TValue="string"
+                     SelectionMode="ChipSelectionMode.Multiple"
+                     Dismissible="true"
+                     @bind-Values="activeFilters"
+                     OnDismiss="RemoveFilter">
+                @foreach (var filter in filters)
+                {
+                    <Chip @key="filter" Value="@filter">@filter</Chip>
+                }
+            </ChipSet>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p role="status" class="text-sm text-muted-foreground">
+                    已选择：@(activeFilters.Count == 0 ? "无" : string.Join("、", activeFilters))
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p role="status" class="text-sm text-muted-foreground">
+                    Selected: @(activeFilters.Count == 0 ? "none" : string.Join(", ", activeFilters))
+                </p>
+                        </text>
+}
+            <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="ResetFilters">
+                @L.T("重置", "Reset")
+            </Button>
+        </div>
+        <CodeBlock Source="Components/Chip/dismiss-in-set.txt" />
+    </section>
+
+    @* Disabled *@
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("可以禁用单个标签片，也可以禁用整组。被禁用的标签片既不能选中也不能移除。", "Disable one chip, or the whole set. A disabled chip cannot be selected or dismissed.")
+            </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 rounded-lg border p-6">
+            <Chip Disabled="true">@L.T("只读", "Read only")</Chip>
+            <Chip Disabled="true" Dismissible="true">@L.T("已锁定", "Locked")</Chip>
+            <ChipSet TValue="string" Disabled="true" Value="@("one")">
+                <Chip Value="@("one")">@L.T("一", "One")</Chip>
+                <Chip Value="@("two")">@L.T("二", "Two")</Chip>
+            </ChipSet>
+        </div>
+    </section>
+
+    <p role="status" class="text-sm text-muted-foreground">@status</p>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("标签片在变成可交互元素之前只是普通 span，因此静态标签片不会被播报为按钮。", "A chip renders as a plain span until it becomes interactive, so a static chip is not announced as a button.")</AccessibilityItem>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>可选中的标签片带有 <code>aria-pressed</code>，标签片组则是 <code>role="group"</code>。请给组加 <code>aria-label</code>，说明这些标签片筛选的是什么。</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>A selectable chip carries <code>aria-pressed</code>, and the set is a <code>role="group"</code>. Give the set an <code>aria-label</code> to name what the chips filter.</AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>移除按钮有自己的可读名称，来自 <code>DismissLabel</code> 或本地化的 <code>Chip.Dismiss</code> 词条。</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>The dismiss button has its own accessible name, from <code>DismissLabel</code> or the localized <code>Chip.Dismiss</code> string.</AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>设置 <code>ShowCheckMark</code> 后，选中状态不再只靠颜色表达。</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Selection is not colour alone when <code>ShowCheckMark</code> is set.</AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("先移到标签片，再移到它的移除按钮", "Move to the chip, then to its dismiss button"))"><Kbd>Tab / Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("选中获得焦点的标签片，或将其移除", "Select the focused chip, or dismiss it"))"><Kbd>Enter / Space</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <LocalizationSection
+        Description="@(L.T("移除按钮的可读名称可以配置。", "The dismiss button's accessible name is configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("Chip.Dismiss", "Remove", L.T("移除按钮的可读名称。", "Accessible name for the dismiss button")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""Chip.Dismiss"", ""Entfernen"");
+});")" />
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+
+        <ApiReference Since="v4" ComponentName="Chip">
+            <ApiParameter Name="Variant / Size" Type="ChipVariant? / ChipSize?">@L.T("视觉样式与尺寸。依次回落到父级标签片组，再回落到 Default。", "Visual style and size. Falls back to the parent set, then to Default.")</ApiParameter>
+            <ApiParameter Name="ChildContent / Icon" Type="RenderFragment?">@L.T("标签文字，以及前置内容（例如图标或头像）。", "The label, and leading content such as an icon or an avatar.")</ApiParameter>
+            <ApiParameter Name="Value" Type="object?">@L.T("该标签片向所属组贡献的值。参与选择时必须提供。", "The value this chip contributes to a parent set. Needed to take part in the selection.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="Selectable / Selected / SelectedChanged" Type="bool / bool / EventCallback&lt;bool&gt;" Default="false / false">供组外单独使用的标签片自己持有的选中态。支持 <code>@@bind-Selected</code>。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="Selectable / Selected / SelectedChanged" Type="bool / bool / EventCallback&lt;bool&gt;" Default="false / false">Own selected state, for a chip used outside a set. Supports <code>@@bind-Selected</code>.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="ShowCheckMark" Type="bool?" Default="false">@L.T("选中时显示对勾。依次回落到父级标签片组。", "Shows a check mark while selected. Falls back to the parent set.")</ApiParameter>
+            <ApiParameter Name="Dismissible / OnDismiss / DismissLabel" Type="bool? / EventCallback&lt;MouseEventArgs&gt; / string?" Default="false">@L.T("移除按钮、它的回调，以及按钮的可读名称。", "Dismiss button, its callback, and its accessible name.")</ApiParameter>
+            <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("禁止选中与移除。", "Blocks selection and dismissal.")</ApiParameter>
+            <ApiParameter Name="OnClick" Type="EventCallback&lt;MouseEventArgs&gt;">@L.T("在任何选中变化之后执行；它会让标签片自身变为可交互。", "Runs after any selection change, and makes the chip interactive on its own.")</ApiParameter>
+            <ApiParameter Name="Class / AdditionalAttributes" Type="string? / Dictionary&lt;string, object&gt;?">@L.T("追加到根元素的 CSS 类与 HTML 属性。", "Additional root CSS classes and HTML attributes.")</ApiParameter>
+        </ApiReference>
+
+        <ApiReference Since="v4" ComponentName="ChipSet&lt;TValue&gt;">
+            <ApiParameter Name="SelectionMode" Type="ChipSelectionMode" Default="Single">@L.T("None、Single 或 Multiple 三种模式。", "None, Single or Multiple.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="Value / ValueChanged" Type="TValue? / EventCallback&lt;TValue?&gt;">Single 模式下选中的值。支持 <code>@@bind-Value</code>。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="Value / ValueChanged" Type="TValue? / EventCallback&lt;TValue?&gt;">The selected value in Single mode. Supports <code>@@bind-Value</code>.</ApiParameter>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="Values / ValuesChanged" Type="List&lt;TValue&gt;? / EventCallback&lt;List&lt;TValue&gt;&gt;">Multiple 模式下选中的值集合。支持 <code>@@bind-Values</code>。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="Values / ValuesChanged" Type="List&lt;TValue&gt;? / EventCallback&lt;List&lt;TValue&gt;&gt;">The selected values in Multiple mode. Supports <code>@@bind-Values</code>.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="Required" Type="bool" Default="false">@L.T("保证至少有一个标签片处于选中状态。", "Keeps at least one chip selected.")</ApiParameter>
+            <ApiParameter Name="Variant / Size / Dismissible / ShowCheckMark" Type="ChipVariant / ChipSize / bool / bool">@L.T("组内标签片的默认取值。标签片自己声明的取值优先。", "Defaults for the chips in the set. A chip that declares its own wins.")</ApiParameter>
+            <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("禁用组内的每一个标签片。", "Disables every chip in the set.")</ApiParameter>
+            <ApiParameter Name="Wrap" Type="bool" Default="true">@L.T("让标签片换行排布。为 false 时该组横向滚动。", "Wraps chips onto more lines. When false the set scrolls horizontally.")</ApiParameter>
+            <ApiParameter Name="OnDismiss" Type="EventCallback&lt;TValue&gt;">@L.T("组内某个标签片被移除时执行，此时该值已经离开选中集合。", "Runs when a chip in the set is dismissed, after the value leaves the selection.")</ApiParameter>
+            <ApiParameter Name="Class / AdditionalAttributes" Type="string? / Dictionary&lt;string, object&gt;?">@L.T("追加到根元素的 CSS 类与 HTML 属性。", "Additional root CSS classes and HTML attributes.")</ApiParameter>
+        </ApiReference>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private List<string> labels = ["Design", "Build", "Ship"];
+    private bool showArchived;
+    private string? statusFilter = "open";
+    private List<string> teams = ["design"];
+    private List<string> filters = ["Overdue", "Mine", "High priority"];
+    private List<string> activeFilters = ["Mine"];
+    private string status = "Chips report every click.";
+
+    protected override void OnInitialized()
+    {
+        // 初始提示语随显示语言落地；英文态保持字段初值原样。
+        if (L.IsChinese)
+        {
+            status = "标签片会报告每一次点击。";
+        }
+    }
+
+    private void Remove(string label)
+    {
+        labels.Remove(label);
+        if (L.IsChinese)
+        {
+            status = $"已移除 {label}。";
+        }
+        else
+        {
+            status = $"Removed {label}.";
+        }
+    }
+
+    private void ResetLabels() => labels = ["Design", "Build", "Ship"];
+
+    private void RemoveFilter(string filter)
+    {
+        filters.Remove(filter);
+        if (L.IsChinese)
+        {
+            status = $"已移除「{filter}」筛选条件。";
+        }
+        else
+        {
+            status = $"Removed the {filter} filter.";
+        }
+    }
+
+    private void ResetFilters()
+    {
+        filters = ["Overdue", "Mine", "High priority"];
+        activeFilters = ["Mine"];
+    }
+}

@@ -1,0 +1,65 @@
+@namespace AtomBlazor.Primitives
+
+@*
+    ContextMenu 项 —— 一个 role 为 "menuitem" 的单个菜单项。
+*@
+
+<div role="menuitem"
+     tabindex="-1"
+     aria-disabled="@(Disabled ? "true" : null)"
+     data-disabled="@(Disabled ? "true" : null)"
+     @onclick="HandleClick"
+     @onclick:stopPropagation="true"
+     @attributes="AdditionalAttributes">
+    @ChildContent
+</div>
+
+@code {
+    [CascadingParameter]
+    private ContextMenuPrimitive? Context { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (Context == null)
+        {
+            throw new InvalidOperationException(
+                "ContextMenuItem must be used within a ContextMenu component.");
+        }
+    }
+
+    /// <summary>
+    /// 菜单项的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 此项是否被禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 项被点击时触发的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    /// <summary>
+    /// 附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private async Task HandleClick()
+    {
+        if (!Disabled)
+        {
+            await OnClick.InvokeAsync();
+            if (Context != null)
+            {
+                await Context.Close();
+            }
+        }
+    }
+}

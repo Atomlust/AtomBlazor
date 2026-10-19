@@ -1,0 +1,28 @@
+<DataGrid TData="Person" Items="@people" InitialPageSize="5"
+            OnRowClick="HandleRowClick">
+    <RowContextMenu Context="menu">
+        <ContextMenuItem OnClick="@(async () => await menu.CopyToClipboardAsync(menu.Item.Name))">
+            Copy Name
+        </ContextMenuItem>
+        <ContextMenuItem OnClick="@(async () => await menu.CopyToClipboardAsync(menu.Item.Email))">
+            Copy Email
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem OnClick="@(async () => await menu.CopyToClipboardAsync(menu.FormatRow(menu.Item)))">
+            Copy Row
+        </ContextMenuItem>
+    </RowContextMenu>
+    <Columns>
+        <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Name)" Sortable />
+        <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Email)" Sortable />
+        <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Department)" Sortable />
+        <DataGridPropertyColumn TData="Person" TProp="string" Property="@(p => p.Role)" />
+    </Columns>
+</DataGrid>
+
+@code {
+    private void HandleRowClick(Person person)
+    {
+        // Handle row click
+    }
+}

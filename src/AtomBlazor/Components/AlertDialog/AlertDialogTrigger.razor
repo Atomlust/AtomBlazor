@@ -1,0 +1,35 @@
+@namespace AtomBlazor
+
+@*
+    警告对话框触发器 - 点击时打开警告对话框。
+    封装 Dialog 基元的触发器。
+*@
+
+@* 在 AsChild 模式下，基元不会渲染任何元素，因此触发器自身的样式无处附着。
+   只会向下传递页面所设置的内容，因此开发警告只提及这一点，仅此而已。 *@
+<AtomBlazor.Primitives.AlertDialogTrigger AsChild="@AsChild"
+    class="@(AsChild ? null : "atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2")"
+    @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.AlertDialogTrigger>
+
+@code {
+    /// <summary>
+    /// 作为触发器呈现的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 为 true 时，触发器不会呈现默认的按钮包装元素。
+    /// 取而代之的是，子组件通过级联上下文接收触发器行为。
+    /// </summary>
+    [Parameter]
+    public bool AsChild { get; set; } = true;
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}

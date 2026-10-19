@@ -1,0 +1,32 @@
+<DataGrid TData="TeamMember" Items="@teamMembers"
+            InitialPageSize="5" ShowPagination="false">
+    <Columns>
+        <DataGridExpandColumn>
+            <DetailRows Context="member">
+                <DataGridDetailHeader Class="bg-muted/30">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Direct Reports (@member.DirectReports.Count)
+                    </span>
+                </DataGridDetailHeader>
+                @foreach (var report in member.DirectReports)
+                {
+                    <DataGridDetailRow Item="@report"
+                        Class="text-muted-foreground" />
+                }
+            </DetailRows>
+        </DataGridExpandColumn>
+        <DataGridPropertyColumn TData="TeamMember" TProp="string"
+            Property="@(m => m.Name)" Sortable />
+        <DataGridPropertyColumn TData="TeamMember" TProp="string"
+            Property="@(m => m.Title)" Title="Job Title" />
+        <DataGridPropertyColumn TData="TeamMember" TProp="string"
+            Property="@(m => m.Department)" Sortable />
+        <DataGridPropertyColumn TData="TeamMember" TProp="int"
+            Property="@(m => m.DirectReports.Count)" Title="Reports" />
+    </Columns>
+</DataGrid>
+
+@code {
+    record TeamMember(string Name, string Title,
+        string Department, List<TeamMember> DirectReports);
+}

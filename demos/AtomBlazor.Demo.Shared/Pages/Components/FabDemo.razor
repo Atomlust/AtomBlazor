@@ -1,0 +1,378 @@
+@page "/components/fab"
+@using AtomBlazor.Primitives.Services
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("Floating Action Button 浮动操作按钮 - Atom BlazorUI", "Floating Action Button - Atom BlazorUI")</PageTitle>
+
+<div class="max-w-4xl space-y-8">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Floating Action Button 浮动操作按钮", "Floating Action Button")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("一个悬浮按钮，固定在屏幕一角，承载该屏幕唯一的主动作。", "A raised button that pins to a corner of the screen and carries the one main action of that screen.")
+        </p>
+    </div>
+
+    <div class="rounded-r-lg border-l-4 border-primary bg-primary/5 p-4">
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                <strong>每屏一个。</strong>第二个浮动按钮会与第一个争抢焦点，
+                谁都读不出"主动作"。其他所有操作都应放进普通的
+                <code class="rounded bg-muted px-1 py-0.5 text-xs">Button</code> 里。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                <strong>One per screen.</strong> A second floating button competes with the first, and
+                neither reads as the main action. Every other action belongs in a regular
+                <code class="rounded bg-muted px-1 py-0.5 text-xs">Button</code>.
+            </p>
+                </text>
+}
+    </div>
+
+    <!-- In a container -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("位置", "Placement")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    按钮默认固定在视口上。
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">Fixed="false"</code> 改为把它固定到
+                    最近的已定位祖先元素，下面的面板就是这么做的。
+                    位置使用的是逻辑方向，因此 <code class="rounded bg-muted px-1 py-0.5 text-xs">BottomEnd</code>
+                    会跟随阅读方向。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    The button pins to the viewport by default.
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">Fixed="false"</code> pins it to
+                    the nearest positioned ancestor instead, which is what the panel below does.
+                    Placement is logical, so <code class="rounded bg-muted px-1 py-0.5 text-xs">BottomEnd</code>
+                    follows the reading direction.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-3">
+            <div class="flex flex-wrap items-center gap-3">
+                <ChipSet TValue="FabPlacement" @bind-Value="placement" Variant="ChipVariant.Outline" Required="true">
+                    <Chip Value="@(FabPlacement.BottomEnd)">BottomEnd</Chip>
+                    <Chip Value="@(FabPlacement.BottomStart)">BottomStart</Chip>
+                    <Chip Value="@(FabPlacement.BottomCenter)">BottomCenter</Chip>
+                    <Chip Value="@(FabPlacement.TopEnd)">TopEnd</Chip>
+                    <Chip Value="@(FabPlacement.TopStart)">TopStart</Chip>
+                </ChipSet>
+            </div>
+            <div class="relative h-64 overflow-hidden rounded-lg border bg-muted/30">
+                <Fab Fixed="false"
+                     Placement="@placement"
+                     AriaLabel="@(L.T("添加条目", "Add item"))"
+                     OnClick="@(() => status = L.T("浮动按钮被按下了。", "The floating button was pressed."))">
+                    <Icon><LucideIcon Name="plus" Size="24" /></Icon>
+                </Fab>
+            </div>
+            <p role="status" class="text-sm text-muted-foreground">@status</p>
+        </div>
+        <CodeBlock Source="Components/Fab/in-container.txt" />
+    </section>
+
+    <!-- Variants -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("变体", "Variants")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    四种变体。<code class="rounded bg-muted px-1 py-0.5 text-xs">Inline</code>
+                    放置方式会去掉定位，按钮因此排在正常流中。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Four variants. <code class="rounded bg-muted px-1 py-0.5 text-xs">Inline</code>
+                    placement drops the positioning, so the buttons sit in the normal flow.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="flex flex-wrap items-center gap-4 rounded-lg border p-6">
+            <Fab Placement="FabPlacement.Inline" AriaLabel="@(L.T("添加", "Add"))" Variant="FabVariant.Primary">
+                <Icon><LucideIcon Name="plus" Size="24" /></Icon>
+            </Fab>
+            <Fab Placement="FabPlacement.Inline" AriaLabel="@(L.T("编辑", "Edit"))" Variant="FabVariant.Secondary">
+                <Icon><LucideIcon Name="pencil" Size="24" /></Icon>
+            </Fab>
+            <Fab Placement="FabPlacement.Inline" AriaLabel="@(L.T("筛选", "Filter"))" Variant="FabVariant.Surface">
+                <Icon><LucideIcon Name="filter" Size="24" /></Icon>
+            </Fab>
+            <Fab Placement="FabPlacement.Inline" AriaLabel="@(L.T("删除", "Delete"))" Variant="FabVariant.Destructive">
+                <Icon><LucideIcon Name="trash-2" Size="24" /></Icon>
+            </Fab>
+        </div>
+        <CodeBlock Source="Components/Fab/variants.txt" />
+    </section>
+
+    <!-- Sizes -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("尺寸", "Sizes")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("宽度分别为 40px、56px 与 64px。", "40px, 56px and 64px across.")</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-4 rounded-lg border p-6">
+            <Fab Placement="FabPlacement.Inline" Size="FabSize.Small" AriaLabel="@(L.T("添加（小）", "Add, small"))">
+                <Icon><LucideIcon Name="plus" Size="20" /></Icon>
+            </Fab>
+            <Fab Placement="FabPlacement.Inline" Size="FabSize.Default" AriaLabel="@(L.T("添加（默认）", "Add, default"))">
+                <Icon><LucideIcon Name="plus" Size="24" /></Icon>
+            </Fab>
+            <Fab Placement="FabPlacement.Inline" Size="FabSize.Large" AriaLabel="@(L.T("添加（大）", "Add, large"))">
+                <Icon><LucideIcon Name="plus" Size="28" /></Icon>
+            </Fab>
+        </div>
+    </section>
+
+    <!-- Shape -->
+    <section class="space-y-4">
+        <div class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("形状", "Shape")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    按钮默认使用主题的圆角半径，与
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">Button</code> 用的是同一个，因此与主题整体保持一致。
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">Shape="FabShape.Circle"</code>
+                    则改为完整圆形；带标签时变成胶囊形。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    The button uses the theme's corner radius by default, the same one
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">Button</code> uses, so it stays
+                    in step with the rest of the theme.
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">Shape="FabShape.Circle"</code>
+                    makes it a full circle instead, or a pill once it carries a label.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="flex flex-wrap items-center gap-4 rounded-lg border p-6">
+            <Fab Placement="FabPlacement.Inline" AriaLabel="@(L.T("添加（圆角）", "Add, rounded"))">
+                <Icon><LucideIcon Name="plus" Size="24" /></Icon>
+            </Fab>
+            <Fab Placement="FabPlacement.Inline" Shape="FabShape.Circle" AriaLabel="@(L.T("添加（圆形）", "Add, circle"))">
+                <Icon><LucideIcon Name="plus" Size="24" /></Icon>
+            </Fab>
+            <Fab Placement="FabPlacement.Inline" Variant="FabVariant.Surface">
+                <Icon><LucideIcon Name="plus" Size="20" /></Icon>
+                <ChildContent>@L.T("新建任务", "New task")</ChildContent>
+            </Fab>
+            <Fab Placement="FabPlacement.Inline" Shape="FabShape.Circle" Variant="FabVariant.Surface">
+                <Icon><LucideIcon Name="plus" Size="20" /></Icon>
+                <ChildContent>@L.T("新建任务", "New task")</ChildContent>
+            </Fab>
+        </div>
+        <CodeBlock Source="Components/Fab/shape.txt" />
+    </section>
+
+    <!-- Extended -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("扩展按钮", "Extended")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    标签会把按钮加宽，让操作自己说明自己。带标签的按钮不需要
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">AriaLabel</code>，因为
+                    标签本身就是它的无障碍名称。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    A label widens the button, so the action names itself. A labelled button needs no
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">AriaLabel</code>, because the
+                    label is already its accessible name.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="flex flex-wrap items-center gap-4 rounded-lg border p-6">
+            <Fab Placement="FabPlacement.Inline" Size="FabSize.Small">
+                <Icon><LucideIcon Name="plus" Size="16" /></Icon>
+                <ChildContent>@L.T("新建", "New")</ChildContent>
+            </Fab>
+            <Fab Placement="FabPlacement.Inline">
+                <Icon><LucideIcon Name="plus" Size="20" /></Icon>
+                <ChildContent>@L.T("新建任务", "New task")</ChildContent>
+            </Fab>
+            <Fab Placement="FabPlacement.Inline" Variant="FabVariant.Surface">
+                <Icon><LucideIcon Name="upload" Size="20" /></Icon>
+                <ChildContent>@L.T("上传文件", "Upload files")</ChildContent>
+            </Fab>
+        </div>
+        <CodeBlock Source="Components/Fab/extended.txt" />
+    </section>
+
+    <!-- Speed dial -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("快速拨号", "Speed dial")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    按钮基于 <code class="rounded bg-muted px-1 py-0.5 text-xs">Button</code> 构建，
+                    因此可以作为 <code class="rounded bg-muted px-1 py-0.5 text-xs">AsChild</code>
+                    触发器使用。这就是它能打开菜单、而不只执行单个动作的原因。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    The button is built on <code class="rounded bg-muted px-1 py-0.5 text-xs">Button</code>,
+                    so it works as an <code class="rounded bg-muted px-1 py-0.5 text-xs">AsChild</code>
+                    trigger. That is how it opens a menu instead of running one action.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-3 rounded-lg border p-6">
+            <DropdownMenu>
+                <AtomBlazor.DropdownMenuTrigger AsChild="true">
+                    <Fab Placement="FabPlacement.Inline" AriaLabel="@(L.T("新建", "Create"))">
+                        <Icon><LucideIcon Name="plus" Size="24" /></Icon>
+                    </Fab>
+                </AtomBlazor.DropdownMenuTrigger>
+                <AtomBlazor.DropdownMenuContent Side="PopoverSide.Top" Align="PopoverAlign.Start">
+                    <AtomBlazor.DropdownMenuItem OnClick="@(() => status = L.T("已创建新任务。", "New task created."))">@L.T("新建任务", "New task")</AtomBlazor.DropdownMenuItem>
+                    <AtomBlazor.DropdownMenuItem OnClick="@(() => status = L.T("已创建新笔记。", "New note created."))">@L.T("新建笔记", "New note")</AtomBlazor.DropdownMenuItem>
+                    <AtomBlazor.DropdownMenuItem OnClick="@(() => status = L.T("已创建新列表。", "New list created."))">@L.T("新建列表", "New list")</AtomBlazor.DropdownMenuItem>
+                </AtomBlazor.DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+        <CodeBlock Source="Components/Fab/speed-dial.txt" />
+    </section>
+
+    <!-- Pinned to the viewport -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("固定在视口上", "Pinned to the viewport")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("真家伙。按钮在页面滚动时保持不动，并避开设备安全区，因此不会被 Home 指示条盖住。", "The real thing. The button stays put while the page scrolls, and clears the device safe area so a home indicator cannot cover it.")
+            </p>
+        </div>
+        <div class="space-y-3 rounded-lg border p-6">
+            <Button Variant="ButtonVariant.Outline" OnClick="@(() => showFixed = !showFixed)">
+                @(showFixed ? L.T("隐藏固定按钮", "Hide the pinned button") : L.T("显示固定按钮", "Show the pinned button"))
+            </Button>
+            @if (showFixed)
+            {
+                <Fab AriaLabel="@(L.T("撰写", "Compose"))" OnClick="@(() => status = L.T("已打开撰写界面。", "Compose opened."))">
+                    <Icon><LucideIcon Name="pencil" Size="24" /></Icon>
+                </Fab>
+            }
+        </div>
+        <CodeBlock Source="Components/Fab/basic.txt" />
+    </section>
+
+    <!-- Disabled -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("禁用的按钮会忽略点击并变暗。", "A disabled button ignores clicks and dims.")</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-4 rounded-lg border p-6">
+            <Fab Placement="FabPlacement.Inline" AriaLabel="@(L.T("添加", "Add"))" Disabled="true">
+                <Icon><LucideIcon Name="plus" Size="24" /></Icon>
+            </Fab>
+            <Fab Placement="FabPlacement.Inline" Disabled="true">
+                <Icon><LucideIcon Name="plus" Size="20" /></Icon>
+                <ChildContent>@L.T("新建任务", "New task")</ChildContent>
+            </Fab>
+        </div>
+    </section>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>纯图标按钮没有任何文本，因此需要 <code>AriaLabel</code> 才能获得无障碍名称。扩展按钮本来就有名称。</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>An icon-only button carries no text, so it needs <code>AriaLabel</code> to have an accessible name. An extended button already has one.</AccessibilityItem>
+                        </text>
+}
+            <AccessibilityItem>@L.T("按钮位于底部导航栏之上、覆盖层之下，因此对话框仍然会盖住它。", "The button sits above a bottom navigation bar but below the overlay layer, so a dialog still covers it.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("位置使用逻辑属性，因此在从右到左的布局中边角会跟随阅读方向。", "Placement uses logical properties, so the corner follows the reading direction in a right-to-left layout.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("将焦点移动到按钮", "Move focus to the button"))"><Kbd>Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("激活按钮", "Activate the button"))"><Kbd>Enter / Space</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+        <ApiReference Since="v4" ComponentName="Fab">
+            <ApiParameter Name="Icon / ChildContent" Type="RenderFragment?">@L.T("图标，以及可选的、会把按钮加宽的标签。", "The icon, and an optional label that widens the button.")</ApiParameter>
+            <ApiParameter Name="Variant" Type="FabVariant" Default="Primary">@L.T("Primary、Secondary、Surface 或 Destructive。", "Primary, Secondary, Surface or Destructive.")</ApiParameter>
+            <ApiParameter Name="Size" Type="FabSize" Default="Default">@L.T("Small（40px）、Default（56px）或 Large（64px）。", "Small (40px), Default (56px) or Large (64px).")</ApiParameter>
+            <ApiParameter Name="Placement" Type="FabPlacement" Default="BottomEnd">@L.T("BottomEnd、BottomStart、BottomCenter、TopEnd、TopStart，或使用 Inline 不做定位。", "BottomEnd, BottomStart, BottomCenter, TopEnd, TopStart, or Inline for no positioning.")</ApiParameter>
+            <ApiParameter Name="Shape" Type="FabShape" Default="Rounded">@L.T("Rounded 跟随主题的圆角半径。Circle 是完整圆形，带标签时为胶囊形。", "Rounded follows the theme's corner radius. Circle is a full circle, or a pill with a label.")</ApiParameter>
+            <ApiParameter Name="Fixed" Type="bool" Default="true">@L.T("固定到视口。为 false 时固定到最近的已定位祖先元素。", "Pins to the viewport. When false, pins to the nearest positioned ancestor.")</ApiParameter>
+            <ApiParameter Name="SafeArea" Type="bool" Default="true">@L.T("与 Home 指示条或刘海屏保持间距。", "Keeps clear of a home indicator or a notch.")</ApiParameter>
+            <ApiParameter Name="AriaLabel" Type="string?">@L.T("无障碍名称。纯图标按钮必填。", "The accessible name. Required for an icon-only button.")</ApiParameter>
+            <ApiParameter Name="Disabled / OnClick" Type="bool / EventCallback&lt;MouseEventArgs&gt;" Default="false">@L.T("禁用状态与点击回调。", "Disabled state and click callback.")</ApiParameter>
+            <ApiParameter Name="Class / AdditionalAttributes" Type="string? / Dictionary&lt;string, object&gt;?">@L.T("额外的 CSS 类与 HTML 属性。传入的类优先于组件自带的类，因此距边缘的偏移就是这样改的。", "Additional CSS classes and HTML attributes. Classes win over the component's own, so this is how the offset from the edge changes.")</ApiParameter>
+        </ApiReference>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private FabPlacement placement = FabPlacement.BottomEnd;
+    private bool showFixed;
+    private string status = "Press the floating button.";
+
+    /// <summary>字段初始化时级联语言尚未到达，这里把初始占位状态串按当前显示语言归位。</summary>
+    protected override void OnParametersSet()
+    {
+        const string initialEn = "Press the floating button.";
+        const string initialZh = "按下浮动按钮。";
+
+        if (status == initialEn || status == initialZh)
+        {
+            status = L.T(initialZh, initialEn);
+        }
+    }
+}

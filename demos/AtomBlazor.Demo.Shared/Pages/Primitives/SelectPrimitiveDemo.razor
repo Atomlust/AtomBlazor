@@ -1,0 +1,509 @@
+@page "/primitives/select"
+<PageTitle>@L.T("Select 选择器原语 - Atom BlazorUI", "Select Primitive - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Select 选择器原语", "Select Primitive")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("无头、无样式的选择器组件，具备键盘支持与 ARIA 属性。", "Headless, unstyled select component with keyboard support and ARIA attributes.")
+        </p>
+    </div>
+
+    <div class="space-y-6">
+        <!-- Basic Example -->
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基本示例", "Basic Example")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("最简无样式原语，使用 SelectValue 自动显示文本与占位符。TValue 在 Select 上声明一次并级联到所有子组件。", "Minimal unstyled primitive with SelectValue for automatic display text and placeholder. TValue is declared once on Select and cascaded to all children.")
+                </p>
+            </div>
+            <div class="rounded-lg border bg-card p-6">
+                <div class="w-[280px]">
+                    <AtomBlazor.Primitives.SelectPrimitive TValue="string" @bind-Value="basicValue" ItemClass="px-3 py-2 cursor-pointer hover:bg-accent" DisplayTextSelector="@(v => fruitOptions.GetValueOrDefault(v, v))">
+                        <AtomBlazor.Primitives.SelectTrigger class="flex items-center justify-between w-full px-3 py-2 border border-input rounded-md bg-background">
+                            <AtomBlazor.Primitives.SelectValue Placeholder="@(L.T("请选择一种水果…", "Select a fruit..."))" />
+                            <span>&#9660;</span>
+                        </AtomBlazor.Primitives.SelectTrigger>
+                        <AtomBlazor.Primitives.SelectContent class="z-50 mt-1 w-full border border-border rounded-md bg-popover shadow-md">
+                            <AtomBlazor.Primitives.SelectItem Value="@("apple")" Text="Apple" />
+                            <AtomBlazor.Primitives.SelectItem Value="@("banana")" Text="Banana" />
+                            <AtomBlazor.Primitives.SelectItem Value="@("orange")" Text="Orange" />
+                            <AtomBlazor.Primitives.SelectItem Value="@("grape")" Text="Grape" />
+                        </AtomBlazor.Primitives.SelectContent>
+                    </AtomBlazor.Primitives.SelectPrimitive>
+                </div>
+                <p class="text-sm text-muted-foreground mt-3">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            已选择：<strong>@(basicValue ?? "无")</strong>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Selected: <strong>@(basicValue ?? "None")</strong>
+                        </text>
+                    }
+                </p>
+            </div>
+
+            <CodeBlock Source="Primitives/Select/basic.txt" />
+        </section>
+
+        <!-- Controlled Example -->
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("受控状态", "Controlled State")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("在你的组件代码中控制所选的值。", "Control the selected value from your component code.")
+                </p>
+            </div>
+            <div class="rounded-lg border bg-card p-6">
+                <div class="space-y-4">
+                    <div class="w-[280px]">
+                        <AtomBlazor.Primitives.SelectPrimitive TValue="string" @bind-Value="controlledValue" ItemClass="px-3 py-2 cursor-pointer hover:bg-accent" DisplayTextSelector="@(v => tropicalOptions.GetValueOrDefault(v, v))">
+                            <AtomBlazor.Primitives.SelectTrigger class="flex items-center justify-between w-full px-3 py-2 border border-input rounded-md bg-background">
+                                <AtomBlazor.Primitives.SelectValue Placeholder="@(L.T("请选择一种水果…", "Select a fruit..."))" />
+                                <span>&#9660;</span>
+                            </AtomBlazor.Primitives.SelectTrigger>
+                            <AtomBlazor.Primitives.SelectContent class="z-50 mt-1 w-full max-h-60 overflow-auto border border-border rounded-md bg-popover shadow-md">
+                                <AtomBlazor.Primitives.SelectItem Value="@("strawberry")" Text="Strawberry" />
+                                <AtomBlazor.Primitives.SelectItem Value="@("watermelon")" Text="Watermelon" />
+                                <AtomBlazor.Primitives.SelectItem Value="@("pineapple")" Text="Pineapple" />
+                                <AtomBlazor.Primitives.SelectItem Value="@("mango")" Text="Mango" />
+                            </AtomBlazor.Primitives.SelectContent>
+                        </AtomBlazor.Primitives.SelectPrimitive>
+                    </div>
+                    <div class="text-sm text-muted-foreground">
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                当前值：<span class="font-mono">@(string.IsNullOrEmpty(controlledValue) ? "null" : controlledValue)</span>
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Current value: <span class="font-mono">@(string.IsNullOrEmpty(controlledValue) ? "null" : controlledValue)</span>
+                            </text>
+                        }
+                    </div>
+                    <button @onclick="@(() => controlledValue = "mango")" class="px-4 py-2 text-sm border border-border rounded-md hover:bg-accent">
+                        @L.T("设为 Mango", "Set to Mango")
+                    </button>
+                </div>
+            </div>
+
+            <CodeBlock Source="Primitives/Select/controlled.txt" />
+        </section>
+
+        <!-- Disabled State -->
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("禁用状态", "Disabled State")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("处于禁用状态的选择器会阻止交互。", "Select with disabled state prevents interaction.")
+                </p>
+            </div>
+            <div class="rounded-lg border bg-card p-6">
+                <div class="w-[280px]">
+                    <AtomBlazor.Primitives.SelectPrimitive TValue="string" Disabled="true" DefaultValue="@("disabled")">
+                        <AtomBlazor.Primitives.SelectTrigger class="flex items-center justify-between w-full px-3 py-2 border border-input rounded-md bg-background opacity-50 cursor-not-allowed">
+                            <span>@L.T("禁用选择器", "Disabled Select")</span>
+                            <span>&#9660;</span>
+                        </AtomBlazor.Primitives.SelectTrigger>
+                        <AtomBlazor.Primitives.SelectContent class="z-50 mt-1 w-full border border-border rounded-md bg-popover shadow-md">
+                            <AtomBlazor.Primitives.SelectItem Value="@("disabled")" Text="@(L.T("这个选项不会打开", "This won't open"))" class="px-3 py-2" />
+                        </AtomBlazor.Primitives.SelectContent>
+                    </AtomBlazor.Primitives.SelectPrimitive>
+                </div>
+            </div>
+
+            <CodeBlock Source="Primitives/Select/disabled.txt" />
+        </section>
+
+        <AccessibilityList>
+            <AriaAttributes>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            触发按钮上带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="combobox"</code>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="combobox"</code> on trigger button
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> 会自动应用到触发器上，以反映展开状态
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> automatically applied to trigger reflecting open state
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-controls</code> 将触发器与内容关联
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-controls</code> linking trigger to content
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            触发按钮上带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-haspopup="listbox"</code>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-haspopup="listbox"</code> on trigger button
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            内容容器上带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="listbox"</code>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="listbox"</code> on content container
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            每个选项上带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="option"</code>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="option"</code> on each item
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            已选项上带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-selected</code>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-selected</code> on selected item
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-activedescendant</code> 跟踪当前聚焦的选项
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-activedescendant</code> tracks the currently focused item
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            禁用时在触发器上带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled</code>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled</code> on trigger when disabled
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">data-state</code> 属性用于 CSS 样式（open/closed、checked/unchecked）
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">data-state</code> attribute for CSS styling (open/closed, checked/unchecked)
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            聚焦的选项上带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">data-focused</code> 属性，用于键盘导航样式
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">data-focused</code> attribute on focused item for keyboard navigation styling
+                        </text>
+                    }
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @L.T("点击外部会自动关闭下拉框", "Click outside closes dropdown automatically")
+                </AccessibilityItem>
+            </AriaAttributes>
+            <KeyboardNavigation>
+                <KeyboardShortcutItem Description="@(L.T("浏览选项", "Navigate items"))">
+                    <Kbd>&#8593;</Kbd> <Kbd>&#8595;</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("跳到第一项/最后一项", "Jump to first/last item"))">
+                    <Kbd>Home</Kbd> <Kbd>End</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("选中聚焦的选项", "Select focused item"))">
+                    <Kbd>Enter</Kbd> <Kbd>Space</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("关闭下拉框", "Close dropdown"))">
+                    <Kbd>Escape</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("关闭并移动焦点", "Close and move focus"))">
+                    <Kbd>Tab</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("从触发器打开下拉框", "Open dropdown from trigger"))">
+                    <Kbd>Enter</Kbd> <Kbd>Space</Kbd> <Kbd>&#8593;</Kbd> <Kbd>&#8595;</Kbd>
+                </KeyboardShortcutItem>
+            </KeyboardNavigation>
+        </AccessibilityList>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+                <p class="text-muted-foreground">@L.T("组件的属性与参数。", "Component properties and parameters.")</p>
+            </div>
+            <div class="space-y-4">
+                <ApiReference ComponentName="Select&lt;TValue&gt;">
+                    <ApiParameter Name="Value" Type="TValue?">
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                当前选中的值（受控模式）。为 null 时，选择器自行管理自身状态。支持用 <code>@@bind-Value</code> 进行双向绑定。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Currently selected value (controlled mode). When null, the select manages its own state. Supports two-way binding with <code>@@bind-Value</code>.
+                            </text>
+                        }
+                    </ApiParameter>
+                    <ApiParameter Name="ValueChanged" Type="EventCallback&lt;TValue?&gt;">
+                        @L.T("选中值改变时触发的事件回调。", "Event callback invoked when the selected value changes.")
+                    </ApiParameter>
+                    <ApiParameter Name="DefaultValue" Type="TValue?">
+                        @L.T("非受控模式下的初始值。", "Initial value when in uncontrolled mode.")
+                    </ApiParameter>
+                    <ApiParameter Name="OnValueChange" Type="EventCallback&lt;TValue?&gt;">
+                        @L.T("选择器值改变时触发的事件回调，接收新值作为参数。", "Event callback invoked when the select value changes. Receives the new value as a parameter.")
+                    </ApiParameter>
+                    <ApiParameter Name="Open" Type="bool?">
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                控制下拉框是否打开（受控模式）。为 null 时，选择器自行管理打开状态。支持用 <code>@@bind-Open</code> 进行双向绑定。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Controls whether the dropdown is open (controlled mode). When null, the select manages its own open state. Supports two-way binding with <code>@@bind-Open</code>.
+                            </text>
+                        }
+                    </ApiParameter>
+                    <ApiParameter Name="OpenChanged" Type="EventCallback&lt;bool&gt;">
+                        @L.T("打开状态改变时触发的事件回调。", "Event callback invoked when the open state changes.")
+                    </ApiParameter>
+                    <ApiParameter Name="DefaultOpen" Type="bool" Default="false">
+                        @L.T("非受控模式下的默认打开状态。", "Default open state when in uncontrolled mode.")
+                    </ApiParameter>
+                    <ApiParameter Name="Disabled" Type="bool" Default="false">
+                        @L.T("选择器是否被禁用。", "Whether the select is disabled.")
+                    </ApiParameter>
+                    <ApiParameter Name="Required" Type="bool" Default="false">
+                        @L.T("选择器是否为必填。为 true 时在触发器上设置 aria-required 属性。", "Whether the select is required. When true, sets aria-required=\"true\" on the trigger.")
+                    </ApiParameter>
+                    <ApiParameter Name="ItemClass" Type="string?">
+                        @L.T("应用到所有 SelectItem 子项的默认 CSS 类。通过上下文级联，选项会与自身的类合并。", "Default CSS classes applied to all SelectItem children. Cascaded via context so items merge it with their own classes.")
+                    </ApiParameter>
+                    <ApiParameter Name="DisplayTextSelector" Type="Func&lt;TValue, string&gt;?">
+                        @L.T("可选函数，从选中值显示文本。当你已有预选值并希望直接显示其文本、而无需等待下拉项渲染时很有用。", "Optional function to derive display text from the selected value. Useful when you have a pre-selected value and want to show its display text without waiting for dropdown items to render.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在选择器上下文中渲染的子内容。通常包含 SelectTrigger 与 SelectContent。", "The child content to render within the select context. Typically includes SelectTrigger and SelectContent.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                应用到根元素的额外 HTML 属性（例如 <code>class</code>、<code>style</code>）。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Additional HTML attributes applied to the root element (e.g. <code>class</code>, <code>style</code>).
+                            </text>
+                        }
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="SelectTrigger&lt;TValue&gt;">
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在触发按钮内部渲染的内容。通常包含 SelectValue 和一个箭头图标。", "Content to render inside the trigger button. Typically includes SelectValue and a chevron icon.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                应用到触发按钮元素的额外 HTML 属性（例如 <code>class</code>、<code>style</code>）。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Additional HTML attributes applied to the trigger button element (e.g. <code>class</code>, <code>style</code>).
+                            </text>
+                        }
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="SelectContent&lt;TValue&gt;">
+                    <ApiParameter Name="Side" Type="PopoverSide" Default="PopoverSide.Bottom">
+                        @L.T("相对于触发器定位时首选的方位。", "Preferred side for positioning relative to the trigger.")
+                    </ApiParameter>
+                    <ApiParameter Name="Align" Type="PopoverAlign" Default="PopoverAlign.Start">
+                        @L.T("相对于触发器的对齐方式。", "Alignment relative to the trigger.")
+                    </ApiParameter>
+                    <ApiParameter Name="Offset" Type="int" Default="4">
+                        @L.T("与触发元素之间的偏移距离（以像素为单位）。", "Offset distance from the trigger element in pixels.")
+                    </ApiParameter>
+                    <ApiParameter Name="MatchTriggerWidth" Type="bool" Default="true">
+                        @L.T("选择内容是否应与触发器等宽。", "Whether the select content should match the trigger width.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在下拉框内部渲染的内容。通常包含 SelectItem 组件。", "Content to render inside the select dropdown. Typically contains SelectItem components.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                应用到内容容器元素的额外 HTML 属性（例如 <code>class</code>、<code>style</code>）。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Additional HTML attributes applied to the content container element (e.g. <code>class</code>, <code>style</code>).
+                            </text>
+                        }
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="SelectItem&lt;TValue&gt;">
+                    <ApiParameter Name="Value" Type="TValue?">
+                        @L.T("该选项所表示的值（必填）。", "The value this item represents (required).")
+                    </ApiParameter>
+                    <ApiParameter Name="Text" Type="string?">
+                        @L.T("选项的显示文本。用于触发器显示与搜索。未提供时回退到 Value.ToString()。", "Display text for the item. Used for trigger display and search. Falls back to Value.ToString() when not provided.")
+                    </ApiParameter>
+                    <ApiParameter Name="Disabled" Type="bool" Default="false">
+                        @L.T("该选项是否被禁用且无法选中。", "Whether this item is disabled and cannot be selected.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("为该选项渲染的自定义内容。未提供时显示 Text 或 Value.ToString()。", "Custom content to render for the item. When not provided, displays Text or Value.ToString().")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                应用到选项元素的额外 HTML 属性（例如 <code>class</code>、<code>style</code>）。会与父级 Select 的 ItemClass 合并。
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Additional HTML attributes applied to the item element (e.g. <code>class</code>, <code>style</code>). Merged with the parent Select's ItemClass.
+                            </text>
+                        }
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="SelectValue&lt;TValue&gt;">
+                    <ApiParameter Name="Placeholder" Type="string?">
+                        @L.T("未选中任何值时显示的占位文本。", "Placeholder text displayed when no value is selected.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment&lt;string&gt;?">
+                        @L.T("用于自定义显示渲染的可选模板。以显示文本作为上下文参数。", "Optional template for custom display rendering. Receives the display text as the context parameter.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到默认 span 元素的额外 HTML 属性。仅在 ChildContent 为 null 时使用。", "Additional HTML attributes applied to the default span element. Only used when ChildContent is null.")
+                    </ApiParameter>
+                </ApiReference>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string? basicValue = "apple";
+    private string? controlledValue;
+
+    private readonly Dictionary<string, string> fruitOptions = new()
+    {
+        ["apple"] = "Apple",
+        ["banana"] = "Banana",
+        ["orange"] = "Orange",
+        ["grape"] = "Grape"
+    };
+
+    private readonly Dictionary<string, string> tropicalOptions = new()
+    {
+        ["strawberry"] = "Strawberry",
+        ["watermelon"] = "Watermelon",
+        ["pineapple"] = "Pineapple",
+        ["mango"] = "Mango"
+    };
+}

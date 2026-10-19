@@ -1,0 +1,59 @@
+@namespace AtomBlazor
+
+<kbd class="@CssClass" @attributes="AdditionalAttributes">
+    @if (ChildContent != null)
+    {
+        @ChildContent
+    }
+    else
+    {
+        @Keys
+    }
+</kbd>
+
+@code {
+    /// <summary>
+    /// 要展示的按键组合（如 "Ctrl+C"、"Shift+Enter"）。
+    /// 未提供 ChildContent 时使用。
+    /// </summary>
+    [Parameter]
+    public string? Keys { get; set; }
+
+    /// <summary>
+    /// 快捷键展示的自定义内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 要应用的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// kbd 元素的尺寸变体。
+    /// </summary>
+    [Parameter]
+    public KbdSize Size { get; set; } = KbdSize.Default;
+
+    private string SizeClasses => Size switch
+    {
+        KbdSize.Small => "atom:text-[10px] atom:px-1 atom:py-0.5",
+        KbdSize.Default => "atom:text-xs atom:px-1.5 atom:py-0.5",
+        KbdSize.Large => "atom:text-sm atom:px-2 atom:py-1",
+        _ => "atom:text-xs atom:px-1.5 atom:py-0.5"
+    };
+
+    private string CssClass => ClassNames.cn(
+        "atom:pointer-events-none atom:inline-flex atom:h-5 atom:select-none atom:items-center atom:gap-1 atom:rounded atom:border atom:bg-muted atom:font-mono atom:font-medium atom:text-muted-foreground",
+        SizeClasses,
+        Class
+    );
+}

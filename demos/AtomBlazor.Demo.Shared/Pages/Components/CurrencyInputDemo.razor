@@ -1,0 +1,480 @@
+@page "/components/currency-input"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("CurrencyInput 货币输入框 - Atom BlazorUI", "CurrencyInput Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("CurrencyInput 货币输入框", "CurrencyInput Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("感知区域设置的货币输入框，支持 40 余种货币并自动格式化。",
+                     "A locale-aware currency input with support for 40+ currencies and automatic formatting.")
+            </p>
+        </div>
+    </div>
+
+    <!-- US Dollar -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("美元（USD）", "US Dollar (USD)")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("标准的美元输入框，保留两位小数。", "Standard US Dollar input with 2 decimal places.")
+            </p>
+        </div>
+        <div class="w-64">
+            <CurrencyInput @bind-Value="_usdValue" CurrencyCode="USD" Placeholder="0.00" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("数值：", "Value:") $@_usdValue.ToString("F2")</p>
+        <CodeBlock Source="Components/CurrencyInput/basic.txt" />
+    </div>
+
+    <!-- Euro -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("欧元（EUR）", "Euro (EUR)")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("采用欧洲格式（以逗号作小数点）的欧元。", "Euro with European formatting (comma as decimal separator).")
+            </p>
+        </div>
+        <div class="w-64">
+            <CurrencyInput @bind-Value="_eurValue" CurrencyCode="EUR" Placeholder="0,00" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("数值：", "Value:") @_eurValue.ToString("F2")</p>
+    </div>
+
+    <!-- British Pound -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("英镑（GBP）", "British Pound (GBP)")</h2>
+        </div>
+        <div class="w-64">
+            <CurrencyInput @bind-Value="_gbpValue" CurrencyCode="GBP" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("数值：", "Value:") @_gbpValue.ToString("F2")</p>
+    </div>
+
+    <!-- Japanese Yen (0 decimals) -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("日元（JPY）", "Japanese Yen (JPY)")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("没有小数位——日元只使用整数。", "No decimal places - Yen uses whole numbers only.")
+            </p>
+        </div>
+        <div class="w-64">
+            <CurrencyInput @bind-Value="_jpyValue" CurrencyCode="JPY" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("数值：", "Value:") @_jpyValue.ToString("F0")</p>
+    </div>
+
+    <!-- Kuwaiti Dinar (3 decimals) -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("科威特第纳尔（KWD）", "Kuwaiti Dinar (KWD)")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("保留三位小数——少数使用三位小数的货币之一。", "3 decimal places - one of few currencies with 3 decimals.")
+            </p>
+        </div>
+        <div class="w-64">
+            <CurrencyInput @bind-Value="_kwdValue" CurrencyCode="KWD" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("数值：", "Value:") @_kwdValue.ToString("F3")</p>
+    </div>
+
+    <!-- Swiss Franc (symbol after) -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("瑞士法郎（CHF）", "Swiss Franc (CHF)")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("货币符号出现在金额之后。", "Symbol appears after the amount.")
+            </p>
+        </div>
+        <div class="w-64">
+            <CurrencyInput @bind-Value="_chfValue" CurrencyCode="CHF" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("数值：", "Value:") @_chfValue.ToString("F2")</p>
+    </div>
+
+    <!-- Brazilian Real -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("巴西雷亚尔（BRL）", "Brazilian Real (BRL)")</h2>
+        </div>
+        <div class="w-64">
+            <CurrencyInput @bind-Value="_brlValue" CurrencyCode="BRL" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("数值：", "Value:") @_brlValue.ToString("F2")</p>
+    </div>
+
+    <!-- Indian Rupee -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("印度卢比（INR）", "Indian Rupee (INR)")</h2>
+        </div>
+        <div class="w-64">
+            <CurrencyInput @bind-Value="_inrValue" CurrencyCode="INR" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("数值：", "Value:") @_inrValue.ToString("F2")</p>
+    </div>
+
+    <!-- Without Symbol -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("不带符号", "Without Symbol")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("不显示货币符号前缀/后缀的输入框。", "Currency input without the symbol prefix/suffix.")
+            </p>
+        </div>
+        <div class="w-64">
+            <CurrencyInput @bind-Value="_noSymbolValue" CurrencyCode="USD" ShowSymbol="false" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("数值：", "Value:") @_noSymbolValue.ToString("F2")</p>
+        <CodeBlock Source="Components/CurrencyInput/without-symbol.txt" />
+    </div>
+
+    <!-- With Min/Max -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带最小/最大值约束", "With Min/Max Constraints")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("数值限制在 $0 与 $1,000 之间。", "Value is constrained between $0 and $1,000.")
+            </p>
+        </div>
+        <div class="w-64">
+            <CurrencyInput @bind-Value="_constrainedValue" CurrencyCode="USD" Min="0" Max="1000" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("数值：", "Value:") $@_constrainedValue.ToString("F2") @L.T("（最小 $0，最大 $1,000）", "(min: $0, max: $1,000)")</p>
+        <CodeBlock Source="Components/CurrencyInput/min-max.txt" />
+    </div>
+
+    <!-- Positive Only -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("仅允许正数", "Positive Only")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("不允许输入负数。", "Negative values are not allowed.")
+            </p>
+        </div>
+        <div class="w-64">
+            <CurrencyInput @bind-Value="_positiveValue" CurrencyCode="USD" AllowNegative="false" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("数值：", "Value:") $@_positiveValue.ToString("F2")</p>
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+        </div>
+        <div class="w-64">
+            <CurrencyInput Value="1234.56m" CurrencyCode="USD" Disabled="true" />
+        </div>
+    </div>
+
+    <!-- Currency Selector Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("动态切换币种", "Dynamic Currency")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("更换币种，查看不同的格式化效果。", "Change the currency to see different formatting.")
+            </p>
+        </div>
+        <div class="flex gap-4 items-end">
+            <div class="w-64">
+                <CurrencyInput @bind-Value="_dynamicValue" CurrencyCode="@_selectedCurrency" />
+            </div>
+            <select class="h-10 px-3 rounded-md border border-input bg-background text-sm"
+                    @onchange="HandleCurrencyChange">
+                <option value="USD">USD - @L.T("美元", "US Dollar")</option>
+                <option value="EUR">EUR - @L.T("欧元", "Euro")</option>
+                <option value="GBP">GBP - @L.T("英镑", "British Pound")</option>
+                <option value="JPY">JPY - @L.T("日元", "Japanese Yen")</option>
+                <option value="CNY">CNY - @L.T("人民币", "Chinese Yuan")</option>
+                <option value="INR">INR - @L.T("印度卢比", "Indian Rupee")</option>
+                <option value="BRL">BRL - @L.T("巴西雷亚尔", "Brazilian Real")</option>
+                <option value="CHF">CHF - @L.T("瑞士法郎", "Swiss Franc")</option>
+                <option value="KWD">KWD - @L.T("科威特第纳尔", "Kuwaiti Dinar")</option>
+            </select>
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("数值：", "Value:") @_dynamicValue (@_selectedCurrency)</p>
+        <CodeBlock Source="Components/CurrencyInput/dynamic-currency.txt" />
+    </div>
+
+    <!-- Debounce -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("防抖", "Debounce")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    默认情况下，输入过程中的 <code class="text-xs bg-muted px-1 py-0.5 rounded">ValueChanged</code> 会做防抖处理，以减少重渲染。
+                    方向键与失焦始终立即触发。把
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">DisableDebounce="true"</code> 打开即可每次按键都触发。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    By default, <code class="text-xs bg-muted px-1 py-0.5 rounded">ValueChanged</code> is debounced during typing to reduce re-renders.
+                    Arrow keys and blur always fire immediately. Set
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">DisableDebounce="true"</code> to fire on every keystroke.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="grid gap-6 md:grid-cols-2 max-w-2xl">
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("防抖（默认）", "Debounced (default)")</label>
+                <div class="w-64">
+                    <CurrencyInput Value="@_debouncedCurrency"
+                                   ValueChanged="@((v) => _debouncedCurrency = v)"
+                                   CurrencyCode="USD"
+                                   Placeholder="@(L.T("输入即可看到延迟效果", "Type to see delay"))" />
+                </div>
+                <div class="rounded-lg border p-3 bg-muted/50">
+                    <p class="text-xs text-muted-foreground mb-1">@L.T("数值：", "Value:")</p>
+                    <p class="text-sm font-mono">$@_debouncedCurrency.ToString("F2")</p>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("立即触发（DisableDebounce）", "Immediate (DisableDebounce)")</label>
+                <div class="w-64">
+                    <CurrencyInput DisableDebounce="true"
+                                   Value="@_immediateCurrency"
+                                   ValueChanged="@((v) => _immediateCurrency = v)"
+                                   CurrencyCode="USD"
+                                   Placeholder="@(L.T("即时更新", "Updates instantly"))" />
+                </div>
+                <div class="rounded-lg border p-3 bg-muted/50">
+                    <p class="text-xs text-muted-foreground mb-1">@L.T("数值：", "Value:")</p>
+                    <p class="text-sm font-mono">$@_immediateCurrency.ToString("F2")</p>
+                </div>
+            </div>
+        </div>
+        <CodeBlock Source="Components/CurrencyInput/debounce.txt" />
+    </div>
+
+    <!-- Form Validation with EditForm -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表单校验", "Form Validation")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    CurrencyInput 可与 Blazor 的 EditForm 和 EditContext 集成，完成模型校验。
+                    在 EditForm 内使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code>，
+                    校验错误会通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> 自动套用错误样式。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    CurrencyInput integrates with Blazor's EditForm and EditContext for model validation.
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code> within an EditForm and
+                    validation errors will automatically apply error styling via <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <EditForm Model="currencyFormModel" OnValidSubmit="HandleCurrencyFormSubmit" class="max-w-md space-y-4">
+            <DataAnnotationsValidator />
+
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("金额", "Amount")</label>
+                <CurrencyInput @bind-Value="currencyFormModel.Amount" CurrencyCode="USD" Placeholder="0.00" />
+                <ValidationMessage For="@(() => currencyFormModel.Amount)" class="text-sm text-destructive" />
+            </div>
+
+            <div class="flex gap-4">
+                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Default">@L.T("提交", "Submit")</Button>
+                <Button Type="ButtonType.Button" Variant="ButtonVariant.Outline" OnClick="ResetCurrencyForm">@L.T("重置", "Reset")</Button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(currencyFormMessage))
+            {
+                <div class="p-4 bg-card rounded-lg border">
+                    <p class="text-sm">@currencyFormMessage</p>
+                </div>
+            }
+        </EditForm>
+        <CodeBlock Source="Components/CurrencyInput/form-validation.txt" />
+    </div>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    未显式设置时，<code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> 默认取“Amount in {Currency Name}”这一段文案
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    支持用于表单校验的 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code>
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">inputmode="decimal"</code>，以便移动端弹出合适的键盘
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    会应用原生的 <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">required</code> 属性
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> defaults to "Amount in {Currency Name}" when not explicitly set
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code> and <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> support for form validation
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    Uses <code class="text-xs bg-muted px-1 py-0.5 rounded">inputmode="decimal"</code> for appropriate mobile keyboard
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    Native <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code> and <code class="text-xs bg-muted px-1 py-0.5 rounded">required</code> attributes are applied
+                </AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("按步长递增数值", "Increment value by step"))">
+                <Kbd>ArrowUp</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("按步长递减值数", "Decrement value by step"))">
+                <Kbd>ArrowDown</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数说明。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="CurrencyInput">
+                <ApiParameter Name="Value" Type="decimal" Default="0">
+                    @L.T("当前数值。", "Current value.")
+                </ApiParameter>
+                <ApiParameter Name="CurrencyCode" Type="string" Default="&quot;USD&quot;">
+                    @L.T("ISO 4217 货币代码。", "ISO 4217 currency code.")
+                </ApiParameter>
+                <ApiParameter Name="ShowSymbol" Type="bool" Default="true">
+                    @L.T("是否显示货币符号。", "Show currency symbol.")
+                </ApiParameter>
+                <ApiParameter Name="Min" Type="decimal?">
+                    @L.T("允许的最小值。", "Minimum allowed value.")
+                </ApiParameter>
+                <ApiParameter Name="Max" Type="decimal?">
+                    @L.T("允许的最大值。", "Maximum allowed value.")
+                </ApiParameter>
+                <ApiParameter Name="AllowNegative" Type="bool" Default="true">
+                    @L.T("是否允许负值。", "Allow negative values.")
+                </ApiParameter>
+                <ApiParameter Name="UseThousandSeparator" Type="bool" Default="true">
+                    @L.T("是否使用千位分隔符。", "Use thousand separators.")
+                </ApiParameter>
+                <ApiParameter Name="DisableDebounce" Type="bool" Default="false">
+                    @L.T("关闭防抖，每次按键都触发 ValueChanged。", "Disable debounce to fire ValueChanged on every keystroke.")
+                </ApiParameter>
+                <ApiParameter Name="DebounceInterval" Type="int" Default="500">
+                    @L.T("防抖延迟的毫秒数。", "Debounce delay in milliseconds.")
+                </ApiParameter>
+                <ApiParameter Name="EnableWheelStep" Type="bool" Default="false">
+                    @L.T("鼠标滚轮滚过获得焦点的输入框时，是否按步长调整数值。需显式开启，因为步进会对该滚轮事件调用 preventDefault，页面本身就滚不动了。可响应式切换。",
+                         "Whether scrolling the mouse wheel over the focused input steps the value. Opt-in, because stepping calls preventDefault on the wheel event and so takes the scroll away from the page. Reactive.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("禁用输入框。", "Disables the input.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;div&gt;</code> 元素上的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <div class="border rounded-lg p-6">
+                <h3 class="font-mono text-sm font-semibold mb-2">@L.T("支持的币种（40+）", "Supported Currencies (40+)")</h3>
+                <div class="text-sm text-muted-foreground">
+                    <p>USD, EUR, GBP, JPY, CNY, INR, CAD, AUD, CHF, HKD, SGD, SEK, NOK, DKK, NZD, MXN, BRL, KRW, TRY, RUB, ZAR, THB, MYR, IDR, PHP, VND, PLN, CZK, ILS, AED, SAR, KWD, BHD, OMR, NGN, EGP, ARS, CLP, COP, TWD</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private decimal _usdValue = 1234.56m;
+    private decimal _eurValue = 999.99m;
+    private decimal _gbpValue = 500.00m;
+    private decimal _jpyValue = 15000m;
+    private decimal _kwdValue = 100.500m;
+    private decimal _chfValue = 750.00m;
+    private decimal _brlValue = 1500.00m;
+    private decimal _inrValue = 10000.00m;
+    private decimal _noSymbolValue = 250.00m;
+    private decimal _constrainedValue = 500.00m;
+    private decimal _positiveValue = 100.00m;
+    private decimal _dynamicValue = 1000.00m;
+    private string _selectedCurrency = "USD";
+    private decimal _debouncedCurrency = 0m;
+    private decimal _immediateCurrency = 0m;
+
+    private void HandleCurrencyChange(ChangeEventArgs e)
+    {
+        _selectedCurrency = e.Value?.ToString() ?? "USD";
+    }
+
+    private CurrencyFormModel currencyFormModel = new();
+    private string? currencyFormMessage;
+
+    private void HandleCurrencyFormSubmit()
+    {
+        if (L.IsChinese)
+        {
+            currencyFormMessage = $"表单已提交！金额：${currencyFormModel.Amount:F2}";
+        }
+        else
+        {
+            currencyFormMessage = $"Form submitted! Amount: ${currencyFormModel.Amount:F2}";
+        }
+    }
+
+    private void ResetCurrencyForm()
+    {
+        currencyFormModel = new();
+        currencyFormMessage = null;
+    }
+
+    private class CurrencyFormModel
+    {
+        [Range(0.01, 10000, ErrorMessage = "Amount must be between $0.01 and $10,000.")]
+        public decimal Amount { get; set; }
+    }
+}

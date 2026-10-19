@@ -1,0 +1,67 @@
+@inject IJSRuntime JSRuntime
+
+<div class="flex items-center gap-2">
+    <LucideIcon Name="zap-off" Class="@IconClass" />
+    <Switch Checked="@_animationsEnabled"
+            CheckedChanged="@OnCheckedChanged"
+            Size="SwitchSize.Small"
+            AriaLabel="@L.T("切换动画", "Toggle animations")" />
+    <LucideIcon Name="zap" Class="@IconClass" />
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private bool _animationsEnabled = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var saved = await JSRuntime.InvokeAsync<string?>("eval",
+                    "localStorage.getItem('atom-animations')");
+                _animationsEnabled = saved != "disabled";
+                await ApplyAnimationState();
+                StateHasChanged();
+            }
+            catch
+            {
+                // SSR 或 JS 不可用
+            }
+        }
+    }
+
+    private async Task OnCheckedChanged(bool value)
+    {
+        _animationsEnabled = value;
+        await ApplyAnimationState();
+    }
+
+    private async Task ApplyAnimationState()
+    {
+        try
+        {
+            if (_animationsEnabled)
+            {
+                await JSRuntime.InvokeVoidAsync("eval",
+                    "document.documentElement.classList.remove('atom-no-animate');" +
+                    "localStorage.setItem('atom-animations', 'enabled')");
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("eval",
+                    "document.documentElement.classList.add('atom-no-animate');" +
+                    "localStorage.setItem('atom-animations', 'disabled')");
+            }
+        }
+        catch
+        {
+            // SSR 或 JS 不可用
+        }
+    }
+
+    private string IconClass => "h-4 w-4 text-muted-foreground";
+}

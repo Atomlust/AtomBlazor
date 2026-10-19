@@ -1,0 +1,291 @@
+@page "/components/form-field-native-select"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("FormFieldNativeSelect 原生下拉选择 - Atom BlazorUI", "FormFieldNativeSelect Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">FormFieldNativeSelect</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("NativeSelect 的表单字段封装，内置标签、提示文本与错误信息。",
+                     "A form field wrapper for NativeSelect with built-in label, helper text, and error messages.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Which form component? -->
+    <div class="rounded-lg border border-dashed bg-muted/30 p-6 space-y-3">
+        <h2 class="text-lg font-semibold">@L.T("该用哪个表单组件？", "Which form component?")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <div class="space-y-2 text-sm text-muted-foreground">
+                <p><strong>文本输入</strong>（string、int、日期等）？ &rarr; <a href="/components/form-field-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldInput&lt;T&gt;</a></p>
+                <p><strong>多行文本</strong>？ &rarr; <a href="/components/form-field-textarea" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTextarea</a></p>
+                <p><strong>数字输入</strong>？ &rarr; <a href="/components/form-field-numeric-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldNumericInput</a></p>
+                <p><strong>日期选择器</strong>？ &rarr; <a href="/components/form-field-date-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldDatePicker</a></p>
+                <p><strong>时间选择器</strong>？ &rarr; <a href="/components/form-field-time-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTimePicker</a></p>
+                <p><strong>复选框</strong>？ &rarr; <a href="/components/form-field-checkbox" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCheckbox</a></p>
+                <p><strong>开关</strong>？ &rarr; <a href="/components/form-field-switch" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldSwitch</a></p>
+                <p><strong>下拉选择</strong>？ &rarr; <a href="/components/form-field-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldSelect</a></p>
+                <p><strong>原生 select</strong>？ &rarr; <strong>FormFieldNativeSelect</strong>（当前页面）</p>
+                <p><strong>单选组</strong>？ &rarr; <a href="/components/form-field-radio-group" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldRadioGroup</a></p>
+                <p><strong>可搜索选择</strong>？ &rarr; <a href="/components/form-field-combobox" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCombobox</a></p>
+                <p><strong>多选</strong>？ &rarr; <a href="/components/form-field-multi-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldMultiSelect</a></p>
+            </div>
+                </text>
+}
+        else
+        {
+                <text>
+                    <div class="space-y-2 text-sm text-muted-foreground">
+                <p><strong>Text input</strong> (string, int, date, etc.)? &rarr; <a href="/components/form-field-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldInput&lt;T&gt;</a></p>
+                <p><strong>Textarea</strong>? &rarr; <a href="/components/form-field-textarea" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTextarea</a></p>
+                <p><strong>Numeric input</strong>? &rarr; <a href="/components/form-field-numeric-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldNumericInput</a></p>
+                <p><strong>Date picker</strong>? &rarr; <a href="/components/form-field-date-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldDatePicker</a></p>
+                <p><strong>Time picker</strong>? &rarr; <a href="/components/form-field-time-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTimePicker</a></p>
+                <p><strong>Checkbox</strong>? &rarr; <a href="/components/form-field-checkbox" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCheckbox</a></p>
+                <p><strong>Switch</strong>? &rarr; <a href="/components/form-field-switch" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldSwitch</a></p>
+                <p><strong>Select dropdown</strong>? &rarr; <a href="/components/form-field-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldSelect</a></p>
+                <p><strong>Native select</strong>? &rarr; <strong>FormFieldNativeSelect</strong> (this page)</p>
+                <p><strong>Radio group</strong>? &rarr; <a href="/components/form-field-radio-group" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldRadioGroup</a></p>
+                <p><strong>Searchable select</strong>? &rarr; <a href="/components/form-field-combobox" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCombobox</a></p>
+                <p><strong>Multi-select</strong>? &rarr; <a href="/components/form-field-multi-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldMultiSelect</a></p>
+            </div>
+                </text>
+}
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带自动关联标签与提示文本的原生下拉选择框。",
+                     "A native select with an auto-associated label and helper text.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldNativeSelect AriaLabel="@(L.T("国家", "Country"))" TValue="string"
+                                    @bind-Value="_country"
+                                    Label="@(L.T("国家", "Country"))"
+                                    Placeholder="@(L.T("选择国家……", "Select a country..."))"
+                                    HelperText="@(L.T("请选择你的居住国家。", "Choose your country of residence."))">
+                <option value="us">United States</option>
+                <option value="ca">Canada</option>
+                <option value="gb">United Kingdom</option>
+                <option value="de">Germany</option>
+                <option value="fr">France</option>
+            </FormFieldNativeSelect>
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("已选择：", "Selected:")</p>
+            <p class="text-sm font-mono">@(string.IsNullOrEmpty(_country) ? L.T("（无）", "(none)") : _country)</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldNativeSelect/basic.txt" />
+    </div>
+
+    <!-- Size Variants -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("尺寸变体", "Size Variants")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    传入 <code class="text-xs bg-muted px-1 py-0.5 rounded">Size</code> 参数来控制下拉框的尺寸。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Pass the <code class="text-xs bg-muted px-1 py-0.5 rounded">Size</code> parameter to control the select size.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md space-y-4">
+            <FormFieldNativeSelect TValue="string" @bind-Value="_sizeSmall" Label="@(L.T("小", "Small"))" Placeholder="@(L.T("请选择……", "Select..."))" Size="NativeSelectSize.Small">
+                <option value="a">Option A</option>
+                <option value="b">Option B</option>
+            </FormFieldNativeSelect>
+            <FormFieldNativeSelect TValue="string" @bind-Value="_sizeDefault" Label="@(L.T("默认", "Default"))" Placeholder="@(L.T("请选择……", "Select..."))" Size="NativeSelectSize.Default">
+                <option value="a">Option A</option>
+                <option value="b">Option B</option>
+            </FormFieldNativeSelect>
+            <FormFieldNativeSelect TValue="string" @bind-Value="_sizeLarge" Label="@(L.T("大", "Large"))" Placeholder="@(L.T("请选择……", "Select..."))" Size="NativeSelectSize.Large">
+                <option value="a">Option A</option>
+                <option value="b">Option B</option>
+            </FormFieldNativeSelect>
+        </div>
+        <CodeBlock Source="Components/FormFieldNativeSelect/sizes.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个禁用的原生下拉选择表单字段。", "A disabled native select form field.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldNativeSelect TValue="string"
+                                    Value="@("usd")"
+                                    Label="@(L.T("货币", "Currency"))"
+                                    HelperText="@(L.T("已锁定到你的地区。", "Locked to your region."))"
+                                    Disabled="true">
+                <option value="usd">USD ($)</option>
+                <option value="eur">EUR</option>
+            </FormFieldNativeSelect>
+        </div>
+        <CodeBlock Source="Components/FormFieldNativeSelect/disabled.txt" />
+    </div>
+
+    <!-- EditForm Integration -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("EditForm 集成", "EditForm Integration")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("在 EditForm 中，校验错误会自动显示。试试不选择角色直接提交。",
+                     "Validation errors display automatically inside an EditForm. Try submitting without selecting a role.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <EditForm Model="_formModel" OnValidSubmit="HandleFormSubmit">
+                <DataAnnotationsValidator />
+                <div class="space-y-4">
+                    <FormFieldNativeSelect TValue="string"
+                                            @bind-Value="_formModel.Role"
+                                            Label="@(L.T("角色", "Role"))"
+                                            Placeholder="@(L.T("选择角色……", "Select a role..."))">
+                        <option value="admin">Administrator</option>
+                        <option value="editor">Editor</option>
+                        <option value="viewer">Viewer</option>
+                    </FormFieldNativeSelect>
+                    <Button Type="ButtonType.Submit">@L.T("提交", "Submit")</Button>
+                </div>
+            </EditForm>
+            @if (_formSubmitted)
+            {
+                <div class="mt-4 rounded-lg border border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800 p-4">
+                    <p class="text-sm font-medium text-green-800 dark:text-green-200">
+                        @L.F("已提交：{0}", "Submitted: {0}", _formModel.Role)
+                    </p>
+                </div>
+            }
+        </div>
+        <CodeBlock Source="Components/FormFieldNativeSelect/editform.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("通过生成的 ID 自动把标签与下拉框关联", "Automatically associates label with select via generated ID")</AccessibilityItem>
+            <AccessibilityItem>@L.T("通过 aria-describedby 关联描述文本", "Description linked via aria-describedby")</AccessibilityItem>
+            <AccessibilityItem>@L.T("校验错误以 aria-invalid 标示", "Validation errors displayed with aria-invalid")</AccessibilityItem>
+        </AriaAttributes>
+            <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可用的表单控件之间移动", "Move between enabled form controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("打开获得焦点的选择器", "Open the focused picker"))"><Kbd>Enter</Kbd> / <Kbd>Space</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在选项间导航", "Navigate options"))"><Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("选中当前聚焦的选项", "Choose the focused option"))"><Kbd>Enter</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭选择器", "Close the picker"))"><Kbd>Escape</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="FormFieldNativeSelect&lt;TValue&gt;">
+                <ApiParameter Name="Label" Type="string?" Default="null">
+                    @L.T("显示在下拉框上方的标签文本。", "The label text displayed above the select.")
+                </ApiParameter>
+                <ApiParameter Name="HelperText" Type="string?" Default="null">
+                    @L.T("显示在下拉框下方的提示文本。出现错误时会被隐藏。", "Helper text displayed below the select. Hidden during error state.")
+                </ApiParameter>
+                <ApiParameter Name="ErrorText" Type="string?" Default="null">
+                    @L.T("手动指定的错误文本。", "Manual error text override.")
+                </ApiParameter>
+                <ApiParameter Name="Orientation" Type="FieldOrientation" Default="Vertical">
+                    @L.T("字段的布局方向。", "Layout orientation of the field.")
+                </ApiParameter>
+                <ApiParameter Name="Value" Type="TValue?" Default="null">
+                    @L.T("当前选中的值。使用 @bind-Value 进行双向绑定。", "The currently selected value. Use @bind-Value for two-way binding.")
+                </ApiParameter>
+                <ApiParameter Name="ValueChanged" Type="EventCallback&lt;TValue?&gt;">
+                    @L.T("选中值发生变化时调用的回调。", "Callback invoked when the selected value changes.")
+                </ApiParameter>
+                <ApiParameter Name="Placeholder" Type="string?" Default="null">
+                    @L.T("未选中任何值时显示的占位文本。", "Placeholder text shown when no value is selected.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("下拉框是否被禁用。", "Whether the select is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">
+                    @L.T("下拉框是否为必填。", "Whether the select is required.")
+                </ApiParameter>
+                <ApiParameter Name="Size" Type="NativeSelectSize" Default="Default">
+                    @L.T("尺寸变体（Small、Default、Large）。", "Size variant (Small, Default, Large).")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?" Default="null">
+                    @L.T("在下拉框内部显示的 option 元素。", "The option elements to display inside the select.")
+                </ApiParameter>
+                <ApiParameter Name="InputClass" Type="string?" Default="null">
+                    @L.T("应用到内部 NativeSelect 元素上的额外 CSS 类。", "Additional CSS classes applied to the inner NativeSelect element.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到外层 Field 容器上的额外 CSS 类。", "Additional CSS classes applied to the outer Field container.")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                    @L.T("该控件的 ARIA 标签。", "ARIA label for the control.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string? _country;
+    private string? _sizeSmall;
+    private string? _sizeDefault;
+    private string? _sizeLarge;
+    private bool _formSubmitted;
+    private NativeSelectFormModel _formModel = new();
+
+    private void HandleFormSubmit()
+    {
+        _formSubmitted = true;
+    }
+
+    private class NativeSelectFormModel
+    {
+        [Required(ErrorMessage = "Please select a role.")]
+        public string? Role { get; set; }
+    }
+}

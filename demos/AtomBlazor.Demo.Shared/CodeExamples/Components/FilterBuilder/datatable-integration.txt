@@ -1,0 +1,27 @@
+<FilterBuilder @bind-Filter="filter"
+                 Fields="@fields"
+                 OnFilterChanged="HandleFilterChanged" />
+
+<DataTable TData="Person" Data="@filteredPeople" InitialPageSize="10">
+    <Columns>
+        <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Name)" Header="Name" Sortable />
+        <DataTableColumn TData="Person" TValue="int" Property="@(p => p.Age)" Header="Age" Sortable />
+        <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Role)" Header="Role" />
+    </Columns>
+</DataTable>
+
+@code {
+    private void HandleFilterChanged(FilterDefinition filter)
+    {
+        if (filter.IsEmpty)
+        {
+            filteredPeople = new List<Person>(allPeople);
+        }
+        else
+        {
+            // Client-side: compile to Func<T, bool>
+            var predicate = filter.ToFunc<Person>(fields);
+            filteredPeople = allPeople.Where(predicate).ToList();
+        }
+    }
+}

@@ -1,0 +1,505 @@
+@page "/components/collapsible"
+<PageTitle>@L.T("可折叠组件 - Atom BlazorUI", "Collapsible Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("可折叠组件", "Collapsible Component")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("可以展开或收起一块面板的交互组件。", "An interactive component which expands/collapses a panel.")
+        </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+    </div>
+
+    <!-- AsChild Pattern -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("AsChild 模式", "AsChild Pattern")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("使用 AsChild，把触发器组合成你自己样式的 Button 组件。", "Use AsChild to compose triggers with your own styled Button components.")
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- Without AsChild -->
+            <div class="space-y-3 p-4 border rounded-lg">
+                <h3 class="text-lg font-medium">@L.T("不使用 AsChild", "Without AsChild")</h3>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("CollapsibleTrigger 会自行渲染一个按钮，并带上内联类名。", "CollapsibleTrigger renders its own button with inline classes.")
+                </p>
+                <Collapsible Class="border rounded-lg max-w-sm">
+                    <div class="px-4 py-3">
+                        <AtomBlazor.CollapsibleTrigger AsChild="false" Class="flex w-full h-9 items-center justify-between text-sm font-medium hover:bg-accent hover:text-accent-foreground rounded-md px-3 [&_svg]:transition-transform [&_svg]:duration-200 data-[state=open]:[&_svg]:rotate-180">
+                            <span>@L.T("显示更多", "Show more")</span>
+                            <LucideIcon Name="chevron-down" Size="16" />
+                        </AtomBlazor.CollapsibleTrigger>
+                    </div>
+                    <AtomBlazor.CollapsibleContent Class="px-4 pb-4">
+                        <p class="text-sm text-muted-foreground">@L.T("隐藏的内容已展开！", "Hidden content revealed!")</p>
+                    </AtomBlazor.CollapsibleContent>
+                </Collapsible>
+            </div>
+
+            <!-- With AsChild -->
+            <div class="space-y-3 p-4 border rounded-lg">
+                <h3 class="text-lg font-medium">@L.T("使用 AsChild", "With AsChild")</h3>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("Button 通过 TriggerContext 获得触发器行为。", "Button receives trigger behavior via TriggerContext.")
+                </p>
+                <Collapsible Class="border rounded-lg max-w-sm">
+                    <div class="px-4 py-3">
+                        <AtomBlazor.CollapsibleTrigger>
+                            <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Small" Class="w-full justify-between">
+                                <span>@L.T("切换分区", "Toggle Section")</span>
+                                <LucideIcon Name="chevron-down" Size="16" />
+                            </Button>
+                        </AtomBlazor.CollapsibleTrigger>
+                    </div>
+                    <AtomBlazor.CollapsibleContent Class="px-4 pb-4">
+                        <p class="text-sm text-muted-foreground">@L.T("这里的内容用的是配合 AsChild 的 Button！", "Content using Button with AsChild!")</p>
+                    </AtomBlazor.CollapsibleContent>
+                </Collapsible>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Collapsible/as-child.txt" />
+    </div>
+
+    <!-- Basic Usage -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个只包含触发器与内容的简单可折叠组件。", "A simple collapsible with trigger and content.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <Collapsible Class="border rounded-lg">
+                <div class="px-4 py-3">
+                    <AtomBlazor.CollapsibleTrigger AsChild="false" Class="flex w-full items-center justify-between rounded-md hover:bg-accent hover:text-accent-foreground [&_svg]:transition-transform [&_svg]:duration-200 data-[state=open]:[&_svg]:rotate-180">
+                        <span>@L.T("我的项目里可以用这个组件吗？", "Can I use this in my project?")</span>
+                        <LucideIcon Name="chevron-down" Size="16" />
+                    </AtomBlazor.CollapsibleTrigger>
+                </div>
+                <AtomBlazor.CollapsibleContent Class="px-4 pb-4">
+                    <div class="text-sm text-muted-foreground">
+                        @L.T("当然可以！这个组件可以在你的项目中免费使用。", "Yes! This component is free to use in your projects.")
+                    </div>
+                </AtomBlazor.CollapsibleContent>
+            </Collapsible>
+        </div>
+        <CodeBlock Source="Components/Collapsible/basic.txt" />
+    </div>
+
+    <!-- Controlled Collapsible -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("受控模式", "Controlled Mode")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("以编程方式控制展开状态。", "Control the open state programmatically.")
+            </p>
+        </div>
+        <div class="max-w-md space-y-4">
+            <div class="flex gap-2">
+                <Button Size="ButtonSize.Small" @onclick="@(() => isControlledOpen = true)">@L.T("展开", "Open")</Button>
+                <Button Size="ButtonSize.Small" Variant="ButtonVariant.Outline" @onclick="@(() => isControlledOpen = false)">@L.T("收起", "Close")</Button>
+                <Button Size="ButtonSize.Small" Variant="ButtonVariant.Secondary" @onclick="@(() => isControlledOpen = !isControlledOpen)">@L.T("切换", "Toggle")</Button>
+            </div>
+            <Collapsible Open="@isControlledOpen"
+                         OpenChanged="@((bool open) => isControlledOpen = open)"
+                         Class="border rounded-lg">
+                <div class="px-4 py-3">
+                    <AtomBlazor.CollapsibleTrigger AsChild="false" Class="flex w-full items-center justify-between rounded-md hover:bg-accent hover:text-accent-foreground">
+                        @if (L.IsChinese)
+                        {
+                                                <text>
+                                                    <span>@(isControlledOpen ? "受控内容（已展开）" : "受控内容（已收起）")</span>
+                                                </text>
+}
+                        else
+                        {
+                                                <text>
+                                                    <span>Controlled Content (@(isControlledOpen ? "Open" : "Closed"))</span>
+                                                </text>
+}
+                        <LucideIcon Name="@(isControlledOpen ? "chevron-up" : "chevron-down")" Size="16" />
+                    </AtomBlazor.CollapsibleTrigger>
+                </div>
+                <AtomBlazor.CollapsibleContent Class="px-4 pb-4">
+                    <div class="text-sm">
+                        @L.T("这个可折叠组件的状态由父组件控制。", "The parent component controls this collapsible's state.")
+                    </div>
+                </AtomBlazor.CollapsibleContent>
+            </Collapsible>
+        </div>
+        <CodeBlock Source="Components/Collapsible/controlled.txt" />
+    </div>
+
+    <!-- Disabled State -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用状态", "Disabled State")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("禁止与可折叠组件交互。", "Disable interaction with the collapsible.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <Collapsible Disabled Class="border rounded-lg opacity-50">
+                <div class="px-4 py-3">
+                    <AtomBlazor.CollapsibleTrigger AsChild="false" Class="flex w-full items-center justify-between rounded-md hover:bg-accent hover:text-accent-foreground [&_svg]:transition-transform [&_svg]:duration-200 data-[state=open]:[&_svg]:rotate-180">
+                        <span>@L.T("已禁用的可折叠组件", "Disabled Collapsible")</span>
+                        <LucideIcon Name="chevron-down" Size="16" />
+                    </AtomBlazor.CollapsibleTrigger>
+                </div>
+                <AtomBlazor.CollapsibleContent Class="px-4 pb-4">
+                    <div class="text-sm">
+                        @L.T("这部分内容无法切换展开状态。", "This content cannot be toggled.")
+                    </div>
+                </AtomBlazor.CollapsibleContent>
+            </Collapsible>
+        </div>
+        <CodeBlock Source="Components/Collapsible/disabled.txt" />
+    </div>
+
+    <!-- Accordion Style -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("手风琴样式（多个可折叠组件）", "Accordion Style (Multiple Collapsibles)")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("多个可折叠组件各自独立工作。", "Multiple collapsibles working independently.")
+            </p>
+        </div>
+        <div class="max-w-md space-y-2">
+            @foreach (var item in faqItems)
+            {
+                <Collapsible Class="border rounded-lg">
+                    <div class="px-4 py-3">
+                        <AtomBlazor.CollapsibleTrigger AsChild="false" Class="flex w-full items-center justify-between text-left [&_svg]:transition-transform [&_svg]:duration-200 data-[state=open]:[&_svg]:rotate-180">
+                            @if (L.IsChinese)
+                            {
+                                                        <text>
+                                                            <span class="font-medium">@item.QuestionZh</span>
+                                                        </text>
+}
+                            else
+                            {
+                                                        <text>
+                                                            <span class="font-medium">@item.Question</span>
+                                                        </text>
+}
+                            <LucideIcon Name="chevron-down" Size="16" />
+                        </AtomBlazor.CollapsibleTrigger>
+                    </div>
+                    <AtomBlazor.CollapsibleContent Class="px-4 pb-4 border-t">
+                        <div class="pt-4 text-sm text-muted-foreground">
+                            @if (L.IsChinese)
+                            {
+                                                        <text>
+                                                            @item.AnswerZh
+                                                        </text>
+}
+                            else
+                            {
+                                                        <text>
+                                                            @item.Answer
+                                                        </text>
+}
+                        </div>
+                    </AtomBlazor.CollapsibleContent>
+                </Collapsible>
+            }
+        </div>
+        <CodeBlock Source="Components/Collapsible/accordion.txt" />
+    </div>
+
+    <!-- With Icons and Badges -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带图标与徽标", "With Icons and Badges")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("用可视指示元素为可折叠组件增色。", "Enhance collapsibles with visual indicators.")
+            </p>
+        </div>
+        <div class="max-w-md space-y-2">
+            <Collapsible Class="border rounded-lg">
+                <div class="px-4 py-3">
+                    <AtomBlazor.CollapsibleTrigger AsChild="false" Class="flex w-full items-center justify-between [&>svg]:transition-transform [&>svg]:duration-200 data-[state=open]:[&>svg]:rotate-180">
+                        <div class="flex items-center gap-2">
+                            <LucideIcon Name="star" Size="16" />
+                            <span class="font-medium">@L.T("高级功能", "Premium Features")</span>
+                            <Badge Variant="BadgeVariant.Default" Class="text-[10px] px-1.5 py-0">@L.T("新", "New")</Badge>
+                        </div>
+                        <LucideIcon Name="chevron-down" Size="16" />
+                    </AtomBlazor.CollapsibleTrigger>
+                </div>
+                <AtomBlazor.CollapsibleContent Class="px-4 pb-4">
+                    <div class="space-y-2 text-sm">
+                        <div class="flex items-center gap-2">
+                            <LucideIcon Name="check" Size="14" Class="text-green-500" />
+                            <span>@L.T("高级数据分析", "Advanced analytics")</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <LucideIcon Name="check" Size="14" Class="text-green-500" />
+                            <span>@L.T("优先技术支持", "Priority support")</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <LucideIcon Name="check" Size="14" Class="text-green-500" />
+                            <span>@L.T("自定义品牌", "Custom branding")</span>
+                        </div>
+                    </div>
+                </AtomBlazor.CollapsibleContent>
+            </Collapsible>
+        </div>
+        <CodeBlock Source="Components/Collapsible/icons-badges.txt" />
+    </div>
+
+    <!-- Nested Collapsibles -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("嵌套可折叠组件", "Nested Collapsibles")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("可折叠组件内部还能再放可折叠组件，用来组织层级内容。", "Collapsibles can contain other collapsibles for hierarchical content.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <Collapsible Class="border rounded-lg">
+                <div class="px-4 py-3">
+                    <AtomBlazor.CollapsibleTrigger AsChild="false" Class="flex w-full items-center justify-between [&_svg]:transition-transform [&_svg]:duration-200 data-[state=open]:[&_svg]:rotate-180">
+                        <span class="font-medium">@L.T("父级分区", "Parent Section")</span>
+                        <LucideIcon Name="chevron-down" Size="16" />
+                    </AtomBlazor.CollapsibleTrigger>
+                </div>
+                <AtomBlazor.CollapsibleContent Class="px-4 pb-4">
+                    <div class="space-y-2">
+                        <p class="text-sm text-muted-foreground mb-2">
+                            @L.T("这个父级分区里嵌着子级可折叠组件。", "This parent contains nested collapsibles.")
+                        </p>
+
+                        <Collapsible Class="border rounded-md">
+                            <div class="px-3 py-2 bg-muted/50">
+                                <AtomBlazor.CollapsibleTrigger AsChild="false" Class="flex w-full items-center justify-between text-sm [&_svg]:transition-transform [&_svg]:duration-200 data-[state=open]:[&_svg]:rotate-180">
+                                    <span>@L.T("子分区 1", "Child Section 1")</span>
+                                    <LucideIcon Name="chevron-down" Size="14" />
+                                </AtomBlazor.CollapsibleTrigger>
+                            </div>
+                            <AtomBlazor.CollapsibleContent Class="px-3 py-2 text-sm text-muted-foreground">
+                                @L.T("子分区 1 的嵌套内容。", "Nested content for child section 1.")
+                            </AtomBlazor.CollapsibleContent>
+                        </Collapsible>
+
+                        <Collapsible Class="border rounded-md">
+                            <div class="px-3 py-2 bg-muted/50">
+                                <AtomBlazor.CollapsibleTrigger AsChild="false" Class="flex w-full items-center justify-between text-sm [&_svg]:transition-transform [&_svg]:duration-200 data-[state=open]:[&_svg]:rotate-180">
+                                    <span>@L.T("子分区 2", "Child Section 2")</span>
+                                    <LucideIcon Name="chevron-down" Size="14" />
+                                </AtomBlazor.CollapsibleTrigger>
+                            </div>
+                            <AtomBlazor.CollapsibleContent Class="px-3 py-2 text-sm text-muted-foreground">
+                                @L.T("子分区 2 的嵌套内容。", "Nested content for child section 2.")
+                            </AtomBlazor.CollapsibleContent>
+                        </Collapsible>
+                    </div>
+                </AtomBlazor.CollapsibleContent>
+            </Collapsible>
+        </div>
+        <CodeBlock Source="Components/Collapsible/nested.txt" />
+    </div>
+
+    <!-- With Animations -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带平滑动画", "With Smooth Animations")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("加上 CSS 过渡，让展开与收起更顺滑。", "Add CSS transitions for smooth expand/collapse effects.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <Collapsible Class="border rounded-lg overflow-hidden">
+                <div class="px-4 py-3">
+                    <AtomBlazor.CollapsibleTrigger AsChild="false" Class="flex w-full items-center justify-between rounded-md hover:bg-accent hover:text-accent-foreground [&_svg]:transition-transform [&_svg]:duration-200 data-[state=open]:[&_svg]:rotate-180">
+                        <span>@L.T("带动画的内容", "Animated Content")</span>
+                        <LucideIcon Name="chevron-down" Size="16" />
+                    </AtomBlazor.CollapsibleTrigger>
+                </div>
+                <AtomBlazor.CollapsibleContent Class="px-4 pb-4 transition-all duration-300 ease-in-out">
+                    <div class="text-sm animate-in fade-in duration-500">
+                        <p class="mb-2">@L.T("展开和收起时，这部分内容会平滑地做动画。", "This content animates smoothly when expanding and collapsing.")</p>
+                        <p class="text-muted-foreground">@L.T("CSS 过渡能营造更精致的用户体验。", "CSS transitions create a polished user experience.")</p>
+                    </div>
+                </AtomBlazor.CollapsibleContent>
+            </Collapsible>
+        </div>
+        <CodeBlock Source="Components/Collapsible/animations.txt" />
+    </div>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> 用于反映当前状态
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> reflects the current state
+                                </text>
+}
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    内容使用 region 角色，并带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-hidden</code>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    Content uses region role and <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-hidden</code>
+                                </text>
+}
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @L.T("展开或收起后，焦点仍然留在触发器上", "Focus remains on trigger after expanding/collapsing")
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @L.T("触发器使用标准的按钮元素", "Proper button elements for triggers")
+            </AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("激活触发器", "Activate trigger"))">
+                <Kbd>Space</Kbd> @L.T("或", "or") <Kbd>Enter</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+        </div>
+        <div class="border rounded-lg p-6 space-y-6">
+            <!-- Collapsible -->
+            <div>
+                <h3 class="text-lg font-semibold mb-3">Collapsible</h3>
+                <div class="space-y-3">
+                    <div>
+                        <p class="font-mono text-sm font-medium mb-1">Open</p>
+                        <p class="text-sm text-muted-foreground">
+                            @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code> |
+                            @L.T("默认值：", "Default:") <code class="text-xs bg-muted px-1 py-0.5 rounded">false</code>
+                        </p>
+                        <p class="text-sm text-muted-foreground mt-1">
+                            @L.T("控制可折叠组件是否处于展开状态。", "Controls whether the collapsible is expanded.")
+                        </p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <p class="font-mono text-sm font-medium mb-1">OpenChanged</p>
+                        <p class="text-sm text-muted-foreground">
+                            @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">EventCallback&lt;bool&gt;</code>
+                        </p>
+                        <p class="text-sm text-muted-foreground mt-1">
+                            @L.T("展开状态发生变化时调用的回调。", "Callback invoked when the open state changes.")
+                        </p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <p class="font-mono text-sm font-medium mb-1">Disabled</p>
+                        <p class="text-sm text-muted-foreground">
+                            @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code> |
+                            @L.T("默认值：", "Default:") <code class="text-xs bg-muted px-1 py-0.5 rounded">false</code>
+                        </p>
+                        <p class="text-sm text-muted-foreground mt-1">
+                            @L.T("为 true 时禁止切换展开状态。", "Prevents toggling when true.")
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <Separator />
+
+            <!-- CollapsibleTrigger -->
+            <div>
+                <h3 class="text-lg font-semibold mb-3">CollapsibleTrigger</h3>
+                <div>
+                    <p class="font-mono text-sm font-medium mb-1">Class</p>
+                    <p class="text-sm text-muted-foreground">
+                        @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">string?</code>
+                    </p>
+                    <p class="text-sm text-muted-foreground mt-1">
+                        @L.T("为触发按钮追加的 CSS 类名。", "Additional CSS classes for the trigger button.")
+                    </p>
+                </div>
+            </div>
+
+            <Separator />
+
+            <!-- CollapsibleContent -->
+            <div>
+                <h3 class="text-lg font-semibold mb-3">CollapsibleContent</h3>
+                <div>
+                    <p class="font-mono text-sm font-medium mb-1">Class</p>
+                    <p class="text-sm text-muted-foreground">
+                        @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">string?</code>
+                    </p>
+                    <p class="text-sm text-muted-foreground mt-1">
+                        @L.T("为内容容器追加的 CSS 类名。", "Additional CSS classes for the content container.")
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private bool isControlledOpen = false;
+
+    private List<FaqItem> faqItems = new()
+    {
+        new FaqItem
+        {
+            Question = "What is a collapsible component?",
+            QuestionZh = "什么是可折叠组件？",
+            Answer = "A collapsible is an interactive component that allows users to show or hide content by clicking a trigger element. It's commonly used for FAQs, accordion menus, and expandable sections.",
+            AnswerZh = "可折叠组件是一种交互式组件，用户点击触发元素就能显示或隐藏内容，常用于常见问题、手风琴菜单和可展开的分区。"
+        },
+        new FaqItem
+        {
+            Question = "How is it different from an accordion?",
+            QuestionZh = "它和手风琴有什么不同？",
+            Answer = "While both use similar patterns, an accordion typically allows only one section to be open at a time, whereas individual collapsibles can all be open simultaneously. Collapsibles are the building blocks for creating accordions.",
+            AnswerZh = "两者用的模式相近，但手风琴一般同一时刻只允许展开一个分区，而各个可折叠组件可以同时保持展开。可折叠组件正是搭建手风琴的基础单元。"
+        },
+        new FaqItem
+        {
+            Question = "Can I nest collapsibles?",
+            QuestionZh = "可以嵌套可折叠组件吗？",
+            Answer = "Yes! Collapsibles can be nested to create hierarchical expandable content structures, perfect for navigation menus or multi-level FAQs.",
+            AnswerZh = "可以。可折叠组件能够层层嵌套，组成有层级的可展开内容，很适合导航菜单或多级常见问题。"
+        },
+        new FaqItem
+        {
+            Question = "Does it include accessibility features?",
+            QuestionZh = "它包含无障碍能力吗？",
+            Answer = "Yes. The component includes ARIA attributes (aria-expanded, aria-controls) and keyboard support (Space/Enter to toggle).",
+            AnswerZh = "包含。组件自带 ARIA 属性（aria-expanded、aria-controls）与键盘支持（用 Space/Enter 切换）。"
+        }
+    };
+
+    private class FaqItem
+    {
+        public string Question { get; set; } = string.Empty;
+        public string QuestionZh { get; set; } = string.Empty;
+        public string Answer { get; set; } = string.Empty;
+        public string AnswerZh { get; set; } = string.Empty;
+    }
+}

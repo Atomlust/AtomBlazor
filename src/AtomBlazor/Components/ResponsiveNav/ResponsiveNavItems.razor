@@ -1,0 +1,100 @@
+@namespace AtomBlazor
+@using Microsoft.AspNetCore.Components.Routing
+
+@* 桌面导航 - 移动端隐藏 *@
+<NavigationMenu Class="@ClassNames.cn("atom:hidden atom:md:flex", DesktopClass)">
+    <AtomBlazor.NavigationMenuList>
+        @foreach (var item in Items)
+        {
+            @if (item.Children is { Count: > 0 })
+            {
+                <AtomBlazor.NavigationMenuItem Value="@item.Text.ToLowerInvariant()">
+                    <AtomBlazor.NavigationMenuTrigger>@item.Text</AtomBlazor.NavigationMenuTrigger>
+                    <AtomBlazor.NavigationMenuContent>
+                        <div class="atom:grid atom:gap-3 atom:p-4 atom:w-[400px]">
+                            @foreach (var child in item.Children)
+                            {
+                                <a href="@child.Href" class="atom:block atom:p-3 atom:rounded-lg atom:hover:bg-accent atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2">
+                                    <span class="atom:block atom:font-medium atom:mb-1">@child.Text</span>
+                                    @if (!string.IsNullOrEmpty(child.Description))
+                                    {
+                                        <p class="atom:text-sm atom:text-muted-foreground">@child.Description</p>
+                                    }
+                                </a>
+                            }
+                        </div>
+                    </AtomBlazor.NavigationMenuContent>
+                </AtomBlazor.NavigationMenuItem>
+            }
+            else
+            {
+                <AtomBlazor.NavigationMenuItem>
+                    <AtomBlazor.NavigationMenuLink Href="@item.Href" Match="@item.Match">@item.Text</AtomBlazor.NavigationMenuLink>
+                </AtomBlazor.NavigationMenuItem>
+            }
+        }
+    </AtomBlazor.NavigationMenuList>
+</NavigationMenu>
+
+@* 移动端导航，置于 Sheet 内 *@
+<ResponsiveNavContent Header="@MobileHeader" Footer="@MobileFooter" Side="@Side">
+    <nav class="@ClassNames.cn("atom:flex atom:flex-col atom:space-y-4", MobileClass)">
+        @foreach (var item in Items)
+        {
+            @if (item.Children is { Count: > 0 })
+            {
+                <div class="atom:space-y-2">
+                    <span class="atom:text-sm atom:font-medium atom:text-muted-foreground">@item.Text</span>
+                    <div class="atom:ps-4 atom:space-y-2 atom:border-s">
+                        @foreach (var child in item.Children)
+                        {
+                            <NavLink href="@child.Href" Match="@child.Match" class="atom:block atom:text-sm atom:hover:text-primary">@child.Text</NavLink>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <NavLink href="@item.Href" Match="@item.Match" class="atom:text-lg atom:font-medium atom:hover:text-primary">@item.Text</NavLink>
+            }
+        }
+    </nav>
+</ResponsiveNavContent>
+
+@code {
+    /// <summary>
+    /// 共享的导航项定义，在桌面与移动两种视图内渲染。
+    /// </summary>
+    [Parameter]
+    public IReadOnlyList<NavItemDefinition> Items { get; set; } = [];
+
+    /// <summary>
+    /// 桌面 NavigationMenu 的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? DesktopClass { get; set; }
+
+    /// <summary>
+    /// 移动端 nav 元素的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? MobileClass { get; set; }
+
+    /// <summary>
+    /// 移动端弹层的可选头部内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? MobileHeader { get; set; }
+
+    /// <summary>
+    /// 移动端弹层的可选尾部内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? MobileFooter { get; set; }
+
+    /// <summary>
+    /// 移动端弹层滑入的一侧。默认为 Left。
+    /// </summary>
+    [Parameter]
+    public SheetSide Side { get; set; } = SheetSide.Left;
+}

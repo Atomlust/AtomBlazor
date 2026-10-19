@@ -1,0 +1,79 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@inject ILocalizer Localizer
+
+<div @ref="root" class="@CssClass" data-slot="stepper" @attributes="AdditionalAttributes">
+    <ol class="@IndicatorCssClass" aria-label="@Localizer["Stepper.Progress"]">
+        @for (var i = 0; i < steps.Count; i++)
+        {
+            var index = i;
+            var step = steps[index];
+            var state = GetStepState(index);
+            var isLast = index == steps.Count - 1;
+
+            RenderFragment marker =
+                @<text>
+                    <span class="@MarkerCircleCssClass(state)">
+                        @if (state == StepState.Completed)
+                        {
+                            <LucideIcon Name="check" Class="atom:h-4 atom:w-4" />
+                        }
+                        else if (state == StepState.Error)
+                        {
+                            <LucideIcon Name="x" Class="atom:h-4 atom:w-4" />
+                        }
+                        else if (state == StepState.Skipped)
+                        {
+                            <LucideIcon Name="minus" Class="atom:h-4 atom:w-4" />
+                        }
+                        else if (step.Icon is not null)
+                        {
+                            <LucideIcon Name="@step.Icon" Class="atom:h-4 atom:w-4" />
+                        }
+                        else
+                        {
+                            @(index + 1)
+                        }
+                    </span>
+                    <span class="@LabelCssClass">
+                        <span class="@TitleCssClass(state)">@step.Title</span>
+                        <span class="atom:sr-only">@StepAnnouncement(index, state)</span>
+                        @if (step.Description is not null)
+                        {
+                            <span class="atom:text-xs atom:text-muted-foreground">@step.Description</span>
+                        }
+                        @if (step.Optional)
+                        {
+                            <span class="atom:text-xs atom:text-muted-foreground">@Localizer["Stepper.Optional"]</span>
+                        }
+                    </span>
+                </text>;
+
+            <li class="@ItemCssClass(isLast)" aria-current="@(state == StepState.Active ? "step" : null)">
+                @if (CanNavigateToStep(index))
+                {
+                    <button type="button" class="@MarkerButtonCssClass" @onclick="() => GoToStepAsync(index)">
+                        @marker
+                    </button>
+                }
+                else
+                {
+                    <span class="@MarkerStaticCssClass">
+                        @marker
+                    </span>
+                }
+
+                @if (!isLast)
+                {
+                    <span class="@ConnectorCssClass(state)" aria-hidden="true"></span>
+                }
+            </li>
+        }
+    </ol>
+
+    <div class="@ContentCssClass" data-slot="stepper-content">
+        <CascadingValue Value="this" IsFixed="true">
+            @ChildContent
+        </CascadingValue>
+    </div>
+</div>

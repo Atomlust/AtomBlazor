@@ -1,0 +1,44 @@
+@namespace AtomBlazor
+
+@*
+    警告对话框标题 - 标题文本。
+*@
+
+<AtomBlazor.Primitives.AlertDialogTitle As="@As" class="@CssClass" @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.AlertDialogTitle>
+
+@code {
+    /// <summary>
+    /// 标题文本内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用到标题的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 用于标题的 HTML 元素标签。
+    /// 默认值为 "h2"。
+    /// </summary>
+    [Parameter]
+    public string As { get; set; } = "h2";
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取为标题计算得到的 CSS 类。
+    /// </summary>
+    private string CssClass => ClassNames.cn(
+        "atom:text-lg atom:font-semibold",
+        Class
+    );
+}

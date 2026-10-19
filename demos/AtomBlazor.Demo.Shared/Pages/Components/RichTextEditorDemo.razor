@@ -1,0 +1,780 @@
+@page "/components/rich-text-editor"
+<PageTitle>@L.T("富文本编辑器 - Atom BlazorUI", "Rich Text Editor - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-10 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("富文本编辑器", "Rich Text Editor")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("基于 Quill.js 构建的所见即所得富文本编辑器，带工具栏格式化。输入文本时即直接应用格式。", "A WYSIWYG rich text editor built on Quill.js with toolbar formatting. Text is formatted directly as you type.")
+        </p>
+    </div>
+
+    @* Basic Example *@
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            <p class="text-muted-foreground">
+                @L.T("一个简单的富文本编辑器，支持双向数据绑定。输入时即刻呈现格式效果。", "A simple rich text editor with two-way data binding. Formatting appears directly as you type.")
+            </p>
+        </div>
+
+        <div class="space-y-4">
+            <RichTextEditor @bind-Value="basicValue" Placeholder="@(L.T("在这里开始输入……", "Start typing here..."))" />
+            @RenderHtmlOutput(basicValue)
+        </div>
+        <CodeBlock Source="Components/RichTextEditor/basic.txt" />
+    </section>
+
+    @* With Label *@
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带标签", "With Label")</h2>
+            <p class="text-muted-foreground">
+                @L.T("为编辑器关联标签，提升无障碍体验。", "Associate a label with the editor for better accessibility.")
+            </p>
+        </div>
+
+        <div class="space-y-4">
+            <div class="space-y-2">
+                @* 偏差：本仓 _Imports 同时引入 Microsoft.AspNetCore.Components.Forms（其 Label<TValue> 带 For 参数）， 裸 <AtomBlazor.Label For=...> 触发 RZ10012 泛型/非泛型歧义，照 FileUploadDemo 先例改全限定标签，渲染行为零变化（下同）。 *@
+                <AtomBlazor.Label For="description-editor">@L.T("描述", "Description")</AtomBlazor.Label>
+                <RichTextEditor @bind-Value="labeledValue"
+                                Id="description-editor"
+                                Placeholder="@(L.T("请输入描述……", "Enter a description..."))" />
+            </div>
+            @RenderHtmlOutput(labeledValue)
+        </div>
+        <CodeBlock Source="Components/RichTextEditor/with-label.txt" />
+    </section>
+
+    @* Toolbar Presets *@
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("工具栏预设", "Toolbar Presets")</h2>
+            <p class="text-muted-foreground">
+                @L.T("从预设的工具栏配置中挑选适合你需要的方案。", "Choose from preset toolbar configurations to match your needs.")
+            </p>
+        </div>
+
+        <div class="grid gap-6">
+            <div class="space-y-4">
+                <div class="space-y-2">
+                    <AtomBlazor.Label>@L.T("简单工具栏", "Simple Toolbar")</AtomBlazor.Label>
+                    <RichTextEditor @bind-Value="simpleValue"
+                                    Toolbar="ToolbarPreset.Simple"
+                                    Placeholder="@(L.T("仅基础格式化……", "Basic formatting only..."))" />
+                </div>
+                @RenderHtmlOutput(simpleValue)
+            </div>
+
+            <div class="space-y-4">
+                <div class="space-y-2">
+                    <AtomBlazor.Label>@L.T("标准工具栏（默认）", "Standard Toolbar (Default)")</AtomBlazor.Label>
+                    <RichTextEditor @bind-Value="standardValue"
+                                    Toolbar="ToolbarPreset.Standard"
+                                    Placeholder="@(L.T("常用格式化选项……", "Common formatting options..."))" />
+                </div>
+                @RenderHtmlOutput(standardValue)
+            </div>
+
+            <div class="space-y-4">
+                <div class="space-y-2">
+                    <AtomBlazor.Label>@L.T("完整工具栏", "Full Toolbar")</AtomBlazor.Label>
+                    <RichTextEditor @bind-Value="fullValue"
+                                    Toolbar="ToolbarPreset.Full"
+                                    Placeholder="@(L.T("全部格式化选项……", "All formatting options..."))" />
+                </div>
+                @RenderHtmlOutput(fullValue)
+            </div>
+
+            <div class="space-y-4">
+                <div class="space-y-2">
+                    <AtomBlazor.Label>@L.T("无工具栏", "No Toolbar")</AtomBlazor.Label>
+                    <RichTextEditor @bind-Value="noToolbarValue"
+                                    Toolbar="ToolbarPreset.None"
+                                    Placeholder="@(L.T("不带工具栏的纯编辑器……", "Plain editor without toolbar..."))" />
+                </div>
+                @RenderHtmlOutput(noToolbarValue)
+            </div>
+        </div>
+        <CodeBlock Source="Components/RichTextEditor/toolbar-presets.txt" />
+    </section>
+
+    @* Toolbar Features Demo *@
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("工具栏功能", "Toolbar Features")</h2>
+            <p class="text-muted-foreground">
+                @L.T("工具栏可快速访问各项格式化能力，你也可以使用键盘快捷键。", "The toolbar provides quick access to formatting options. You can also use keyboard shortcuts.")
+            </p>
+        </div>
+
+        <div class="rounded-lg border p-6 space-y-4">
+            <div class="space-y-3">
+                <h3 class="font-semibold">@L.T("可用格式化能力（完整工具栏）", "Available Formatting (Full Toolbar)")</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ul class="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+                        <li>撤销 / 重做 - <Kbd>Ctrl+Z</Kbd> 与 <Kbd>Ctrl+Shift+Z</Kbd>；没有可撤销或可重做的内容时按钮会置灰。通过程序写入的值无法撤销</li>
+                        <li><strong>加粗</strong> - 选中文本后点击 B，或按 <Kbd>Ctrl+B</Kbd></li>
+                        <li><em>斜体</em> - 选中文本后点击 I，或按 <Kbd>Ctrl+I</Kbd></li>
+                        <li><u>下划线</u> - 选中文本后点击 U，或按 <Kbd>Ctrl+U</Kbd></li>
+                        <li><s>删除线</s> - 选中文本后点击删除线按钮</li>
+                        <li><code class="bg-muted px-1 rounded">Inline code</code> - 用于标识符与路径的等宽跨度</li>
+                        <li>标题 - 通过下拉选择 H1、H2、H3 标题级别</li>
+                        <li>对齐 - 左对齐、居中、右对齐或两端对齐，以内联 <code class="bg-muted px-1 rounded">text-align</code> 样式写入，因此输出在任何位置都能正确渲染对齐</li>
+                        <li>无序列表 - 点击无序列表图标</li>
+                        <li>有序列表 - 点击有序列表图标</li>
+                        <li>检查清单 - 带复选框的条目；在编辑器中点击方框即可勾选。该状态会以 <code class="bg-muted px-1 rounded">data-list</code> 在 HTML 中往返保留</li>
+                        <li>文字颜色与高亮 - 各自提供一组色板，并附带一个清除选项；以内联样式写入</li>
+                        <li>链接 - 选中文本后点击链接图标添加 URL</li>
+                        <li>图片 - 选择文件，或直接拖入、粘贴；上传钩子见图片一节</li>
+                        <li>引用 - 添加引用文本块</li>
+                        <li>代码块 - 添加代码片段</li>
+                        <li>表格 - 选择尺寸插入表格；光标位于表格内时，同一个按钮会提供插入行、列与删除操作</li>
+                    </ul>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ul class="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+                        <li>Undo / Redo - <Kbd>Ctrl+Z</Kbd> and <Kbd>Ctrl+Shift+Z</Kbd>; the buttons grey out when there is nothing to undo or redo. Programmatic value updates are not undoable</li>
+                        <li><strong>Bold</strong> - Select text and click B or press <Kbd>Ctrl+B</Kbd></li>
+                        <li><em>Italic</em> - Select text and click I or press <Kbd>Ctrl+I</Kbd></li>
+                        <li><u>Underline</u> - Select text and click U or press <Kbd>Ctrl+U</Kbd></li>
+                        <li><s>Strikethrough</s> - Select text and click the strikethrough button</li>
+                        <li><code class="bg-muted px-1 rounded">Inline code</code> - Monospace span for identifiers and paths</li>
+                        <li>Headers - H1, H2, H3 heading levels via dropdown</li>
+                        <li>Alignment - Left, centre, right or justify, written as an inline <code class="bg-muted px-1 rounded">text-align</code> style so the output renders aligned anywhere</li>
+                        <li>Bullet List - Click the bullet list icon</li>
+                        <li>Numbered List - Click the numbered list icon</li>
+                        <li>Checklist - Items with a checkbox; click the box in the editor to tick it. The state round-trips through the HTML as <code class="bg-muted px-1 rounded">data-list</code></li>
+                        <li>Text colour and highlight - A palette of swatches each, plus a remove option; written as inline styles</li>
+                        <li>Link - Select text and click link icon to add URL</li>
+                        <li>Image - Pick a file, or drop or paste one; see the Images section for the upload hook</li>
+                        <li>Blockquote - Add quoted text blocks</li>
+                        <li>Code Block - Add code snippets</li>
+                        <li>Table - Pick a size to insert a table; with the caret in a table the same button offers row, column and delete actions</li>
+                    </ul>
+                                </text>
+}
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <RichTextEditor @bind-Value="toolbarDemoValue"
+                            Toolbar="ToolbarPreset.Full"
+                            Placeholder="@(L.T("试试这些工具栏功能……", "Try out the toolbar features..."))" />
+            @RenderHtmlOutput(toolbarDemoValue)
+        </div>
+    </section>
+
+    @* Tables *@
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表格", "Tables")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    <code class="bg-muted px-1 rounded">Full</code> 工具栏带有一个表格按钮。位于表格外时它会打开一个尺寸
+                    选择器；位于表格内时则提供在上方/下方插入行、在左侧/右侧插入列、删除行、删除列以及
+                    删除表格。表格在 HTML 输出中就是普通的 <code class="bg-muted px-1 rounded">&lt;table&gt;</code> 标记，
+                    粘贴进来的表格也会被保留。组件引用上同样提供这些操作，例如
+                    <code class="bg-muted px-1 rounded">InsertTableAsync(rows, columns)</code> 与 <code class="bg-muted px-1 rounded">DeleteTableAsync()</code>。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    The <code class="bg-muted px-1 rounded">Full</code> toolbar has a table button. Outside a table it opens a size
+                    picker; inside a table it offers insert row above/below, insert column left/right, delete row, delete column and
+                    delete table. Tables are plain <code class="bg-muted px-1 rounded">&lt;table&gt;</code> markup in the HTML output,
+                    and pasted tables are kept. The same actions are available on the component reference, for example
+                    <code class="bg-muted px-1 rounded">InsertTableAsync(rows, columns)</code> and <code class="bg-muted px-1 rounded">DeleteTableAsync()</code>.
+                </p>
+                        </text>
+}
+        </div>
+
+        <div class="space-y-4">
+            <div class="flex flex-wrap gap-2">
+                <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="@(async _ => await tableEditor!.InsertTableAsync(2, 3))">
+                    @L.T("插入 2 × 3 表格", "Insert 2 × 3 table")
+                </Button>
+                <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="@(async _ => await tableEditor!.InsertRowBelowAsync())">
+                    @L.T("在下方插入行", "Insert row below")
+                </Button>
+                <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="@(async _ => await tableEditor!.DeleteTableAsync())">
+                    @L.T("删除表格", "Delete table")
+                </Button>
+            </div>
+            <RichTextEditor @ref="tableEditor"
+                            @bind-Value="tableValue"
+                            Toolbar="ToolbarPreset.Full"
+                            Placeholder="@(L.T("从工具栏插入一个表格……", "Insert a table from the toolbar..."))" />
+            @RenderHtmlOutput(tableValue)
+        </div>
+        <CodeBlock Source="Components/RichTextEditor/tables.txt" />
+    </section>
+
+    @* Images *@
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("图片", "Images")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    <code class="bg-muted px-1 rounded">Full</code> 工具栏带有一个图片按钮，并且任何编辑器都可以直接拖入或粘贴图片。
+                    设置 <code class="bg-muted px-1 rounded">ImageUploader</code> 即可接收每个文件并返回要内嵌的 URL ——
+                    存放位置完全由你决定。返回 <code class="bg-muted px-1 rounded">null</code> 即拒绝该文件。
+                    超过 <code class="bg-muted px-1 rounded">MaxImageSize</code>（默认 10 MB）的文件在传输任何数据之前就会被拒绝。
+                    没有处理程序时，图片会以内联 data URL 的形式嵌入，这正是 Quill 自身的做法；小图片没问题，
+                    但会让值急剧膨胀。本示例的处理程序读取文件并返回一个 data URL，并拒绝任何超过 1 MB 的文件。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    The <code class="bg-muted px-1 rounded">Full</code> toolbar has an image button, and an image can be dropped or pasted
+                    into any editor. Set <code class="bg-muted px-1 rounded">ImageUploader</code> to receive each file and return the URL to
+                    embed — store it wherever you keep uploads. Return <code class="bg-muted px-1 rounded">null</code> to reject a file.
+                    Files over <code class="bg-muted px-1 rounded">MaxImageSize</code> (10 MB by default) are rejected before any data moves.
+                    Without a handler, images are embedded as data URLs, which is what Quill does on its own; fine for a small picture, but
+                    it bloats the value. This demo's handler reads the file and returns a data URL, and refuses anything over 1 MB.
+                </p>
+                        </text>
+}
+        </div>
+
+        <div class="space-y-4">
+            <RichTextEditor @bind-Value="imageValue"
+                            Toolbar="ToolbarPreset.Full"
+                            ImageUploader="UploadImageAsync"
+                            Placeholder="@(L.T("插入、拖入或粘贴一张图片……", "Insert, drop or paste an image..."))" />
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">处理程序收到的图片：@imageUploads</p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">Images received by the handler: @imageUploads</p>
+                        </text>
+}
+        </div>
+        <CodeBlock Source="Components/RichTextEditor/image-upload.txt" />
+    </section>
+
+    @* Pre-populated Content *@
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("预填充内容", "Pre-populated Content")</h2>
+            <p class="text-muted-foreground">
+                @L.T("编辑器可以用已有的 HTML 内容完成初始化。", "The editor can be initialized with existing HTML content.")
+            </p>
+        </div>
+
+        <div class="space-y-4">
+            <RichTextEditor @bind-Value="prePopulatedValue" />
+            @RenderHtmlOutput(prePopulatedValue)
+        </div>
+        <CodeBlock Source="Components/RichTextEditor/pre-populated.txt" />
+    </section>
+
+    @* Height Control *@
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("高度控制", "Height Control")</h2>
+            <p class="text-muted-foreground">
+                @L.T("用 MaxHeight 或固定的 Height 属性控制编辑器高度。", "Control the editor height with MaxHeight or fixed Height properties.")
+            </p>
+        </div>
+
+        <div class="grid gap-6">
+            <div class="space-y-4">
+                <div class="space-y-2">
+                    <AtomBlazor.Label>@L.T("MaxHeight=\"200px\"（超过 200px 后出现滚动条）", "MaxHeight=\"200px\" (scrollbar appears after 200px)")</AtomBlazor.Label>
+                    <RichTextEditor @bind-Value="maxHeightValue"
+                                    MaxHeight="200px"
+                                    Placeholder="@(L.T("输入大量内容即可看到滚动条……", "Type a lot of content to see the scrollbar..."))" />
+                </div>
+                @RenderHtmlOutput(maxHeightValue)
+            </div>
+
+            <div class="space-y-4">
+                <div class="space-y-2">
+                    <AtomBlazor.Label>@L.T("Height=\"150px\"（固定高度，需要时始终显示滚动条）", "Height=\"150px\" (fixed height, always shows scrollbar when needed)")</AtomBlazor.Label>
+                    <RichTextEditor @bind-Value="fixedHeightValue"
+                                    Height="150px"
+                                    Placeholder="@(L.T("固定高度的编辑器……", "Fixed height editor..."))" />
+                </div>
+                @RenderHtmlOutput(fixedHeightValue)
+            </div>
+        </div>
+        <CodeBlock Source="Components/RichTextEditor/height-control.txt" />
+    </section>
+
+    @* Disabled State *@
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用状态", "Disabled State")</h2>
+            <p class="text-muted-foreground">
+                @L.T("可以禁用编辑器以阻止用户输入。", "The editor can be disabled to prevent user input.")
+            </p>
+        </div>
+
+        <RichTextEditor Value="@(L.IsChinese ? "<p>该编辑器已<strong>禁用</strong>，无法编辑。</p>" : "<p>This editor is <strong>disabled</strong> and cannot be edited.</p>")"
+                        Disabled="true" />
+        <CodeBlock Source="Components/RichTextEditor/disabled.txt" />
+    </section>
+
+    @* Form Integration *@
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表单集成", "Form Integration")</h2>
+            <p class="text-muted-foreground">
+                @L.T("在表单中使用编辑器提交内容。", "Use the editor within forms for content submission.")
+            </p>
+        </div>
+
+        <Card>
+            <CardHeader>
+                <CardTitle>@L.T("提交反馈", "Submit Feedback")</CardTitle>
+                <CardDescription>@L.T("用富文本格式与我们分享你的想法。", "Share your thoughts with us using rich text formatting.")</CardDescription>
+            </CardHeader>
+            <CardContent Class="space-y-4">
+                <div class="space-y-2">
+                    <AtomBlazor.Label For="feedback-editor">@L.T("你的反馈", "Your Feedback")</AtomBlazor.Label>
+                    <RichTextEditor @bind-Value="feedbackValue"
+                                    Id="feedback-editor"
+                                    Placeholder="@(L.T("你想说点什么？", "What's on your mind?"))" />
+                </div>
+                @RenderHtmlOutput(feedbackValue)
+            </CardContent>
+            <CardFooter>
+                <Button OnClick="HandleSubmit" Disabled="@string.IsNullOrWhiteSpace(feedbackValue)">
+                    @L.T("提交反馈", "Submit Feedback")
+                </Button>
+            </CardFooter>
+        </Card>
+
+        @if (submitted)
+        {
+            <div class="p-4 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 rounded-md">
+                @L.T("反馈提交成功！", "Feedback submitted successfully!")
+            </div>
+        }
+        <CodeBlock Source="Components/RichTextEditor/form-integration.txt" />
+    </section>
+
+    @* Usage Notes *@
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("使用说明", "Usage Notes")</h2>
+        </div>
+
+        <div class="rounded-lg border p-6 space-y-4">
+            <div class="space-y-3">
+                <h3 class="font-semibold">@L.T("环境要求", "Setup Requirements")</h3>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("无需任何配置。Quill 2 已随包内置，并在首次创建编辑器时按需加载，因此你不需要往宿主页面添加脚本或样式表。", "None. Quill 2 ships inside the package and loads on demand the first time an editor is created, so there is no script or stylesheet to add to your host page.")
+                </p>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mt-2">
+                        若要固定使用另一个 Quill 构建，请在首个编辑器渲染之前自行加载它。当
+                        <code class="bg-muted px-1 rounded">window.Quill</code> 全局对象已经存在时组件会直接使用它，
+                        不再拉取内置的那一份。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mt-2">
+                        To pin a different Quill build, load it yourself before the first editor renders. The
+                        component uses the <code class="bg-muted px-1 rounded">window.Quill</code> global when it
+                        is already present and leaves the bundled copy unfetched.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="space-y-3">
+                <h3 class="font-semibold">@L.T("工具栏预设", "Toolbar Presets")</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ul class="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+                        <li><strong>None</strong> - 无工具栏，只有纯编辑区</li>
+                        <li><strong>Simple</strong> - 加粗、斜体、下划线、无序列表与有序列表</li>
+                        <li><strong>Standard</strong> - 在 Simple 之外增加撤销/重做、标题、删除线、检查清单与链接（默认）</li>
+                        <li><strong>Full</strong> - 在 Standard 之外增加内联代码、对齐、文字颜色与高亮、图片、引用、代码块与表格</li>
+                        <li><strong>Custom</strong> - 使用 ToolbarContent 提供你自己的工具栏</li>
+                    </ul>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ul class="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+                        <li><strong>None</strong> - No toolbar, plain editing area</li>
+                        <li><strong>Simple</strong> - Bold, italic, underline, bullet and numbered lists</li>
+                        <li><strong>Standard</strong> - Simple plus undo/redo, headings, strikethrough, checklist and links (default)</li>
+                        <li><strong>Full</strong> - Standard plus inline code, alignment, text colour and highlight, images, blockquote, code block and tables</li>
+                        <li><strong>Custom</strong> - Use ToolbarContent to provide your own toolbar</li>
+                    </ul>
+                                </text>
+}
+            </div>
+
+            <div class="space-y-3">
+                <h3 class="font-semibold">@L.T("主要特性", "Key Features")</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ul class="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+                        <li>由 Quill.js v2 驱动的所见即所得编辑</li>
+                        <li>面向不同使用场景的工具栏预设</li>
+                        <li>加粗、斜体与下划线的键盘快捷键</li>
+                        <li>通过 @("@bind-Value") 实现双向数据绑定</li>
+                        <li>可通过 @("@bind-DeltaValue") 绑定 Delta（JSON）</li>
+                        <li>输出便于存储与展示的干净 HTML</li>
+                        <li>通过 MinHeight、MaxHeight 与 Height 控制高度</li>
+                        <li>支持 Disabled 与 ReadOnly 状态</li>
+                    </ul>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ul class="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+                        <li>WYSIWYG editing powered by Quill.js v2</li>
+                        <li>Toolbar presets for different use cases</li>
+                        <li>Keyboard shortcuts for bold, italic, and underline</li>
+                        <li>Two-way data binding with @("@bind-Value")</li>
+                        <li>Delta (JSON) binding available via @("@bind-DeltaValue")</li>
+                        <li>Outputs clean HTML for storage and display</li>
+                        <li>Height control via MinHeight, MaxHeight, and Height</li>
+                        <li>Disabled and ReadOnly states</li>
+                    </ul>
+                                </text>
+}
+            </div>
+
+            <div class="space-y-3">
+                <h3 class="font-semibold">@L.T("无障碍", "Accessibility")</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ul class="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+                        <li>支持 ARIA 标签与描述</li>
+                        <li>常用格式化的键盘快捷键</li>
+                        <li>使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">Id</code> 参数与 Label 组件关联</li>
+                        <li>支持禁用与只读状态</li>
+                        <li>聚焦与失焦事件回调</li>
+                    </ul>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ul class="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+                        <li>Supports ARIA labels and descriptions</li>
+                        <li>Keyboard shortcuts for common formatting</li>
+                        <li>Associate with Label component using <code class="text-xs bg-muted px-1 py-0.5 rounded">Id</code> parameter</li>
+                        <li>Supports disabled and read-only states</li>
+                        <li>Focus and blur event callbacks</li>
+                    </ul>
+                                </text>
+}
+            </div>
+        </div>
+    </section>
+
+    <LocalizationSection
+        Description="@(L.T("工具栏按钮的工具提示、标题选项与链接对话框文案都可以通过 ILocalizer 和 RichTextEditor.* 键配置。", "Toolbar button tooltips, heading options, and link dialog text are configurable via ILocalizer with RichTextEditor.* keys."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("Normal", "Normal", L.T("正文标题选项的标签", "Label for the normal text heading option")),
+            new("Heading1/2/3", "Heading 1, Heading 2, Heading 3", L.T("各级标题选项的标签", "Labels for heading level options")),
+            new("Bold", "Bold (Ctrl+B)", L.T("加粗切换按钮的工具提示", "Tooltip for the bold toggle")),
+            new("Italic", "Italic (Ctrl+I)", L.T("斜体切换按钮的工具提示", "Tooltip for the italic toggle")),
+            new("Underline", "Underline (Ctrl+U)", L.T("下划线切换按钮的工具提示", "Tooltip for the underline toggle")),
+            new("Strikethrough", "Strikethrough", L.T("删除线切换按钮的工具提示", "Tooltip for the strikethrough toggle")),
+            new("BulletList", "Bullet List", L.T("无序列表切换按钮的工具提示", "Tooltip for the bullet list toggle")),
+            new("NumberedList", "Numbered List", L.T("有序列表切换按钮的工具提示", "Tooltip for the numbered list toggle")),
+            new("InsertLink", "Insert Link", L.T("链接按钮的无障碍标签与工具提示", "Aria label and tooltip for the link button")),
+            new("Blockquote", "Blockquote", L.T("引用切换按钮的工具提示", "Tooltip for the blockquote toggle")),
+            new("CodeBlock", "Code Block", L.T("代码块切换按钮的工具提示", "Tooltip for the code block toggle")),
+            new("Undo/Redo", "Undo (Ctrl+Z), Redo (Ctrl+Shift+Z)", L.T("撤销与重做按钮的工具提示", "Tooltips for the history buttons")),
+            new("InlineCode/CheckList", "Inline Code, Checklist", L.T("内联代码与检查清单切换按钮的工具提示", "Tooltips for the inline code and checklist toggles")),
+            new("Align/AlignLeft/AlignCenter/AlignRight/AlignJustify", "Text Alignment, Align Left, Align Center, Align Right, Justify", L.T("对齐按钮与菜单项", "Alignment button and menu items")),
+            new("TextColor/Highlight/RemoveColor", "Text Color, Highlight, Remove Color", L.T("颜色按钮与色板中的清除选项", "Colour buttons and the palette's remove option")),
+            new("InsertImage", "Insert Image", L.T("图片按钮的工具提示", "Tooltip for the image button")),
+            new("Table/InsertTable", "Table, Insert table", L.T("表格按钮的工具提示与尺寸选择器标题", "Table button tooltip and size picker heading")),
+            new("TableSize", "{0} × {1}", L.T("尺寸选择器标签；{0} 行，{1} 列", "Size picker label; {0} rows, {1} columns")),
+            new("InsertRowAbove/InsertRowBelow", "Insert row above, Insert row below", L.T("表格行操作", "Table row actions")),
+            new("InsertColumnLeft/InsertColumnRight", "Insert column left, Insert column right", L.T("表格列操作", "Table column actions")),
+            new("DeleteRow/DeleteColumn/DeleteTable", "Delete row, Delete column, Delete table", L.T("表格删除操作", "Table delete actions")),
+            new("EditLink/RemoveLink", "Edit Link, Remove Link", L.T("链接对话框标题与移除按钮", "Link dialog title and remove button")),
+            new("Cancel/Update/Insert", "Cancel, Update, Insert", L.T("链接对话框的操作按钮", "Link dialog action buttons")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""RichTextEditor.Bold"", ""Fett (Strg+B)"");
+    localizer.Set(""RichTextEditor.InsertLink"", ""Link einfügen"");
+    localizer.Set(""RichTextEditor.Cancel"", ""Abbrechen"");
+});")" />
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> 参数为编辑区域设置无障碍标签
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code> 参数关联补充说明文本
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> 参数向辅助技术标识校验状态
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    工具栏按钮带有描述性的 <code class="text-xs bg-muted px-1 py-0.5 rounded">title</code> 属性，其中包含键盘快捷键
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    切换按钮使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-pressed</code> 标识当前生效的格式化状态
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> parameter sets an accessible label on the editor region
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code> parameter associates supplementary description text
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> parameter indicates validation state for assistive technology
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    Toolbar buttons have descriptive <code class="text-xs bg-muted px-1 py-0.5 rounded">title</code> attributes including keyboard shortcuts
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    Toggle buttons use <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-pressed</code> to indicate active formatting state
+                </AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("加粗格式", "Bold formatting"))">
+                <Kbd>Ctrl+B</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("斜体格式", "Italic formatting"))">
+                <Kbd>Ctrl+I</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("下划线格式", "Underline formatting"))">
+                <Kbd>Ctrl+U</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在工具栏按钮之间移动", "Navigate toolbar buttons"))">
+                <Kbd>Tab</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="RichTextEditor">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Value" Type="string?" Default="null">
+                        编辑器的 HTML 内容。支持与 <code>@@bind-Value</code> 双向绑定。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Value" Type="string?" Default="null">
+                        HTML content of the editor. Supports two-way binding with <code>@@bind-Value</code>.
+                    </ApiParameter>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="DeltaValue" Type="string?" Default="null">
+                        编辑器内容的 Delta（JSON）表示。支持与 <code>@@bind-DeltaValue</code> 双向绑定。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="DeltaValue" Type="string?" Default="null">
+                        Delta (JSON) representation of editor content. Supports two-way binding with <code>@@bind-DeltaValue</code>.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="Toolbar" Type="ToolbarPreset" Default="ToolbarPreset.Standard">
+                    @L.T("工具栏预设。可选：None、Simple、Standard、Full、Custom。", "Toolbar preset. Options: None, Simple, Standard, Full, Custom.")
+                </ApiParameter>
+                <ApiParameter Since="v4" Name="ImageUploader" Type="Func&lt;EditorImageUpload, Task&lt;string?&gt;&gt;?" Default="null">
+                    @L.T("接收用户选择、拖入或粘贴的每一张图片，并返回要内嵌的 URL；返回 null 即拒绝。没有它时图片会以内联 data URL 嵌入。", "Receives every image the user picks, drops or pastes and returns the URL to embed, or null to reject it. Without it, images are embedded as data URLs.")
+                </ApiParameter>
+                <ApiParameter Since="v4" Name="MaxImageSize" Type="long" Default="10485760">
+                    @L.T("传给 ImageUploader 的图片体积上限（字节）。更大的文件在传输任何数据之前就被拒绝。", "Largest image, in bytes, streamed to ImageUploader. Larger files are rejected before any data moves.")
+                </ApiParameter>
+                <ApiParameter Name="ToolbarContent" Type="RenderFragment?" Default="null">
+                    @L.T("当 Toolbar 设为 Custom 时使用的自定义工具栏内容。", "Custom toolbar content when Toolbar is set to Custom.")
+                </ApiParameter>
+                <ApiParameter Name="Placeholder" Type="string?" Default="null">
+                    @L.T("编辑器为空时显示的占位文本。", "Placeholder text when the editor is empty.")
+                </ApiParameter>
+                <ApiParameter Name="MinHeight" Type="string" Default="&quot;150px&quot;">
+                    @L.T("编辑区域的最小高度。", "Minimum height of the editor area.")
+                </ApiParameter>
+                <ApiParameter Name="MaxHeight" Type="string?" Default="null">
+                    @L.T("编辑区域的最大高度。超出后内容滚动。", "Maximum height of the editor area. Content scrolls when exceeded.")
+                </ApiParameter>
+                <ApiParameter Name="Height" Type="string?" Default="null">
+                    @L.T("编辑区域的固定高度。", "Fixed height for the editor area.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("编辑器是否被禁用。", "Whether the editor is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="ReadOnly" Type="bool" Default="false">
+                    @L.T("编辑器是否只读。", "Whether the editor is read-only.")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                    @L.T("编辑区域的 ARIA 标签。", "ARIA label for the editor region.")
+                </ApiParameter>
+                <ApiParameter Name="AriaDescribedBy" Type="string?" Default="null">
+                    @L.T("描述该编辑器的元素 ID。", "ID of the element that describes the editor.")
+                </ApiParameter>
+                <ApiParameter Name="AriaInvalid" Type="bool?" Default="null">
+                    @L.T("编辑器值是否无效。", "Whether the editor value is invalid.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;div&gt;</code> 元素的附加 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string? basicValue;
+    private string? labeledValue;
+    private string? simpleValue;
+    private string? standardValue;
+    private string? fullValue;
+    private string? noToolbarValue;
+    private string? toolbarDemoValue;
+    private RichTextEditor? tableEditor;
+    private string? imageValue;
+    private int imageUploads;
+
+    private async Task<string?> UploadImageAsync(EditorImageUpload image)
+    {
+        if (image.Size > 1024 * 1024)
+        {
+            return null;
+        }
+
+        using var buffer = new MemoryStream();
+        await image.Content.CopyToAsync(buffer);
+        imageUploads++;
+
+        // A real handler writes the bytes to blob storage or disk and returns that URL.
+        return $"data:{image.ContentType};base64,{Convert.ToBase64String(buffer.ToArray())}";
+    }
+    private string? tableValue = @"<p>Quarterly numbers:</p>
+<table>
+<tbody>
+<tr><td><strong>Region</strong></td><td><strong>Q1</strong></td><td><strong>Q2</strong></td></tr>
+<tr><td>North</td><td>120</td><td>135</td></tr>
+<tr><td>South</td><td>98</td><td>110</td></tr>
+</tbody>
+</table>
+<p>Put the caret in a cell and open the table menu to add or remove rows and columns.</p>";
+    private string? feedbackValue;
+    private string? maxHeightValue;
+    private string? fixedHeightValue;
+    private bool submitted;
+
+    private string prePopulatedValue = @"<h2>Welcome to the Rich Text Editor</h2>
+<p>This is a <strong>bold</strong> statement and this is <em>italic</em> text.</p>
+<h3>Features</h3>
+<ul>
+<li>Write with visual formatting</li>
+<li>See your changes immediately</li>
+<li>Use keyboard shortcuts for quick formatting</li>
+</ul>
+<p>Enjoy writing!</p>";
+
+    private void HandleSubmit()
+    {
+        submitted = true;
+        // BL0012（.NET 11）：事件处理器触发的重渲染由框架自动完成，此处的显式 StateHasChanged 无需保留。
+    }
+
+    private RenderFragment RenderHtmlOutput(string? value) => builder =>
+    {
+        if (!string.IsNullOrEmpty(value))
+        {
+            builder.OpenElement(0, "div");
+            builder.AddAttribute(1, "class", "mt-4 rounded-lg border bg-muted/30 p-4");
+
+            builder.OpenElement(2, "div");
+            builder.AddAttribute(3, "class", "text-xs font-medium text-muted-foreground mb-2");
+            builder.AddContent(4, L.T("HTML 输出", "HTML Output"));
+            builder.CloseElement();
+
+            builder.OpenElement(5, "pre");
+            builder.AddAttribute(6, "class", "text-xs bg-muted p-3 rounded-md overflow-auto whitespace-pre-wrap break-all");
+            builder.AddContent(7, value);
+            builder.CloseElement();
+
+            builder.CloseElement();
+        }
+    };
+}

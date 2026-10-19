@@ -1,0 +1,401 @@
+@page "/components/responsive-nav"
+@using AtomBlazor.Icons.Lucide
+@using Microsoft.AspNetCore.Components.Routing
+
+<PageTitle>@L.T("响应式导航 - Atom BlazorUI", "Responsive Navigation - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("响应式导航", "Responsive Navigation")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("响应式导航包装器：移动端显示汉堡菜单，桌面端显示完整导航。", "A responsive navigation wrapper that shows a hamburger menu on mobile and full navigation on desktop.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本示例", "Basic Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("调整浏览器窗口大小，即可看到导航在桌面与移动模式之间切换。移动端（小于 768px）会出现汉堡图标，导航移到侧滑抽屉中。", "Resize the browser window to see the navigation switch between desktop and mobile modes. On mobile (below 768px), a hamburger icon appears and the navigation moves to a slide-out sheet.")
+            </p>
+        </div>
+        <div class="border rounded-lg">
+            <ResponsiveNavProvider>
+                <header class="flex items-center justify-between p-4 border-b bg-background">
+                    <div class="flex items-center gap-4">
+                        <a href="/" class="font-bold text-lg">AtomBlazor</a>
+
+                        <!-- Mobile trigger - hidden on desktop -->
+                        <ResponsiveNavTrigger />
+                    </div>
+
+                    <!-- Desktop navigation - hidden on mobile -->
+                    <NavigationMenu Class="hidden md:flex">
+                        <AtomBlazor.NavigationMenuList>
+                            <AtomBlazor.NavigationMenuItem>
+                                <AtomBlazor.NavigationMenuLink Href="#">@L.T("文档", "Documentation")</AtomBlazor.NavigationMenuLink>
+                            </AtomBlazor.NavigationMenuItem>
+                            <AtomBlazor.NavigationMenuItem Value="components">
+                                <AtomBlazor.NavigationMenuTrigger>@L.T("组件", "Components")</AtomBlazor.NavigationMenuTrigger>
+                                <AtomBlazor.NavigationMenuContent>
+                                    <div class="grid gap-3 p-4 w-[400px]">
+                                        <div class="p-3 rounded-lg hover:bg-accent">
+                                            <a href="/components/button" class="block font-medium mb-1">Button</a>
+                                            <p class="text-sm text-muted-foreground">@L.T("带多种变体的可交互按钮。", "Interactive buttons with variants.")</p>
+                                        </div>
+                                        <div class="p-3 rounded-lg hover:bg-accent">
+                                            <a href="/components/dialog" class="block font-medium mb-1">Dialog</a>
+                                            <p class="text-sm text-muted-foreground">@L.T("用于交互的模态对话框。", "Modal dialogs for interactions.")</p>
+                                        </div>
+                                    </div>
+                                </AtomBlazor.NavigationMenuContent>
+                            </AtomBlazor.NavigationMenuItem>
+                            <AtomBlazor.NavigationMenuItem>
+                                <AtomBlazor.NavigationMenuLink Href="/primitives">@L.T("基础元素", "Primitives")</AtomBlazor.NavigationMenuLink>
+                            </AtomBlazor.NavigationMenuItem>
+                        </AtomBlazor.NavigationMenuList>
+                    </NavigationMenu>
+
+                    <div class="hidden md:block">
+                        <a href="#" class="text-sm text-muted-foreground hover:text-foreground">@L.T("登录", "Sign In")</a>
+                    </div>
+                </header>
+
+                <!-- Mobile navigation in Sheet -->
+                <ResponsiveNavContent>
+                    <nav class="flex flex-col space-y-4">
+                        <a href="#" class="text-lg font-medium hover:text-primary">@L.T("文档", "Documentation")</a>
+                        <div class="space-y-2">
+                            <span class="text-sm font-medium text-muted-foreground">@L.T("组件", "Components")</span>
+                            <div class="pl-4 space-y-2 border-l">
+                                <a href="/components/button" class="block text-sm hover:text-primary">Button</a>
+                                <a href="/components/dialog" class="block text-sm hover:text-primary">Dialog</a>
+                            </div>
+                        </div>
+                        <a href="/primitives" class="text-lg font-medium hover:text-primary">@L.T("基础元素", "Primitives")</a>
+                        <Separator />
+                        <a href="#" class="text-sm text-muted-foreground hover:text-primary">@L.T("登录", "Sign In")</a>
+                    </nav>
+                </ResponsiveNavContent>
+            </ResponsiveNavProvider>
+        </div>
+    </div>
+
+    <!-- With Header and Footer -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带页眉与页脚", "With Header and Footer")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("移动端抽屉可以包含可选的页眉与页脚区域。", "The mobile sheet can include optional header and footer sections.")
+            </p>
+        </div>
+        <div class="border rounded-lg">
+            <ResponsiveNavProvider>
+                <header class="flex items-center justify-between p-4 border-b bg-background">
+                    <div class="flex items-center gap-4">
+                        <LucideIcon Name="rocket" Size="24" Class="text-primary" />
+                        <span class="font-bold">Acme Inc</span>
+                        <ResponsiveNavTrigger />
+                    </div>
+
+                    <NavigationMenu Class="hidden md:flex">
+                        <AtomBlazor.NavigationMenuList>
+                            <AtomBlazor.NavigationMenuItem>
+                                <AtomBlazor.NavigationMenuLink Href="#">@L.T("产品", "Products")</AtomBlazor.NavigationMenuLink>
+                            </AtomBlazor.NavigationMenuItem>
+                            <AtomBlazor.NavigationMenuItem>
+                                <AtomBlazor.NavigationMenuLink Href="#">@L.T("解决方案", "Solutions")</AtomBlazor.NavigationMenuLink>
+                            </AtomBlazor.NavigationMenuItem>
+                            <AtomBlazor.NavigationMenuItem>
+                                <AtomBlazor.NavigationMenuLink Href="#">@L.T("定价", "Pricing")</AtomBlazor.NavigationMenuLink>
+                            </AtomBlazor.NavigationMenuItem>
+                            <AtomBlazor.NavigationMenuItem>
+                                <AtomBlazor.NavigationMenuLink Href="#">@L.T("关于", "About")</AtomBlazor.NavigationMenuLink>
+                            </AtomBlazor.NavigationMenuItem>
+                        </AtomBlazor.NavigationMenuList>
+                    </NavigationMenu>
+                </header>
+
+                <ResponsiveNavContent>
+                    <Header>
+                        <div class="flex items-center gap-3">
+                            <LucideIcon Name="rocket" Size="24" Class="text-primary" />
+                            <span class="font-bold text-lg">Acme Inc</span>
+                        </div>
+                    </Header>
+                    <ChildContent>
+                        <nav class="flex flex-col space-y-4">
+                            <a href="#" class="text-lg font-medium hover:text-primary">@L.T("产品", "Products")</a>
+                            <a href="#" class="text-lg font-medium hover:text-primary">@L.T("解决方案", "Solutions")</a>
+                            <a href="#" class="text-lg font-medium hover:text-primary">@L.T("定价", "Pricing")</a>
+                            <a href="#" class="text-lg font-medium hover:text-primary">@L.T("关于", "About")</a>
+                        </nav>
+                    </ChildContent>
+                    <Footer>
+                        <div class="flex flex-col gap-2">
+                            <a href="#" class="text-sm text-muted-foreground hover:text-primary">@L.T("联系我们", "Contact Us")</a>
+                            <a href="#" class="text-sm text-muted-foreground hover:text-primary">@L.T("支持", "Support")</a>
+                        </div>
+                    </Footer>
+                </ResponsiveNavContent>
+            </ResponsiveNavProvider>
+        </div>
+    </div>
+
+    <!-- Shared Items -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("共享条目", "Shared Items")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">ResponsiveNavItems</code> 配合一个
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">NavItemDefinition</code> 数组即可一次定义导航链接。
+                    组件会依据同一份数据自动渲染桌面端 NavigationMenu 与移动端抽屉。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">ResponsiveNavItems</code> with a
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">NavItemDefinition</code> array to define navigation links once.
+                    The component automatically renders a desktop NavigationMenu and a mobile sheet from the same data.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="border rounded-lg">
+            <ResponsiveNavProvider>
+                <header class="flex items-center justify-between p-4 border-b bg-background">
+                    <div class="flex items-center gap-4">
+                        <LucideIcon Name="compass" Size="24" Class="text-primary" />
+                        <span class="font-bold">Shared Nav</span>
+                        <ResponsiveNavTrigger />
+                    </div>
+                    <ResponsiveNavItems Items="@sharedNavItems" />
+                </header>
+            </ResponsiveNavProvider>
+        </div>
+
+        <CodeBlock Source="Components/ResponsiveNav/shared-items.txt" />
+    </div>
+
+    <!-- Usage Notes -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("使用说明", "Usage Notes")</h2>
+        </div>
+        <div class="border rounded-lg p-6 space-y-3 bg-muted/50">
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm">
+                    <strong>结构：</strong> ResponsiveNavProvider 包裹你的页眉，并为响应式行为提供上下文。
+                </p>
+                <p class="text-sm">
+                    <strong>桌面端导航：</strong> 使用标准的 NavigationMenu，并加上 <code class="text-xs bg-muted px-1 py-0.5 rounded">Class="hidden md:flex"</code> 以便在移动端隐藏。
+                </p>
+                <p class="text-sm">
+                    <strong>移动端触发器：</strong> ResponsiveNavTrigger 只在移动端（小于 768px）自动显示。
+                </p>
+                <p class="text-sm">
+                    <strong>移动端内容：</strong> ResponsiveNavContent 渲染一个包含你的移动端导航的 Sheet。在其内部自行定义布局。
+                </p>
+                <p class="text-sm">
+                    <strong>自动关闭：</strong> 发生导航时，移动端抽屉会自动关闭。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm">
+                    <strong>Structure:</strong> ResponsiveNavProvider wraps your header and provides context for responsive behavior.
+                </p>
+                <p class="text-sm">
+                    <strong>Desktop navigation:</strong> Use the standard NavigationMenu with <code class="text-xs bg-muted px-1 py-0.5 rounded">Class="hidden md:flex"</code> to hide on mobile.
+                </p>
+                <p class="text-sm">
+                    <strong>Mobile trigger:</strong> ResponsiveNavTrigger automatically shows only on mobile (below 768px).
+                </p>
+                <p class="text-sm">
+                    <strong>Mobile content:</strong> ResponsiveNavContent renders a Sheet with your mobile navigation. Define your own layout inside.
+                </p>
+                <p class="text-sm">
+                    <strong>Auto-close:</strong> The mobile sheet automatically closes when navigation occurs.
+                </p>
+                        </text>
+}
+        </div>
+    </div>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    移动端抽屉使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="dialog"</code>，并带 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-modal="true"</code>
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    汉堡按钮内含供屏幕阅读器朗读的 <code class="text-xs bg-muted px-1 py-0.5 rounded">sr-only</code> 文本（"Toggle Menu"）
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    桌面端导航菜单触发器使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-haspopup="menu"</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code>
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    桌面端下拉内容使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menu"</code>，并在链接上使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menuitem"</code>
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Mobile sheet uses <code class="text-xs bg-muted px-1 py-0.5 rounded">role="dialog"</code> with <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-modal="true"</code>
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    Hamburger button includes <code class="text-xs bg-muted px-1 py-0.5 rounded">sr-only</code> text ("Toggle Menu") for screen readers
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    Desktop navigation menu triggers use <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-haspopup="menu"</code> and <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code>
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    Desktop dropdown content uses <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menu"</code> with <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menuitem"</code> on links
+                </AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("关闭移动端抽屉", "Close the mobile sheet"))">
+                <Kbd>Escape</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在桌面端菜单触发器之间移动", "Navigate between desktop menu triggers"))">
+                <Kbd>ArrowLeft</Kbd> / <Kbd>ArrowRight</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("展开下拉并在条目间移动", "Open dropdown and navigate items"))">
+                <Kbd>ArrowDown</Kbd> / <Kbd>ArrowUp</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在移动端抽屉内循环焦点", "Cycle focus within the mobile sheet"))">
+                <Kbd>Tab</Kbd> / <Kbd>Shift+Tab</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+        </div>
+        <div class="border rounded-lg p-6 space-y-4">
+            <div>
+                <h3 class="font-semibold mb-2">@L.T("组件", "Components")</h3>
+                <div class="space-y-2 text-sm">
+                    <p><code class="bg-muted px-1 py-0.5 rounded">ResponsiveNavProvider</code> - @L.T("根上下文提供器（管理移动端状态）", "Root context provider (manages mobile state)")</p>
+                    <p><code class="bg-muted px-1 py-0.5 rounded">ResponsiveNavTrigger</code> - @L.T("汉堡菜单按钮（仅在移动端可见）", "Hamburger menu button (visible only on mobile)")</p>
+                    <p><code class="bg-muted px-1 py-0.5 rounded">ResponsiveNavContent</code> - @L.T("移动端抽屉内容包装器", "Mobile sheet content wrapper")</p>
+                </div>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">ResponsiveNavTrigger.Class</h3>
+                <p class="text-sm text-muted-foreground mb-2">
+                    @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">string?</code>
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("追加到触发按钮的额外 CSS 类。", "Additional CSS classes for the trigger button.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">ResponsiveNavContent.Side</h3>
+                <p class="text-sm text-muted-foreground mb-2">
+                    @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">SheetSide</code> — @L.T("默认值：", "Default:") <code class="text-xs bg-muted px-1 py-0.5 rounded">Left</code>
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("移动端抽屉滑入的一侧。", "The side from which the mobile sheet slides in.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">ResponsiveNavContent.ShowClose</h3>
+                <p class="text-sm text-muted-foreground mb-2">
+                    @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code> — @L.T("默认值：", "Default:") <code class="text-xs bg-muted px-1 py-0.5 rounded">true</code>
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("是否在抽屉中显示关闭按钮。", "Whether to show the close button in the sheet.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">ResponsiveNavContent.CloseOnNavigate</h3>
+                <p class="text-sm text-muted-foreground mb-2">
+                    @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code> — @L.T("默认值：", "Default:") <code class="text-xs bg-muted px-1 py-0.5 rounded">true</code>
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("导航发生时是否关闭移动端菜单。", "Whether to close the mobile menu when navigation occurs.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">ResponsiveNavContent.Header</h3>
+                <p class="text-sm text-muted-foreground mb-2">
+                    @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">RenderFragment?</code>
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("移动端菜单的可选页眉内容。", "Optional header content for the mobile menu.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">ResponsiveNavContent.Footer</h3>
+                <p class="text-sm text-muted-foreground mb-2">
+                    @L.T("类型：", "Type:") <code class="text-xs bg-muted px-1 py-0.5 rounded">RenderFragment?</code>
+                </p>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("移动端菜单的可选页脚内容。", "Optional footer content for the mobile menu.")
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <LocalizationSection
+        Description="@(L.T("响应式导航切换按钮的 aria 标签可以配置。", "The responsive nav toggle button aria label is configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("ToggleMenu", "Toggle Menu", L.T("移动端菜单切换按钮的无障碍标签。", "Aria label for the mobile menu toggle button")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""ResponsiveNav.ToggleMenu"", ""Menü umschalten"");
+});")" />
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private static readonly NavItemDefinition[] sharedNavItems =
+    [
+        new() { Text = "Documentation", Href = "/docs" },
+        new()
+        {
+            Text = "Components",
+            Children =
+            [
+                new() { Text = "Button", Href = "/components/button", Description = "Interactive buttons with variants and sizes." },
+                new() { Text = "Dialog", Href = "/components/dialog", Description = "Modal dialogs for user interactions." },
+                new() { Text = "Input", Href = "/components/input", Description = "Text input fields with validation." }
+            ]
+        },
+        new() { Text = "Primitives", Href = "/primitives" },
+        new() { Text = "Icons", Href = "/icons" }
+    ];
+}

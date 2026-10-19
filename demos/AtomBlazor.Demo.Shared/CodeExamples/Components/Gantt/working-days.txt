@@ -1,0 +1,27 @@
+<Gantt TItem="PlanTask"
+         Data="@plan"
+         IdSelector="@(t => t.Id)"
+         TextSelector="@(t => t.Name)"
+         StartSelector="@(t => t.Start)"
+         EndSelector="@(t => t.End)"
+         BarColorSelector="@(t => OwnerColor(t.Owner))"
+         ShowTaskLabels="true"
+         NonWorkingDays="@(new[] { DayOfWeek.Friday, DayOfWeek.Saturday })"
+         ShowToday="true"
+         Height="26rem" />
+
+@code {
+    private static string OwnerColor(string owner) => owner switch
+    {
+        "Ana" => "#0ea5e9",
+        "Ben" => "#8b5cf6",
+        "Cal" => "#10b981",
+        _ => "#f59e0b",
+    };
+}
+
+@* Shading only appears where a slot is a day or shorter: no week, month or year is entirely
+   non-working, so there is nothing honest to shade at those zooms.
+
+   ShowToday draws a line at the current instant, and ScrollToToday brings it into view the
+   first time the chart is drawn. *@

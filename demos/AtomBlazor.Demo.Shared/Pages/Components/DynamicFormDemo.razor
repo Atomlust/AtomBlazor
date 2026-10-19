@@ -1,0 +1,1124 @@
+@page "/components/dynamic-form"
+
+<PageTitle>@L.T("Dynamic Form 动态表单 - Atom BlazorUI", "Dynamic Form Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Dynamic Form 动态表单", "Dynamic Form")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("由架构（schema）定义渲染表单。表单结构来自后端配置的 CMS、管理面板与设置页可借此免去手工编码表单。", "Render forms from schema definitions. Eliminates hand-coding forms for CMS, admin panels, and settings pages where form structure comes from backend configuration.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Field Type Gallery -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("字段类型一览", "Field Type Gallery")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("在一个表单中渲染全部受支持的字段类型。每个分区归拢相关的输入类型，便于纵览可用的全部控件。", "Every supported field type rendered in a single form. Each section groups related input types so you can see the full range of controls available.")
+            </p>
+        </div>
+        <DynamicForm Schema="@_gallerySchema"
+                       @bind-Values="_galleryValues"
+                       Columns="2"
+                       ShowSubmitButton="false" />
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Current values:")</p>
+            <pre class="text-sm font-mono whitespace-pre-wrap">@FormatValues(_galleryValues, L)</pre>
+        </div>
+        <CodeBlock Source="Components/DynamicForm/field-type-gallery.txt" />
+    </div>
+
+    <!-- Basic Form -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基础动态表单", "Basic Dynamic Form")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("定义包含字段定义的架构，表单会为每种字段类型渲染正确的输入组件。", "Define a schema with field definitions and the form renders the correct input component for each field type.")
+            </p>
+        </div>
+        <div class="max-w-lg">
+            <DynamicForm Schema="@_basicSchema"
+                           @bind-Values="_basicValues"
+                           OnValidSubmit="HandleBasicSubmit" />
+        </div>
+        @if (_basicSubmitMessage is not null)
+        {
+            <Alert Variant="AlertVariant.Success" Dismissible="true" OnDismiss="() => _basicSubmitMessage = null">
+                <AlertTitle>@L.T("表单已提交", "Form Submitted")</AlertTitle>
+                <AlertDescription>@_basicSubmitMessage</AlertDescription>
+            </Alert>
+        }
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Current values:")</p>
+            <pre class="text-sm font-mono whitespace-pre-wrap">@FormatValues(_basicValues, L)</pre>
+        </div>
+        <CodeBlock Source="Components/DynamicForm/basic.txt" />
+    </div>
+
+    <!-- Multi-Section Form -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("多分区表单", "Multi-Section Form")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("把相关字段归入带标题与说明的分区，并可选启用可折叠行为。", "Group related fields into sections with headings, descriptions, and optional collapsible behavior.")
+            </p>
+        </div>
+        <div class="max-w-2xl">
+            <DynamicForm Schema="@_sectionSchema"
+                           @bind-Values="_sectionValues"
+                           OnValidSubmit="HandleSectionSubmit" />
+        </div>
+        @if (_sectionSubmitMessage is not null)
+        {
+            <Alert Variant="AlertVariant.Success" Dismissible="true" OnDismiss="() => _sectionSubmitMessage = null">
+                <AlertTitle>@L.T("表单已提交", "Form Submitted")</AlertTitle>
+                <AlertDescription>@_sectionSubmitMessage</AlertDescription>
+            </Alert>
+        }
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Current values:")</p>
+            <pre class="text-sm font-mono whitespace-pre-wrap">@FormatValues(_sectionValues, L)</pre>
+        </div>
+        <CodeBlock Source="Components/DynamicForm/multi-section.txt" />
+    </div>
+
+    <!-- Conditional Visibility -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("条件显隐", "Conditional Visibility")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">VisibleWhen</code> 表达式依据其他字段的值显示或隐藏字段。
+                    将国家选择为 "US" 即可显示 State 字段。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Show or hide fields based on other field values using <code class="text-xs bg-muted px-1 py-0.5 rounded">VisibleWhen</code> expressions.
+                    Select "US" as the country to reveal the State field.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-lg">
+            <DynamicForm Schema="@_conditionalSchema"
+                           @bind-Values="_conditionalValues"
+                           OnValidSubmit="HandleConditionalSubmit" />
+        </div>
+        @if (_conditionalSubmitMessage is not null)
+        {
+            <Alert Variant="AlertVariant.Success" Dismissible="true" OnDismiss="() => _conditionalSubmitMessage = null">
+                <AlertTitle>@L.T("表单已提交", "Form Submitted")</AlertTitle>
+                <AlertDescription>@_conditionalSubmitMessage</AlertDescription>
+            </Alert>
+        }
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Current values:")</p>
+            <pre class="text-sm font-mono whitespace-pre-wrap">@FormatValues(_conditionalValues, L)</pre>
+        </div>
+        <CodeBlock Source="Components/DynamicForm/conditional-visibility.txt" />
+    </div>
+
+    <!-- Multi-Column Layout -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("多列布局", "Multi-Column Layout")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">Columns</code> 参数实现响应式网格布局。
+                    字段可以通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">ColSpan</code> 跨多列。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use the <code class="text-xs bg-muted px-1 py-0.5 rounded">Columns</code> parameter for responsive grid layouts.
+                    Fields can span multiple columns with <code class="text-xs bg-muted px-1 py-0.5 rounded">ColSpan</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <DynamicForm Schema="@_multiColSchema"
+                       @bind-Values="_multiColValues"
+                       Columns="2"
+                       OnValidSubmit="HandleMultiColSubmit" />
+        @if (_multiColSubmitMessage is not null)
+        {
+            <Alert Variant="AlertVariant.Success" Dismissible="true" OnDismiss="() => _multiColSubmitMessage = null">
+                <AlertTitle>@L.T("表单已提交", "Form Submitted")</AlertTitle>
+                <AlertDescription>@_multiColSubmitMessage</AlertDescription>
+            </Alert>
+        }
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Current values:")</p>
+            <pre class="text-sm font-mono whitespace-pre-wrap">@FormatValues(_multiColValues, L)</pre>
+        </div>
+        <CodeBlock Source="Components/DynamicForm/multi-column.txt" />
+    </div>
+
+    <!-- Form Layouts -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表单布局", "Form Layouts")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Layout</code> 参数控制标签与字段的排布方式。
+                    用同一份架构对比 Vertical（默认）、Horizontal 与 Inline 三种布局。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    The <code class="text-xs bg-muted px-1 py-0.5 rounded">Layout</code> parameter controls how labels and fields are arranged.
+                    Compare Vertical (default), Horizontal, and Inline layouts using the same schema.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="space-y-2">
+                <h3 class="text-sm font-semibold text-muted-foreground uppercase tracking-wide">@L.T("纵向（默认）", "Vertical (default)")</h3>
+                <div class="rounded-lg border p-4">
+                    <DynamicForm Schema="@_layoutSchema"
+                                   @bind-Values="_layoutVerticalValues"
+                                   Layout="FormLayout.Vertical"
+                                   ShowSubmitButton="false" />
+                </div>
+            </div>
+            <div class="space-y-2">
+                <h3 class="text-sm font-semibold text-muted-foreground uppercase tracking-wide">@L.T("水平", "Horizontal")</h3>
+                <div class="rounded-lg border p-4">
+                    <DynamicForm Schema="@_layoutSchema"
+                                   @bind-Values="_layoutHorizontalValues"
+                                   Layout="FormLayout.Horizontal"
+                                   LabelWidth="4rem"
+                                   ShowSubmitButton="false" />
+                </div>
+            </div>
+        </div>
+        <div class="space-y-2">
+            <h3 class="text-sm font-semibold text-muted-foreground uppercase tracking-wide">@L.T("行内", "Inline")</h3>
+            <div class="rounded-lg border p-4">
+                <DynamicForm Schema="@_layoutSchema"
+                               @bind-Values="_layoutInlineValues"
+                               Layout="FormLayout.Inline"
+                               ShowSubmitButton="false" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/DynamicForm/form-layouts.txt" />
+    </div>
+
+    <!-- JSON Schema -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("JSON Schema 驱动表单", "JSON Schema-Driven Form")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">FormSchemaParser.FromJson</code> 把 JSON Schema 字符串解析为表单定义。
+                    适用于架构由服务端下发的 API 驱动表单。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Parse a JSON Schema string into a form definition using <code class="text-xs bg-muted px-1 py-0.5 rounded">FormSchemaParser.FromJson</code>.
+                    Useful for API-driven forms where the schema comes from the server.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-lg">
+            <DynamicForm Schema="@_jsonSchema"
+                           @bind-Values="_jsonValues"
+                           OnValidSubmit="HandleJsonSubmit" />
+        </div>
+        @if (_jsonSubmitMessage is not null)
+        {
+            <Alert Variant="AlertVariant.Success" Dismissible="true" OnDismiss="() => _jsonSubmitMessage = null">
+                <AlertTitle>@L.T("表单已提交", "Form Submitted")</AlertTitle>
+                <AlertDescription>@_jsonSubmitMessage</AlertDescription>
+            </Alert>
+        }
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Current values:")</p>
+            <pre class="text-sm font-mono whitespace-pre-wrap">@FormatValues(_jsonValues, L)</pre>
+        </div>
+        <CodeBlock Source="Components/DynamicForm/json-schema.txt" />
+    </div>
+
+    <!-- Read-Only / Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("只读 / 禁用", "Read-Only / Disabled")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">Disabled</code> 可阻止所有交互。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">Disabled</code> to prevent all interaction.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-lg">
+            <DynamicForm Schema="@_basicSchema"
+                           @bind-Values="_disabledValues"
+                           Disabled="true"
+                           ShowSubmitButton="false" />
+        </div>
+        <CodeBlock Source="Components/DynamicForm/read-only-disabled.txt" />
+    </div>
+
+    <!-- Validation -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("校验", "Validation")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("在字段定义上声明校验规则。必填字段、正则模式、最小/最大长度与数值范围校验全部支持。不妨试试提交空表单。", "Define validation rules on field definitions. Required fields, patterns, min/max length, and numeric range validations are all supported. Try submitting the empty form.")
+            </p>
+        </div>
+        <div class="max-w-lg">
+            <DynamicForm Schema="@_validationSchema"
+                           @bind-Values="_validationValues"
+                           OnValidSubmit="HandleValidationSubmit" />
+        </div>
+        @if (_validationSubmitMessage is not null)
+        {
+            <Alert Variant="AlertVariant.Success" Dismissible="true" OnDismiss="() => _validationSubmitMessage = null">
+                <AlertTitle>@L.T("表单已提交", "Form Submitted")</AlertTitle>
+                <AlertDescription>@_validationSubmitMessage</AlertDescription>
+            </Alert>
+        }
+        <CodeBlock Source="Components/DynamicForm/validation.txt" />
+    </div>
+
+    <!-- Accessibility -->
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                @L.T("每个渲染出的输入项都继承其底层 AtomBlazor 组件的无障碍特性（标签、ARIA 属性、错误播报）", "Each rendered input inherits the accessibility features of its underlying AtomBlazor component (labels, ARIA attributes, error announcements)")
+            </AccessibilityItem>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    标签会通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">FieldLabel</code> 自动关联到对应输入项
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Labels are automatically associated with their inputs via <code class="text-xs bg-muted px-1 py-0.5 rounded">FieldLabel</code>
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    校验错误会通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">FieldError</code> 以内联方式展示，便于读屏软件支持
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Validation errors are displayed inline with <code class="text-xs bg-muted px-1 py-0.5 rounded">FieldError</code> for screen reader support
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    隐藏字段（经由 <code class="text-xs bg-muted px-1 py-0.5 rounded">VisibleWhen</code>）会被彻底移出 DOM，而不只是视觉隐藏
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Hidden fields (via <code class="text-xs bg-muted px-1 py-0.5 rounded">VisibleWhen</code>) are fully removed from the DOM, not just visually hidden
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    可折叠分区使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">Collapsible</code>，并带有正确的 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> 状态
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Collapsible sections use <code class="text-xs bg-muted px-1 py-0.5 rounded">Collapsible</code> with proper <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> state
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    表单使用原生 <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;form&gt;</code> 元素，保持标准提交行为
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Form uses native <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;form&gt;</code> element for standard submit behavior
+                </AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在表单字段之间移动", "Move between form fields"))">
+                <Kbd>Tab</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("提交表单", "Submit the form"))">
+                <Kbd>Enter</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("切换可折叠分区", "Toggle collapsible sections"))">
+                <Kbd>Enter</Kbd> @L.T("或", "or") <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="DynamicForm">
+                <ApiParameter Name="Schema" Type="FormSchema?">
+                    @L.T("表单的架构定义，包含字段与/或分区。", "The schema definition for the form, containing fields and/or sections.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Values" Type="Dictionary&lt;string, object?&gt;">
+                        当前表单值字典。使用 <code>@@bind-Values</code> 进行双向绑定。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Values" Type="Dictionary&lt;string, object?&gt;">
+                        The current form values dictionary. Use <code>@@bind-Values</code> for two-way binding.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="OnSubmit" Type="EventCallback&lt;Dictionary&lt;string, object?&gt;&gt;">
+                    @L.T("表单提交时调用的回调，不论校验是否通过。", "Callback invoked on form submission regardless of validation.")
+                </ApiParameter>
+                <ApiParameter Name="OnValidSubmit" Type="EventCallback&lt;Dictionary&lt;string, object?&gt;&gt;">
+                    @L.T("仅在所有校验通过时于表单提交调用的回调。", "Callback invoked on form submission only when all validation passes.")
+                </ApiParameter>
+                <ApiParameter Name="OnFieldChanged" Type="EventCallback&lt;FormFieldChangedEventArgs&gt;">
+                    @L.T("任一字段值变化时调用的回调。提供字段名、旧值与新值。", "Callback invoked when any field value changes. Provides field name, old value, and new value.")
+                </ApiParameter>
+                <ApiParameter Name="Layout" Type="FormLayout" Default="Vertical">
+                    @L.T("表单布局模式。选项：Vertical、Horizontal、Inline。", "Form layout mode. Options: Vertical, Horizontal, Inline.")
+                </ApiParameter>
+                <ApiParameter Name="LabelWidth" Type="string?" Default="null">
+                    @L.T("Horizontal 布局下的固定标签宽度（如 “100px”、“8rem”）。让所有标签等宽，输入项从而整齐对齐。", "Fixed label width for Horizontal layout (e.g., \"100px\", \"8rem\"). Ensures all labels have the same width so inputs align consistently.")
+                </ApiParameter>
+                <ApiParameter Name="Columns" Type="int" Default="1">
+                    @L.T("响应式网格布局的列数。可在分区级别覆盖。", "Number of columns for the responsive grid layout. Can be overridden per section.")
+                </ApiParameter>
+                <ApiParameter Name="ReadOnly" Type="bool" Default="false">
+                    @L.T("是否将所有字段渲染为只读。", "Whether all fields are rendered as read-only.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("是否禁用所有字段。", "Whether all fields are disabled.")
+                </ApiParameter>
+                <ApiParameter Name="SubmitText" Type="string" Default="Submit">
+                    @L.T("内置提交按钮的文案。", "Text for the built-in submit button.")
+                </ApiParameter>
+                <ApiParameter Name="ShowSubmitButton" Type="bool" Default="true">
+                    @L.T("是否显示内置提交按钮。", "Whether to show the built-in submit button.")
+                </ApiParameter>
+                <ApiParameter Name="ShowValidationSummary" Type="bool" Default="false">
+                    @L.T("是否在表单顶部显示校验错误汇总。为 false 时，错误仅在各个字段旁内联显示。", "Whether to show a validation error summary at the top of the form. When false, errors are only shown inline next to each field.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到表单元素上的额外 CSS 类。", "Additional CSS classes applied to the form element.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="FieldRenderers" Type="Dictionary&lt;string, RenderFragment&lt;DynamicFieldRenderContext&gt;&gt;?">
+                        按字段名索引的自定义字段渲染器。用于 <code>FieldType.Custom</code> 字段。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="FieldRenderers" Type="Dictionary&lt;string, RenderFragment&lt;DynamicFieldRenderContext&gt;&gt;?">
+                        Custom field renderers keyed by field name. Used for <code>FieldType.Custom</code> fields.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("在表单内部渲染的额外内容（例如额外的按钮）。", "Additional content rendered inside the form (e.g., extra buttons).")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;form&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;form&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="FormSchema">
+                <ApiParameter Name="Title" Type="string?">
+                    @L.T("显示在表单上方的标题。", "Form title displayed above the form.")
+                </ApiParameter>
+                <ApiParameter Name="Description" Type="string?">
+                    @L.T("显示在标题下方的说明。", "Description displayed below the title.")
+                </ApiParameter>
+                <ApiParameter Name="Fields" Type="List&lt;FormFieldDefinition&gt;">
+                    @L.T("字段平铺列表。Sections 有内容时被忽略。", "Flat list of fields. Ignored when Sections is populated.")
+                </ApiParameter>
+                <ApiParameter Name="Sections" Type="List&lt;FormSectionDefinition&gt;">
+                    @L.T("带标题与说明的分组字段。设置后 Fields 被忽略。", "Grouped fields with headings and descriptions. When set, Fields is ignored.")
+                </ApiParameter>
+                <ApiParameter Name="Columns" Type="int" Default="1">
+                    @L.T("默认网格列数。各个分区可覆盖此值。", "Default number of grid columns. Individual sections can override this.")
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="FormFieldDefinition">
+                <ApiParameter Name="Name" Type="string">
+                    @L.T("字段名，同时作为值字典中的键。", "Field name used as the key in the values dictionary.")
+                </ApiParameter>
+                <ApiParameter Name="Label" Type="string?">
+                    @L.T("显示在字段上方或旁边的标签文本。", "Label text displayed above or beside the field.")
+                </ApiParameter>
+                <ApiParameter Name="Description" Type="string?">
+                    @L.T("显示在字段下方的辅助文本。", "Helper text displayed below the field.")
+                </ApiParameter>
+                <ApiParameter Name="Placeholder" Type="string?">
+                    @L.T("字段为空时显示的占位文本。", "Placeholder text displayed when the field is empty.")
+                </ApiParameter>
+                <ApiParameter Name="Type" Type="FieldType" Default="Text">
+                    @L.T("决定渲染哪个组件的字段类型。选项：Text、Email、Password、Url、Phone、Number、Currency、Textarea、RichText、Select、Combobox、MultiSelect、NativeSelect、Checkbox、Switch、CheckboxGroup、RadioGroup、Date、DateRange、Time、DateTime、Color、File、OTP、Slider、RangeSlider、Tags、Custom。", "Field type that determines which component is rendered. Options: Text, Email, Password, Url, Phone, Number, Currency, Textarea, RichText, Select, Combobox, MultiSelect, NativeSelect, Checkbox, Switch, CheckboxGroup, RadioGroup, Date, DateRange, Time, DateTime, Color, File, OTP, Slider, RangeSlider, Tags, Custom.")
+                </ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">
+                    @L.T("该字段是否必填。", "Whether this field is required.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("该字段是否禁用。", "Whether this field is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="ReadOnly" Type="bool" Default="false">
+                    @L.T("该字段是否只读。", "Whether this field is read-only.")
+                </ApiParameter>
+                <ApiParameter Name="DefaultValue" Type="object?">
+                    @L.T("字段在值字典中不存在时应用的默认值。", "Default value applied when the field is not present in the values dictionary.")
+                </ApiParameter>
+                <ApiParameter Name="Order" Type="int?">
+                    @L.T("显示顺序。数值较小的字段先出现。为 null 时按定义顺序。", "Display order. Fields with lower values appear first. Null uses definition order.")
+                </ApiParameter>
+                <ApiParameter Name="ColSpan" Type="int" Default="1">
+                    @L.T("该字段跨越的网格列数。", "Number of grid columns this field spans.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="VisibleWhen" Type="string?">
+                        针对当前值求值的可见性表达式。示例：<code>"Country == 'US'"</code>。支持 <code>==</code>、<code>!=</code>、<code>&amp;&amp;</code>、<code>||</code>、<code>!</code>。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="VisibleWhen" Type="string?">
+                        Visibility expression evaluated against current values. Example: <code>"Country == 'US'"</code>. Supports <code>==</code>, <code>!=</code>, <code>&amp;&amp;</code>, <code>||</code>, <code>!</code>.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="Options" Type="List&lt;SelectOption&lt;string&gt;&gt;?">
+                    @L.T("Select、Combobox、MultiSelect、RadioGroup 与 CheckboxGroup 字段的选项。", "Options for Select, Combobox, MultiSelect, RadioGroup, and CheckboxGroup fields.")
+                </ApiParameter>
+                <ApiParameter Name="Validations" Type="List&lt;FieldValidation&gt;?">
+                    @L.T("该字段的校验规则。", "Validation rules for this field.")
+                </ApiParameter>
+                <ApiParameter Name="Metadata" Type="Dictionary&lt;string, object&gt;?">
+                    @L.T("面向特定字段类型的额外配置元数据（例如滑块用的 min、max、step）。", "Additional metadata for field-type-specific configuration (e.g., min, max, step for sliders).")
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="FormSectionDefinition">
+                <ApiParameter Name="Title" Type="string?">
+                    @L.T("分区标题文本。", "Section heading text.")
+                </ApiParameter>
+                <ApiParameter Name="Description" Type="string?">
+                    @L.T("显示在标题下方的分区说明。", "Section description displayed below the heading.")
+                </ApiParameter>
+                <ApiParameter Name="Fields" Type="List&lt;FormFieldDefinition&gt;">
+                    @L.T("该分区内的字段。", "Fields within this section.")
+                </ApiParameter>
+                <ApiParameter Name="Columns" Type="int?">
+                    @L.T("在该分区内覆盖表单级列数。", "Override for the form-level column count within this section.")
+                </ApiParameter>
+                <ApiParameter Name="VisibleWhen" Type="string?">
+                    @L.T("控制该分区是否显示的可见性表达式。", "Visibility expression that controls whether this section is shown.")
+                </ApiParameter>
+                <ApiParameter Name="Collapsible" Type="bool" Default="false">
+                    @L.T("该分区是否可折叠。", "Whether this section can be collapsed.")
+                </ApiParameter>
+                <ApiParameter Name="DefaultExpanded" Type="bool" Default="true">
+                    @L.T("当 Collapsible 为 true 时，该分区初始是否展开。", "Whether this section is initially expanded when Collapsible is true.")
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="FieldValidation">
+                <ApiParameter Name="Type" Type="ValidationType">
+                    @L.T("校验类型。选项：Required、MinLength、MaxLength、Min、Max、Pattern、Email、Url、Phone、Custom。", "Validation type. Options: Required, MinLength, MaxLength, Min, Max, Pattern, Email, Url, Phone, Custom.")
+                </ApiParameter>
+                <ApiParameter Name="Value" Type="object?">
+                    @L.T("校验参数（例如最大长度数值、正则模式字符串）。", "Validation parameter (e.g., max length number, regex pattern string).")
+                </ApiParameter>
+                <ApiParameter Name="Message" Type="string?">
+                    @L.T("自定义错误消息。为 null 时会生成默认消息。", "Custom error message. When null, a default message is generated.")
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    // ── Field Type Gallery ──────────────────────────────────────────
+
+    private readonly FormSchema _gallerySchema = new()
+    {
+        Sections =
+        [
+            new FormSectionDefinition
+            {
+                Title = "Text Inputs",
+                Description = "Single-line text fields with different input modes.",
+                Fields =
+                [
+                    new FormFieldDefinition { Name = "GText", Label = "Text", Type = FieldType.Text, Placeholder = "Plain text input" },
+                    new FormFieldDefinition { Name = "GEmail", Label = "Email", Type = FieldType.Email, Placeholder = "user@example.com" },
+                    new FormFieldDefinition { Name = "GPassword", Label = "Password", Type = FieldType.Password, Placeholder = "Enter password" },
+                    new FormFieldDefinition { Name = "GUrl", Label = "URL", Type = FieldType.Url, Placeholder = "https://example.com" },
+                    new FormFieldDefinition { Name = "GPhone", Label = "Phone", Type = FieldType.Phone, Placeholder = "+1 (555) 000-0000" }
+                ]
+            },
+            new FormSectionDefinition
+            {
+                Title = "Numeric Inputs",
+                Description = "Number and currency fields with range constraints.",
+                Fields =
+                [
+                    new FormFieldDefinition
+                    {
+                        Name = "GNumber", Label = "Number", Type = FieldType.Number, Placeholder = "0",
+                        Metadata = new() { ["min"] = 0, ["max"] = 100, ["step"] = 1 }
+                    },
+                    new FormFieldDefinition
+                    {
+                        Name = "GCurrency", Label = "Currency", Type = FieldType.Currency, Placeholder = "0.00",
+                        Metadata = new() { ["currencyCode"] = "USD" }
+                    }
+                ]
+            },
+            new FormSectionDefinition
+            {
+                Title = "Text Areas",
+                Description = "Multi-line text and rich text editing.",
+                Columns = 1,
+                Fields =
+                [
+                    new FormFieldDefinition { Name = "GTextarea", Label = "Textarea", Type = FieldType.Textarea, Placeholder = "Write multiple lines..." },
+                    new FormFieldDefinition { Name = "GRichText", Label = "Rich Text", Type = FieldType.RichText }
+                ]
+            },
+            new FormSectionDefinition
+            {
+                Title = "Selection Controls",
+                Description = "Dropdown, combobox, and multi-select fields.",
+                Fields =
+                [
+                    new FormFieldDefinition
+                    {
+                        Name = "GSelect", Label = "Select", Type = FieldType.Select,
+                        Options = [new("apple", "Apple"), new("banana", "Banana"), new("cherry", "Cherry")]
+                    },
+                    new FormFieldDefinition
+                    {
+                        Name = "GCombobox", Label = "Combobox", Type = FieldType.Combobox, Placeholder = "Search fruits...",
+                        Options = [new("apple", "Apple"), new("banana", "Banana"), new("cherry", "Cherry"), new("date", "Date"), new("elderberry", "Elderberry")]
+                    },
+                    new FormFieldDefinition
+                    {
+                        Name = "GMultiSelect", Label = "Multi-Select", Type = FieldType.MultiSelect, Placeholder = "Choose multiple...",
+                        Options = [new("red", "Red"), new("green", "Green"), new("blue", "Blue"), new("yellow", "Yellow")]
+                    },
+                    new FormFieldDefinition
+                    {
+                        Name = "GNativeSelect", Label = "Native Select", Type = FieldType.NativeSelect,
+                        Options = [new("small", "Small"), new("medium", "Medium"), new("large", "Large")]
+                    }
+                ]
+            },
+            new FormSectionDefinition
+            {
+                Title = "Boolean & Group Controls",
+                Description = "Toggles, checkboxes, and option groups.",
+                Fields =
+                [
+                    new FormFieldDefinition { Name = "GCheckbox", Label = "Accept terms and conditions", Type = FieldType.Checkbox },
+                    new FormFieldDefinition { Name = "GSwitch", Label = "Enable notifications", Type = FieldType.Switch },
+                    new FormFieldDefinition
+                    {
+                        Name = "GCheckboxGroup", Label = "Interests", Type = FieldType.CheckboxGroup,
+                        Options = [new("sports", "Sports"), new("music", "Music"), new("tech", "Technology"), new("art", "Art")]
+                    },
+                    new FormFieldDefinition
+                    {
+                        Name = "GRadioGroup", Label = "Experience Level", Type = FieldType.RadioGroup,
+                        Options = [new("beginner", "Beginner"), new("intermediate", "Intermediate"), new("advanced", "Advanced")]
+                    }
+                ]
+            },
+            new FormSectionDefinition
+            {
+                Title = "Date & Time",
+                Description = "Date, time, and date-range pickers.",
+                Fields =
+                [
+                    new FormFieldDefinition { Name = "GDate", Label = "Date", Type = FieldType.Date },
+                    new FormFieldDefinition { Name = "GDateTime", Label = "Date & Time", Type = FieldType.DateTime },
+                    new FormFieldDefinition { Name = "GDateRange", Label = "Date Range", Type = FieldType.DateRange, ColSpan = 2 },
+                    new FormFieldDefinition { Name = "GTime", Label = "Time", Type = FieldType.Time }
+                ]
+            },
+            new FormSectionDefinition
+            {
+                Title = "Specialty Inputs",
+                Description = "Color pickers, OTP, sliders, tags, and file uploads.",
+                Fields =
+                [
+                    new FormFieldDefinition { Name = "GColor", Label = "Color", Type = FieldType.Color },
+                    new FormFieldDefinition
+                    {
+                        Name = "GOTP", Label = "OTP Code", Type = FieldType.OTP,
+                        Metadata = new() { ["length"] = 6 }
+                    },
+                    new FormFieldDefinition
+                    {
+                        Name = "GSlider", Label = "Slider", Type = FieldType.Slider,
+                        Metadata = new() { ["min"] = 0, ["max"] = 100, ["step"] = 1 }
+                    },
+                    new FormFieldDefinition
+                    {
+                        Name = "GRangeSlider", Label = "Range Slider", Type = FieldType.RangeSlider,
+                        Metadata = new() { ["min"] = 0, ["max"] = 100, ["step"] = 5 }
+                    },
+                    new FormFieldDefinition { Name = "GTags", Label = "Tags", Type = FieldType.Tags, Placeholder = "Add a tag..." },
+                    new FormFieldDefinition
+                    {
+                        Name = "GFile", Label = "File Upload", Type = FieldType.File,
+                        Metadata = new() { ["accept"] = ".pdf,.jpg,.png", ["multiple"] = true }
+                    }
+                ]
+            }
+        ]
+    };
+
+    private Dictionary<string, object?> _galleryValues = new();
+
+    // ── Form Layouts ────────────────────────────────────────────────
+
+    private readonly FormSchema _layoutSchema = new()
+    {
+        Fields =
+        [
+            new FormFieldDefinition { Name = "Name", Label = "Name", Type = FieldType.Text, Placeholder = "Jane Doe" },
+            new FormFieldDefinition { Name = "Email", Label = "Email", Type = FieldType.Email, Placeholder = "jane@example.com" },
+            new FormFieldDefinition { Name = "Role", Label = "Role", Type = FieldType.Select, Options = [new("dev", "Developer"), new("design", "Designer"), new("pm", "Product Manager")] }
+        ]
+    };
+
+    private Dictionary<string, object?> _layoutVerticalValues = new();
+    private Dictionary<string, object?> _layoutHorizontalValues = new();
+    private Dictionary<string, object?> _layoutInlineValues = new();
+
+    // ── Basic Form ──────────────────────────────────────────────────
+
+    private readonly FormSchema _basicSchema = new()
+    {
+        Title = "Contact Information",
+        Description = "Enter your basic contact details.",
+        Fields =
+        [
+            new FormFieldDefinition { Name = "FirstName", Label = "First Name", Type = FieldType.Text, Placeholder = "John", Required = true },
+            new FormFieldDefinition { Name = "LastName", Label = "Last Name", Type = FieldType.Text, Placeholder = "Doe", Required = true },
+            new FormFieldDefinition { Name = "Email", Label = "Email Address", Type = FieldType.Email, Placeholder = "john@example.com", Required = true },
+            new FormFieldDefinition { Name = "Theme", Label = "Preferred Theme", Type = FieldType.Select, Options = [new("light", "Light"), new("dark", "Dark"), new("system", "System")] },
+            new FormFieldDefinition { Name = "Newsletter", Label = "Subscribe to newsletter", Type = FieldType.Switch }
+        ]
+    };
+
+    private Dictionary<string, object?> _basicValues = new();
+
+    // ── Section Form ────────────────────────────────────────────────
+
+    private readonly FormSchema _sectionSchema = new()
+    {
+        Title = "User Registration",
+        Sections =
+        [
+            new FormSectionDefinition
+            {
+                Title = "Personal Details",
+                Description = "Your basic information.",
+                Fields =
+                [
+                    new FormFieldDefinition { Name = "FullName", Label = "Full Name", Type = FieldType.Text, Required = true },
+                    new FormFieldDefinition { Name = "Email", Label = "Email", Type = FieldType.Email, Required = true },
+                    new FormFieldDefinition { Name = "Phone", Label = "Phone", Type = FieldType.Phone, Placeholder = "+1 (555) 000-0000" }
+                ]
+            },
+            new FormSectionDefinition
+            {
+                Title = "Preferences",
+                Description = "Customize your experience.",
+                Collapsible = true,
+                Fields =
+                [
+                    new FormFieldDefinition { Name = "Language", Label = "Language", Type = FieldType.Select, Options = [new("en", "English"), new("es", "Spanish"), new("fr", "French"), new("de", "German")] },
+                    new FormFieldDefinition { Name = "DarkMode", Label = "Dark Mode", Type = FieldType.Switch },
+                    new FormFieldDefinition { Name = "Notifications", Label = "Notification Preferences", Type = FieldType.CheckboxGroup, Options = [new("email", "Email"), new("sms", "SMS"), new("push", "Push")] }
+                ]
+            }
+        ]
+    };
+
+    private Dictionary<string, object?> _sectionValues = new();
+
+    // ── Conditional Visibility ──────────────────────────────────────
+
+    private readonly FormSchema _conditionalSchema = new()
+    {
+        Fields =
+        [
+            new FormFieldDefinition
+            {
+                Name = "Country", Label = "Country", Type = FieldType.Select, Required = true,
+                Options = [new("US", "United States"), new("CA", "Canada"), new("UK", "United Kingdom"), new("AU", "Australia")]
+            },
+            new FormFieldDefinition
+            {
+                Name = "State", Label = "State", Type = FieldType.Select,
+                VisibleWhen = "Country == 'US'",
+                Options = [new("CA", "California"), new("NY", "New York"), new("TX", "Texas"), new("FL", "Florida")]
+            },
+            new FormFieldDefinition
+            {
+                Name = "Province", Label = "Province", Type = FieldType.Select,
+                VisibleWhen = "Country == 'CA'",
+                Options = [new("ON", "Ontario"), new("QC", "Quebec"), new("BC", "British Columbia")]
+            },
+            new FormFieldDefinition
+            {
+                Name = "PostalCode", Label = "Postal Code", Type = FieldType.Text,
+                VisibleWhen = "Country != null",
+                Placeholder = "Enter postal code"
+            }
+        ]
+    };
+
+    private Dictionary<string, object?> _conditionalValues = new();
+
+    // ── Multi-Column ────────────────────────────────────────────────
+
+    private readonly FormSchema _multiColSchema = new()
+    {
+        Title = "Shipping Address",
+        Columns = 2,
+        Fields =
+        [
+            new FormFieldDefinition { Name = "FirstName", Label = "First Name", Type = FieldType.Text, Required = true },
+            new FormFieldDefinition { Name = "LastName", Label = "Last Name", Type = FieldType.Text, Required = true },
+            new FormFieldDefinition { Name = "Address", Label = "Street Address", Type = FieldType.Text, ColSpan = 2, Required = true },
+            new FormFieldDefinition { Name = "City", Label = "City", Type = FieldType.Text, Required = true },
+            new FormFieldDefinition { Name = "Zip", Label = "ZIP Code", Type = FieldType.Text },
+            new FormFieldDefinition { Name = "Notes", Label = "Delivery Notes", Type = FieldType.Textarea, ColSpan = 2, Placeholder = "Any special instructions..." }
+        ]
+    };
+
+    private Dictionary<string, object?> _multiColValues = new();
+
+    // ── JSON Schema ─────────────────────────────────────────────────
+
+    private static readonly string _jsonSchemaString = @"{
+        ""type"": ""object"",
+        ""title"": ""Product Feedback"",
+        ""description"": ""Help us improve by sharing your feedback."",
+        ""required"": [""name"", ""rating"", ""category""],
+        ""properties"": {
+            ""name"": {
+                ""type"": ""string"",
+                ""title"": ""Your Name"",
+                ""minLength"": 2,
+                ""maxLength"": 100
+            },
+            ""email"": {
+                ""type"": ""string"",
+                ""format"": ""email"",
+                ""title"": ""Email Address""
+            },
+            ""rating"": {
+                ""type"": ""integer"",
+                ""title"": ""Rating (1-5)"",
+                ""minimum"": 1,
+                ""maximum"": 5
+            },
+            ""category"": {
+                ""type"": ""string"",
+                ""title"": ""Category"",
+                ""oneOf"": [
+                    { ""const"": ""bug"", ""title"": ""Bug Report"" },
+                    { ""const"": ""feature"", ""title"": ""Feature Request"" },
+                    { ""const"": ""improvement"", ""title"": ""Improvement"" },
+                    { ""const"": ""question"", ""title"": ""Question"" }
+                ]
+            },
+            ""product"": {
+                ""type"": ""string"",
+                ""title"": ""Product"",
+                ""x-field-type"": ""combobox"",
+                ""oneOf"": [
+                    { ""const"": ""atom-blazor-ui"", ""title"": ""Atom BlazorUI"" },
+                    { ""const"": ""blazor-primitives"", ""title"": ""Blazor Primitives"" },
+                    { ""const"": ""icons-lucide"", ""title"": ""Icons - Lucide"" },
+                    { ""const"": ""icons-heroicons"", ""title"": ""Icons - Heroicons"" },
+                    { ""const"": ""icons-feather"", ""title"": ""Icons - Feather"" }
+                ]
+            },
+            ""platforms"": {
+                ""type"": ""array"",
+                ""title"": ""Affected Platforms"",
+                ""items"": {
+                    ""type"": ""string"",
+                    ""oneOf"": [
+                        { ""const"": ""server"", ""title"": ""Blazor Server"" },
+                        { ""const"": ""wasm"", ""title"": ""Blazor WebAssembly"" },
+                        { ""const"": ""auto"", ""title"": ""Blazor Auto"" },
+                        { ""const"": ""maui"", ""title"": ""MAUI Hybrid"" }
+                    ]
+                }
+            },
+            ""comments"": {
+                ""type"": ""string"",
+                ""title"": ""Comments"",
+                ""maxLength"": 500
+            }
+        }
+    }";
+
+    private readonly FormSchema _jsonSchema = FormSchemaParser.FromJson(_jsonSchemaString);
+
+    private Dictionary<string, object?> _jsonValues = new();
+
+    // ── Disabled ────────────────────────────────────────────────────
+
+    private Dictionary<string, object?> _disabledValues = new()
+    {
+        ["FirstName"] = "John",
+        ["LastName"] = "Doe",
+        ["Email"] = "john@example.com",
+        ["Theme"] = "dark",
+        ["Newsletter"] = true
+    };
+
+    // ── Validation ──────────────────────────────────────────────────
+
+    private readonly FormSchema _validationSchema = new()
+    {
+        Title = "Account Setup",
+        Fields =
+        [
+            new FormFieldDefinition
+            {
+                Name = "Username", Label = "Username", Type = FieldType.Text, Required = true,
+                Validations = [new() { Type = ValidationType.MinLength, Value = 3, Message = "Username must be at least 3 characters." }, new() { Type = ValidationType.MaxLength, Value = 20 }]
+            },
+            new FormFieldDefinition
+            {
+                Name = "Email", Label = "Email", Type = FieldType.Email, Required = true,
+                Validations = [new() { Type = ValidationType.Email }]
+            },
+            new FormFieldDefinition
+            {
+                Name = "Password", Label = "Password", Type = FieldType.Password, Required = true,
+                Validations = [new() { Type = ValidationType.MinLength, Value = 8, Message = "Password must be at least 8 characters." }, new() { Type = ValidationType.Pattern, Value = @"(?=.*[A-Z])(?=.*\d)", Message = "Password must contain at least one uppercase letter and one digit." }]
+            },
+            new FormFieldDefinition
+            {
+                Name = "Age", Label = "Age", Type = FieldType.Number,
+                Validations = [new() { Type = ValidationType.Min, Value = 18, Message = "You must be at least 18 years old." }, new() { Type = ValidationType.Max, Value = 120 }]
+            },
+            new FormFieldDefinition
+            {
+                Name = "Website", Label = "Website (optional)", Type = FieldType.Url,
+                Validations = [new() { Type = ValidationType.Url }]
+            }
+        ]
+    };
+
+    private Dictionary<string, object?> _validationValues = new();
+
+    // ── Handlers ────────────────────────────────────────────────────
+
+    private string? _basicSubmitMessage;
+    private string? _sectionSubmitMessage;
+    private string? _conditionalSubmitMessage;
+    private string? _multiColSubmitMessage;
+    private string? _jsonSubmitMessage;
+    private string? _validationSubmitMessage;
+
+    private void HandleBasicSubmit(Dictionary<string, object?> values)
+    {
+        _basicSubmitMessage = L.IsChinese
+            ? $"基础表单已提交，包含 {values.Count} 个字段。"
+            : $"Basic form submitted with {values.Count} fields.";
+    }
+
+    private void HandleSectionSubmit(Dictionary<string, object?> values)
+    {
+        _sectionSubmitMessage = L.IsChinese
+            ? $"注册表单已提交，包含 {values.Count} 个字段。"
+            : $"Registration form submitted with {values.Count} fields.";
+    }
+
+    private void HandleConditionalSubmit(Dictionary<string, object?> values)
+    {
+        _conditionalSubmitMessage = L.IsChinese
+            ? $"位置表单已提交。国家：{values.GetValueOrDefault("Country")}"
+            : $"Location form submitted. Country: {values.GetValueOrDefault("Country")}";
+    }
+
+    private void HandleMultiColSubmit(Dictionary<string, object?> values)
+    {
+        _multiColSubmitMessage = L.IsChinese
+            ? $"收货表单已提交，收件人：{values.GetValueOrDefault("FirstName")} {values.GetValueOrDefault("LastName")}。"
+            : $"Shipping form submitted for {values.GetValueOrDefault("FirstName")} {values.GetValueOrDefault("LastName")}.";
+    }
+
+    private void HandleJsonSubmit(Dictionary<string, object?> values)
+    {
+        _jsonSubmitMessage = L.IsChinese
+            ? $"反馈表单已提交。评分：{values.GetValueOrDefault("rating")}"
+            : $"Feedback form submitted. Rating: {values.GetValueOrDefault("rating")}";
+    }
+
+    private void HandleValidationSubmit(Dictionary<string, object?> values)
+    {
+        _validationSubmitMessage = L.IsChinese
+            ? $"已为 {values.GetValueOrDefault("Username")} 创建账户！"
+            : $"Account created for {values.GetValueOrDefault("Username")}!";
+    }
+
+    private static string FormatValues(Dictionary<string, object?> values, DemoCultureState culture)
+    {
+        if (values.Count == 0)
+        {
+            return culture.T("（暂无值）", "(no values yet)");
+        }
+
+        return string.Join("\n", values.Select(kv => $"{kv.Key}: {FormatValue(kv.Value)}"));
+    }
+
+    private static string FormatValue(object? value)
+    {
+        if (value is null)
+        {
+            return "(null)";
+        }
+
+        if (value is string s)
+        {
+            return s;
+        }
+
+        if (value is IReadOnlyList<FileUploadItem> files)
+        {
+            if (files.Count == 0)
+            {
+                return "[]";
+            }
+            return $"[{string.Join(", ", files.Select(f => $"{f.Name} ({f.FormattedSize})"))}]";
+        }
+
+        if (value is System.Collections.IEnumerable enumerable)
+        {
+            var items = new List<string>();
+            foreach (var item in enumerable)
+            {
+                items.Add(item?.ToString() ?? "(null)");
+            }
+            return items.Count > 0 ? $"[{string.Join(", ", items)}]" : "[]";
+        }
+
+        return value.ToString() ?? "(null)";
+    }
+}

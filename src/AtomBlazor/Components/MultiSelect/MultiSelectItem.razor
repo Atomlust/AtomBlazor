@@ -1,0 +1,32 @@
+@namespace AtomBlazor
+@typeparam TValue
+@using AtomBlazor.Icons.Lucide
+
+@if (IsVisible)
+{
+    <div @key="Value"
+         role="option"
+         aria-selected="@IsSelected.ToString().ToLower()"
+         aria-disabled="@(Disabled ? "true" : "false")"
+         @onclick="HandleClick"
+         @onclick:stopPropagation="true"
+         class="@ItemCssClassValue"
+         @attributes="AdditionalAttributes">
+        <AtomBlazor.Primitives.CheckboxPrimitive Checked="@IsSelected"
+                  class="@CheckboxCssClassValue"
+                  AriaLabel="@Text">
+            @if (IsSelected)
+            {
+                <LucideIcon Name="check" Size="14" Class="atom:h-3.5 atom:w-3.5 atom:stroke-current" />
+            }
+        </AtomBlazor.Primitives.CheckboxPrimitive>
+        @if (ChildContent is not null)
+        {
+            @ChildContent
+        }
+        else
+        {
+            <span>@Text</span>
+        }
+    </div>
+}

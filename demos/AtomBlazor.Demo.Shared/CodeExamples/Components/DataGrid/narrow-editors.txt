@@ -1,0 +1,45 @@
+@* Every column here is narrower than a popup trigger's own default width.
+   A combobox defaults to 200px and a multi select to 300px, and both wrap
+   their trigger in a container. A checkbox is a plain button. The grid has
+   to fit the first two to the cell and leave the third alone. *@
+<DataGrid Items="rows" TData="WorkItem" ItemKey="@(r => r.Id)"
+            EditMode="DataGridEditMode.Cell" EditItemFactory="CloneTask">
+    <Columns>
+        <DataGridPropertyColumn TData="WorkItem" TProp="string"
+                                  Property="@(r => r.Title)" Title="Task" Width="140px" />
+
+        <DataGridPropertyColumn TData="WorkItem" TProp="string"
+                                  Property="@(r => r.Status)" Title="Status" Width="150px">
+            <EditTemplate>
+                <Combobox TValue="string" @bind-Value="context.Status"
+                            Options="statusOptions" aria-label="Status" />
+            </EditTemplate>
+        </DataGridPropertyColumn>
+
+        <DataGridPropertyColumn TData="WorkItem" TProp="string"
+                                  Property="@(r => r.SkillSummary)" Title="Skills" Width="160px">
+            <EditTemplate>
+                <MultiSelect TValue="string" Options="skillOptions" Values="context.Skills"
+                               ValuesChanged="@(v => context.Skills = v?.ToList() ?? [])"
+                               aria-label="Skills" />
+            </EditTemplate>
+        </DataGridPropertyColumn>
+
+        <DataGridPropertyColumn TData="WorkItem" TProp="bool"
+                                  Property="@(r => r.Approved)" Title="Approved" Width="110px">
+            <CellTemplate>@(context.Approved ? "Yes" : "No")</CellTemplate>
+            @* No wrapper div. A checkbox editor needs no special handling. *@
+            <EditTemplate><Checkbox @bind-Checked="context.Approved" AriaLabel="Approved" /></EditTemplate>
+        </DataGridPropertyColumn>
+    </Columns>
+</DataGrid>
+
+@* EditItemFactory must deep-copy the collection, or editing Skills would write
+   straight through to the real record before the save is accepted. *@
+@code {
+    private static WorkItem CloneTask(WorkItem source) => new()
+    {
+        Id = source.Id, Title = source.Title, Status = source.Status,
+        Approved = source.Approved, Skills = [.. source.Skills]
+    };
+}

@@ -1,0 +1,121 @@
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@using AtomBlazor.Demo.Services
+@inject DemoCultureService L
+
+<!DOCTYPE html>
+@* lang 随显示语言：SSR 首帧即正确（Program.cs 中间件已按 atom-lang cookie 初始化请求作用域服务）。 *@
+<html lang="@(L.T("zh-CN", "en"))" data-theme="default">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link href="_content/AtomBlazor.Demo.Shared/css/app.css" rel="stylesheet" />
+    <link href="_content/AtomBlazor/atomblazor.css" rel="stylesheet" />
+    <link href="_content/AtomBlazor.Primitives/css/primitives.css" rel="stylesheet" />
+    <link href="_content/AtomBlazor/css/themes.css" rel="stylesheet" />
+    <HeadOutlet />
+    @* #477：在首次绘制前应用已保存的主题，避免暗色模式用户先看到一闪的亮色。 必须保持为 <head> 中的经典阻塞式脚本；模块脚本会被推迟到其要抢先的那次绘制之后。 *@
+    <script src="_content/AtomBlazor/js/theme-init.js"></script>
+</head>
+<body>
+    <AtomBlazor.Demo.Routes InitialLanguage="@L.Language" @rendermode="InteractiveServer" />
+
+ @* Blazor 由宿主页驱动重连界面，因为电路断开后无法渲染组件。 样式随组件库 CSS 交付（atomblazor.css 的 @layer components 段， 清）； 本外壳保留 atom-reconnect 结构与语义化标记，亮/暗下随主题自动生效。 *@
+    <div id="components-reconnect-modal">
+        <div class="atom-reconnect-dialog" role="alertdialog" aria-modal="true" aria-live="assertive" aria-labelledby="atom-reconnect-heading">
+            <div class="atom-reconnect-spinner" aria-hidden="true"></div>
+
+            <h2 id="atom-reconnect-heading" class="atom-reconnect-heading">
+                @* 双语一律 b 型整元素复制：基线里 `>Reconnecting</span>` 粘连成一枚 token， a 型 `>@L.T(…)</span>` 会被包装空白拆开而判漂移。 *@
+                @if (L.IsChinese)
+                {
+                    <span data-when="show retrying">正在重新连接</span>
+                    <span data-when="paused">连接已暂停</span>
+                    <span data-when="failed">无法重新连接</span>
+                    <span data-when="resume-failed">无法恢复会话</span>
+                    <span data-when="rejected">会话已过期</span>
+                }
+                else
+                {
+                    <span data-when="show retrying">Reconnecting</span>
+                    <span data-when="paused">Connection paused</span>
+                    <span data-when="failed">Could not reconnect</span>
+                    <span data-when="resume-failed">Could not resume</span>
+                    <span data-when="rejected">Session expired</span>
+                }
+            </h2>
+
+            <p class="atom-reconnect-text">
+                @if (L.IsChinese)
+                {
+                    <span data-when="show">与服务器的连接已断开，正在尝试恢复。</span>
+                    <span data-when="retrying">下次尝试：<span id="components-seconds-to-next-attempt">0</span>秒后。</span>
+                    <span data-when="paused">连接已暂停，稍后将自动恢复。</span>
+                    <span data-when="failed">服务器没有响应。你的内容仍然在这里。</span>
+                    <span data-when="resume-failed">已暂停的会话无法恢复。</span>
+                    <span data-when="rejected">服务器无法恢复此会话。重新加载将开始新的会话。</span>
+                }
+                else
+                {
+                    <span data-when="show">The connection to the server was lost. Trying to restore it.</span>
+                    <span data-when="retrying">Next attempt in <span id="components-seconds-to-next-attempt">0</span>s.</span>
+                    <span data-when="paused">The connection was paused. It will resume on its own.</span>
+                    <span data-when="failed">The server did not answer. Your work is still here.</span>
+                    <span data-when="resume-failed">The paused session could not be resumed.</span>
+                    <span data-when="rejected">The server could not restore this session. Reloading will start a new one.</span>
+                }
+            </p>
+
+            @if (L.IsChinese)
+            {
+                <p class="atom-reconnect-attempt" data-when="show retrying">
+                    第 <span id="components-reconnect-current-attempt">1</span> 次尝试，共 <span id="components-reconnect-max-retries">8</span> 次
+                </p>
+            }
+            else
+            {
+                <p class="atom-reconnect-attempt" data-when="show retrying">
+                    Attempt <span id="components-reconnect-current-attempt">1</span> of <span id="components-reconnect-max-retries">8</span>
+                </p>
+            }
+
+            <div class="atom-reconnect-actions">
+                @if (L.IsChinese)
+                {
+                    <button type="button" class="atom-reconnect-button" data-when="failed resume-failed" onclick="window.Blazor.reconnect()">重试</button>
+                    <button type="button" class="atom-reconnect-button" data-variant="secondary" data-when="failed resume-failed" onclick="location.reload()">重新加载</button>
+                    <button type="button" class="atom-reconnect-button" data-when="rejected" onclick="location.reload()">重新加载</button>
+                }
+                else
+                {
+                    <button type="button" class="atom-reconnect-button" data-when="failed resume-failed" onclick="window.Blazor.reconnect()">Try again</button>
+                    <button type="button" class="atom-reconnect-button" data-variant="secondary" data-when="failed resume-failed" onclick="location.reload()">Reload</button>
+                    <button type="button" class="atom-reconnect-button" data-when="rejected" onclick="location.reload()">Reload</button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui" style="display: none;">
+        @if (L.IsChinese)
+        {
+            <text>
+                发生错误。在重新加载之前，此应用可能无法响应。
+                <a href="" class="reload">重新加载</a>
+                <a class="dismiss">X</a>
+            </text>
+        }
+        else
+        {
+            <text>
+                An error has occurred. This application may no longer respond until reloaded.
+                <a href="" class="reload">Reload</a>
+                <a class="dismiss">X</a>
+            </text>
+        }
+    </div>
+
+    <script src="_framework/blazor.web.js"></script>
+    <!-- 主题 JS 由 ThemeService 以 ES 模块方式加载 -->
+</body>
+</html>

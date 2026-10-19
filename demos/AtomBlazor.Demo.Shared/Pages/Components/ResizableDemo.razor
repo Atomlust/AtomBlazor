@@ -1,0 +1,518 @@
+@page "/components/resizable"
+@using System.Globalization
+<PageTitle>@L.T("Resizable 可调面板 - Atom BlazorUI", "Resizable Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Resizable 可调面板组件", "Resizable Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("带拖拽把手的可调面板，用于搭建可调整的布局。", "Resizable panels with drag handles for adjustable layouts.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Horizontal -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("水平布局", "Horizontal Layout")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("两个面板并排，中间是可拖拽的把手。", "Two panels side by side with a draggable handle.")
+            </p>
+        </div>
+        <div class="h-[200px] border rounded-lg overflow-hidden">
+            <ResizablePanelGroup Direction="ResizableDirection.Horizontal">
+                <ResizablePanel DefaultSize="50">
+                    <div class="flex h-full items-center justify-center p-6">
+                        <span class="font-semibold">@L.T("面板一", "Panel One")</span>
+                    </div>
+                </ResizablePanel>
+                <ResizableHandle />
+                <ResizablePanel DefaultSize="50">
+                    <div class="flex h-full items-center justify-center p-6">
+                        <span class="font-semibold">@L.T("面板二", "Panel Two")</span>
+                    </div>
+                </ResizablePanel>
+            </ResizablePanelGroup>
+        </div>
+        <CodeBlock Source="Components/Resizable/horizontal.txt" />
+    </div>
+
+    <!-- Keyboard Resizing -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("键盘调整大小", "Keyboard Resizing")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 Tab 聚焦到把手后即可不用指针调整大小：方向键每次移动 5%，<code>Page Up</code> 与
+                    <code>Page Down</code> 每次移动 20%，<code>Home</code> / <code>End</code> 分别跳到最小值和最大值。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Tab to a handle and resize without a pointer: arrows move 5%, <code>Page Up</code> and
+                    <code>Page Down</code> move 20%, and <code>Home</code> / <code>End</code> go to the minimum and maximum.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="h-[200px] border rounded-lg overflow-hidden">
+            <ResizablePanelGroup Direction="ResizableDirection.Horizontal">
+                <ResizablePanel DefaultSize="40" MinSize="20">
+                    <div class="flex h-full items-center justify-center p-6">
+                        <span class="font-semibold">@L.T("导航", "Navigation")</span>
+                    </div>
+                </ResizablePanel>
+                <ResizableHandle AriaLabel="@(L.T("调整导航面板的大小", "Resize the navigation panel"))" />
+                <ResizablePanel DefaultSize="60">
+                    <div class="flex h-full items-center justify-center p-6">
+                        <span class="font-semibold">@L.T("内容", "Content")</span>
+                    </div>
+                </ResizablePanel>
+            </ResizablePanelGroup>
+        </div>
+        <CodeBlock Source="Components/Resizable/keyboard.txt" />
+    </div>
+
+    <!-- Collapsible Panel -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("可折叠面板", "Collapsible Panel")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    把把手向左拖过 <code>MinSize</code> 的一半，侧边栏就会吸附关闭。再往回拖，
+                    它会在 <code>MinSize</code> 处重新打开。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Drag the handle left, past half of <code>MinSize</code>, and the sidebar snaps shut. Drag back
+                    and it reopens at <code>MinSize</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="h-[200px] border rounded-lg overflow-hidden">
+            <ResizablePanelGroup Direction="ResizableDirection.Horizontal">
+                <ResizablePanel DefaultSize="25" MinSize="15" Collapsible="true">
+                    <div class="flex h-full items-center justify-center p-6">
+                        <span class="font-semibold">@L.T("侧边栏", "Sidebar")</span>
+                    </div>
+                </ResizablePanel>
+                <ResizableHandle />
+                <ResizablePanel DefaultSize="75">
+                    <div class="flex h-full items-center justify-center p-6">
+                        <span class="font-semibold">@L.T("内容", "Content")</span>
+                    </div>
+                </ResizablePanel>
+            </ResizablePanelGroup>
+        </div>
+        <CodeBlock Source="Components/Resizable/collapsible.txt" />
+    </div>
+
+    <!-- Vertical Layout -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("垂直布局", "Vertical Layout")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("两个面板上下堆叠。", "Two panels stacked vertically.")
+            </p>
+        </div>
+        <div class="h-[300px] border rounded-lg overflow-hidden">
+            <ResizablePanelGroup Direction="ResizableDirection.Vertical">
+                <ResizablePanel DefaultSize="30">
+                    <div class="flex h-full items-center justify-center p-6">
+                        <span class="font-semibold">@L.T("页头", "Header")</span>
+                    </div>
+                </ResizablePanel>
+                <ResizableHandle />
+                <ResizablePanel DefaultSize="70">
+                    <div class="flex h-full items-center justify-center p-6">
+                        <span class="font-semibold">@L.T("内容", "Content")</span>
+                    </div>
+                </ResizablePanel>
+            </ResizablePanelGroup>
+        </div>
+        <CodeBlock Source="Components/Resizable/vertical.txt" />
+    </div>
+
+    <!-- Without Handle Icon -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("不带把手图标", "Without Handle Icon")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("简洁的分隔条，不显示握柄图标。", "Clean divider without the grip handle icon.")
+            </p>
+        </div>
+        <div class="h-[200px] border rounded-lg overflow-hidden">
+            <ResizablePanelGroup Direction="ResizableDirection.Horizontal">
+                <ResizablePanel DefaultSize="50">
+                    <div class="flex h-full items-center justify-center p-6 bg-muted/50">
+                        <span class="font-semibold">@L.T("左侧", "Left")</span>
+                    </div>
+                </ResizablePanel>
+                <ResizableHandle WithHandle="false" />
+                <ResizablePanel DefaultSize="50">
+                    <div class="flex h-full items-center justify-center p-6">
+                        <span class="font-semibold">@L.T("右侧", "Right")</span>
+                    </div>
+                </ResizablePanel>
+            </ResizablePanelGroup>
+        </div>
+        <CodeBlock Source="Components/Resizable/without-handle-icon.txt" />
+    </div>
+
+    <!-- Three Panels -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("三面板", "Three Panels")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("同一分组内的多个面板。", "Multiple panels in a single group.")
+            </p>
+        </div>
+        <div class="h-[200px] border rounded-lg overflow-hidden">
+            <ResizablePanelGroup Direction="ResizableDirection.Horizontal">
+                <ResizablePanel DefaultSize="25">
+                    <div class="flex h-full items-center justify-center p-6 bg-muted/30">
+                        <span class="font-semibold">@L.T("侧边栏", "Sidebar")</span>
+                    </div>
+                </ResizablePanel>
+                <ResizableHandle />
+                <ResizablePanel DefaultSize="50">
+                    <div class="flex h-full items-center justify-center p-6">
+                        <span class="font-semibold">@L.T("主要内容", "Main Content")</span>
+                    </div>
+                </ResizablePanel>
+                <ResizableHandle />
+                <ResizablePanel DefaultSize="25">
+                    <div class="flex h-full items-center justify-center p-6 bg-muted/30">
+                        <span class="font-semibold">@L.T("详情", "Details")</span>
+                    </div>
+                </ResizablePanel>
+            </ResizablePanelGroup>
+        </div>
+        <CodeBlock Source="Components/Resizable/three-panels.txt" />
+    </div>
+
+    <!-- Nested Layout -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("嵌套布局", "Nested Layout")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("由嵌套的可调面板构成的复杂布局。", "Complex layout with nested resizable panels.")
+            </p>
+        </div>
+        <div class="h-[400px] border rounded-lg overflow-hidden">
+            <ResizablePanelGroup Direction="ResizableDirection.Horizontal">
+                <ResizablePanel DefaultSize="30">
+                    <div class="flex h-full items-center justify-center p-6 bg-muted/30">
+                        <span class="font-semibold">@L.T("侧边栏", "Sidebar")</span>
+                    </div>
+                </ResizablePanel>
+                <ResizableHandle />
+                <ResizablePanel DefaultSize="70">
+                    <ResizablePanelGroup Direction="ResizableDirection.Vertical">
+                        <ResizablePanel DefaultSize="60">
+                            <div class="flex h-full items-center justify-center p-6">
+                                <span class="font-semibold">@L.T("主要内容", "Main Content")</span>
+                            </div>
+                        </ResizablePanel>
+                        <ResizableHandle />
+                        <ResizablePanel DefaultSize="40">
+                            <div class="flex h-full items-center justify-center p-6 bg-muted/20">
+                                <span class="font-semibold">@L.T("终端 / 输出", "Terminal / Output")</span>
+                            </div>
+                        </ResizablePanel>
+                    </ResizablePanelGroup>
+                </ResizablePanel>
+            </ResizablePanelGroup>
+        </div>
+        <CodeBlock Source="Components/Resizable/nested.txt" />
+    </div>
+
+    <!-- Reacting to a resize -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("响应调整大小", "Reacting to a Resize")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code>OnResizeEnd</code> 会在一次拖拽结束时报告最终尺寸——适合用来持久化布局。它只在释放时触发一次，
+                    而不是逐帧触发，因为拖拽本身完全在浏览器中运行，不需要与服务端往返。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code>OnResizeEnd</code> reports the resulting sizes when a drag finishes — useful for
+                    persisting a layout. It fires once on release rather than per frame, because the drag
+                    itself runs entirely in the browser and never round-trips.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="h-[200px] border rounded-lg overflow-hidden">
+            <ResizablePanelGroup Direction="ResizableDirection.Horizontal" OnResizeEnd="HandleResizeEnd">
+                <ResizablePanel DefaultSize="40">
+                    <div class="flex h-full items-center justify-center p-6 bg-muted/30">
+                        <span class="font-semibold">@L.T("左侧", "Left")</span>
+                    </div>
+                </ResizablePanel>
+                <ResizableHandle />
+                <ResizablePanel DefaultSize="60">
+                    <div class="flex h-full items-center justify-center p-6">
+                        <span class="font-semibold">@L.T("右侧", "Right")</span>
+                    </div>
+                </ResizablePanel>
+            </ResizablePanelGroup>
+        </div>
+        <p class="text-sm text-muted-foreground">
+            @if (lastSizes is null)
+            {
+                <span>@L.T("拖动把手即可查看已提交的尺寸。", "Drag the handle to see the committed sizes.")</span>
+            }
+            else
+            {
+                <span>
+                    @L.T("上次调整：", "Last resize:") <code>@string.Join("% / ", lastSizes.Select(s => s.ToString("F2", CultureInfo.InvariantCulture)))%</code>
+                    (@resizeCount @(resizeCount == 1 ? L.T("次事件", "event") : L.T("次事件", "events")))
+                </span>
+            }
+        </p>
+        <CodeBlock Source="Components/Resizable/on-resize-end.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    每个把手都是带 <code>role="separator"</code> 与 <code>aria-orientation</code> 的元素——并排面板为
+                    <code>vertical</code>，上下堆叠的面板为 <code>horizontal</code>。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Each handle is a <code>role="separator"</code> with <code>aria-orientation</code> — <code>vertical</code>
+                    for side-by-side panels, <code>horizontal</code> for stacked ones.
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    <code>aria-valuenow</code>、<code>aria-valuemin</code> 与 <code>aria-valuemax</code> 以百分比报告把手前方板的尺寸。<code>aria-controls</code> 会指明该面板。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    <code>aria-valuenow</code>, <code>aria-valuemin</code> and <code>aria-valuemax</code> report the size of
+                    the panel in front of the handle, as a percentage. <code>aria-controls</code> names that panel.
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    把手带有本地化的 <code>aria-label</code>（<code>Resizable.ResizeHandle</code>）。当一个分组包含多个把手时，用 <code>AriaLabel</code> 为每个把手单独指定。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Handles carry a localized <code>aria-label</code> (<code>Resizable.ResizeHandle</code>). Override it per
+                    handle with <code>AriaLabel</code> when one group holds several.
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    面板把自身尺寸渲染为 <code>flex-basis</code>；当面板内容需要时，请在面板上放置你自己的 landmark 角色或
+                    <code>aria-label</code>。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Panels render their size as <code>flex-basis</code>; put your own landmark role or
+                    <code>aria-label</code> on a panel when its content needs one.
+                </AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("聚焦某个调整把手", "Focus a resize handle"))">
+                <Kbd>Tab</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("按 5% 调整大小", "Resize by 5%"))">
+                <Kbd>Arrow Keys</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("按 20% 调整大小", "Resize by 20%"))">
+                <Kbd>Page Up</Kbd> / <Kbd>Page Down</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("缩小到最小值 / 放大到最大值", "Shrink to the minimum / grow to the maximum"))">
+                <Kbd>Home</Kbd> / <Kbd>End</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="ResizablePanelGroup">
+                <ApiParameter Name="Direction" Type="ResizableDirection" Default="Horizontal">
+                    @L.T("面板的排列方向。选项：Horizontal、Vertical。", "The direction of the panels. Options: Horizontal, Vertical.")
+                </ApiParameter>
+                <ApiParameter Name="OnResizeEnd" Type="EventCallback&lt;PanelResizeEventArgs&gt;" Default="null">
+                    @L.T("一次调整拖拽完成时调用，按声明顺序携带各面板的最终尺寸百分比。仅在释放时触发一次，且只在尺寸发生变化时触发。", "Invoked when a resize drag completes, carrying the resulting panel sizes as percentages in declared order. Fires once on release, and only when the sizes changed.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到面板组容器的额外 CSS 类。", "Additional CSS classes for the panel group container.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="ResizablePanel">
+                <ApiParameter Name="DefaultSize" Type="double" Default="50">
+                    @L.T("以百分比表示的默认尺寸（0-100）。", "The default size as a percentage (0-100).")
+                </ApiParameter>
+                <ApiParameter Name="MinSize" Type="double" Default="10">
+                    @L.T("以百分比表示的最小尺寸（0-100）。", "The minimum size as a percentage (0-100).")
+                </ApiParameter>
+                <ApiParameter Name="MaxSize" Type="double" Default="100">
+                    @L.T("以百分比表示的最大尺寸（0-100）。", "The maximum size as a percentage (0-100).")
+                </ApiParameter>
+                <ApiParameter Name="Collapsible" Type="bool" Default="false">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            允许把面板拖到完全关闭。低于 <code>MinSize</code> 的一半时吸附为零，往回拖时在 <code>MinSize</code> 处重新打开。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Lets the panel be dragged shut. Below half of <code>MinSize</code> it snaps to zero, and it
+                        reopens at <code>MinSize</code> on the way back.
+                                        </text>
+}
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到面板的额外 CSS 类。", "Additional CSS classes for the panel.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="ResizableHandle">
+                <ApiParameter Name="WithHandle" Type="bool" Default="true">
+                    @L.T("是否显示握柄图标。", "Whether to show the grip handle icon.")
+                </ApiParameter>
+                <ApiParameter Since="v4" Name="AriaLabel" Type="string?" Default="null">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            分隔条的可访问名称。默认为本地化的 <code>Resizable.ResizeHandle</code> 文案；当一个分组包含多个把手时，请为每个把手单独设置。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Accessible name for the separator. Defaults to the localized <code>Resizable.ResizeHandle</code>
+                        string; set it per handle when a group holds more than one.
+                                        </text>
+}
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到把手的额外 CSS 类。", "Additional CSS classes for the handle.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private IReadOnlyList<double>? lastSizes;
+    private int resizeCount;
+
+    private void HandleResizeEnd(PanelResizeEventArgs args)
+    {
+        lastSizes = args.Sizes;
+        resizeCount++;
+    }
+}

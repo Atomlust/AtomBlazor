@@ -1,0 +1,13 @@
+@namespace AtomBlazor
+
+<CascadingValue Value="state" IsFixed="false">@ChildContent</CascadingValue>
+
+@code {
+    /// <summary>接收级联 <see cref="RenderState"/> 的内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    private RenderState state = new(false);
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender) { state = new(true); StateHasChanged(); }
+    }
+}

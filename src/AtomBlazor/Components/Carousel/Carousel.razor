@@ -1,0 +1,154 @@
+@namespace AtomBlazor
+@using System.Globalization
+@using Microsoft.JSInterop
+@using AtomBlazor.Primitives.Services
+@using AtomBlazor.Icons.Lucide
+@inject IJSRuntime JS
+@inject ILocalizer Localizer
+@implements IAsyncDisposable
+
+<div @ref="element" class="@CssClass" role="region" tabindex="0" aria-roledescription="carousel" aria-label="@AriaLabel" @attributes="AdditionalAttributes" style="@RootStyle">
+    <CascadingValue Value="this" IsFixed="false">
+        @ChildContent
+        @if (ShowIndicators && ItemCount > 0)
+        {
+            <div class="@IndicatorClass" role="group" aria-label="@Localizer["Carousel.ChooseSlide"]">
+                @for (var i = 0; i <= MaxIndex; i++)
+                {
+                    var index = i;
+                    <button type="button" class="atom:flex atom:size-8 atom:items-center atom:justify-center atom:rounded-full atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring"
+                            aria-label="@($"{Localizer["Carousel.Slide"]} {i + 1}")" aria-current="@(CurrentIndex == i ? "true" : null)" @onclick="@(() => GoToAsync(index))">
+                        <span class="@ClassNames.cn("atom:size-2 atom:rounded-full", CurrentIndex == i ? "atom:bg-primary" : "atom:bg-muted-foreground/40")"></span>
+                    </button>
+                }
+            </div>
+        }
+        @if (Autoplay)
+        {
+            <button type="button" data-carousel-rotation class="atom:absolute atom:end-2 atom:top-2 atom:z-10 atom:flex atom:size-9 atom:items-center atom:justify-center atom:rounded-md atom:border atom:bg-background atom:focus-visible:ring-2 atom:focus-visible:ring-ring"
+                    aria-label="@(Paused ? Localizer["Carousel.StartRotation"] : Localizer["Carousel.StopRotation"])" @onclick="@(() => SetPausedAsync(!Paused))">
+                <LucideIcon Name="@(Paused ? "play" : "pause")" Size="16" />
+            </button>
+        }
+    </CascadingValue>
+</div>
+
+@code {
+    [Parameter] public string? Class { get; set; }
+    /// <summary>展开到根元素的额外 HTML 属性。</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public CarouselOrientation Orientation { get; set; } = CarouselOrientation.Horizontal;
+    [Parameter] public bool Loop { get; set; }
+    /// <summary>供读屏器识别轮播的名称。</summary>
+    [Parameter] public string? AriaLabel { get; set; }
+    /// <summary>可见幻灯片数量，允许小数实现"窥视"效果；单项可用自身 Class 覆盖响应式宽度。</summary>
+    [Parameter] public double SlidesPerView { get; set; } = 1;
+    /// <summary>幻灯片内容之间的间距，单位像素。</summary>
+    [Parameter] public int Gap { get; set; } = 16;
+    /// <summary>启用滑动/拖拽导航；可交互后代保留自身行为。</summary>
+    [Parameter] public bool Draggable { get; set; } = true;
+    /// <summary>启用定时轮播并显示暂停/播放按钮；用户偏好减弱动效时自动禁用。</summary>
+    [Parameter] public bool Autoplay { get; set; }
+    /// <summary>轮播间隔毫秒数，至少 1000。</summary>
+    [Parameter] public int AutoplayInterval { get; set; } = 5000;
+    /// <summary>用户控制的轮播暂停态；键盘聚焦会暂停直至显式恢复。</summary>
+    [Parameter] public bool Paused { get; set; }
+    /// <summary>轮播暂停态变化时回调。</summary>
+    [Parameter] public EventCallback<bool> PausedChanged { get; set; }
+    /// <summary>首个可见幻灯片的索引。</summary>
+    [Parameter] public int ActiveIndex { get; set; }
+    /// <summary>支持活动索引的双向绑定。</summary>
+    [Parameter] public EventCallback<int> ActiveIndexChanged { get; set; }
+    /// <summary>活动幻灯片变化后回调，包含布局钳制导致的修正。</summary>
+    [Parameter] public EventCallback<int> OnSlideChanged { get; set; }
+    /// <summary>显示内置的幻灯片指示器按钮。</summary>
+    [Parameter] public bool ShowIndicators { get; set; }
+    /// <summary>内置指示器的位置。</summary>
+    [Parameter] public CarouselIndicatorPosition IndicatorPosition { get; set; }
+    internal int CurrentIndex => ActiveIndex;
+    internal int ItemCount { get; private set; }
+    private int? measuredMax;
+    private int MaxIndex => Math.Min(Math.Max(0, ItemCount - 1), measuredMax ?? Math.Max(0, (int)Math.Ceiling(ItemCount - SlidesPerView)));
+    private ElementReference element;
+    private IJSObjectReference? module;
+    private DotNetObjectReference<Carousel>? reference;
+    private bool disposed;
+
+    protected override void OnParametersSet()
+    {
+        if (!double.IsFinite(SlidesPerView) || SlidesPerView < 1) { throw new ArgumentOutOfRangeException(nameof(SlidesPerView)); }
+        ArgumentOutOfRangeException.ThrowIfNegative(Gap);
+        ArgumentOutOfRangeException.ThrowIfLessThan(AutoplayInterval, 1000);
+        ActiveIndex = Math.Max(0, ActiveIndex);
+    }
+    internal void RegisterItem() { ItemCount++; measuredMax = null; StateHasChanged(); }
+    internal void UnregisterItem()
+    {
+        ItemCount = Math.Max(0, ItemCount - 1); measuredMax = null;
+        if (!disposed) { _ = InvokeAsync(async () => { await GoToAsync(Math.Min(CurrentIndex, MaxIndex)); StateHasChanged(); }); }
+    }
+    internal Task Previous() => GoToAsync(CurrentIndex - 1);
+    internal Task Next() => GoToAsync(CurrentIndex + 1);
+    internal bool CanGoPrevious => ItemCount > 0 && (Loop && MaxIndex > 0 || CurrentIndex > 0);
+    internal bool CanGoNext => ItemCount > 0 && (Loop && MaxIndex > 0 || CurrentIndex < MaxIndex);
+
+    /// <summary>在渲染器调度线程上导航到某张幻灯片，遵守边界与 Loop。</summary>
+    public Task GoToAsync(int index) => InvokeAsync(async () =>
+    {
+        var next = index < 0 ? Loop ? MaxIndex : 0 : index > MaxIndex ? Loop ? 0 : MaxIndex : index;
+        if (next == ActiveIndex || disposed) { return; }
+        ActiveIndex = next;
+        await ActiveIndexChanged.InvokeAsync(next);
+        await OnSlideChanged.InvokeAsync(next);
+        StateHasChanged();
+    });
+    private async Task SetPausedAsync(bool paused)
+    {
+        if (Paused == paused || disposed) { return; }
+        Paused = paused;
+        await PausedChanged.InvokeAsync(paused);
+        StateHasChanged();
+    }
+    [JSInvokable] public Task JsOnStep(int direction) => direction < 0 ? Previous() : Next();
+    [JSInvokable] public Task JsOnPause() => SetPausedAsync(true);
+    [JSInvokable] public async Task JsOnLayout(int maximum)
+    {
+        if (disposed) { return; }
+        measuredMax = Math.Max(0, maximum);
+        await GoToAsync(Math.Min(CurrentIndex, MaxIndex));
+        StateHasChanged();
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (disposed) { return; }
+        try
+        {
+            // carousel.js 走独立模块 URL（非 components-core.js barrel）：与源一致，
+            // 它并非每页必载的核心模块，JsModules 按电路缓存后仅首次导入付一次往返。
+            module ??= await JsModules.GetAsync(JS, JsModules.Versioned("./_content/AtomBlazor/js/carousel.js", typeof(Carousel).Assembly));
+            if (disposed) { return; }
+            reference ??= DotNetObjectReference.Create(this);
+            await module.InvokeVoidAsync("configure", element, reference, new { index = CurrentIndex, vertical = Orientation == CarouselOrientation.Vertical, draggable = Draggable, autoplay = Autoplay, interval = AutoplayInterval, paused = Paused, loop = Loop });
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or JSException or TaskCanceledException or ObjectDisposedException or InvalidOperationException) { }
+    }
+    public async ValueTask DisposeAsync()
+    {
+        disposed = true;
+        if (module is not null)
+        {
+            try { await module.InvokeVoidAsync("dispose", element); }
+            catch (Exception ex) when (ex is JSDisconnectedException or JSException or TaskCanceledException or ObjectDisposedException) { }
+        }
+        reference?.Dispose();
+    }
+    private string RootStyle => $"--atom-carousel-basis:{(100 / SlidesPerView).ToString(CultureInfo.InvariantCulture)}%;--atom-carousel-gap:{Gap}px;{(AdditionalAttributes?.TryGetValue("style", out var value) == true ? value : null)}";
+    private string CssClass => ClassNames.cn("atom:relative", Class);
+    private string IndicatorClass => ClassNames.cn("atom:flex atom:items-center atom:justify-center", IndicatorPosition switch
+    {
+        CarouselIndicatorPosition.Top => "atom:absolute atom:bottom-full atom:start-0 atom:w-full atom:pb-2",
+        CarouselIndicatorPosition.Inside => "atom:absolute atom:bottom-2 atom:start-0 atom:w-full",
+        _ => "atom:pt-2"
+    });
+}

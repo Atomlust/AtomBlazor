@@ -1,0 +1,26 @@
+<div class="flex flex-wrap items-center gap-2">
+    @foreach (var level in Enum.GetValues<GanttZoom>())
+    {
+        <Button Variant="@(zoom == level ? ButtonVariant.Default : ButtonVariant.Outline)"
+                  Size="ButtonSize.Small"
+                  OnClick="@(() => zoom = level)">
+            @level
+        </Button>
+    }
+</div>
+
+<Gantt TItem="PlanTask"
+         Data="@plan"
+         IdSelector="@(t => t.Id)"
+         TextSelector="@(t => t.Name)"
+         StartSelector="@(t => t.Start)"
+         EndSelector="@(t => t.End)"
+         Zoom="@zoom"
+         ShowToolbar="false"
+         Height="24rem" />
+
+@code {
+    // Hour under day, day under month, week under month, month under year, quarter under year,
+    // and year on its own. Leave the toolbar on and the reader picks for themselves.
+    private GanttZoom zoom = GanttZoom.Day;
+}

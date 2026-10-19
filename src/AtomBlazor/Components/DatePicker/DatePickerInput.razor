@@ -1,0 +1,145 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@using AtomBlazor.Primitives.Utilities
+@inject ILocalizer Localizer
+
+@*
+    DatePickerInput 组件——可编辑日期选择器的文本输入加日历切换按钮组合。
+*@
+
+<div @ref="_rootRef" class="@WrapperCssClass" @attributes="AdditionalAttributes">
+    <input type="text" aria-label="@AriaLabel"
+           class="atom:flex-1 atom:min-w-0 atom:bg-transparent atom:px-3 atom:py-2 atom:outline-none atom:placeholder:text-muted-foreground atom:disabled:cursor-not-allowed"
+           value="@Text"
+           placeholder="@Placeholder"
+           disabled="@Disabled"
+           aria-required="@(Required ? "true" : null)"
+           aria-invalid="@(IsInvalid ? "true" : null)"
+           @onchange="HandleChange"
+           @onkeydown="HandleKeyDown" />
+    <button type="button"
+            class="@ToggleCssClass"
+            aria-label="@Localizer["DatePicker.OpenCalendar"]"
+            aria-haspopup="@TriggerContext?.AriaHasPopup"
+            aria-expanded="@(TriggerContext?.IsOpen == true ? "true" : "false")"
+            aria-controls="@TriggerContext?.AriaControls"
+            disabled="@Disabled"
+            tabindex="@(Disabled ? -1 : 0)"
+            @onclick="HandleToggleClick">
+        <LucideIcon Name="calendar" Class="atom:h-4 atom:w-4" />
+    </button>
+</div>
+
+@code {
+    /// <summary>控件的无障碍名称。</summary>
+    [Parameter] public string? AriaLabel { get; set; }
+
+    private ElementReference _rootRef;
+    private TriggerContext? _previousTriggerContext;
+
+    [CascadingParameter(Name = "TriggerContext")]
+    private TriggerContext? TriggerContext { get; set; }
+
+    /// <summary>
+    /// 输入框当前显示的文本。
+    /// </summary>
+    [Parameter]
+    public string? Text { get; set; }
+
+    /// <summary>
+    /// 输入框为空时显示的占位文本。
+    /// </summary>
+    [Parameter]
+    public string? Placeholder { get; set; }
+
+    /// <summary>
+    /// 输入框与日历切换按钮是否禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 字段是否必填（置 aria-required）。
+    /// </summary>
+    [Parameter]
+    public bool Required { get; set; }
+
+    /// <summary>
+    /// 字段是否处于无效状态（置 aria-invalid）。
+    /// </summary>
+    [Parameter]
+    public bool IsInvalid { get; set; }
+
+    /// <summary>
+    /// 应用到包装元素的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到包装元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 用户提交键入文本（失焦或回车）时触发。
+    /// </summary>
+    [Parameter]
+    public EventCallback<string?> OnCommit { get; set; }
+
+    private string WrapperCssClass => ClassNames.cn(
+        "atom:flex atom:h-10 atom:w-[280px] atom:items-center atom:rounded-md atom:border atom:border-input atom:bg-background atom:text-base atom:md:text-sm",
+        "atom:ring-offset-background atom:focus-within:ring-2 atom:focus-within:ring-ring atom:focus-within:ring-offset-2",
+        "atom:transition-colors",
+        "atom:aria-[invalid=true]:border-destructive",
+        Disabled ? "atom:cursor-not-allowed atom:opacity-50" : null,
+        Class
+    );
+
+    private string ToggleCssClass => ClassNames.cn(
+        "atom:inline-flex atom:h-full atom:items-center atom:justify-center atom:px-3 atom:text-muted-foreground",
+        "atom:hover:text-foreground atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2",
+        "atom:disabled:pointer-events-none",
+        // 与触发按钮在浮层打开期间的 pointer-events 守卫保持一致，避免一次点击
+        // 先经"点击外部"关闭浮层再立刻重新打开。仅作用于切换按钮——
+        // 输入框在浮层打开期间必须保持可编辑。
+        TriggerContext is { IsOpen: true, SuppressPointerEventsWhenOpen: true } ? "atom:pointer-events-none" : null
+    );
+
+    private async Task HandleChange(ChangeEventArgs args)
+    {
+        await OnCommit.InvokeAsync(args.Value?.ToString());
+    }
+
+    private Task HandleKeyDown(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs args)
+    {
+        // Escape 只关闭日历、不动键入文本；提交本身由原生 change 事件承载
+        // （回车与失焦都会触发）。
+        if (args.Key == "Escape" && TriggerContext?.IsOpen == true)
+        {
+            TriggerContext.Close?.Invoke();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private void HandleToggleClick()
+    {
+        TriggerContext?.Toggle?.Invoke();
+    }
+
+    /// <summary>
+ /// 把包装元素登记到触发上下文，使浮层相对整个输入组定位。
+ /// 上下文变化时重新登记（与 Button 同模式）。
+    /// </summary>
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (TriggerContext?.SetTriggerElement != null &&
+            (firstRender || TriggerContext != _previousTriggerContext))
+        {
+            TriggerContext.SetTriggerElement.Invoke(_rootRef);
+            _previousTriggerContext = TriggerContext;
+        }
+    }
+}

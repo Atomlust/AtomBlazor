@@ -1,0 +1,44 @@
+<Gantt TItem="PlanTask"
+         Data="@plan"
+         IdSelector="@(t => t.Id)"
+         ParentIdSelector="@(t => t.Parent)"
+         TextSelector="@(t => t.Name)"
+         StartSelector="@(t => t.Start)"
+         EndSelector="@(t => t.End)"
+         Dependencies="@drawn"
+         AllowLinking="true"
+         OnDependencyCreate="@AddLink"
+         OnDependencyClick="@RemoveLink"
+         Height="26rem" />
+
+@code {
+    private List<GanttDependency> drawn = [];
+
+    private void AddLink(GanttDependencyContext<PlanTask> link)
+    {
+        // Refusing here is what stops a plan drawing a loop. The two ends the gesture touched
+        // are already in link.Dependency.Type, so there is no menu to show.
+        if (link.To.Start < link.From.Start)
+        {
+            link.Cancel = true;
+            return;
+        }
+
+        drawn = [.. drawn, link.Dependency];
+    }
+
+    private void RemoveLink(GanttDependency dependency) =>
+        drawn = [.. drawn.Where(d => !ReferenceEquals(d, dependency))];
+}
+
+@* Drag from the dot at one end of a bar onto another bar. Which dot you leave from and which
+   half of the target you drop on decide the type:
+
+     end   -> first half   finish to start
+     start -> first half   start to start
+     end   -> second half  finish to finish
+     start -> second half  start to finish
+
+   Nothing is drawn until the new dependency is in the collection you handed the chart, the
+   same way a task drag is. OnDependencyClick only fires while AllowLinking is on, because an
+   arrow nobody can change is an arrow nobody should be able to click by accident. *@

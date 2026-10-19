@@ -1,0 +1,441 @@
+@namespace AtomBlazor
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop
+@using System.Linq.Expressions
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<div @ref="_containerRef" id="@EffectiveId" class="@ContainerClass" @attributes="AdditionalAttributes">
+    @if (EffectiveName != null)
+    {
+        <input type="hidden" name="@EffectiveName" value="@Value" />
+    }
+    @for (int i = 0; i < Length; i++)
+    {
+        var index = i;
+        <input @ref="_inputRefs[index]" aria-label="@AriaLabel"
+               type="text"
+               inputmode="@HtmlInputMode"
+               maxlength="1"
+               class="@ComputedInputClass"
+               value="@GetValueAt(index)"
+               disabled="@Disabled"
+               required="@Required"
+               @oninput="@(e => HandleInput(index, e))"
+               @onkeydown="@(e => HandleKeyDown(index, e))"
+               @onfocus="@(() => HandleFocus(index))" />
+        @if (ShowSeparator && index < Length - 1 && (index + 1) % GroupSize == 0)
+        {
+            <div class="@SeparatorClass">
+                @if (Separator != null)
+                {
+                    @Separator
+                }
+                else
+                {
+                    <span>-</span>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    /// <summary>控件的可访问名称。</summary>
+    [Parameter] public string? AriaLabel { get; set; }
+
+
+    private FieldIdentifier _fieldIdentifier;
+    private EditContext? _editContext;
+
+    [CascadingParameter]
+    private EditContext? CascadedEditContext { get; set; }
+
+    /// <summary>
+    /// OTP 的位数。
+    /// </summary>
+    [Parameter]
+    public int Length { get; set; } = 6;
+
+    /// <summary>
+    /// 当前的 OTP 值。
+    /// </summary>
+    [Parameter]
+    public string? Value { get; set; }
+
+    /// <summary>
+    /// 值变化时的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+
+    /// <summary>
+    /// 获取或设置 OTP 输入元素的 HTML name 特性。
+    /// </summary>
+    /// <remarks>
+    /// 位于 EditForm 内且未显式设置时，name 自动取自 ValueExpression
+    /// （FieldIdentifier），以支持 SSR 表单回传。
+    /// 各数位输入将使用带索引后缀的 name。
+    /// </remarks>
+    [Parameter]
+    public string? Name { get; set; }
+
+    /// <summary>
+    /// 获取或设置标识绑定值的表达式。
+    /// </summary>
+    [Parameter]
+    public Expression<Func<string?>>? ValueExpression { get; set; }
+
+    /// <summary>
+    /// 所有数位填满时的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> OnComplete { get; set; }
+
+    /// <summary>
+    /// 输入框是否禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 获取或设置输入框是否必填。
+    /// </summary>
+    [Parameter]
+    public bool Required { get; set; }
+
+    /// <summary>
+    /// 是否在分组之间显示分隔符。
+    /// </summary>
+    [Parameter]
+    public bool ShowSeparator { get; set; } = true;
+
+    /// <summary>
+    /// 每组的位数（用于分隔符摆放）。
+    /// </summary>
+    [Parameter]
+    public int GroupSize { get; set; } = 3;
+
+    /// <summary>
+    /// 自定义分隔符内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? Separator { get; set; }
+
+    /// <summary>
+    /// 容器的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的附加 HTML 特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 应用到每个 OTP 输入格的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? InputClass { get; set; }
+
+    /// <summary>
+    /// 输入格的尺寸变体。
+    /// </summary>
+    [Parameter]
+    public InputOTPSize Size { get; set; } = InputOTPSize.Default;
+
+    /// <summary>
+    /// 获取或设置 OTP 容器元素的 HTML id 特性。
+    /// 未指定时自动生成。
+    /// </summary>
+    [Parameter]
+    public string? Id { get; set; }
+
+    /// <summary>
+    /// 是否用星号（*）屏蔽输入值。
+    /// 适用于 PIN 等敏感验证码。
+    /// </summary>
+    [Parameter]
+    public bool Mask { get; set; }
+
+    /// <summary>
+    /// 输入框接受的字符类型。
+    /// 默认为 <see cref="InputOTPInputMode.Numbers"/>。
+    /// </summary>
+    [Parameter]
+    public InputOTPInputMode InputMode { get; set; } = InputOTPInputMode.Numbers;
+
+    private InputOTPInputMode? _previousInputMode;
+    private ElementReference[] _inputRefs = Array.Empty<ElementReference>();
+    private string[] _values = Array.Empty<string>();
+    private string? _generatedId;
+    private ElementReference _containerRef;
+    private IJSObjectReference? _jsModule;
+    private DotNetObjectReference<InputOTP>? _dotNetRef;
+    private bool _jsInitialized;
+    private bool _disposed;
+
+    protected override void OnInitialized()
+    {
+        _inputRefs = new ElementReference[Length];
+        _values = new string[Length];
+
+        if (!string.IsNullOrEmpty(Value))
+        {
+            for (int i = 0; i < Math.Min(Value.Length, Length); i++)
+            {
+                _values[i] = Value[i].ToString();
+            }
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (_values.Length != Length)
+        {
+            _inputRefs = new ElementReference[Length];
+            _values = new string[Length];
+        }
+
+        if (!string.IsNullOrEmpty(Value))
+        {
+            for (int i = 0; i < Length; i++)
+            {
+                _values[i] = i < Value.Length ? Value[i].ToString() : "";
+            }
+        }
+
+        if (CascadedEditContext != null && ValueExpression != null)
+        {
+            _editContext = CascadedEditContext;
+            _fieldIdentifier = FieldIdentifier.Create(ValueExpression);
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        if (_previousInputMode != InputMode)
+        {
+            var isFirstRender = !_previousInputMode.HasValue;
+            _previousInputMode = InputMode;
+
+            // 首次渲染跳过——JS interop 会在 OnAfterRenderAsync 中初始化。
+            if (!isFirstRender && _jsModule != null)
+            {
+                // BL0016（.NET 11）：与一致不加 try/catch 守卫——仅在 JS 已初始化
+                // 且模式确有变化时转发，断线时由电路生命周期兜底。
+#pragma warning disable BL0016
+                await _jsModule.InvokeVoidAsync("inputOtp.updateOtpMode", EffectiveId, InputMode.ToString());
+#pragma warning restore BL0016
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_jsInitialized)
+        {
+            try
+            {
+                // 有意偏差（沿 numeric-input 先例）：逐实例直连
+                // input-otp.js，本仓库经 PrimitiveJsModuleTests/ComponentModules 扫描约束
+                // 改走共享 core bundle，调用点使用 inputOtp. 命名空间标识符。
+                _jsModule = await ComponentModules.GetCoreAsync(JSRuntime);
+                _dotNetRef = DotNetObjectReference.Create(this);
+                await _jsModule.InvokeVoidAsync("inputOtp.initialize", _containerRef, _dotNetRef, EffectiveId, InputMode.ToString());
+                _jsInitialized = true;
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            {
+                // Blazor Server 电路断开时属于预期情况
+            }
+            catch (InvalidOperationException)
+            {
+                // 预渲染阶段 JS interop 不可用
+            }
+        }
+    }
+
+    private string GetValueAt(int index)
+    {
+        var val = index < _values.Length ? _values[index] ?? "" : "";
+        return Mask && !string.IsNullOrEmpty(val) ? "*" : val;
+    }
+
+    private async Task HandleInput(int index, ChangeEventArgs e)
+    {
+        var inputValue = e.Value?.ToString() ?? "";
+
+        if (!string.IsNullOrEmpty(inputValue) && !IsCharAllowed(inputValue[0]))
+        {
+            return;
+        }
+
+        _values[index] = inputValue.Length > 0 ? inputValue[0].ToString() : "";
+
+        var newValue = string.Join("", _values);
+        await ValueChanged.InvokeAsync(newValue);
+
+        if (_editContext != null && ValueExpression != null && _fieldIdentifier.FieldName != null)
+        {
+            _editContext.NotifyFieldChanged(_fieldIdentifier);
+        }
+
+        // 已输入值时移动到下一个输入框
+        if (!string.IsNullOrEmpty(_values[index]) && index < Length - 1)
+        {
+            await FocusInput(index + 1);
+        }
+
+        // 所有格子填满后触发一次 OnComplete。
+        var completeValue = string.Join("", _values.Where(v => !string.IsNullOrEmpty(v)));
+        if (completeValue.Length == Length)
+        {
+            await OnComplete.InvokeAsync(completeValue);
+        }
+    }
+
+    private async Task HandleKeyDown(int index, KeyboardEventArgs e)
+    {
+        if (e.Key == "Backspace" && string.IsNullOrEmpty(_values[index]) && index > 0)
+        {
+            // 当前格为空时按退格键移动到上一个输入框
+            await FocusInput(index - 1);
+        }
+        else if (e.Key == "ArrowLeft" && index > 0)
+        {
+            await FocusInput(index - 1);
+        }
+        else if (e.Key == "ArrowRight" && index < Length - 1)
+        {
+            await FocusInput(index + 1);
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnPasteJs(string pastedText)
+    {
+        if (_disposed) return;
+
+        // 只提取允许的字符
+        var filtered = string.Concat(pastedText.Where(IsCharAllowed));
+
+        if (string.IsNullOrEmpty(filtered))
+        {
+            return;
+        }
+
+        // 从头开始填充数值，最多填满 Length 格；粘贴字符之外的格子清空
+        for (int i = 0; i < Length; i++)
+        {
+            _values[i] = i < filtered.Length ? filtered[i].ToString() : "";
+        }
+
+        var newValue = string.Join("", _values);
+        await ValueChanged.InvokeAsync(newValue);
+
+        if (_editContext != null && ValueExpression != null && _fieldIdentifier.FieldName != null)
+        {
+            _editContext.NotifyFieldChanged(_fieldIdentifier);
+        }
+
+        // 聚焦最后一个已填格子，或下一个空格
+        var focusIndex = Math.Min(filtered.Length, Length - 1);
+        await FocusInput(focusIndex);
+
+        // 所有格子填满时触发 OnComplete
+        var completeValue = string.Join("", _values.Where(v => !string.IsNullOrEmpty(v)));
+        if (completeValue.Length == Length)
+        {
+            await OnComplete.InvokeAsync(completeValue);
+        }
+
+        StateHasChanged();
+    }
+
+    private void HandleFocus(int index)
+    {
+        // 聚焦时选中内容
+    }
+
+    private async Task FocusInput(int index)
+    {
+        if (index >= 0 && index < _inputRefs.Length)
+        {
+            try
+            {
+                await _inputRefs[index].FocusAsync();
+            }
+            catch
+            {
+                // 忽略聚焦错误
+            }
+        }
+    }
+
+    /// <summary>
+    /// 获取有效的 name 特性：位于 EditForm 内时回退为 FieldIdentifier 的名称。
+    /// </summary>
+    private string? EffectiveName => Name ?? (_editContext != null && _fieldIdentifier.FieldName != null ? _fieldIdentifier.FieldName : null);
+
+    private string EffectiveId => Id ?? (_generatedId ??= $"otp-{Guid.NewGuid().ToString("N")[..8]}");
+
+    private bool IsCharAllowed(char c) => InputMode switch
+    {
+        InputOTPInputMode.Letters => char.IsLetter(c),
+        InputOTPInputMode.LettersAndNumbers => char.IsLetterOrDigit(c),
+        _ => char.IsDigit(c)
+    };
+
+    private string HtmlInputMode => InputMode switch
+    {
+        InputOTPInputMode.Letters => "text",
+        InputOTPInputMode.LettersAndNumbers => "text",
+        _ => "numeric"
+    };
+
+    private string SizeClasses => Size switch
+    {
+        InputOTPSize.Small => "atom:h-8 atom:w-8 atom:text-sm",
+        InputOTPSize.Default => "atom:h-10 atom:w-10 atom:text-base",
+        InputOTPSize.Large => "atom:h-12 atom:w-12 atom:text-lg",
+        _ => "atom:h-10 atom:w-10 atom:text-base"
+    };
+
+    private string ContainerClass => ClassNames.cn(
+        "atom:flex atom:items-center atom:gap-2",
+        Class
+    );
+
+    private string ComputedInputClass => ClassNames.cn(
+        "atom:flex atom:items-center atom:justify-center atom:rounded-md atom:border atom:border-input atom:bg-background atom:text-center atom:font-medium",
+        "atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring",
+        "atom:disabled:cursor-not-allowed atom:disabled:opacity-50",
+        SizeClasses,
+        InputClass
+    );
+
+    private string SeparatorClass => "atom:flex atom:items-center atom:justify-center atom:text-muted-foreground";
+
+    public async ValueTask DisposeAsync()
+    {
+        _disposed = true;
+        if (_jsInitialized && _jsModule != null)
+        {
+            try
+            {
+                await _jsModule.InvokeVoidAsync("inputOtp.dispose", EffectiveId);
+            }
+            catch
+            {
+                // 忽略释放期间的错误
+            }
+        }
+
+        _dotNetRef?.Dispose();
+    }
+}

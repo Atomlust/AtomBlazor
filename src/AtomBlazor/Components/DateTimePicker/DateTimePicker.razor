@@ -1,0 +1,160 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+
+@*
+    DateTimePicker 组件——按钮触发器加浮层，内含选择日期的日历与小时/分钟（可选秒 / AM-PM）选择器
+    。
+*@
+
+<Popover Open="_isOpen" OpenChanged="HandleOpenChanged">
+    <AtomBlazor.PopoverTrigger AsChild="true">
+        <Button AriaLabel="@AriaLabel" Variant="ButtonVariant.Outline"
+                Class="@ButtonCssClass"
+                Disabled="@Disabled"
+                aria-required="@(Required ? "true" : null)"
+                @attributes="AdditionalAttributes">
+            <LucideIcon Name="calendar-clock" Class="atom:me-2 atom:h-4 atom:w-4" />
+            @if (Value.HasValue)
+            {
+                <span>@Value.Value.ToString(EffectiveFormat)</span>
+            }
+            else
+            {
+                <span class="atom:text-muted-foreground">@EffectivePlaceholder</span>
+            }
+        </Button>
+    </AtomBlazor.PopoverTrigger>
+    <AtomBlazor.PopoverContent Class="atom:w-auto atom:p-0" Align="PopoverAlign.Start" OnContentReady="@HandleContentReady">
+        <Calendar @ref="_calendar"
+                  Selected="@Value"
+                  SelectedChanged="@HandleDateSelected"
+                  MinDate="@MinDate"
+                  MaxDate="@MaxDate"
+                  DisabledDates="@DisabledDates"
+                  FirstDayOfWeek="@FirstDayOfWeek"
+                  DayClassFunc="@DayClassFunc"
+                  DayTemplate="@DayTemplate" />
+        <div class="atom:flex atom:flex-col atom:gap-3 atom:border-t atom:p-3">
+            <div class="atom:flex atom:items-center atom:justify-center atom:gap-2">
+                <!-- 小时列 -->
+                <div class="atom:flex atom:flex-col atom:items-center">
+                    <span class="atom:text-xs atom:text-muted-foreground atom:mb-1">@Localizer["DateTimePicker.Hour"]</span>
+                    <div class="atom:flex atom:flex-col atom:items-center atom:border atom:rounded-md">
+                        <button type="button"
+                                class="@ScrollButtonClass"
+                                aria-label="@Localizer["DateTimePicker.IncrementHour"]"
+                                @onclick="IncrementHour"
+                                disabled="@Disabled">
+                            <LucideIcon Name="chevron-up" Class="atom:h-4 atom:w-4" />
+                        </button>
+                        <span class="atom:w-12 atom:h-10 atom:flex atom:items-center atom:justify-center atom:text-lg atom:font-medium atom:tabular-nums">
+                            @DisplayHour.ToString("D2")
+                        </span>
+                        <button type="button"
+                                class="@ScrollButtonClass"
+                                aria-label="@Localizer["DateTimePicker.DecrementHour"]"
+                                @onclick="DecrementHour"
+                                disabled="@Disabled">
+                            <LucideIcon Name="chevron-down" Class="atom:h-4 atom:w-4" />
+                        </button>
+                    </div>
+                </div>
+
+                <span class="atom:text-2xl atom:font-medium atom:mt-5">:</span>
+
+                <!-- 分钟列 -->
+                <div class="atom:flex atom:flex-col atom:items-center">
+                    <span class="atom:text-xs atom:text-muted-foreground atom:mb-1">@Localizer["DateTimePicker.Minute"]</span>
+                    <div class="atom:flex atom:flex-col atom:items-center atom:border atom:rounded-md">
+                        <button type="button"
+                                class="@ScrollButtonClass"
+                                aria-label="@Localizer["DateTimePicker.IncrementMinute"]"
+                                @onclick="IncrementMinute"
+                                disabled="@Disabled">
+                            <LucideIcon Name="chevron-up" Class="atom:h-4 atom:w-4" />
+                        </button>
+                        <span class="atom:w-12 atom:h-10 atom:flex atom:items-center atom:justify-center atom:text-lg atom:font-medium atom:tabular-nums">
+                            @CurrentMinute.ToString("D2")
+                        </span>
+                        <button type="button"
+                                class="@ScrollButtonClass"
+                                aria-label="@Localizer["DateTimePicker.DecrementMinute"]"
+                                @onclick="DecrementMinute"
+                                disabled="@Disabled">
+                            <LucideIcon Name="chevron-down" Class="atom:h-4 atom:w-4" />
+                        </button>
+                    </div>
+                </div>
+
+                @if (ShowSeconds)
+                {
+                    <span class="atom:text-2xl atom:font-medium atom:mt-5">:</span>
+
+                    <!-- 秒列 -->
+                    <div class="atom:flex atom:flex-col atom:items-center">
+                        <span class="atom:text-xs atom:text-muted-foreground atom:mb-1">@Localizer["DateTimePicker.Second"]</span>
+                        <div class="atom:flex atom:flex-col atom:items-center atom:border atom:rounded-md">
+                            <button type="button"
+                                    class="@ScrollButtonClass"
+                                    aria-label="@Localizer["DateTimePicker.IncrementSecond"]"
+                                    @onclick="IncrementSecond"
+                                    disabled="@Disabled">
+                                <LucideIcon Name="chevron-up" Class="atom:h-4 atom:w-4" />
+                            </button>
+                            <span class="atom:w-12 atom:h-10 atom:flex atom:items-center atom:justify-center atom:text-lg atom:font-medium atom:tabular-nums">
+                                @CurrentSecond.ToString("D2")
+                            </span>
+                            <button type="button"
+                                    class="@ScrollButtonClass"
+                                    aria-label="@Localizer["DateTimePicker.DecrementSecond"]"
+                                    @onclick="DecrementSecond"
+                                    disabled="@Disabled">
+                                <LucideIcon Name="chevron-down" Class="atom:h-4 atom:w-4" />
+                            </button>
+                        </div>
+                    </div>
+                }
+
+                @if (TimeFormat == TimeFormat.Hour12)
+                {
+                    <!-- AM/PM 切换 -->
+                    <div class="atom:flex atom:flex-col atom:items-center atom:ms-2">
+                        <span class="atom:text-xs atom:text-muted-foreground atom:mb-1">&nbsp;</span>
+                        <div class="atom:flex atom:flex-col atom:border atom:rounded-md atom:overflow-hidden">
+                            <button type="button"
+                                    class="@GetAmPmButtonClass(true)"
+                                    @onclick="() => SetAmPm(true)"
+                                    disabled="@Disabled">
+                                @Localizer["DateTimePicker.AM"]
+                            </button>
+                            <button type="button"
+                                    class="@GetAmPmButtonClass(false)"
+                                    @onclick="() => SetAmPm(false)"
+                                    disabled="@Disabled">
+                                @Localizer["DateTimePicker.PM"]
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="atom:flex atom:justify-between atom:gap-2">
+                <Button AriaLabel="@AriaLabel" Variant="ButtonVariant.Outline"
+                        Size="ButtonSize.Small"
+                        Class="atom:flex-1"
+                        Disabled="@Disabled"
+                        OnClick="SetNow">
+                    @Localizer["DateTimePicker.Now"]
+                </Button>
+                <Button AriaLabel="@AriaLabel" Variant="ButtonVariant.Outline"
+                        Size="ButtonSize.Small"
+                        Class="atom:flex-1"
+                        Disabled="@(Disabled || !Value.HasValue)"
+                        OnClick="Clear">
+                    @Localizer["DateTimePicker.Clear"]
+                </Button>
+            </div>
+        </div>
+    </AtomBlazor.PopoverContent>
+</Popover>

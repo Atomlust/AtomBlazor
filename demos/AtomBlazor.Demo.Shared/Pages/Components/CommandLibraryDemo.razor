@@ -1,0 +1,401 @@
+@page "/components/command-library"
+@using AtomBlazor.Icons.Lucide
+@using AtomBlazor.Icons.Lucide.Data
+@using AtomBlazor.Icons.Heroicons
+@using AtomBlazor.Icons.Heroicons.Data
+@using AtomBlazor.Icons.Feather
+@using AtomBlazor.Icons.Feather.Data
+@using Microsoft.AspNetCore.Components.Web
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<PageTitle>@L.T("组件库命令面板 - Atom BlazorUI", "Component Library Command - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("组件库命令面板", "Component Library Command")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("用命令面板一览 AtomBlazor 库中的全部基础构件、组件与图标。",
+                     "A command palette showcasing all primitives, components, and icons in the AtomBlazor library.")
+            </p>
+        </div>
+    </div>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("库浏览器", "Library Browser")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                可检索 @totalItemCount.ToString("N0") 个条目，涵盖基础构件、组件与图标。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Search through @totalItemCount.ToString("N0") items including primitives, components, and icons.
+            </p>
+                </text>
+}
+
+        <button type="button"
+                class="w-full flex items-center justify-start gap-2 px-4 py-2 text-sm text-muted-foreground border rounded-md hover:bg-accent"
+                @onclick="OpenModal">
+            <LucideIcon Name="search" Size="16" />
+            <span>@L.T("搜索组件库……", "Search library...")</span>
+            <span class="ml-auto flex items-center gap-1 text-xs">
+                <Kbd>Ctrl</Kbd>
+                <Kbd>I</Kbd>
+            </span>
+        </button>
+    </section>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("库统计", "Library Statistics")</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="p-4 border rounded-lg text-center">
+                <p class="text-2xl font-bold text-muted-foreground">16</p>
+                <p class="text-sm text-muted-foreground">@L.T("基础构件", "Primitives")</p>
+            </div>
+            <div class="p-4 border rounded-lg text-center">
+                <p class="text-2xl font-bold text-primary">50+</p>
+                <p class="text-sm text-muted-foreground">@L.T("组件", "Components")</p>
+            </div>
+            <div class="p-4 border rounded-lg text-center">
+                <p class="text-2xl font-bold text-blue-500">@lucideIconCount.ToString("N0")</p>
+                <p class="text-sm text-muted-foreground">@L.T("Lucide 图标", "Lucide Icons")</p>
+            </div>
+            <div class="p-4 border rounded-lg text-center">
+                <p class="text-2xl font-bold text-indigo-500">@heroIconCount.ToString("N0")</p>
+                <p class="text-sm text-muted-foreground">@L.T("Heroicons 图标", "Heroicons")</p>
+            </div>
+        </div>
+    </section>
+
+        <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("命令输入框控制着一个可检索选项的 listbox。每个结果都有可读的标签与稳定的取值。", "The command input controls a listbox of searchable choices. Each result has a readable label and a stable value.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("虚拟化的分组只渲染部分结果；命令控件会在你导航时维护当前获得焦点的选项。没有结果时会显示提示文案。", "Virtualized groups render a subset of results; the command control manages the active option as you navigate. Empty results show a visible message.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在命令结果间移动", "Move through command results"))"><Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("激活所选结果", "Activate the selected result"))"><Kbd>Enter</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数说明。", "Component properties and parameters.")</p>
+        </div>
+
+        <ApiReference ComponentName="CommandVirtualizedGroup">
+            <ApiParameter Name="ItemTemplate" Type="RenderFragment&lt;TItem&gt;">@L.T("渲染每条结果所必需的模板。", "Required template for rendering each result.")</ApiParameter>
+            <ApiParameter Name="ItemValue" Type="Func&lt;TItem, string&gt;">@L.T("为每条结果返回稳定命令取值的必需函数。", "Required function returning a stable command value for each result.")</ApiParameter>
+            <ApiParameter Name="Class" Type="string?">@L.T("获取或设置应用到分组容器上的附加 CSS 类。", "Gets or sets additional CSS classes to apply to the group container.")</ApiParameter>
+            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">@L.T("获取或设置应用到根元素上的附加 HTML 特性。", "Gets or sets additional HTML attributes to apply to the root element.")</ApiParameter>
+            <ApiParameter Name="Heading" Type="string?">@L.T("获取或设置该分组的标题文本（可选）。", "Gets or sets the heading text for this group (optional).")</ApiParameter>
+            <ApiParameter Name="Items" Type="IReadOnlyList&lt;TItem&gt;" Default="Array.Empty&lt;TItem&gt;()">@L.T("获取或设置要展示的条目集合。除非提供了 ItemsProvider（提供方模式），否则它是必需的；该模式下此项会被忽略。", "Gets or sets the collection of items to display. Required unless ItemsProvider is supplied (provider mode), in which case it is ignored.")</ApiParameter>
+            <ApiParameter Name="ItemsProvider" Type="CommandItemsProvider&lt;TItem&gt;?">@L.T("获取或设置一个按需拉取条目以实现真正懒加载的异步回调，而不是把整个集合实例化到 Items 里。", "Gets or sets an async callback that fetches items on demand for true lazy loading, instead of materializing the whole collection into Items.")</ApiParameter>
+            <ApiParameter Name="ItemSearchText" Type="Func&lt;TItem, string&gt;?">@L.T("获取或设置从条目中提取检索文本的函数。未提供时使用 ItemValue。", "Gets or sets the function to extract search text from an item. If not provided, ItemValue is used.")</ApiParameter>
+            <ApiParameter Name="MaxDisplayCount" Type="int" Default="100">@L.T("获取或设置筛选后最多展示的条目数。默认为 100，设为 0 表示不限。仅在 EnableLazyLoading 为 false 时生效。", "Gets or sets the maximum number of items to display after filtering. Default is 100. Set to 0 for unlimited. Only applies when EnableLazyLoading is false.")</ApiParameter>
+            <ApiParameter Name="EnableLazyLoading" Type="bool">@L.T("获取或设置是否启用懒加载（无限滚动）。为 true 时，条目会随用户滚动逐步加载。默认为 false。", "Gets or sets whether to enable lazy loading (infinite scroll). When true, items are loaded progressively as the user scrolls. Default is false.")</ApiParameter>
+            <ApiParameter Name="LazyLoadBatchSize" Type="int" Default="50">@L.T("获取或设置懒加载时每批载入的条目数。默认为 50。", "Gets or sets the number of items to load per batch when lazy loading. Default is 50.")</ApiParameter>
+        </ApiReference>
+    </section>
+</div>
+
+@if (_isOpen)
+{
+    <div class="fixed inset-0 z-50 flex items-start justify-center pt-[10vh]" @onkeydown="HandleKeyDown">
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @onclick="CloseModal"></div>
+
+        <div class="relative w-full max-w-2xl mx-4 z-10">
+            <AtomBlazor.Command Class="border rounded-lg shadow-2xl bg-background" OnValueChange="HandleCommandSelect">
+                <CommandInput Placeholder="@(L.T("搜索基础构件、组件与图标……", "Search primitives, components, and icons..."))" AutoFocus="true" />
+                <CommandList Class="max-h-[400px]">
+                    <CommandEmpty>
+                        <div class="flex flex-col items-center gap-2 py-6">
+                            <LucideIcon Name="search-x" Size="32" Class="text-muted-foreground" />
+                            <p class="text-sm text-muted-foreground">@L.T("未找到条目。", "No items found.")</p>
+                        </div>
+                    </CommandEmpty>
+
+                    <CommandVirtualizedGroup TItem="LibraryItem"
+                        Heading="@(L.T("基础构件", "Primitives"))"
+                        Items="primitives"
+                        ItemValue="@(item => item.Url)"
+                        ItemSearchText="@(item => item.Name)"
+                        MaxDisplayCount="0">
+                        <ItemTemplate Context="item">
+                            <LucideIcon Name="@item.Icon" Size="16" Class="mr-2 text-muted-foreground" />
+                            @item.Name
+                            <span class="ml-auto text-xs text-muted-foreground">@L.T("无样式", "Headless")</span>
+                        </ItemTemplate>
+                    </CommandVirtualizedGroup>
+
+                    <CommandSeparator />
+
+                    <CommandVirtualizedGroup TItem="LibraryItem"
+                        Heading="@(L.T("组件", "Components"))"
+                        Items="components"
+                        ItemValue="@(item => item.Url)"
+                        ItemSearchText="@(item => item.Name)"
+                        MaxDisplayCount="0">
+                        <ItemTemplate Context="item">
+                            <LucideIcon Name="@item.Icon" Size="16" Class="mr-2 text-primary" />
+                            @item.Name
+                            <span class="ml-auto text-xs text-muted-foreground">@L.T("带样式", "Styled")</span>
+                        </ItemTemplate>
+                    </CommandVirtualizedGroup>
+
+                    <CommandSeparator />
+
+                    <CommandVirtualizedGroup TItem="string"
+                        Heading="@(L.T("Lucide 图标", "Lucide Icons"))"
+                        Items="allLucideIcons"
+                        ItemValue="@(name => $"/icons/lucide?search={name}")"
+                        ItemSearchText="@(name => name)"
+                        MaxDisplayCount="100">
+                        <ItemTemplate Context="iconName">
+                            <LucideIcon Name="@iconName" Size="16" Class="mr-2 text-blue-500" />
+                            @FormatIconName(iconName)
+                            <span class="ml-auto text-xs text-muted-foreground">Lucide</span>
+                        </ItemTemplate>
+                    </CommandVirtualizedGroup>
+
+                    <CommandSeparator />
+
+                    <CommandVirtualizedGroup TItem="string"
+                        Heading="@(L.T("Heroicons 图标", "Heroicons"))"
+                        Items="allHeroIcons"
+                        ItemValue="@(name => $"/icons/heroicons?search={name}")"
+                        ItemSearchText="@(name => name)"
+                        MaxDisplayCount="100">
+                        <ItemTemplate Context="iconName">
+                            <HeroIcon Name="@iconName" Size="16" Class="mr-2 text-indigo-500" />
+                            @FormatIconName(iconName)
+                            <span class="ml-auto text-xs text-muted-foreground">Heroicons</span>
+                        </ItemTemplate>
+                    </CommandVirtualizedGroup>
+
+                    <CommandSeparator />
+
+                    <CommandVirtualizedGroup TItem="string"
+                        Heading="@(L.T("Feather 图标", "Feather Icons"))"
+                        Items="allFeatherIcons"
+                        ItemValue="@(name => $"/icons/feather?search={name}")"
+                        ItemSearchText="@(name => name)"
+                        MaxDisplayCount="100">
+                        <ItemTemplate Context="iconName">
+                            <FeatherIcon Name="@iconName" Size="16" Class="mr-2 text-cyan-500" />
+                            @FormatIconName(iconName)
+                            <span class="ml-auto text-xs text-muted-foreground">Feather</span>
+                        </ItemTemplate>
+                    </CommandVirtualizedGroup>
+                </CommandList>
+            </AtomBlazor.Command>
+        </div>
+
+
+</div>
+}
+
+@code {
+#pragma warning disable BL0012 // （.NET 11 Razor 分析器）照语句本体保留显式 StateHasChanged（本块 1 处：命令面板/网格回调亦可经 JS interop 等非事件路径触发，分析器仅见事件处理器静态形态而判冗余）；禁止为消诊断删本体，采文件级定点抑制
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private bool _isOpen;
+    private DotNetObjectReference<CommandLibraryDemo>? _dotNetRef;
+
+    // Primitives list (must be defined before TotalItemCount)
+    private static readonly LibraryItem[] primitives = new[]
+    {
+        new LibraryItem("Accordion", "/primitives/accordion", "layers"),
+        new LibraryItem("Checkbox", "/primitives/checkbox", "square-check"),
+        new LibraryItem("Collapsible", "/primitives/collapsible", "chevrons-up-down"),
+        new LibraryItem("Combobox", "/primitives/combobox", "text-cursor-input"),
+        new LibraryItem("Dialog", "/primitives/dialog", "app-window"),
+        new LibraryItem("Dropdown Menu", "/primitives/dropdown-menu", "chevron-down"),
+        new LibraryItem("Hover Card", "/primitives/hovercard", "square-mouse-pointer"),
+        new LibraryItem("Label", "/primitives/label", "tag"),
+        new LibraryItem("Popover", "/primitives/popover", "message-square"),
+        new LibraryItem("Radio Group", "/primitives/radio-group", "circle-dot"),
+        new LibraryItem("Select", "/primitives/select", "list"),
+        new LibraryItem("Sheet", "/primitives/sheet", "panel-right"),
+        new LibraryItem("Switch", "/primitives/switch", "toggle-left"),
+        new LibraryItem("Table", "/primitives/table", "table"),
+        new LibraryItem("Tabs", "/primitives/tabs", "folder"),
+        new LibraryItem("Tooltip", "/primitives/tooltip", "info"),
+    };
+
+    // Components list
+    private static readonly LibraryItem[] components = new[]
+    {
+        new LibraryItem("Accordion", "/components/accordion", "layers"),
+        new LibraryItem("Alert", "/components/alert", "circle-alert"),
+        new LibraryItem("Alert Dialog", "/components/alert-dialog", "triangle-alert"),
+        new LibraryItem("Aspect Ratio", "/components/aspect-ratio", "ratio"),
+        new LibraryItem("Avatar", "/components/avatar", "circle-user"),
+        new LibraryItem("Badge", "/components/badge", "badge"),
+        new LibraryItem("Breadcrumb", "/components/breadcrumb", "chevrons-right"),
+        new LibraryItem("Button", "/components/button", "mouse-pointer-click"),
+        new LibraryItem("Button Group", "/components/button-group", "group"),
+        new LibraryItem("Calendar", "/components/calendar", "calendar"),
+        new LibraryItem("Card", "/components/card", "square"),
+        new LibraryItem("Carousel", "/components/carousel", "gallery-horizontal"),
+        new LibraryItem("Checkbox", "/components/checkbox", "square-check"),
+        new LibraryItem("Collapsible", "/components/collapsible", "chevrons-up-down"),
+        new LibraryItem("Combobox", "/components/combobox", "text-cursor-input"),
+        new LibraryItem("Command", "/components/command", "command"),
+        new LibraryItem("Context Menu", "/components/context-menu", "menu"),
+        new LibraryItem("Data Table", "/components/datatable", "table-2"),
+        new LibraryItem("Filter Builder", "/components/filterbuilder", "filter"),
+        new LibraryItem("Date Picker", "/components/date-picker", "calendar-days"),
+        new LibraryItem("Dialog", "/components/dialog", "app-window"),
+        new LibraryItem("Dropdown Menu", "/components/dropdown-menu", "chevron-down"),
+        new LibraryItem("Drawer", "/components/drawer", "panel-bottom"),
+        new LibraryItem("Empty", "/components/empty", "inbox"),
+        new LibraryItem("Field", "/components/field", "pencil-line"),
+        new LibraryItem("Hover Card", "/components/hovercard", "square-mouse-pointer"),
+        new LibraryItem("Input", "/components/input", "text-cursor"),
+        new LibraryItem("Input Group", "/components/input-group", "layout-list"),
+        new LibraryItem("Input OTP", "/components/input-otp", "key-round"),
+        new LibraryItem("Item", "/components/item", "list"),
+        new LibraryItem("Kbd", "/components/kbd", "keyboard"),
+        new LibraryItem("Label", "/components/label", "tag"),
+        new LibraryItem("Markdown Editor", "/components/markdown-editor", "file-text"),
+        new LibraryItem("Menubar", "/components/menubar", "square-menu"),
+        new LibraryItem("Multi Select", "/components/multiselect", "list-checks"),
+        new LibraryItem("Native Select", "/components/native-select", "square-chevron-down"),
+        new LibraryItem("Navigation Menu", "/components/navigation-menu", "navigation"),
+        new LibraryItem("Pagination", "/components/pagination", "arrow-left-right"),
+        new LibraryItem("Popover", "/components/popover", "message-square"),
+        new LibraryItem("Progress", "/components/progress", "loader"),
+        new LibraryItem("Radio Group", "/components/radio-group", "circle-dot"),
+        new LibraryItem("Resizable", "/components/resizable", "move"),
+        new LibraryItem("Rich Text Editor", "/components/rich-text-editor", "file-type"),
+        new LibraryItem("Scroll Area", "/components/scroll-area", "scroll"),
+        new LibraryItem("Select", "/components/select", "list"),
+        new LibraryItem("Separator", "/components/separator", "minus"),
+        new LibraryItem("Sheet", "/components/sheet", "panel-right"),
+        new LibraryItem("Sidebar", "/components/sidebar", "panel-left"),
+        new LibraryItem("Slider", "/components/slider", "sliders-horizontal"),
+        new LibraryItem("Spinner", "/components/spinner", "loader"),
+        new LibraryItem("Skeleton", "/components/skeleton", "box"),
+        new LibraryItem("Switch", "/components/switch", "toggle-left"),
+        new LibraryItem("Tabs", "/components/tabs", "folder"),
+        new LibraryItem("Textarea", "/components/textarea", "align-left"),
+        new LibraryItem("Toast", "/components/toast", "bell"),
+        new LibraryItem("Toggle", "/components/toggle", "toggle-right"),
+        new LibraryItem("Toggle Group", "/components/toggle-group", "layout-grid"),
+        new LibraryItem("Tooltip", "/components/tooltip", "info"),
+        new LibraryItem("Typography", "/components/typography", "type"),
+    };
+
+    // Icon data (loaded once)
+    private static readonly string[] allLucideIcons = LucideIconData.GetAvailableIcons().OrderBy(x => x).ToArray();
+    private static readonly string[] allHeroIcons = HeroIconData.GetAvailableIcons(HeroIconVariant.Outline).OrderBy(x => x).ToArray();
+    private static readonly string[] allFeatherIcons = FeatherIconData.GetAvailableIcons().OrderBy(x => x).ToArray();
+
+    // Counts (must be defined after arrays)
+    private static readonly int lucideIconCount = allLucideIcons.Length;
+    private static readonly int heroIconCount = allHeroIcons.Length;
+    private static readonly int featherIconCount = allFeatherIcons.Length;
+    private static readonly int totalItemCount = primitives.Length + components.Length + lucideIconCount + heroIconCount + featherIconCount;
+
+    // Group headings
+    private static readonly string lucideGroupHeading = $"Lucide Icons ({lucideIconCount:N0})";
+    private static readonly string heroIconGroupHeading = $"Heroicons ({heroIconCount:N0})";
+    private static readonly string featherGroupHeading = $"Feather Icons ({featherIconCount:N0})";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+
+            #pragma warning disable BL0016 // （.NET 11 Razor 分析器）照本体保留无 try/catch 守卫的 JS 调用，系 OnAfterRenderAsync(firstRender) 一次性接线、非交互期必可达；采定点抑制
+            await JS.InvokeVoidAsync("eval", @"
+                if (window.commandLibraryKeyHandler) {
+                    document.removeEventListener('keydown', window.commandLibraryKeyHandler);
+                }
+                window.registerCommandLibraryRef = function(dotNetRef) {
+                    window.commandLibraryDotNetRef = dotNetRef;
+                    window.commandLibraryKeyHandler = function(e) {
+                        if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+                            e.preventDefault();
+                            if (window.commandLibraryDotNetRef) {
+                                window.commandLibraryDotNetRef.invokeMethodAsync('OpenCommandLibrary');
+                            }
+                        }
+                    };
+                    document.addEventListener('keydown', window.commandLibraryKeyHandler);
+                };
+            ");
+            #pragma warning restore BL0016
+
+            #pragma warning disable BL0016 // （.NET 11 Razor 分析器）照本体保留无 try/catch 守卫的 JS 调用，系 OnAfterRenderAsync(firstRender) 一次性接线、非交互期必可达；采定点抑制
+            await JS.InvokeVoidAsync("registerCommandLibraryRef", _dotNetRef);
+            #pragma warning restore BL0016
+        }
+    }
+
+    [JSInvokable]
+    public void OpenCommandLibrary()
+    {
+        _isOpen = true;
+        StateHasChanged();
+    }
+
+    private void OpenModal()
+    {
+        _isOpen = true;
+    }
+
+    private void CloseModal()
+    {
+        _isOpen = false;
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            _isOpen = false;
+        }
+    }
+
+    private void HandleCommandSelect(string value)
+    {
+        if (!string.IsNullOrEmpty(value))
+        {
+            _isOpen = false;
+            NavigationManager.NavigateTo(value);
+        }
+    }
+
+    private static string FormatIconName(string iconName)
+    {
+        return string.Join(" ", iconName.Split('-').Select(word =>
+            char.ToUpper(word[0]) + word.Substring(1)));
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("eval", "document.removeEventListener('keydown', window.commandLibraryKeyHandler);");
+        }
+        catch { }
+        _dotNetRef?.Dispose();
+    }
+
+    private record LibraryItem(string Name, string Url, string Icon);
+#pragma warning restore BL0012
+}

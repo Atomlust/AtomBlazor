@@ -1,0 +1,34 @@
+@namespace AtomBlazor
+
+@*
+    SidebarMenuItem 组件：包裹单个菜单项。
+*@
+
+<li class="@GetClasses()" data-sidebar="menu-item" @attributes="AdditionalAttributes">
+    @ChildContent
+</li>
+
+@code {
+    /// <summary>
+    /// 菜单项内容（通常是 SidebarMenuButton）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string GetClasses()
+    {
+        return ClassNames.cn("atom:group/menu-item atom:relative atom:group-data-[collapsible=icon]:w-auto", Class);
+    }
+}

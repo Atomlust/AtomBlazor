@@ -1,0 +1,34 @@
+@namespace AtomBlazor
+
+@*
+    带样式的面板描述组件，使用 shadcn/ui 排版类。
+*@
+
+<AtomBlazor.Primitives.SheetDescription class="@GetClassNames()" @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.SheetDescription>
+
+@code {
+    /// <summary>
+    /// 描述文本或内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用到描述的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 应用到描述元素的额外属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string GetClassNames() => ClassNames.cn(
+        "atom:text-sm atom:text-muted-foreground",
+        Class
+    );
+}

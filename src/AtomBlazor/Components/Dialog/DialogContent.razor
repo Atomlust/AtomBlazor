@@ -1,0 +1,156 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@using AtomBlazor.Primitives.Services
+@inject ILocalizer Localizer
+@inject INativeOverlayService NativeOverlayService
+
+@*
+    带 shadcn/ui 类且带样式的 DialogContent 组件。
+    包含背景、对话框框体和关闭按钮。
+    当生效的渲染策略为 Native 时，省略背景（浏览器的
+    <dialog>::backdrop 提供遮罩），并将对话框框体样式化为顶层显示。
+*@
+
+<AtomBlazor.Primitives.DialogPortal Container="@Container">
+    @if (!_useNative)
+    {
+        <AtomBlazor.Primitives.DialogOverlay class="atom:fixed atom:inset-0 atom:z-50 atom:bg-black/80 atom:data-[state=open]:animate-in atom:data-[state=closed]:animate-out atom:data-[state=closed]:fade-out-0 atom:data-[state=open]:fade-in-0"
+                                                           CloseOnClick="@CloseOnOverlayClick" />
+    }
+
+    <AtomBlazor.Primitives.DialogContent
+        class="@GetClassNames()"
+        CloseOnEscape="@CloseOnEscape"
+        CloseOnOverlayClick="@CloseOnOverlayClick"
+        TrapFocus="@TrapFocus"
+        InitialFocus="@InitialFocus"
+        InitialFocusElement="@InitialFocusElement"
+        LockScroll="@LockScroll"
+        OnEscapeKeyDown="@OnEscapeKeyDown"
+        @attributes="AdditionalAttributes">
+        @ChildContent
+
+        @if (ShowClose)
+        {
+            <AtomBlazor.Primitives.DialogClose class="atom:absolute atom:end-4 atom:top-4 atom:rounded-sm atom:opacity-70 atom:ring-offset-background atom:transition-opacity atom:hover:opacity-100 atom:focus:outline-none atom:focus:ring-2 atom:focus:ring-ring atom:focus:ring-offset-2 atom:disabled:pointer-events-none atom:data-[state=open]:bg-accent atom:data-[state=open]:text-muted-foreground">
+                <LucideIcon Name="x" Class="atom:h-4 atom:w-4" />
+                <span class="atom:sr-only">@Localizer["Dialog.Close"]</span>
+            </AtomBlazor.Primitives.DialogClose>
+        }
+    </AtomBlazor.Primitives.DialogContent>
+</AtomBlazor.Primitives.DialogPortal>
+
+@code {
+    [CascadingParameter(Name = "DialogRenderingStrategy")]
+    private OverlayRenderingStrategy? RenderingStrategy { get; set; }
+
+    /// <summary>
+    /// 在对话框内渲染的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用到对话框内容的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 应用到对话框内容的附加特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 是否显示关闭按钮（X 图标）。
+    /// 默认值为 true。
+    /// </summary>
+    [Parameter]
+    public bool ShowClose { get; set; } = true;
+
+    /// <summary>
+    /// 在容器内内联渲染对话框，而非门户化到文档主体。
+    /// 设置后，对话框的背景和内容保留在 DOM 树中，从而可被具有 CSS 包含性
+    /// （例如 transform: translateZ(0)）的父元素所约束。
+    /// 为 null（默认）时，通过门户渲染到文档主体。
+    /// </summary>
+    [Parameter]
+    public string? Container { get; set; }
+
+    /// <summary>
+    /// 点击遮罩（背景）时是否关闭对话框。
+    /// 默认值为 true。
+    /// </summary>
+    [Parameter]
+    public bool CloseOnOverlayClick { get; set; } = true;
+
+    /// <summary>
+    /// 按下 Escape 键时是否关闭对话框。
+    /// 默认值为 true。
+    /// </summary>
+    [Parameter]
+    public bool CloseOnEscape { get; set; } = true;
+
+    /// <summary>
+    /// 是否在对话框内捕获焦点。
+    /// 模态对话框默认为 true。
+    /// </summary>
+    [Parameter]
+    public bool TrapFocus { get; set; } = true;
+
+    /// <summary>
+    /// 焦点陷阱建立时应当聚焦的元素。默认聚焦第一个可聚焦的后代元素。
+    /// </summary>
+    /// <remarks>
+    /// 当第一个可聚焦子元素在聚焦时存在副作用时，请将此项设为 <see cref="FocusTrapInitialFocus.Container"/>，
+    /// 或使用 <see cref="InitialFocusElement"/> 指定目标元素。
+    /// 携带 <c>data-autofocus</c> 的元素优先级高于此设置。
+    /// </remarks>
+    [Parameter]
+    public FocusTrapInitialFocus InitialFocus { get; set; } = FocusTrapInitialFocus.FirstFocusable;
+
+    /// <summary>
+    /// 焦点陷阱建立时显式聚焦的元素，优先级高于 <see cref="InitialFocus"/> 以及任何
+    /// 携带 <c>data-autofocus</c> 的元素。当该元素不在对话框内部时将被忽略。
+    /// </summary>
+    [Parameter]
+    public ElementReference? InitialFocusElement { get; set; }
+
+    /// <summary>
+    /// 对话框打开时是否锁定页面滚动。
+    /// 模态对话框默认为 true。
+    /// </summary>
+    [Parameter]
+    public bool LockScroll { get; set; } = true;
+
+    /// <summary>
+    /// 按下 Escape 键时触发的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<KeyboardEventArgs> OnEscapeKeyDown { get; set; }
+
+    private bool _useNative;
+
+    protected override void OnInitialized()
+    {
+        _useNative = NativeOverlayService.ResolveStrategy(RenderingStrategy) == OverlayRenderingStrategy.Native;
+    }
+
+    /// <summary>
+    /// 获取对话框内容的已计算 CSS 类。
+    /// 使用 cn() 工具函数进行智能类合并及 Tailwind 冲突解析。
+    /// 两种渲染策略均采用相同的固定居中呈现方式——原生路径会通过 showModal()
+    /// 进入顶层以使用其遮罩/焦点捕获/惰性特性，因此无需单独的分支定位处理。
+    /// </summary>
+    private string GetClassNames() =>
+        ClassNames.cn(
+            "atom:fixed atom:left-[50%] atom:top-[50%] atom:z-50 atom:grid atom:w-full atom:max-w-lg atom:translate-x-[-50%] atom:translate-y-[-50%]",
+            "atom:gap-4 atom:border atom:bg-background atom:p-6 atom:shadow-lg atom:duration-200",
+            "atom:data-[state=open]:animate-in atom:data-[state=closed]:animate-out",
+            "atom:data-[state=closed]:fade-out-0 atom:data-[state=open]:fade-in-0",
+            "atom:data-[state=closed]:zoom-out-95 atom:data-[state=open]:zoom-in-95",
+            "atom:sm:rounded-lg",
+            Class
+        );
+}

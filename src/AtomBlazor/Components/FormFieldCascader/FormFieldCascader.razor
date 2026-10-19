@@ -1,0 +1,44 @@
+@namespace AtomBlazor
+@typeparam TItem
+@inherits FormFieldBase
+
+<Field Orientation="@Orientation" IsInvalid="@IsInvalid" Class="@Class">
+    @if (Label is not null)
+    {
+        <FieldLabel For="@ControlId">@Label</FieldLabel>
+    }
+    <FieldContent>
+        <Cascader TItem="TItem"
+                    Id="@ControlId"
+                    Items="@Items"
+                    ValueField="@ValueField"
+                    TextField="@TextField"
+                    ChildrenProperty="@ChildrenProperty"
+                    Value="@Value"
+                    ValueChanged="HandleValueChanged"
+                    ValueExpression="@ValueExpression"
+                    ChangeOnSelect="@ChangeOnSelect"
+                    ShowSearch="@ShowSearch"
+                    Clearable="@Clearable"
+                    Placeholder="@Placeholder"
+                    Disabled="@Disabled"
+                    Required="@Required"
+                    Name="@Name"
+                    AriaLabel="@AriaLabel"
+                    AriaDescribedBy="@DescribedById"
+                    Class="@InputClass"
+                    @attributes="AdditionalAttributes" />
+        @if (!string.IsNullOrEmpty(HelperText) && !IsInvalid)
+        {
+            <FieldDescription Id="@DescriptionId">@HelperText</FieldDescription>
+        }
+        @if (IsInvalid && !string.IsNullOrEmpty(ErrorText))
+        {
+            <FieldError Id="@ErrorId">@ErrorText</FieldError>
+        }
+        else if (HasEditContextErrors)
+        {
+            <FieldError Id="@ErrorId" Errors="@EditContextErrors" />
+        }
+    </FieldContent>
+</Field>

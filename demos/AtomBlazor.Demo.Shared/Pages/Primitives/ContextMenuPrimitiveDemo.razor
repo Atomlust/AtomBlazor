@@ -1,0 +1,299 @@
+@page "/primitives/context-menu"
+<PageTitle>@L.T("Context Menu 基元 - Atom BlazorUI", "Context Menu Primitive - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Context Menu 基元", "Context Menu Primitive")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("无样式、无外观的右键菜单基元，通过右键触发并支持键盘导航。", "Headless, unstyled context menu triggered by right-click with keyboard navigation.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基础右键菜单", "Basic Context Menu")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("在带边框的区域上点击右键以打开右键菜单。", "Right-click the bordered area to open the context menu.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <AtomBlazor.Primitives.ContextMenuPrimitive>
+                    <AtomBlazor.Primitives.ContextMenuTrigger
+                        style="display: flex; align-items: center; justify-content: center; height: 150px; width: 100%; border: 2px dashed var(--border); border-radius: 8px; user-select: none; cursor: context-menu;">
+                        <span class="text-sm text-muted-foreground">@L.T("在此点击右键", "Right-click here")</span>
+                    </AtomBlazor.Primitives.ContextMenuTrigger>
+
+                    <AtomBlazor.Primitives.ContextMenuContent
+                        style="min-width: 12rem; overflow: hidden; border-radius: 6px; border: 1px solid var(--border); background: var(--popover); color: var(--popover-foreground); box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); padding: 4px;">
+                        <AtomBlazor.Primitives.ContextMenuLabel
+                            style="padding: 4px 8px; font-size: 0.75rem; font-weight: 600; color: var(--muted-foreground);">
+                            @L.T("操作", "Actions")
+                        </AtomBlazor.Primitives.ContextMenuLabel>
+
+                        <AtomBlazor.Primitives.ContextMenuItem
+                            OnClick="@(() => lastAction = "Cut")"
+                            class="flex cursor-default select-none items-center rounded px-2 py-1.5 text-sm outline-none focus:bg-accent focus:text-accent-foreground">
+                            @L.T("剪切", "Cut")
+                        </AtomBlazor.Primitives.ContextMenuItem>
+
+                        <AtomBlazor.Primitives.ContextMenuItem
+                            OnClick="@(() => lastAction = "Copy")"
+                            class="flex cursor-default select-none items-center rounded px-2 py-1.5 text-sm outline-none focus:bg-accent focus:text-accent-foreground">
+                            @L.T("复制", "Copy")
+                        </AtomBlazor.Primitives.ContextMenuItem>
+
+                        <AtomBlazor.Primitives.ContextMenuItem
+                            OnClick="@(() => lastAction = "Paste")"
+                            class="flex cursor-default select-none items-center rounded px-2 py-1.5 text-sm outline-none focus:bg-accent focus:text-accent-foreground">
+                            @L.T("粘贴", "Paste")
+                        </AtomBlazor.Primitives.ContextMenuItem>
+
+                        <AtomBlazor.Primitives.ContextMenuSeparator
+                            style="height: 1px; margin: 4px 0; background: var(--border);" />
+
+                        <AtomBlazor.Primitives.ContextMenuItem
+                            Disabled="true"
+                            class="flex cursor-default select-none items-center rounded px-2 py-1.5 text-sm outline-none opacity-50">
+                            @L.T("删除（已禁用）", "Delete (disabled)")
+                        </AtomBlazor.Primitives.ContextMenuItem>
+                    </AtomBlazor.Primitives.ContextMenuContent>
+                </AtomBlazor.Primitives.ContextMenuPrimitive>
+
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mt-4">最近一次操作：@(lastAction ?? "无")</p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mt-4">Last action: @(lastAction ?? "none")</p>
+                    </text>
+                }
+            </div>
+
+            <CodeBlock Source="Primitives/ContextMenu/basic.txt" />
+        </section>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menu"</code> 设在内容容器上
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menu"</code> on the content container
+                    </AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menuitem"</code> 设在每个菜单项上
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menuitem"</code> on each menu item
+                    </AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">role="separator"</code> 设在菜单分隔符上
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">role="separator"</code> on menu separators
+                    </AccessibilityItem>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <AccessibilityItem>
+                        禁用的项带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled="true"</code>，并在键盘导航时被跳过
+                    </AccessibilityItem>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <AccessibilityItem>
+                        Disabled items have <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled="true"</code> and are skipped during keyboard navigation
+                    </AccessibilityItem>
+                </text>
+            }
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在菜单项之间导航", "Navigate between menu items"))">
+                <Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("跳转到首项/末项", "Jump to first/last item"))">
+                <Kbd>Home</Kbd> / <Kbd>End</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("激活当前聚焦的项", "Activate the focused item"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭菜单", "Close the menu"))">
+                <Kbd>Escape</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="ContextMenu">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="Open" Type="bool?" Default="null">
+                            控制打开状态（受控模式）。支持通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Open</code> 双向绑定。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="Open" Type="bool?" Default="null">
+                            Controls the open state (controlled mode). Supports two-way binding with <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Open</code>.
+                        </ApiParameter>
+                    </text>
+                }
+            </ApiReference>
+
+            <ApiReference ComponentName="ContextMenuTrigger">
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("触发区域的内容。在此区域上点击右键会打开右键菜单。", "The trigger area content. Right-clicking this area opens the context menu.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到组件根元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </ApiParameter>
+                    </text>
+                }
+            </ApiReference>
+
+            <ApiReference ComponentName="ContextMenuContent">
+                <ApiParameter Name="Loop" Type="bool" Default="true">
+                    @L.T("键盘导航是否在末项与首项之间循环。", "Whether keyboard navigation wraps from last to first item.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到组件根元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </ApiParameter>
+                    </text>
+                }
+            </ApiReference>
+
+            <ApiReference ComponentName="ContextMenuItem">
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("菜单项是否被禁用。", "Whether the menu item is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="OnClick" Type="EventCallback">
+                    @L.T("菜单项被激活时调用的回调。", "Callback invoked when the item is activated.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到根 <code>&lt;div&gt;</code> 元素上的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </ApiParameter>
+                    </text>
+                }
+            </ApiReference>
+
+            <ApiReference ComponentName="ContextMenuLabel">
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("标签文字内容。标签不可交互。", "Label text content. Labels are not interactive.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            应用到根 <code>&lt;div&gt;</code> 元素上的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </ApiParameter>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </ApiParameter>
+                    </text>
+                }
+            </ApiReference>
+
+            <ApiReference ComponentName="ContextMenuSeparator">
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @L.T("传给分隔符元素的附加 HTML 特性。", "Additional HTML attributes passed to the separator element.")
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+    </div>
+</div>
+
+@code {
+    private string? lastAction;
+
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

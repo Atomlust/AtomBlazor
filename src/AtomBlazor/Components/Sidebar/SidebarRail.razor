@@ -1,0 +1,60 @@
+@namespace AtomBlazor
+@inject ILocalizer Localizer
+
+@*
+    SidebarRail 组件：悬停出现以切换侧边栏。
+    提供展开/折叠侧边栏的视觉可供性。
+*@
+
+<button type="button" class="@GetClasses()" data-sidebar="rail" tabindex="-1" title="@Localizer["Sidebar.ToggleSidebar"]" @onclick="HandleClick" @attributes="AdditionalAttributes">
+    <span class="atom:sr-only">@Localizer["Sidebar.ToggleSidebar"]</span>
+</button>
+
+@code {
+    [CascadingParameter]
+    private SidebarContext? Context { get; set; }
+
+    /// <summary>
+    /// 用于自定义行为的点击处理器。
+    /// </summary>
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    /// <summary>
+    /// 附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private async Task HandleClick(MouseEventArgs e)
+    {
+        Context?.ToggleSidebar();
+
+        if (OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync(e);
+        }
+    }
+
+    private string GetClasses()
+    {
+        return ClassNames.cn(
+            // #459：不加偏移。导轨宽 16px，可见部分是 2px 的 ::after 竖线，
+            // 偏移的焦点环会比它标记的控件更宽。
+            "atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring",
+            "atom:absolute atom:inset-y-0 atom:z-20 atom:flex atom:w-4 atom:-translate-x-1/2 atom:transition-all atom:ease-linear atom:after:absolute atom:after:inset-y-0 atom:after:left-1/2 atom:after:w-[2px] atom:hover:after:bg-sidebar-border atom:group-data-[side=left]:-right-4 atom:group-data-[side=right]:left-0",
+            "atom:[[data-side=left]_&]:cursor-w-resize atom:[[data-side=right]_&]:cursor-e-resize",
+            "atom:[[data-side=left][data-state=collapsed]_&]:cursor-e-resize atom:[[data-side=right][data-state=collapsed]_&]:cursor-w-resize",
+            "atom:group-data-[collapsible=offcanvas]:translate-x-0 atom:group-data-[collapsible=offcanvas]:after:left-full atom:group-data-[collapsible=offcanvas]:hover:bg-sidebar",
+            "atom:[[data-side=left][data-collapsible=offcanvas]_&]:-right-2",
+            "atom:[[data-side=right][data-collapsible=offcanvas]_&]:-left-2",
+            Class
+        );
+    }
+}

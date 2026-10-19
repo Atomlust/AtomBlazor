@@ -1,0 +1,44 @@
+@namespace AtomBlazor
+
+<CommandGroup @attributes="AdditionalAttributes">
+    @if (!string.IsNullOrWhiteSpace(Label))
+    {
+        <div class="@LabelCssClass">
+            @Label
+        </div>
+    }
+    @ChildContent
+</CommandGroup>
+
+@code {
+    /// <summary>
+    /// 获取或设置显示在组内条目上方的标签文本。
+    /// 当搜索查询把本组的所有条目都过滤掉时，整个组（包括标签）都会被隐藏。
+    /// </summary>
+    [Parameter]
+    public string? Label { get; set; }
+
+    /// <summary>
+    /// 获取或设置追加到标签元素上的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? LabelClass { get; set; }
+
+    /// <summary>
+    /// 获取或设置渲染在组内的内容。
+    /// 通常包含 <see cref="ComboboxItem{TValue}"/> 组件。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string LabelCssClass => ClassNames.cn(
+        "atom:px-2 atom:py-1.5 atom:text-xs atom:font-semibold atom:text-muted-foreground",
+        LabelClass
+    );
+}

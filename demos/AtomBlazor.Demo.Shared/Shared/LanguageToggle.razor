@@ -1,0 +1,76 @@
+@* 文档站显示语言切换（L1 波）：DropdownMenu＋Ghost 图标按钮皆为本库控件；
+   选择语言＝写 atom-lang cookie → 整页重载，SSR 首帧即目标语言。 *@
+@inject DemoCultureService Culture
+@inject IJSRuntime JS
+@inject NavigationManager Nav
+@implements IDisposable
+
+<DropdownMenu>
+    <AtomBlazor.DropdownMenuTrigger>
+        <Button Variant="ButtonVariant.Outline"
+                Size="ButtonSize.Icon"
+                aria-label="@Culture.T("切换显示语言", "Switch display language")">
+            <LucideIcon Name="languages" Class="atom:h-4 atom:w-4" />
+        </Button>
+    </AtomBlazor.DropdownMenuTrigger>
+    <AtomBlazor.DropdownMenuContent>
+        <AtomBlazor.DropdownMenuItem OnClick="@(() => SwitchLanguageAsync(DemoCultureService.Chinese))">
+            <span class="flex items-center gap-2">
+                简体中文
+                @if (Culture.IsChinese)
+                {
+                    <LucideIcon Name="check" Size="14" />
+                }
+            </span>
+        </AtomBlazor.DropdownMenuItem>
+        <AtomBlazor.DropdownMenuItem OnClick="@(() => SwitchLanguageAsync(DemoCultureService.English))">
+            <span class="flex items-center gap-2">
+                English
+                @if (!Culture.IsChinese)
+                {
+                    <LucideIcon Name="check" Size="14" />
+                }
+            </span>
+        </AtomBlazor.DropdownMenuItem>
+    </AtomBlazor.DropdownMenuContent>
+</DropdownMenu>
+
+@code {
+    /// <inheritdoc />
+    protected override void OnInitialized() =>
+        Culture.LanguageChanged += HandleLanguageChanged;
+
+    private async Task SwitchLanguageAsync(string language)
+    {
+        if (language == Culture.Language)
+        {
+            return;
+        }
+
+        Culture.SetLanguage(language);
+
+        try
+        {
+            var module = await JS.InvokeAsync<IJSObjectReference>(
+                "import", "./_content/AtomBlazor.Demo.Shared/js/demo-utils.js");
+            await module.InvokeVoidAsync("setLanguageCookie", language);
+        }
+        catch (JSException)
+        {
+            // JS 不可用（异常宿主形态）时仅保留内存态，不阻断切换。
+        }
+
+        // 整页重载让 SSR 预渲染与库组件全部以新语言重建。
+        Nav.NavigateTo(Nav.Uri, forceLoad: true);
+    }
+
+    private void HandleLanguageChanged() =>
+        InvokeAsync(StateHasChanged);
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        Culture.LanguageChanged -= HandleLanguageChanged;
+        GC.SuppressFinalize(this);
+    }
+}

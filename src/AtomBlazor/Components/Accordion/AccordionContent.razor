@@ -1,0 +1,50 @@
+@namespace AtomBlazor
+
+@*
+    带样式的 AccordionContent 组件。
+    以 shadcn/ui 样式包裹 AccordionContent 基元。
+*@
+
+<AtomBlazor.Primitives.AccordionContent ForceMount="@ForceMount"
+                                                      class="@CssClass"
+                                                      @attributes="AdditionalAttributes">
+    <div class="atom:overflow-hidden atom:min-h-0">
+        <div class="atom:pb-4 atom:pt-0 atom:text-sm">
+            @ChildContent
+        </div>
+    </div>
+</AtomBlazor.Primitives.AccordionContent>
+
+@code {
+    /// <summary>
+    /// 关闭时是否仍强制挂载内容。
+    /// 为 true（默认）时可获得平滑的 CSS 动画。
+    /// 为 false 时内容在关闭后卸载（无动画、内存占用更低）。
+    /// </summary>
+    [Parameter]
+    public bool ForceMount { get; set; } = true;
+
+    /// <summary>
+    /// 条目展开时要渲染的子内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 要应用到内容的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string CssClass => ClassNames.cn(
+        "atom:grid atom:grid-rows-[0fr] atom:transition-[grid-template-rows] atom:duration-200 atom:ease-out",
+        "atom:data-[state=open]:grid-rows-[1fr]",
+        Class
+    );
+}

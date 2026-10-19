@@ -1,0 +1,535 @@
+@page "/guides/localization"
+
+<PageTitle>@L.T("本地化 - Atom BlazorUI", "Localization - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("本地化", "Localization")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("自定义所有组件标签，集成任意本地化框架，并享用日期与数字的文化感知自动格式化。", "Customize all component labels, integrate with any localization framework, and leverage automatic culture-aware formatting for dates and numbers.")
+        </p>
+    </div>
+
+    <div class="space-y-6">
+
+        <!-- Overview -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("概览", "Overview")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        AtomBlazor 为所有组件界面文案自带英文默认值 —— 占位符、按钮标签、
+                        aria 属性、分页文本与空状态皆在其列。每个字符串都可以通过
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">ILocalizer</code>（一个经 DI 注册的接口）配置。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        AtomBlazor ships with English defaults for all component chrome &mdash; placeholders, button labels,
+                        aria attributes, pagination text, and empty states. Every string is configurable through
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">ILocalizer</code>, an interface
+                        registered via DI.
+                    </p>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        库<strong>不</strong>依赖 <code class="text-xs bg-muted px-1 py-0.5 rounded">IStringLocalizer</code>
+                        或任何特定本地化框架，它只提供抽象层 —— 本地化策略由你自己选定（资源文件、JSON、数据库或其他任何东西）。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        The library does <strong>not</strong> take a dependency on <code class="text-xs bg-muted px-1 py-0.5 rounded">IStringLocalizer</code>
+                        or any specific localization framework. Instead, it provides the abstraction &mdash; you bring your own
+                        localization strategy (resource files, JSON, database, or anything else).
+                    </p>
+                </text>
+            }
+        </section>
+
+        <!-- What Gets Localized -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("哪些内容会被本地化", "What Gets Localized")</h2>
+            <p class="text-muted-foreground leading-relaxed">
+                @L.T("AtomBlazor 中的本地化分为两类：", "There are two categories of localization in AtomBlazor:")
+            </p>
+
+            <div class="grid gap-4 md:grid-cols-2">
+                <div class="p-4 border rounded-lg space-y-2">
+                    <h3 class="font-semibold">@L.T("库界面文案（经由 ILocalizer）", "Library Chrome (via ILocalizer)")</h3>
+                    <p class="text-sm text-muted-foreground">
+                        @L.T("归库所有的字符串：占位符、按钮标签、空状态、分页文本、aria-label 与读屏文本。", "Strings owned by the library: placeholders, button labels, empty states, pagination text, aria-labels, and screen-reader text.")
+                    </p>
+                    <div class="text-sm text-muted-foreground">
+                        <span class="font-medium">@L.T("示例：", "Examples:")</span> "Search...", "No results found",
+                        "Rows per page", "Next", "Select all rows"
+                    </div>
+                </div>
+                <div class="p-4 border rounded-lg space-y-2">
+                    <h3 class="font-semibold">@L.T("文化感知格式化（自动）", "Culture-Aware Formatting (automatic)")</h3>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                                日历的月份/星期名称、日期格式、数字的小数点与千位分隔符、
+                                以及每周的起始日，全部跟随
+                                <code class="text-xs bg-muted px-1 py-0.5 rounded">CultureInfo.CurrentCulture</code>。
+                            </p>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                                Calendar month/day names, date formats, numeric decimal/thousand separators,
+                                and week start day all follow
+                                <code class="text-xs bg-muted px-1 py-0.5 rounded">CultureInfo.CurrentCulture</code>.
+                            </p>
+                        </text>
+                    }
+                    <div class="text-sm text-muted-foreground">
+                        <span class="font-medium">@L.T("示例：", "Examples:")</span> "March" vs "Mars", "1,234.56" vs "1.234,56"
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 border-l-4 border-primary bg-primary/5 rounded-r-lg">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">
+                            <strong>应用数据</strong>（列标题、选项标签、内容文本）是你的责任。
+                            库只本地化它自己的界面文案。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">
+                            <strong>Application data</strong> (column headers, option labels, content text) is your responsibility.
+                            The library only localizes its own UI chrome.
+                        </p>
+                    </text>
+                }
+            </div>
+        </section>
+
+        <!-- Quick Start -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("快速上手", "Quick Start")</h2>
+            <p class="text-muted-foreground leading-relaxed">
+                @L.T("可以直接使用英文默认值而不做任何配置，也可以在启动时覆盖特定的键：", "Use English defaults with no configuration, or override specific keys at startup:")
+            </p>
+            <div class="rounded-lg border bg-muted/50 p-4">
+                <pre class="text-sm overflow-x-auto"><code>builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set("DataGrid.NoResultsFound", "Keine Ergebnisse gefunden");
+    localizer.Set("DataGrid.Loading", "Laden...");
+    localizer.Set("Calendar.GoToPreviousMonth", "Zum vorherigen Monat");
+    localizer.Set("DatePicker.Placeholder", "Datum auswählen");
+    localizer.Set("Pagination.RowsPerPage", "Zeilen pro Seite");
+    localizer.Set("Pagination.PageFormat", "Seite {0} von {1}");
+    localizer.Set("FormWizard.Next", "Weiter");
+    localizer.Set("FormWizard.Back", "Zurück");
+});</code></pre>
+            </div>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        键使用点号命名法：<code class="text-xs bg-muted px-1 py-0.5 rounded">ComponentName.PropertyName</code>。
+                        格式化字符串使用标准的 <code class="text-xs bg-muted px-1 py-0.5 rounded">string.Format</code>
+                        占位符（例如 <code class="text-xs bg-muted px-1 py-0.5 rounded">"Showing {0}–{1} of {2}"</code>）。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        Keys use dot notation: <code class="text-xs bg-muted px-1 py-0.5 rounded">ComponentName.PropertyName</code>.
+                        Format strings use standard <code class="text-xs bg-muted px-1 py-0.5 rounded">string.Format</code>
+                        placeholders (e.g., <code class="text-xs bg-muted px-1 py-0.5 rounded">"Showing {0}–{1} of {2}"</code>).
+                    </p>
+                </text>
+            }
+        </section>
+
+        <!-- Integration with IStringLocalizer -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("与 IStringLocalizer 集成", "Integration with IStringLocalizer")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        创建一个自定义的 <code class="text-xs bg-muted px-1 py-0.5 rounded">ILocalizer</code> 实现，
+                        把它委托给 <code class="text-xs bg-muted px-1 py-0.5 rounded">IStringLocalizer&lt;T&gt;</code>：
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        Create a custom <code class="text-xs bg-muted px-1 py-0.5 rounded">ILocalizer</code> implementation
+                        that delegates to <code class="text-xs bg-muted px-1 py-0.5 rounded">IStringLocalizer&lt;T&gt;</code>:
+                    </p>
+                </text>
+            }
+            <div class="rounded-lg border bg-muted/50 p-4">
+                <pre class="text-sm overflow-x-auto"><code>public class AppLocalizer(IStringLocalizer&lt;SharedResources&gt; localizer)
+    : DefaultLocalizer
+{
+    public override string this[string key] =>
+        localizer[key] is { ResourceNotFound: false } found
+            ? found.Value : base[key];
+
+    public override string this[string key, params object[] arguments] =>
+        localizer[key, arguments] is { ResourceNotFound: false } found
+            ? found.Value : base[key, arguments];
+}</code></pre>
+            </div>
+            <div class="rounded-lg border bg-muted/50 p-4">
+                <pre class="text-sm overflow-x-auto"><code>// Register as scoped for per-circuit culture switching
+builder.Services.AddAtomBlazorComponents();
+builder.Services.AddScoped&lt;ILocalizer, AppLocalizer&gt;();</code></pre>
+            </div>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        在你的资源文件中不存在的键，会自动回落到
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">DefaultLocalizer</code> 里的英文默认值。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        Keys that don't exist in your resource files automatically fall back to English defaults
+                        in <code class="text-xs bg-muted px-1 py-0.5 rounded">DefaultLocalizer</code>.
+                    </p>
+                </text>
+            }
+        </section>
+
+        <!-- Per-Component Overrides -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("按组件覆盖", "Per-Component Overrides")</h2>
+            <p class="text-muted-foreground leading-relaxed">
+                @L.T("组件参数始终优先于本地化器。这让你能覆盖单个实例而不改动全局配置：", "Component parameters always take priority over the localizer. This lets you override a single instance without changing the global configuration:")
+            </p>
+            <div class="rounded-lg border bg-muted/50 p-4">
+                <pre class="text-sm overflow-x-auto"><code>&lt;!-- This Combobox uses a custom message regardless of ILocalizer --&gt;
+&lt;Combobox TValue="string"
+            Options="options"
+            EmptyMessage="No matching frameworks found"
+            @@bind-Value="selected" /&gt;
+
+&lt;!-- This one uses whatever Localizer["Combobox.EmptyMessage"] returns --&gt;
+&lt;Combobox TValue="string"
+            Options="options"
+            @@bind-Value="selected" /&gt;</code></pre>
+            </div>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        解析顺序为：<strong>参数值</strong> &rarr; <strong>ILocalizer</strong> &rarr; <strong>英文默认值</strong>。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        The resolution order is: <strong>Parameter value</strong> &rarr; <strong>ILocalizer</strong> &rarr; <strong>English default</strong>.
+                    </p>
+                </text>
+            }
+        </section>
+
+        <!-- Culture-Aware Formatting -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("文化感知格式化", "Culture-Aware Formatting")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        若干组件会在无需任何配置的情况下自动适应
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">CultureInfo.CurrentCulture</code>：
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        Several components automatically adapt to <code class="text-xs bg-muted px-1 py-0.5 rounded">CultureInfo.CurrentCulture</code>
+                        without any configuration:
+                    </p>
+                </text>
+            }
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm border-collapse">
+                    <thead>
+                        <tr class="border-b">
+                            <th class="text-left py-2 px-3 font-medium">@L.T("组件", "Component")</th>
+                            <th class="text-left py-2 px-3 font-medium">@L.T("自适应内容", "What Adapts")</th>
+                            <th class="text-left py-2 px-3 font-medium">@L.T("覆盖参数", "Override Parameter")</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-muted-foreground">
+                        <tr class="border-b">
+                            <td class="py-2 px-3">Calendar</td>
+                            <td class="py-2 px-3">@L.T("月份名、星期名、每周第一天", "Month names, day names, first day of week")</td>
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">MonthNames</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">CustomDayNames</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">FirstDayOfWeek</code></td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3">DatePicker</td>
+                            <td class="py-2 px-3">@L.T("日期显示格式（默认为短日期 \"d\"）", "Date display format (defaults to short date \"d\")")</td>
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">DateFormat</code></td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3">DateRangePicker</td>
+                            <td class="py-2 px-3">@L.T("月/日名、日期格式、每周第一天", "Month/day names, date format, first day of week")</td>
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">MonthNames</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">CustomDayNames</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">DateFormat</code></td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3">NumericInput</td>
+                            <td class="py-2 px-3">@L.T("小数点分隔符、千位分隔符", "Decimal separator, thousand separator")</td>
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">InputConverter.Culture</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="p-4 border-l-4 border-primary bg-primary/5 rounded-r-lg">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">
+                            <strong>提示：</strong>若要全局改回与区域无关的格式化（例如内部工具场景），
+                            可在启动时设置 <code class="text-xs bg-muted px-1 py-0.5 rounded">InputConverter.GlobalCulture = CultureInfo.InvariantCulture</code>。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">
+                            <strong>Tip:</strong> To revert to invariant formatting globally (e.g., for internal tools),
+                            set <code class="text-xs bg-muted px-1 py-0.5 rounded">InputConverter.GlobalCulture = CultureInfo.InvariantCulture</code>
+                            at startup.
+                        </p>
+                    </text>
+                }
+            </div>
+        </section>
+
+        <!-- Available Keys -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("可用的键", "Available Keys")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        所有键都使用点号命名法：<code class="text-xs bg-muted px-1 py-0.5 rounded">ComponentName.PropertyName</code>。
+                        标有 <strong>（格式）</strong> 的键接受 <code class="text-xs bg-muted px-1 py-0.5 rounded">string.Format</code> 参数。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        All keys use dot notation: <code class="text-xs bg-muted px-1 py-0.5 rounded">ComponentName.PropertyName</code>.
+                        Keys marked with <strong>(format)</strong> accept <code class="text-xs bg-muted px-1 py-0.5 rounded">string.Format</code> arguments.
+                    </p>
+                </text>
+            }
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm border-collapse">
+                    <thead>
+                        <tr class="border-b">
+                            <th class="text-left py-2 px-3 font-medium">@L.T("组件", "Component")</th>
+                            <th class="text-left py-2 px-3 font-medium">@L.T("键", "Keys")</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-muted-foreground">
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">Calendar</code></td>
+                            <td class="py-2 px-3">GoToPreviousMonth, GoToNextMonth</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">DataGrid</code></td>
+                            <td class="py-2 px-3">Loading, NoResultsFound, SelectAllRows, ExpandAll, CollapseAll, PreviousPage, NextPage, FilterPlaceholder <strong>@L.T("（格式）", "(format)")</strong>, ShowingRange <strong>@L.T("（格式）", "(format)")</strong>, RowsSelected <strong>@L.T("（格式）", "(format)")</strong>, @L.T("另有 30 项", "+30 more")</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">DataTable</code></td>
+                            <td class="py-2 px-3">Loading, NoResultsFound, Search, Columns, ToggleColumns, SelectAllRows, SelectThisRow, @L.T("另有 6 项", "+6 more")</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">Pagination</code></td>
+                            <td class="py-2 px-3">Previous, Next, RowsPerPage, ShowingFormat, PageFormat, GoToFirstPage, GoToLastPage, MorePages, NoItems</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">Combobox</code></td>
+                            <td class="py-2 px-3">Placeholder, SearchPlaceholder, EmptyMessage</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">MultiSelect</code></td>
+                            <td class="py-2 px-3">Placeholder, SearchPlaceholder, EmptyMessage, SelectAll, Clear, Close</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">DatePicker</code></td>
+                            <td class="py-2 px-3">Placeholder</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">DateRangePicker</code></td>
+                            <td class="py-2 px-3">Placeholder, QuickSelect, Today, Yesterday, Last7Days, Last30Days, Clear, Apply, DaysSelected <strong>@L.T("（格式）", "(format)")</strong>, @L.T("另有 4 项", "+4 more")</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">FormWizard</code></td>
+                            <td class="py-2 px-3">Next, Back, Skip, Complete, WizardProgress</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">FilterBuilder</code></td>
+                            <td class="py-2 px-3">SelectField, AddCondition, AddGroup, RemoveCondition, @L.T("日期预设标签", "date preset labels"), @L.T("周期标签", "period labels"), @L.T("另有 28 项", "+28 more")</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">Dialog</code> / <code class="text-xs bg-muted px-1 py-0.5 rounded">Sheet</code></td>
+                            <td class="py-2 px-3">Close</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">Sidebar</code></td>
+                            <td class="py-2 px-3">ToggleSidebar</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">Carousel</code></td>
+                            <td class="py-2 px-3">NextSlide, PreviousSlide</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">DataView</code></td>
+                            <td class="py-2 px-3">SearchPlaceholder, NoResultsFound, Loading, LoadMore, ListView, GridView, Sort</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">MarkdownEditor</code></td>
+                            <td class="py-2 px-3">SelectHeadingLevel, Bold, Italic, Underline, BulletList, NumberedList</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">RichTextEditor</code></td>
+                            <td class="py-2 px-3">Normal, Heading1/2/3, Bold, Italic, Underline, Strikethrough, BulletList, NumberedList, InsertLink, Blockquote, CodeBlock, EditLink, RemoveLink, Cancel, Update, Insert</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">Alert</code></td>
+                            <td class="py-2 px-3">Dismiss</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">Breadcrumb</code></td>
+                            <td class="py-2 px-3">Breadcrumb, More</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">Command</code></td>
+                            <td class="py-2 px-3">CommandMenu, CommandList</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">DashboardGrid</code></td>
+                            <td class="py-2 px-3">Loading, NoWidgets, AddWidget, RemoveWidget, ResizeWidget</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">NumericInput</code></td>
+                            <td class="py-2 px-3">IncreaseValue, DecreaseValue</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">TagInput</code></td>
+                            <td class="py-2 px-3">Placeholder, RemoveTag <strong>@L.T("（格式）", "(format)")</strong>, ClearAllTags, TagSuggestions</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">Rating</code></td>
+                            <td class="py-2 px-3">Rating</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">ResponsiveNav</code></td>
+                            <td class="py-2 px-3">ToggleMenu</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-3"><code class="text-xs bg-muted px-1 py-0.5 rounded">Timeline</code></td>
+                            <td class="py-2 px-3">Timeline</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Dynamic Culture Switching -->
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("动态切换文化", "Dynamic Culture Switching")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        对多语言应用， <code class="text-xs bg-muted px-1 py-0.5 rounded">DefaultLocalizer</code>
+                        并按 scoped 注册。Blazor Server 的每个电路都会得到自己的本地化器，
+                        从 <code class="text-xs bg-muted px-1 py-0.5 rounded">IStringLocalizer</code> 解析而来：
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-muted-foreground leading-relaxed">
+                        For multi-language apps, subclass <code class="text-xs bg-muted px-1 py-0.5 rounded">DefaultLocalizer</code>
+                        and register as scoped. Each Blazor Server circuit gets its own localizer resolved from
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">IStringLocalizer</code>:
+                    </p>
+                </text>
+            }
+            <div class="rounded-lg border bg-muted/50 p-4">
+                <pre class="text-sm overflow-x-auto"><code>builder.Services.AddAtomBlazorComponents();
+builder.Services.AddScoped&lt;ILocalizer, AppLocalizer&gt;();</code></pre>
+            </div>
+            <div class="p-4 border-l-4 border-primary bg-primary/5 rounded-r-lg">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">
+                            <strong>提示：</strong>缺失的键会自动回落到
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">DefaultLocalizer</code> 中的英文默认值，
+                            所以你只需要翻译用户真正会看到的键。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground">
+                            <strong>Tip:</strong> Missing keys automatically fall back to the English defaults in
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">DefaultLocalizer</code>, so you only
+                            need to translate the keys your users will actually see.
+                        </p>
+                    </text>
+                }
+            </div>
+        </section>
+
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

@@ -1,0 +1,568 @@
+@namespace AtomBlazor
+@typeparam TItem
+@using AtomBlazor.Primitives.Gantt
+@using AtomBlazor.Icons.Lucide
+@inject ILocalizer Localizer
+
+@*
+    Gantt——任务列表与时间轴共用同一张表。
+
+    列声明先渲染进一个隐藏盒：一列须走完自身生命周期完成注册，
+    此后才有可供时间轴据以度量的任务列表。
+*@
+
+<div class="@RootClass" data-slot="gantt" @attributes="AdditionalAttributes">
+
+    <div class="atom:hidden">
+        <CascadingValue Value="this" IsFixed="true">
+            @if (Columns is not null)
+            {
+                @Columns
+            }
+            else
+            {
+                <GanttColumn TItem="TItem" Title="@Localizer["Gantt.Task"]" Width="240" IsTree="true" />
+            }
+        </CascadingValue>
+    </div>
+
+    @if (ShowToolbar)
+    {
+        <div class="atom:flex atom:flex-wrap atom:items-center atom:gap-2">
+            <Button Variant="ButtonVariant.Outline"
+                      Size="ButtonSize.Small"
+                      OnClick="GoToTodayAsync"
+                      aria-label="@Localizer["Gantt.Today"]">
+                <LucideIcon Name="calendar-days" Size="16" Class="atom:me-2" />
+                @Localizer["Gantt.Today"]
+            </Button>
+
+            <Button Variant="ButtonVariant.Ghost"
+                      Size="ButtonSize.Small"
+                      OnClick="ExpandAllAsync"
+                      aria-label="@Localizer["Gantt.ExpandAll"]">
+                <LucideIcon Name="unfold-vertical" Size="16" Class="atom:me-2" />
+                @Localizer["Gantt.ExpandAll"]
+            </Button>
+
+            <Button Variant="ButtonVariant.Ghost"
+                      Size="ButtonSize.Small"
+                      OnClick="CollapseAllAsync"
+                      aria-label="@Localizer["Gantt.CollapseAll"]">
+                <LucideIcon Name="fold-vertical" Size="16" Class="atom:me-2" />
+                @Localizer["Gantt.CollapseAll"]
+            </Button>
+
+            @if (ShowZoomControls)
+            {
+                <div class="atom:ms-auto atom:flex atom:items-center atom:gap-1" role="group" aria-label="@Localizer["Gantt.Zoom"]">
+                    @foreach (var level in Enum.GetValues<GanttZoom>())
+                    {
+                        var isCurrent = level == Zoom;
+                        <Button Variant="@(isCurrent ? ButtonVariant.Default : ButtonVariant.Ghost)"
+                                  Size="ButtonSize.Small"
+                                  OnClick="@(() => SetZoomAsync(level))"
+                                  aria-pressed="@isCurrent.ToString().ToLowerInvariant()">
+                            @Localizer[$"Gantt.Zoom{level}"]
+                        </Button>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    @if (buildError is not null)
+    {
+        <p role="alert" class="atom:text-sm atom:text-destructive">@buildError</p>
+    }
+    else if (Loading)
+    {
+        <div class="atom:flex atom:items-center atom:gap-2 atom:py-8 atom:text-sm atom:text-muted-foreground">
+            <Spinner Size="SpinnerSize.Small" />
+            <span>@Localizer["Gantt.Loading"]</span>
+        </div>
+    }
+    else if (chart is null || chart.IsEmpty)
+    {
+        <p class="atom:py-8 atom:text-center atom:text-sm atom:text-muted-foreground">
+            @(EmptyMessage ?? Localizer["Gantt.Empty"])
+        </p>
+    }
+    else
+    {
+        var axis = chart.Axis;
+        var slotWidth = EffectiveSlotWidth;
+        var treeWidth = TreeWidth;
+        var timelineWidth = TimelineWidth;
+        var today = TodayLine();
+        var treeColumn = TreeColumn;
+
+        <div @ref="rootElement"
+             id="@chartId"
+             data-gantt-root
+             data-slot-width="@slotWidth"
+             data-snap="@(SnapToSlot ? "true" : "false")"
+             data-allow-drag="@(AllowDrag ? "true" : "false")"
+             data-allow-resize="@(AllowResize ? "true" : "false")"
+             data-allow-progress="@(AllowProgressDrag ? "true" : "false")"
+             data-allow-link="@(AllowLinking ? "true" : "false")"
+             data-allow-row-drag="@(AllowRowDrag ? "true" : "false")"
+             data-row-height="@RowHeight"
+             class="atom:overflow-auto atom:rounded-md atom:border atom:border-border"
+             style="@(Height is { Length: > 0 } height ? $"height:{height};" : string.Empty)">
+
+            @*
+                与整张图等大的内容盒。绘制层相对此盒而非滚动容器定位，
+                故它随横条一同移动，而非钉死在窗口
+                上。
+            *@
+            <div class="atom:relative" style="@ContentStyle()">
+            <table class="atom:border-separate atom:border-spacing-0 atom:text-sm"
+                   style="@TableStyle()"
+                   aria-label="@AriaLabel">
+                <colgroup>
+                    @foreach (var column in DeclaredColumns)
+                    {
+                        <col data-column-id="@column.EffectiveKey" style="@ColumnWidthStyle(column)" />
+                    }
+                    @for (var slot = 0; slot < axis.SlotCount; slot++)
+                    {
+                        <col style="@SlotWidthStyle()" />
+                    }
+                </colgroup>
+
+                <thead>
+                    <tr>
+                        @{
+                            var headerOffset = 0;
+                        }
+                        @foreach (var column in DeclaredColumns)
+                        {
+                            var offset = headerOffset;
+                            var isSorted = string.Equals(sortKey, column.EffectiveKey, StringComparison.Ordinal);
+                            headerOffset += column.EffectiveWidth;
+
+                            <th rowspan="@HeaderTiers"
+                                scope="col"
+                                data-column-id="@column.EffectiveKey"
+                                class="atom:sticky atom:top-0 atom:z-40 atom:border-b atom:border-border atom:bg-background atom:px-3 atom:text-start atom:font-medium atom:text-muted-foreground @(headerOffset >= treeWidth ? "atom:border-e" : string.Empty)"
+                                style="@HeaderCellStyle(offset)"
+                                aria-sort="@(isSorted ? (sortDescending ? "descending" : "ascending") : "none")">
+                                <div class="atom:relative atom:flex atom:h-full atom:items-center">
+                                    @if (column.Sortable)
+                                    {
+                                        <button type="button"
+                                                class="atom:flex atom:items-center atom:gap-1 atom:truncate atom:hover:text-foreground"
+                                                @onclick="@(() => SortByAsync(column))">
+                                            <span class="atom:truncate">@column.Title</span>
+                                            @if (isSorted)
+                                            {
+                                                <LucideIcon Name="@(sortDescending ? "arrow-down" : "arrow-up")" Size="13" />
+                                            }
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="atom:truncate">@column.Title</span>
+                                    }
+
+                                    @if (Resizable)
+                                    {
+                                        <div class="atom:absolute atom:end-0 atom:top-0 atom:bottom-0 atom:w-2 atom:cursor-col-resize atom:hover:bg-primary/20 atom:active:bg-primary/40"
+                                             data-resize-handle="@column.EffectiveKey"></div>
+                                    }
+                                </div>
+                            </th>
+                        }
+
+                        @if (axis.Major.Count > 0)
+                        {
+                            @foreach (var slot in axis.Major)
+                            {
+                                <th colspan="@slot.Span"
+                                    scope="col"
+                                    class="atom:sticky atom:top-0 atom:z-30 atom:border-b atom:border-e atom:border-border atom:bg-background atom:px-2 atom:text-start atom:text-xs atom:font-medium atom:text-muted-foreground"
+                                    style="@TierStyle()">
+                                    <span class="atom:sticky atom:inline-block atom:truncate" style="@MajorLabelStyle()">@slot.Label</span>
+                                </th>
+                            }
+                        }
+                        else
+                        {
+                            @foreach (var slot in axis.Minor)
+                            {
+                                <th scope="col"
+                                    class="atom:sticky atom:top-0 atom:z-30 atom:border-b atom:border-border atom:bg-background atom:text-center atom:text-xs atom:font-normal atom:text-muted-foreground"
+                                    style="@SingleTierStyle()"
+                                    title="@slot.Start.ToString("D")">
+                                    @slot.Label
+                                </th>
+                            }
+                        }
+                    </tr>
+
+                    @if (axis.Major.Count > 0)
+                    {
+                        <tr>
+                            @foreach (var slot in axis.Minor)
+                            {
+                                <th scope="col"
+                                    class="atom:sticky atom:z-30 atom:border-b atom:border-border atom:bg-background atom:text-center atom:text-xs atom:font-normal @(slot.IsNonWorking && ShowNonWorkingDays ? "atom:text-muted-foreground/50" : "atom:text-muted-foreground")"
+                                    style="@LowerTierStyle()"
+                                    title="@slot.Start.ToString("D")">
+                                    @slot.Label
+                                </th>
+                            }
+                        </tr>
+                    }
+                </thead>
+
+                <tbody>
+                    @foreach (var row in chart.Rows)
+                    {
+                        <tr class="@ClassNames.cn("atom:group/row")" style="@RowStyle()">
+                            @{
+                                var cellOffset = 0;
+                            }
+                            @foreach (var column in DeclaredColumns)
+                            {
+                                var offset = cellOffset;
+                                cellOffset += column.EffectiveWidth;
+                                var isTree = ReferenceEquals(column, treeColumn);
+
+                                <td class="atom:sticky atom:z-20 atom:border-b atom:border-border atom:bg-background atom:px-3 atom:group-hover/row:bg-muted/50 @(cellOffset >= treeWidth ? "atom:border-e" : string.Empty) @AlignClass(column)"
+                                    style="@BodyCellStyle(offset)">
+                                    @if (isTree)
+                                    {
+                                        <div class="atom:flex atom:items-center atom:gap-1" style="@IndentStyle(row)" data-gantt-row="@row.Id">
+                                            @if (AllowRowDrag)
+                                            {
+                                                <span class="atom:flex atom:size-4 atom:shrink-0 atom:cursor-grab atom:items-center atom:justify-center atom:text-muted-foreground atom:opacity-0 atom:group-hover/row:opacity-100"
+                                                      data-gantt-row-handle
+                                                      role="button"
+                                                      aria-label="@string.Format(System.Globalization.CultureInfo.CurrentCulture, Localizer["Gantt.DragRow"], row.Text)">
+                                                    <LucideIcon Name="grip-vertical" Size="14" />
+                                                </span>
+                                            }
+                                            @if (row.IsSummary)
+                                            {
+                                                <button type="button"
+                                                        class="atom:flex atom:size-5 atom:shrink-0 atom:items-center atom:justify-center atom:rounded atom:text-muted-foreground atom:hover:bg-muted atom:hover:text-foreground"
+                                                        aria-expanded="@row.IsExpanded.ToString().ToLowerInvariant()"
+                                                        aria-label="@string.Format(System.Globalization.CultureInfo.CurrentCulture, Localizer[row.IsExpanded ? "Gantt.Collapse" : "Gantt.Expand"], row.Text)"
+                                                        @onclick="@(() => ToggleAsync(row.Id))">
+                                                    <LucideIcon Name="@(row.IsExpanded ? "chevron-down" : "chevron-right")" Size="14" />
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <span class="atom:size-5 atom:shrink-0"></span>
+                                            }
+                                            @if (column.ChildContent is not null)
+                                            {
+                                                @* 单元余下部分归模板掌管。若再把它包进
+                                                   截断 span 里，便会裁掉它所放
+                                                   置的任何内容，输入框尤甚。 *@
+                                                <div class="atom:min-w-0 atom:flex-1">
+                                                    @column.ChildContent(row)
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <span class="atom:truncate @(row.IsSummary ? "atom:font-medium" : string.Empty)" title="@row.Text">
+                                                    @column.Text(row, isTree)
+                                                </span>
+                                            }
+                                        </div>
+                                    }
+                                    else if (column.ChildContent is not null)
+                                    {
+                                        @column.ChildContent(row)
+                                    }
+                                    else
+                                    {
+                                        <span class="atom:truncate">@column.Text(row, isTree)</span>
+                                    }
+                                </td>
+                            }
+
+                            @*
+                                时间轴单元仅作结构之用。一切依时间轴绘制之物都居于表
+                                格之后的同一图层，因为表格按文档顺序绘制单元，
+                                后置单元之子元素再高的 z-index 也无法把依赖
+                                箭头抬到前置单元的横条之上。
+                            *@
+                            <td colspan="@axis.SlotCount" class="atom:border-b atom:border-border atom:p-0" style="@RowStyle()"></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="atom:pointer-events-none atom:absolute atom:top-0" style="@DrawingLayerStyle()">
+                @foreach (var band in NonWorkingBands())
+                {
+                    <div class="atom:absolute atom:top-0 atom:bottom-0 atom:bg-muted/50"
+                         style="@BandStyle(band.X, band.Width)"></div>
+                }
+                @foreach (var line in MajorLines())
+                {
+                    <div class="atom:absolute atom:top-0 atom:bottom-0 atom:w-px atom:bg-border"
+                         style="@LineStyle(line)"></div>
+                }
+                @if (today is { } marker)
+                {
+                    <div class="atom:absolute atom:top-0 atom:bottom-0 atom:w-px atom:bg-primary"
+                         style="@LineStyle(marker)"></div>
+                }
+
+                @foreach (var row in chart.Rows)
+                {
+                    @if (row.IsMilestone)
+                    {
+                        @* 旋转的是标记本身，装它的盒子并不旋转：旋转父元素内的连接点
+                           会随之转动，而手柄必须与该行保持正方朝向。 *@
+                        <div class="@ClassNames.cn("atom:group/bar atom:pointer-events-auto atom:absolute", AllowDrag ? "atom:cursor-grab atom:touch-none" : null)"
+                             style="@MilestoneStyle(row)"
+                             data-gantt-bar="@row.Id"
+                             role="img"
+                             aria-label="@BarLabel(row)"
+                             @onclick="@(() => ClickAsync(row))">
+                            <div class="atom:size-full atom:rotate-45 atom:rounded-[2px]" style="@MilestonePaint(row).TrimStart(';')"></div>
+                            @Connectors(row)
+                            @Tooltip(row)
+                        </div>
+                    }
+                    else if (row.IsSummary)
+                    {
+                        <div class="@ClassNames.cn("atom:group/bar atom:pointer-events-auto atom:absolute")"
+                             style="@(BarStyle(row) + BarPaint(row))"
+                             data-gantt-bar="@row.Id"
+                             role="img"
+                             aria-label="@BarLabel(row)"
+                             @onclick="@(() => ClickAsync(row))">
+                            @if (row.Progress > 0)
+                            {
+                                <div class="atom:absolute atom:inset-y-0 atom:start-0"
+                                     style="@ProgressStyle(row)"></div>
+                            }
+                            @* 两条腿垂于横梁之下，正是在声明"此为下属事项之跨度"，
+                               而非"此为一项任务"。 *@
+                            <div class="atom:absolute atom:top-0 atom:start-0 atom:w-[3px]" style="@SummaryLegStyle()"></div>
+                            <div class="atom:absolute atom:top-0 atom:end-0 atom:w-[3px]" style="@SummaryLegStyle()"></div>
+                            @Connectors(row)
+                            @Tooltip(row)
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="@ClassNames.cn("atom:group/bar atom:pointer-events-auto atom:absolute atom:rounded-[3px]", AllowDrag || AllowResize ? "atom:cursor-grab atom:touch-none" : null)"
+                             style="@(BarStyle(row) + BarPaint(row) + ";" + BarOutline())"
+                             data-gantt-bar="@row.Id"
+                             role="img"
+                             aria-label="@BarLabel(row)"
+                             @onclick="@(() => ClickAsync(row))">
+                            @if (BarTemplate is not null)
+                            {
+                                @BarTemplate(row)
+                            }
+                            else if (row.Progress > 0 || AllowProgressDrag)
+                            {
+                                @* 即便毫无进展也照样渲染，否则拖拽便无填充可
+                                   扩大，任务也永远无法从图上起步。 *@
+                                <div class="atom:absolute atom:inset-y-0 atom:start-0 atom:rounded-s-[3px]"
+                                     style="@ProgressStyle(row)"
+                                     data-gantt-fill></div>
+                            }
+
+                            @if (AllowProgressDrag)
+                            {
+                                <div class="atom:absolute atom:top-1/2 atom:-mt-[5px] atom:size-2.5 atom:rotate-45 atom:cursor-ew-resize atom:rounded-[2px] atom:bg-background atom:opacity-0 atom:ring-1 atom:group-hover/bar:opacity-100"
+                                     style="@ProgressHandleStyle(row)"
+                                     data-gantt-progress
+                                     role="slider"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100"
+                                     aria-valuenow="@((int)Math.Round(row.Progress * 100))"
+                                     aria-label="@string.Format(System.Globalization.CultureInfo.CurrentCulture, Localizer["Gantt.ProgressHandle"], row.Text)"></div>
+                            }
+
+                            @if (AllowResize)
+                            {
+                                <div class="atom:absolute atom:inset-y-0 atom:start-0 atom:w-1.5 atom:cursor-ew-resize atom:rounded-s-[3px] atom:bg-foreground/40 atom:opacity-0 atom:group-hover/bar:opacity-100"
+                                     data-gantt-resize="start"></div>
+                                <div class="atom:absolute atom:inset-y-0 atom:end-0 atom:w-1.5 atom:cursor-ew-resize atom:rounded-e-[3px] atom:bg-foreground/40 atom:opacity-0 atom:group-hover/bar:opacity-100"
+                                     data-gantt-resize="end"></div>
+                            }
+
+                            @Connectors(row)
+                            @Tooltip(row)
+                        </div>
+                    }
+
+                    @if (ShowTaskLabels)
+                    {
+                        <span class="atom:absolute atom:flex atom:items-center atom:whitespace-nowrap atom:text-xs atom:text-muted-foreground"
+                              style="@LabelStyle(row)">
+                            @row.Text
+                        </span>
+                    }
+                }
+
+                @if (ShowDependencies)
+                {
+                    @* 在从右至左的页面中整体镜像：SVG 坐标系并不自行翻转，箭头若
+                       仍指向右方，便等于指向了时间的
+                       反方向。 *@
+                    <svg class="atom:absolute atom:top-0 atom:start-0 atom:text-muted-foreground"
+                         width="@timelineWidth"
+                         height="@BodyHeight"
+                         data-gantt-links
+                         role="list"
+                         aria-label="@Localizer["Gantt.Dependencies"]">
+                        @foreach (var link in chart.Links)
+                        {
+                            <g role="listitem" class="@(AllowLinking ? "atom:pointer-events-auto atom:cursor-pointer atom:hover:text-destructive" : string.Empty)">
+                                <title>@LinkLabel(link)</title>
+                                @if (AllowLinking)
+                                {
+                                    @* 一点五像素宽的线没人能点中。指针真正命中的
+                                       是它那根加宽的透明孪生线。 *@
+                                    <path d="@LinkPath(link)"
+                                          fill="none"
+                                          stroke="transparent"
+                                          stroke-width="10"
+                                          @onclick="@(() => ClickLinkAsync(link))" />
+                                }
+                                <path d="@LinkPath(link)" fill="none" stroke="currentColor" stroke-width="1.5" pointer-events="none" />
+                                <polygon points="@LinkArrow(link)" fill="currentColor" pointer-events="none" />
+                            </g>
+                        }
+                    </svg>
+                }
+            </div>
+            </div>
+        </div>
+
+        @if (ShowLegend)
+        {
+            <div class="atom:flex atom:flex-wrap atom:items-center atom:gap-x-5 atom:gap-y-2 atom:text-xs atom:text-muted-foreground"
+                 role="list"
+                 aria-label="@Localizer["Gantt.Legend"]">
+                <span class="atom:flex atom:items-center atom:gap-2" role="listitem">
+                    <span class="atom:inline-flex atom:h-2.5 atom:w-8 atom:overflow-hidden atom:rounded-[3px] atom:bg-primary/30 atom:ring-1 atom:ring-inset atom:ring-primary/50" aria-hidden="true">
+                        <span class="atom:h-full atom:w-1/2 atom:bg-primary"></span>
+                    </span>
+                    @Localizer["Gantt.LegendTask"] <span class="atom:opacity-60">(@Localizer["Gantt.LegendDone"])</span>
+                </span>
+
+                @if (chart.Rows.Any(r => r.IsSummary))
+                {
+                    <span class="atom:flex atom:items-center atom:gap-2" role="listitem">
+                        <span class="atom:relative atom:inline-block atom:h-3 atom:w-8" aria-hidden="true">
+                            <span class="atom:absolute atom:inset-x-0 atom:top-0 atom:h-1 atom:bg-foreground/80"></span>
+                            <span class="atom:absolute atom:start-0 atom:top-0 atom:h-2.5 atom:w-[3px] atom:bg-foreground/80"></span>
+                            <span class="atom:absolute atom:end-0 atom:top-0 atom:h-2.5 atom:w-[3px] atom:bg-foreground/80"></span>
+                        </span>
+                        @Localizer["Gantt.LegendSummary"]
+                    </span>
+                }
+
+                @if (chart.Rows.Any(r => r.IsMilestone))
+                {
+                    <span class="atom:flex atom:items-center atom:gap-2" role="listitem">
+                        <span class="atom:inline-block atom:size-2.5 atom:rotate-45 atom:rounded-[2px] atom:bg-foreground" aria-hidden="true"></span>
+                        @Localizer["Gantt.LegendMilestone"]
+                    </span>
+                }
+
+                @if (ShowToday)
+                {
+                    <span class="atom:flex atom:items-center atom:gap-2" role="listitem">
+                        <span class="atom:inline-block atom:h-3.5 atom:w-px atom:bg-primary" aria-hidden="true"></span>
+                        @Localizer["Gantt.LegendToday"]
+                    </span>
+                }
+
+                @if (ShowNonWorkingDays && chart.Axis.Minor.Any(slot => slot.IsNonWorking))
+                {
+                    <span class="atom:flex atom:items-center atom:gap-2" role="listitem">
+                        <span class="atom:inline-block atom:h-3.5 atom:w-4 atom:rounded-[2px] atom:bg-muted" aria-hidden="true"></span>
+                        @Localizer["Gantt.LegendNonWorking"]
+                    </span>
+                }
+
+                @if (ShowDependencies && chart.Links.Count > 0)
+                {
+                    <span class="atom:flex atom:items-center atom:gap-2" role="listitem">
+                        <svg width="26" height="10" aria-hidden="true" class="atom:text-muted-foreground">
+                            <path d="M 0 5 L 17 5" fill="none" stroke="currentColor" stroke-width="1.5" />
+                            <polygon points="23,5 17,2 17,8" fill="currentColor" />
+                        </svg>
+                        @Localizer["Gantt.Dependencies"]
+                    </span>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// 依赖箭头由这两枚圆点引出，横条两端各居其一。
+    /// </summary>
+    /// <remarks>
+    /// 拖拽起于哪枚圆点、落于目标的哪一半，共同决定其类型，故
+    /// 四种类型皆出于这一手势，而非出于询问本意为何的菜单。
+    /// </remarks>
+    private RenderFragment Connectors(GanttRow<TItem> row) => @<text>
+        @if (AllowLinking)
+        {
+            <div class="atom:absolute atom:top-1/2 atom:-mt-1 atom:size-2 atom:cursor-crosshair atom:rounded-full atom:bg-background atom:opacity-0 atom:ring-1 atom:group-hover/bar:opacity-100"
+                 style="@ConnectorStyle(start: true)"
+                 data-gantt-link="start"
+                 aria-label="@string.Format(System.Globalization.CultureInfo.CurrentCulture, Localizer["Gantt.LinkFromStart"], row.Text)"></div>
+            <div class="atom:absolute atom:top-1/2 atom:-mt-1 atom:size-2 atom:cursor-crosshair atom:rounded-full atom:bg-background atom:opacity-0 atom:ring-1 atom:group-hover/bar:opacity-100"
+                 style="@ConnectorStyle(start: false)"
+                 data-gantt-link="end"
+                 aria-label="@string.Format(System.Globalization.CultureInfo.CurrentCulture, Localizer["Gantt.LinkFromEnd"], row.Text)"></div>
+        }
+    </text>;
+
+    /// <summary>
+    /// 悬停横条时所显示的卡片。
+    /// </summary>
+    /// <remarks>
+    /// 由 CSS 显示的朴素标记，非浮动遮层。一张计划可容数百条横条，而在
+    /// Blazor Server 上每次指针掠过都去问电路该显示什么，卡片到手时
+    /// 指针早已移开。横条自身的 aria-label 已载有同样文句，故本卡
+    /// 对屏幕阅读器隐藏，以免朗读两遍。
+    /// </remarks>
+    private RenderFragment Tooltip(GanttRow<TItem> row) => @<text>
+        @if (ShowTooltip)
+        {
+            <div class="atom:pointer-events-none atom:absolute atom:z-10 atom:w-max atom:max-w-60 atom:rounded-md atom:border atom:border-border atom:bg-popover atom:px-2.5 atom:py-2 atom:text-xs atom:text-popover-foreground atom:shadow-md atom:opacity-0 atom:transition-opacity atom:group-hover/bar:opacity-100"
+                 style="@TooltipStyle(row)"
+                 aria-hidden="true">
+                @if (TooltipTemplate is not null)
+                {
+                    @TooltipTemplate(row)
+                }
+                else
+                {
+                    <p class="atom:font-medium atom:text-foreground">@row.Text</p>
+                    <p class="atom:mt-0.5 atom:text-muted-foreground">@TooltipRange(row)</p>
+                    @if (TooltipLength(row) is { } length)
+                    {
+                        <p class="atom:text-muted-foreground">@length</p>
+                    }
+                    @if (!row.IsMilestone)
+                    {
+                        <p class="atom:text-muted-foreground">
+                            @string.Format(System.Globalization.CultureInfo.CurrentCulture, Localizer["Gantt.TooltipDone"], (int)Math.Round(row.Progress * 100))
+                        </p>
+                    }
+                }
+            </div>
+        }
+    </text>;
+}

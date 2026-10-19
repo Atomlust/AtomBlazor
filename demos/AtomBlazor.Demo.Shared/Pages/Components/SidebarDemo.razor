@@ -1,0 +1,2011 @@
+@page "/components/sidebar"
+@using AtomBlazor.Primitives.Services
+@using AtomBlazor.Icons
+
+<PageTitle>@L.T("侧边栏 - Atom BlazorUI", "Sidebar Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("侧边栏组件", "Sidebar Component")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("一个可组合、可主题化、可自定义的侧边栏组件。", "A composable, themeable and customizable sidebar component.")
+        </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+    </div>
+
+    <!-- Features Section -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold border-b pb-2">@L.T("特性", "Features")</h2>
+        <ul class="list-disc list-inside space-y-2 text-muted-foreground">
+            <li>@L.T("响应式设计——移动端以 Sheet 遮罩呈现，桌面端为常驻侧边栏", "Responsive design - Sheet overlay on mobile, persistent sidebar on desktop")</li>
+            <li>@L.T("可折叠，支持仅图标模式或浮动胶囊导航", "Collapsible with icon-only mode or floating pill navigation")</li>
+            <li>@L.T("带动画的选中指示器，并遵循减弱动效偏好", "Animated selection indicators with reduced-motion support")</li>
+            <li>@L.T("三种变体：Sidebar（默认）、Floating 与 Inset", "Three variants: Sidebar (default), Floating, and Inset")</li>
+            <li>@L.T("通过 Cookie 持久化状态", "State persistence via cookies")</li>
+            <li>@L.T("键盘快捷键（Ctrl/Cmd + B 切换，可通过 EnableToggleShortcut 关闭）", "Keyboard shortcuts (Ctrl/Cmd + B to toggle, opt-out via EnableToggleShortcut)")</li>
+            <li>@L.T("折叠状态下自动显示提示", "Automatic tooltips in collapsed state")</li>
+            <li>@L.T("灵活的组合方式，支持菜单分组、子菜单与操作", "Flexible composition with menu groups, submenus, and actions")</li>
+            <li>@L.T("完全兼容 shadcn/ui", "Full shadcn/ui compatibility")</li>
+        </ul>
+    </div>
+
+    <!-- Installation Section -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold border-b pb-2">@L.T("安装", "Installation")</h2>
+        <div class="bg-muted p-4 rounded-lg">
+            <p class="text-sm text-muted-foreground mb-2">@L.T("侧边栏组件需要 Sheet 原语来实现移动端功能。", "The sidebar component requires the Sheet primitive for mobile functionality.")</p>
+            <p class="text-sm text-muted-foreground">@L.T("把 SidebarProvider 加到你的 MainLayout.razor，即可在整个应用中启用侧边栏功能。", "Add the SidebarProvider to your MainLayout.razor to enable sidebar functionality throughout your app.")</p>
+        </div>
+    </div>
+
+    <!-- Collapse Mode Toggle -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold border-b pb-2">@L.T("菜单折叠模式", "Menu Collapse Mode")</h2>
+        <div class="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
+            <span class="text-sm font-medium">@L.T("折叠模式：", "Collapse Mode:")</span>
+            <div class="flex items-center gap-2">
+                <button
+                    @onclick="() => isBasicCollapsible = true"
+                    class="@(isBasicCollapsible ? "bg-primary text-primary-foreground" : "bg-background text-foreground") px-3 py-1.5 rounded-md text-sm font-medium transition-colors hover:opacity-90">
+                    @L.T("收缩（仅图标）", "Shrink (Icon-only)")
+                </button>
+                <button
+                    @onclick="() => isBasicCollapsible = false"
+                    class="@(!isBasicCollapsible ? "bg-primary text-primary-foreground" : "bg-background text-foreground") px-3 py-1.5 rounded-md text-sm font-medium transition-colors hover:opacity-90">
+                    @L.T("完全隐藏", "Hide Completely")
+                </button>
+            </div>
+            <span class="text-xs text-muted-foreground ml-auto">@L.T("点击触发按钮以查看差异", "Click the trigger button to see the difference")</span>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold border-b pb-2">@L.T("基础侧边栏", "Basic Sidebar")</h2>
+        <p class="text-muted-foreground">@L.T("一个带菜单项的简单侧边栏。", "A simple sidebar with menu items.")</p>
+
+        <!-- Collapse Mode Toggle -->
+
+
+        <div class="border rounded-lg p-6 bg-background">
+            <div class="h-[600px] w-full border rounded-lg overflow-hidden bg-background">
+                <SidebarProvider CookieKey="sidebar:demo-basic" HeightClass="h-full">
+                    <div class="flex h-full w-full">
+                        <Sidebar Collapsible="@isBasicCollapsible">
+                            <SidebarHeader>
+                                <SidebarHeaderContent>
+                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                                        <LucideIcon Name="command" Size="16" />
+                                    </div>
+                                    <SidebarHeaderInfo>
+                                        <span class="truncate font-semibold">Acme Inc</span>
+                                        <span class="truncate text-xs text-muted-foreground">@L.T("企业版", "Enterprise")</span>
+                                    </SidebarHeaderInfo>
+                                </SidebarHeaderContent>
+                            </SidebarHeader>
+
+                            <SidebarContent>
+                                <SidebarMenu>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("首页", "Home"))">
+                                            <LucideIcon Name="house" Size="16" />
+                                            <span>@L.T("首页", "Home")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("收件箱", "Inbox"))" IsActive="true">
+                                            <LucideIcon Name="inbox" Size="16" />
+                                            <span>@L.T("收件箱", "Inbox")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("日历", "Calendar"))">
+                                            <LucideIcon Name="calendar" Size="16" />
+                                            <span>@L.T("日历", "Calendar")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("搜索", "Search"))">
+                                            <LucideIcon Name="search" Size="16" />
+                                            <span>@L.T("搜索", "Search")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("设置", "Settings"))">
+                                            <LucideIcon Name="settings" Size="16" />
+                                            <span>@L.T("设置", "Settings")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                </SidebarMenu>
+                            </SidebarContent>
+
+                            <SidebarFooter>
+                                <SidebarMenu>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("用户资料", "User Profile"))">
+                                            <LucideIcon Name="user" Size="16" />
+                                            <span>John Doe</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                </SidebarMenu>
+                            </SidebarFooter>
+                        </Sidebar>
+
+                        <SidebarInset>
+                            <header class="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                                <SidebarTrigger />
+                                <h1 class="text-lg font-semibold">@L.T("仪表盘", "Dashboard")</h1>
+                            </header>
+                            <div class="flex flex-1 flex-col gap-4 p-4">
+                                <div class="grid auto-rows-min gap-4 md:grid-cols-3">
+                                    <div class="aspect-video rounded-xl bg-muted/50"></div>
+                                    <div class="aspect-video rounded-xl bg-muted/50"></div>
+                                    <div class="aspect-video rounded-xl bg-muted/50"></div>
+                                </div>
+                                <div class="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min"></div>
+                            </div>
+                        </SidebarInset>
+                    </div>
+                </SidebarProvider>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Sidebar/basic.txt" />
+    </div>
+
+    <!-- With Navigation Example -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold border-b pb-2">@L.T("带导航", "With Navigation")</h2>
+        <p class="text-muted-foreground">@L.T("使用 Href 属性导航到不同页面的菜单项。", "Menu items that navigate to different pages using Href property.")</p>
+
+        <div class="border rounded-lg p-6 bg-background">
+            <div class="h-[600px] w-full border rounded-lg overflow-hidden bg-background">
+                <SidebarProvider CookieKey="sidebar:demo-navigation" HeightClass="h-full">
+                    <div class="flex h-full w-full">
+                        <Sidebar Collapsible="@isBasicCollapsible">
+                            <SidebarHeader>
+                                <SidebarHeaderContent>
+                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                                        <LucideIcon Name="compass" Size="16" />
+                                    </div>
+                                    <SidebarHeaderInfo>
+                                        <span class="truncate font-semibold">AtomBlazor Demo</span>
+                                        <span class="truncate text-xs text-muted-foreground">@L.T("组件", "Components")</span>
+                                    </SidebarHeaderInfo>
+                                </SidebarHeaderContent>
+                            </SidebarHeader>
+
+                            <SidebarContent>
+                                <SidebarMenu>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Href="/" Match="NavLinkMatch.All" Tooltip="@(L.T("首页", "Home"))">
+                                            <LucideIcon Name="house" Size="16" />
+                                            <span>@L.T("首页", "Home")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Href="/components/sidebar" Match="NavLinkMatch.All" Tooltip="@(L.T("侧边栏", "Sidebar"))">
+                                            <LucideIcon Name="panel-left" Size="16" />
+                                            <span>@L.T("侧边栏", "Sidebar")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Href="/primitives" Match="NavLinkMatch.Prefix" Tooltip="@(L.T("原语", "Primitives"))">
+                                            <LucideIcon Name="box" Size="16" />
+                                            <span>@L.T("原语", "Primitives")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Href="/components" Match="NavLinkMatch.Prefix" Tooltip="@(L.T("组件", "Components"))">
+                                            <LucideIcon Name="layers" Size="16" />
+                                            <span>@L.T("组件", "Components")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                </SidebarMenu>
+                            </SidebarContent>
+
+                            <SidebarFooter>
+                                <SidebarMenu>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("在 GitHub 查看", "GitHub"))">
+                                            <LucideIcon Name="github" Size="16" />
+                                            <span>@L.T("在 GitHub 查看", "View on GitHub")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                </SidebarMenu>
+                            </SidebarFooter>
+                        </Sidebar>
+
+                        <SidebarInset>
+                            <header class="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                                <SidebarTrigger />
+                                <h1 class="text-lg font-semibold">@L.T("导航示例", "Navigation Demo")</h1>
+                            </header>
+                            <div class="flex flex-1 flex-col gap-4 p-4">
+                                <div class="rounded-xl bg-muted/50 p-4 space-y-3">
+                                    @if (L.IsChinese)
+                                    {
+                                        <p class="text-sm text-muted-foreground">
+                                            这个示例展示了使用 <code class="bg-muted px-1.5 py-0.5 rounded">Href</code> 属性进行导航的菜单按钮。
+                                        </p>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-sm text-muted-foreground">
+                                            This demo shows menu buttons that navigate using the <code class="bg-muted px-1.5 py-0.5 rounded">Href</code> property.
+                                        </p>
+                                    }
+                                    <div class="text-sm">
+                                        <p class="font-semibold mb-2">@L.T("关键特性：", "Key Features:")</p>
+                                        <ul class="list-disc list-inside space-y-1 text-muted-foreground ml-2">
+                                            <li>@L.T("提供 Href 时自动渲染 NavLink", "Automatic NavLink rendering when Href is provided")</li>
+                                            <li>@L.T("基于当前路由的活动状态检测", "Active state detection based on current route")</li>
+                                            <li>@L.T("Match 参数控制 URL 的匹配方式（All 或 Prefix）", "Match parameter controls how URLs are matched (All or Prefix)")</li>
+                                            <li>@L.T("无需设置 AsChild——它是自动的！", "No need to set AsChild - it's automatic!")</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </SidebarInset>
+                    </div>
+                </SidebarProvider>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Sidebar/with-navigation.txt" />
+    </div>
+
+    <!-- With Groups Example -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold border-b pb-2">@L.T("带菜单分组", "With Menu Groups")</h2>
+        <p class="text-muted-foreground">@L.T("将菜单项组织成逻辑分组。", "Organize menu items into logical groups.")</p>
+
+        <div class="border rounded-lg p-6 bg-background">
+            <div class="h-[600px] w-full border rounded-lg overflow-hidden bg-background">
+                <SidebarProvider CookieKey="sidebar:demo-groups" HeightClass="h-full">
+                    <div class="flex h-full w-full">
+                        <Sidebar Collapsible="@isBasicCollapsible">
+                            <SidebarHeader>
+                                <SidebarHeaderContent>
+                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                                        <LucideIcon Name="layers" Size="16" />
+                                    </div>
+                                    <SidebarHeaderInfo>
+                                        <span class="truncate font-semibold">@L.T("我的应用", "My Application")</span>
+                                        <span class="truncate text-xs text-muted-foreground">v1.0.0</span>
+                                    </SidebarHeaderInfo>
+                                </SidebarHeaderContent>
+                            </SidebarHeader>
+
+                            <SidebarContent>
+                                <SidebarGroup>
+                                    <SidebarGroupLabel>@L.T("平台", "Platform")</SidebarGroupLabel>
+                                    <SidebarGroupContent>
+                                        <SidebarMenu>
+                                            <SidebarMenuItem>
+                                                <SidebarMenuButton Tooltip="@(L.T("仪表盘", "Dashboard"))">
+                                                    <LucideIcon Name="layout-dashboard" Size="16" />
+                                                    <span>@L.T("仪表盘", "Dashboard")</span>
+                                                </SidebarMenuButton>
+                                            </SidebarMenuItem>
+                                            <SidebarMenuItem>
+                                                <SidebarMenuButton Tooltip="@(L.T("项目", "Projects"))" IsActive="true">
+                                                    <LucideIcon Name="folder" Size="16" />
+                                                    <span>@L.T("项目", "Projects")</span>
+                                                </SidebarMenuButton>
+                                            </SidebarMenuItem>
+                                            <SidebarMenuItem>
+                                                <SidebarMenuButton Tooltip="@(L.T("任务", "Tasks"))">
+                                                    <LucideIcon Name="square-check" Size="16" />
+                                                    <span>@L.T("任务", "Tasks")</span>
+                                                </SidebarMenuButton>
+                                            </SidebarMenuItem>
+                                        </SidebarMenu>
+                                    </SidebarGroupContent>
+                                </SidebarGroup>
+
+                                <SidebarSeparator />
+
+                                <SidebarGroup>
+                                    <SidebarGroupLabel>@L.T("设置", "Settings")</SidebarGroupLabel>
+                                    <SidebarGroupContent>
+                                        <SidebarMenu>
+                                            <SidebarMenuItem>
+                                                <SidebarMenuButton Tooltip="@(L.T("个人资料", "Profile"))">
+                                                    <LucideIcon Name="user" Size="16" />
+                                                    <span>@L.T("个人资料", "Profile")</span>
+                                                </SidebarMenuButton>
+                                            </SidebarMenuItem>
+                                            <SidebarMenuItem>
+                                                <SidebarMenuButton Tooltip="@(L.T("偏好设置", "Preferences"))">
+                                                    <LucideIcon Name="settings" Size="16" />
+                                                    <span>@L.T("偏好设置", "Preferences")</span>
+                                                </SidebarMenuButton>
+                                            </SidebarMenuItem>
+                                        </SidebarMenu>
+                                    </SidebarGroupContent>
+                                </SidebarGroup>
+                            </SidebarContent>
+
+                            <SidebarFooter>
+                                <SidebarMenu>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("帮助", "Help"))">
+                                            <LucideIcon Name="life-buoy" Size="16" />
+                                            <span>@L.T("帮助与支持", "Help & Support")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                </SidebarMenu>
+                            </SidebarFooter>
+                        </Sidebar>
+
+                        <SidebarInset>
+                            <header class="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                                <SidebarTrigger />
+                                <h1 class="text-lg font-semibold">@L.T("项目", "Projects")</h1>
+                            </header>
+                            <div class="flex flex-1 flex-col gap-4 p-4">
+                                <div class="rounded-xl bg-muted/50 p-4">
+                                    <p class="text-sm text-muted-foreground">@L.T("本示例展示带分隔线的菜单分组。", "This example shows menu groups with separators.")</p>
+                                </div>
+                            </div>
+                        </SidebarInset>
+                    </div>
+                </SidebarProvider>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Sidebar/with-groups.txt" />
+    </div>
+
+    <!-- With Submenus Example -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold border-b pb-2">@L.T("带子菜单", "With Submenus")</h2>
+        <p class="text-muted-foreground">@L.T("带子菜单项的嵌套导航。", "Nested navigation with submenu items.")</p>
+
+        <div class="border rounded-lg p-6 bg-background">
+            <div class="h-[600px] w-full border rounded-lg overflow-hidden bg-background">
+                <SidebarProvider CookieKey="sidebar:demo-submenus" HeightClass="h-full">
+                    <div class="flex h-full w-full">
+                        <Sidebar Collapsible="@isBasicCollapsible">
+                            <SidebarHeader>
+                                <SidebarHeaderContent>
+                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                                        <LucideIcon Name="building" Size="16" />
+                                    </div>
+                                    <SidebarHeaderInfo>
+                                        <span class="truncate font-semibold">@L.T("公司门户", "Company Portal")</span>
+                                    </SidebarHeaderInfo>
+                                </SidebarHeaderContent>
+                            </SidebarHeader>
+
+                            <SidebarContent>
+                                <SidebarMenu>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("首页", "Home"))">
+                                            <LucideIcon Name="house" Size="16" />
+                                            <span>@L.T("首页", "Home")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("团队", "Team"))">
+                                            <LucideIcon Name="users" Size="16" />
+                                            <span>@L.T("团队", "Team")</span>
+                                        </SidebarMenuButton>
+                                        <SidebarMenuSub>
+                                            <SidebarMenuSubItem>
+                                                <SidebarMenuSubButton>
+                                                    <span>@L.T("工程", "Engineering")</span>
+                                                </SidebarMenuSubButton>
+                                            </SidebarMenuSubItem>
+                                            <SidebarMenuSubItem>
+                                                <SidebarMenuSubButton>
+                                                    <span>@L.T("设计", "Design")</span>
+                                                </SidebarMenuSubButton>
+                                            </SidebarMenuSubItem>
+                                            <SidebarMenuSubItem>
+                                                <SidebarMenuSubButton>
+                                                    <span>@L.T("市场", "Marketing")</span>
+                                                </SidebarMenuSubButton>
+                                            </SidebarMenuSubItem>
+                                        </SidebarMenuSub>
+                                    </SidebarMenuItem>
+
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("项目", "Projects"))">
+                                            <LucideIcon Name="folder" Size="16" />
+                                            <span>@L.T("项目", "Projects")</span>
+                                        </SidebarMenuButton>
+                                        <SidebarMenuSub>
+                                            <SidebarMenuSubItem>
+                                                <SidebarMenuSubButton>
+                                                    <span>Project Alpha</span>
+                                                </SidebarMenuSubButton>
+                                            </SidebarMenuSubItem>
+                                            <SidebarMenuSubItem>
+                                                <SidebarMenuSubButton>
+                                                    <span>Project Beta</span>
+                                                </SidebarMenuSubButton>
+                                            </SidebarMenuSubItem>
+                                        </SidebarMenuSub>
+                                    </SidebarMenuItem>
+                                </SidebarMenu>
+                            </SidebarContent>
+                        </Sidebar>
+
+                        <SidebarInset>
+                            <header class="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                                <SidebarTrigger />
+                                <h1 class="text-lg font-semibold">@L.T("团队门户", "Team Portal")</h1>
+                            </header>
+                            <div class="flex flex-1 flex-col gap-4 p-4">
+                                <div class="rounded-xl bg-muted/50 p-4">
+                                    <p class="text-sm text-muted-foreground">@L.T("点击 Team 或 Projects 查看子菜单项。", "Click on Team or Projects to see submenu items.")</p>
+                                </div>
+                            </div>
+                        </SidebarInset>
+                    </div>
+                </SidebarProvider>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Sidebar/with-submenus.txt" />
+    </div>
+
+    <!-- Floating Variant Example -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold border-b pb-2">@L.T("浮动变体", "Floating Variant")</h2>
+        <p class="text-muted-foreground">@L.T("具有浮动外观与圆角的侧边栏。", "Sidebar with floating appearance and rounded corners.")</p>
+
+        <div class="border rounded-lg p-6 bg-background">
+            <div class="relative h-[600px] w-full border rounded-lg overflow-hidden bg-background">
+                <SidebarProvider Variant="SidebarVariant.Floating" CookieKey="sidebar:demo-floating" HeightClass="h-full">
+                    <div class="flex h-full w-full relative">
+                        <Sidebar Collapsible="@isBasicCollapsible" Class="!absolute !top-2 !bottom-2 !left-2 !right-2 !z-50">
+                            <SidebarHeader>
+                                <SidebarHeaderContent>
+                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                                        <LucideIcon Name="zap" Size="16" />
+                                    </div>
+                                    <SidebarHeaderInfo>
+                                        <span class="truncate font-semibold">Floating UI</span>
+                                    </SidebarHeaderInfo>
+                                </SidebarHeaderContent>
+                            </SidebarHeader>
+
+                            <SidebarContent>
+                                <SidebarMenu>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("仪表盘", "Dashboard"))">
+                                            <LucideIcon Name="layout-dashboard" Size="16" />
+                                            <span>@L.T("仪表盘", "Dashboard")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("分析", "Analytics"))">
+                                            <LucideIcon Name="line-chart" Size="16" />
+                                            <span>@L.T("分析", "Analytics")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("报表", "Reports"))">
+                                            <LucideIcon Name="file-text" Size="16" />
+                                            <span>@L.T("报表", "Reports")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                </SidebarMenu>
+                            </SidebarContent>
+                        </Sidebar>
+
+                        <SidebarInset>
+                            <header class="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                                <SidebarTrigger />
+                                <h1 class="text-lg font-semibold">@L.T("浮动侧边栏", "Floating Sidebar")</h1>
+                            </header>
+                            <div class="flex flex-1 flex-col gap-4 p-4">
+                                <div class="rounded-xl bg-muted/50 p-4">
+                                    <p class="text-sm text-muted-foreground">@L.T("浮动变体通过圆角增加视觉分隔。", "The floating variant adds visual separation with rounded corners.")</p>
+                                </div>
+                            </div>
+                        </SidebarInset>
+                    </div>
+                </SidebarProvider>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Sidebar/floating.txt" />
+    </div>
+
+    <!-- Inset Variant Example -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold border-b pb-2">@L.T("内嵌变体", "Inset Variant")</h2>
+        <p class="text-muted-foreground">@L.T("带内嵌内容区的侧边栏。", "Sidebar with inset content area.")</p>
+
+        <div class="border rounded-lg p-6 bg-background">
+            <div class="h-[600px] w-full border rounded-lg overflow-hidden bg-sidebar">
+                <SidebarProvider Variant="SidebarVariant.Inset" CookieKey="sidebar:demo-inset" HeightClass="h-full">
+                    <div class="flex h-full w-full">
+                        <Sidebar Collapsible="@isBasicCollapsible">
+                            <SidebarHeader>
+                                <SidebarHeaderContent>
+                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                                        <LucideIcon Name="box" Size="16" />
+                                    </div>
+                                    <SidebarHeaderInfo>
+                                        <span class="truncate font-semibold">@L.T("内嵌布局", "Inset Layout")</span>
+                                    </SidebarHeaderInfo>
+                                </SidebarHeaderContent>
+                            </SidebarHeader>
+
+                            <SidebarContent>
+                                <SidebarMenu>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("概览", "Overview"))">
+                                            <LucideIcon Name="eye" Size="16" />
+                                            <span>@L.T("概览", "Overview")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("工作区", "Workspace"))">
+                                            <LucideIcon Name="briefcase" Size="16" />
+                                            <span>@L.T("工作区", "Workspace")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                </SidebarMenu>
+                            </SidebarContent>
+                        </Sidebar>
+
+                        <SidebarInset>
+                            <header class="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                                <SidebarTrigger />
+                                <h1 class="text-lg font-semibold">@L.T("内嵌侧边栏", "Inset Sidebar")</h1>
+                            </header>
+                            <div class="flex flex-1 flex-col gap-4 p-4">
+                                <div class="rounded-xl bg-muted/50 p-4">
+                                    <p class="text-sm text-muted-foreground">@L.T("内嵌变体通过边距创建包含式布局。", "The inset variant creates a contained layout with margins.")</p>
+                                </div>
+                            </div>
+                        </SidebarInset>
+                    </div>
+                </SidebarProvider>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Sidebar/inset.txt" />
+    </div>
+
+    <!-- Collapsible to Icons Example -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold border-b pb-2">@L.T("折叠为图标", "Collapsible to Icons")</h2>
+        <p class="text-muted-foreground">@L.T("可折叠为仅显示图标并带提示的侧边栏。", "Sidebar that collapses to show only icons with tooltips.")</p>
+
+        <div class="border rounded-lg p-6 bg-background">
+            <div class="h-[600px] w-full border rounded-lg overflow-hidden bg-background">
+                <SidebarProvider DefaultOpen="false" HeightClass="h-full">
+                    <div class="flex h-full w-full">
+                        <Sidebar Collapsible="@isBasicCollapsible">
+                            <SidebarHeader>
+                                <SidebarHeaderContent>
+                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                                        <LucideIcon Name="command" Size="16" />
+                                    </div>
+                                    <SidebarHeaderInfo>
+                                        <span class="truncate font-semibold">@L.T("图标模式", "Icon Mode")</span>
+                                        <span class="truncate text-xs text-muted-foreground">@L.T("已折叠", "Collapsed")</span>
+                                    </SidebarHeaderInfo>
+                                </SidebarHeaderContent>
+                            </SidebarHeader>
+
+                            <SidebarContent>
+                                <SidebarMenu>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("仪表盘", "Dashboard"))">
+                                            <LucideIcon Name="layout-dashboard" Size="16" />
+                                            <span>@L.T("仪表盘", "Dashboard")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("项目", "Projects"))" IsActive="true">
+                                            <LucideIcon Name="folder" Size="16" />
+                                            <span>@L.T("项目", "Projects")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("日历", "Calendar"))">
+                                            <LucideIcon Name="calendar" Size="16" />
+                                            <span>@L.T("日历", "Calendar")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("消息", "Messages"))">
+                                            <LucideIcon Name="mail" Size="16" />
+                                            <span>@L.T("消息", "Messages")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("设置", "Settings"))">
+                                            <LucideIcon Name="settings" Size="16" />
+                                            <span>@L.T("设置", "Settings")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                </SidebarMenu>
+                            </SidebarContent>
+                        </Sidebar>
+
+                        <SidebarInset>
+                            <header class="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                                <SidebarTrigger />
+                                <h1 class="text-lg font-semibold">@L.T("仅图标模式", "Icon-Only Mode")</h1>
+                            </header>
+                            <div class="flex flex-1 flex-col gap-4 p-4">
+                                <div class="rounded-xl bg-muted/50 p-4">
+                                    <p class="text-sm text-muted-foreground">@L.T("将鼠标悬停在图标上可查看提示。点击触发按钮以展开。", "Hover over icons to see tooltips. Click the trigger to expand.")</p>
+                                </div>
+                            </div>
+                        </SidebarInset>
+                    </div>
+                </SidebarProvider>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Sidebar/collapsible-icons.txt" />
+    </div>
+
+    <section class="space-y-4">
+        <span id="sidebar-pill-inset" class="block scroll-mt-20" aria-hidden="true"></span>
+        <span id="sidebar-pill-nav" class="block scroll-mt-20" aria-hidden="true"></span>
+        <span id="sidebar-pill-nav-item" class="block scroll-mt-20" aria-hidden="true"></span>
+        <h2 class="text-2xl font-semibold border-b pb-2">@L.T("浮动胶囊导航", "Floating Pill Navigation")</h2>
+        <p class="text-muted-foreground">@L.T("折叠侧边栏时使用浮动导航胶囊。内嵌区会调整内容间距，活动指示器跟随所选页面。", "Use a floating navigation pill when the sidebar collapses. The inset adjusts content spacing, and the active indicator follows the selected page.")</p>
+        <div class="relative overflow-hidden rounded-xl border">
+            <SidebarProvider CollapsedMode="SidebarCollapsedMode.Pill" Open="pillOpen" OpenChanged="@(value => pillOpen = value)" CookieKey="@((string?)null)" HeightClass="min-h-72" EnableToggleShortcut="false">
+                <Sidebar Class="min-h-72">
+                    <SidebarHeader><strong class="p-2">@L.T("工作区", "Workspace")</strong><SidebarTrigger /></SidebarHeader>
+                    <SidebarContent>
+                        <SidebarMenu>
+                            <SidebarMenuItem><SidebarMenuButton IsActive="@(pillPage == "Overview")" OnClick="@(() => pillPage = "Overview")"><LucideIcon Name="house" /><span>@L.T("概览", "Overview")</span></SidebarMenuButton></SidebarMenuItem>
+                            <SidebarMenuItem><SidebarMenuButton IsActive="@(pillPage == "Projects")" OnClick="@(() => pillPage = "Projects")"><LucideIcon Name="folder" /><span>@L.T("项目", "Projects")</span></SidebarMenuButton></SidebarMenuItem>
+                        </SidebarMenu>
+                    </SidebarContent>
+                </Sidebar>
+                <SidebarPillNav Fixed="false">
+                    <SidebarPillNavItem Label="@(L.T("概览", "Overview"))" IsActive="@(pillPage == "Overview")" OnClick="@(() => pillPage = "Overview")"><LucideIcon Name="house" /></SidebarPillNavItem>
+                    <SidebarPillNavItem Label="@(L.T("项目", "Projects"))" IsActive="@(pillPage == "Projects")" OnClick="@(() => pillPage = "Projects")"><LucideIcon Name="folder" /></SidebarPillNavItem>
+                    <SidebarPillNavItem Label="@(L.T("不可用", "Unavailable"))" Disabled="true"><LucideIcon Name="lock" /></SidebarPillNavItem>
+                </SidebarPillNav>
+                <div class="min-w-0 flex-1 p-4">
+                    <SidebarPillInset>
+                        <h3 class="font-semibold">@pillPage</h3>
+                        <p class="text-sm text-muted-foreground">@L.T("折叠桌面端侧边栏以显示紧凑导航。在移动端，胶囊会打开侧边栏抽屉。", "Collapse the desktop sidebar to show compact navigation. On mobile, the pill opens the sidebar sheet.")</p>
+                        <SidebarTrigger />
+                    </SidebarPillInset>
+                </div>
+            </SidebarProvider>
+
+        </div>
+        <CodeBlock Source="Components/Sidebar/pill.txt" />
+
+    </section>
+
+    <section class="space-y-4" id="sidebar-selection-indicator">
+        <h2 class="text-2xl font-semibold border-b pb-2">@L.T("动画选中指示器", "Animated Selection Indicator")</h2>
+        <p class="text-muted-foreground">@L.T("在标准侧边栏菜单中为活动项添加动画。悬停或聚焦某项可预览，选中它则让指示器停留。遵循减弱动效偏好。", "Animate the active item in a standard sidebar menu. Hover or focus an item to preview it, then select it to keep the indicator there. Reduced-motion preferences are respected.")</p>
+        <div class="rounded-lg border bg-background p-6">
+            <SidebarProvider CookieKey="@((string?)null)" HeightClass="min-h-0" EnableToggleShortcut="false">
+                <div class="relative w-64 rounded-lg border bg-sidebar p-2">
+                    <SidebarSelectionIndicator FollowHover="true" />
+                    <SidebarMenu>
+                        @foreach (var itemLabel in new[] { "Overview", "Projects", "Settings" })
+                        {
+                            <SidebarMenuItem>
+                                <SidebarMenuButton IsActive="@(indicatorPage == itemLabel)" OnClick="@(() => indicatorPage = itemLabel)" Class="relative bg-transparent! hover:bg-transparent! data-[active=true]:bg-transparent!">
+                                    <span>@itemLabel</span>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        }
+                    </SidebarMenu>
+                </div>
+            </SidebarProvider>
+        </div>
+        <CodeBlock Source="Components/Sidebar/selection-indicator.txt" />
+    </section>
+
+    <!-- Tree View Example -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold border-b pb-2">@L.T("树形视图", "Tree View")</h2>
+        <p class="text-muted-foreground">@L.T("带嵌套项的层级文件/文件夹结构。", "Hierarchical file/folder structure with nested items.")</p>
+
+        <div class="border rounded-lg p-6 bg-background">
+            <div class="h-[600px] w-full border rounded-lg overflow-hidden bg-background">
+                <SidebarProvider HeightClass="h-full">
+                    <div class="flex h-full w-full">
+                        <Sidebar Collapsible="@isBasicCollapsible">
+                            <SidebarHeader>
+                                <SidebarHeaderContent>
+                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                                        <LucideIcon Name="folder-tree" Size="16" />
+                                    </div>
+                                    <SidebarHeaderInfo>
+                                        <span class="truncate font-semibold">@L.T("文件浏览器", "File Explorer")</span>
+                                    </SidebarHeaderInfo>
+                                </SidebarHeaderContent>
+                            </SidebarHeader>
+
+                            <SidebarContent>
+                                <SidebarMenu>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="src">
+                                            <LucideIcon Name="folder" Size="16" />
+                                            <span>src</span>
+                                        </SidebarMenuButton>
+                                        <SidebarMenuSub>
+                                            <SidebarMenuSubItem>
+                                                <SidebarMenuSubButton>
+                                                    <LucideIcon Name="folder" Size="16" />
+                                                    <span>components</span>
+                                                </SidebarMenuSubButton>
+                                            </SidebarMenuSubItem>
+                                            <SidebarMenuSubItem>
+                                                <SidebarMenuSubButton>
+                                                    <LucideIcon Name="folder" Size="16" />
+                                                    <span>pages</span>
+                                                </SidebarMenuSubButton>
+                                            </SidebarMenuSubItem>
+                                            <SidebarMenuSubItem>
+                                                <SidebarMenuSubButton>
+                                                    <LucideIcon Name="file-code" Size="16" />
+                                                    <span>index.tsx</span>
+                                                </SidebarMenuSubButton>
+                                            </SidebarMenuSubItem>
+                                        </SidebarMenuSub>
+                                    </SidebarMenuItem>
+
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="public">
+                                            <LucideIcon Name="folder" Size="16" />
+                                            <span>public</span>
+                                        </SidebarMenuButton>
+                                        <SidebarMenuSub>
+                                            <SidebarMenuSubItem>
+                                                <SidebarMenuSubButton>
+                                                    <LucideIcon Name="image" Size="16" />
+                                                    <span>logo.png</span>
+                                                </SidebarMenuSubButton>
+                                            </SidebarMenuSubItem>
+                                        </SidebarMenuSub>
+                                    </SidebarMenuItem>
+
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="package.json">
+                                            <LucideIcon Name="file-json" Size="16" />
+                                            <span>package.json</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="README.md">
+                                            <LucideIcon Name="file-text" Size="16" />
+                                            <span>README.md</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                </SidebarMenu>
+                            </SidebarContent>
+                        </Sidebar>
+
+                        <SidebarInset>
+                            <header class="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                                <SidebarTrigger />
+                                <h1 class="text-lg font-semibold">@L.T("文件浏览器", "File Explorer")</h1>
+                            </header>
+                            <div class="flex flex-1 flex-col gap-4 p-4">
+                                <div class="rounded-xl bg-muted/50 p-4">
+                                    <p class="text-sm text-muted-foreground">@L.T("展示层级文件结构的树形视图。", "Tree view showing hierarchical file structure.")</p>
+                                </div>
+                            </div>
+                        </SidebarInset>
+                    </div>
+                </SidebarProvider>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Sidebar/tree-view.txt" />
+    </div>
+
+    <!-- With Sticky Header Example -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold border-b pb-2">@L.T("带粘性页眉", "With Sticky Header")</h2>
+        <p class="text-muted-foreground">@L.T("侧边栏上方的站点页眉，布局相互协调。", "Site header above sidebar with coordinated layout.")</p>
+
+        <div class="border rounded-lg p-6 bg-background">
+            <div class="h-[600px] w-full border rounded-lg overflow-hidden bg-background">
+                <SidebarProvider HeightClass="h-full">
+                    <div class="flex h-full w-full flex-col">
+                        <!-- Site Header -->
+                        <header class="flex h-14 shrink-0 items-center gap-4 border-b bg-background px-6">
+                            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                                <LucideIcon Name="building" Size="16" />
+                            </div>
+                            <span class="font-semibold">@L.T("公司名称", "Company Name")</span>
+                            <div class="ml-auto flex items-center gap-2">
+                                <button class="flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent">
+                                    <LucideIcon Name="bell" Size="16" />
+                                </button>
+                                <button class="flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent">
+                                    <LucideIcon Name="user" Size="16" />
+                                </button>
+                            </div>
+                        </header>
+
+                        <!-- Sidebar and Content -->
+                        <div class="flex flex-1 overflow-hidden">
+                            <Sidebar Collapsible="@isBasicCollapsible">
+                                <SidebarContent>
+                                    <SidebarMenu>
+                                        <SidebarMenuItem>
+                                            <SidebarMenuButton Tooltip="@(L.T("概览", "Overview"))">
+                                                <LucideIcon Name="layout-dashboard" Size="16" />
+                                                <span>@L.T("概览", "Overview")</span>
+                                            </SidebarMenuButton>
+                                        </SidebarMenuItem>
+                                        <SidebarMenuItem>
+                                            <SidebarMenuButton Tooltip="@(L.T("分析", "Analytics"))" IsActive="true">
+                                                <LucideIcon Name="chart-column-stacked" Size="16" />
+                                                <span>@L.T("分析", "Analytics")</span>
+                                            </SidebarMenuButton>
+                                        </SidebarMenuItem>
+                                        <SidebarMenuItem>
+                                            <SidebarMenuButton Tooltip="@(L.T("报表", "Reports"))">
+                                                <LucideIcon Name="file-text" Size="16" />
+                                                <span>@L.T("报表", "Reports")</span>
+                                            </SidebarMenuButton>
+                                        </SidebarMenuItem>
+                                    </SidebarMenu>
+                                </SidebarContent>
+
+                                <SidebarFooter>
+                                    <SidebarMenu>
+                                        <SidebarMenuItem>
+                                            <SidebarMenuButton Tooltip="@(L.T("帮助", "Help"))">
+                                                <LucideIcon Name="hand-helping" Size="16" />
+                                                <span>@L.T("帮助", "Help")</span>
+                                            </SidebarMenuButton>
+                                        </SidebarMenuItem>
+                                    </SidebarMenu>
+                                </SidebarFooter>
+                            </Sidebar>
+
+                            <div class="flex flex-1 flex-col">
+                                <div class="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                                    <SidebarTrigger />
+                                    <h1 class="text-lg font-semibold">@L.T("分析仪表盘", "Analytics Dashboard")</h1>
+                                </div>
+                                <div class="flex-1 p-4">
+                                    <div class="rounded-xl bg-muted/50 p-4">
+                                        <p class="text-sm text-muted-foreground">@L.T("站点页眉固定在侧边栏上方。", "Site header stays fixed above the sidebar.")</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </SidebarProvider>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Sidebar/sticky-header.txt" />
+    </div>
+
+    <!-- With Header Dropdown Example -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold border-b pb-2">@L.T("带页眉下拉框", "With Header Dropdown")</h2>
+        <p class="text-muted-foreground">@L.T("侧边栏页眉中的版本选择下拉框。", "Version selector dropdown in sidebar header.")</p>
+
+        <div class="border rounded-lg p-6 bg-background">
+            <div class="h-[600px] w-full border rounded-lg overflow-hidden bg-background">
+                <SidebarProvider HeightClass="h-full">
+                    <div class="flex h-full w-full">
+                        <Sidebar Collapsible="@isBasicCollapsible">
+                            <SidebarHeader>
+                                <ResponsiveHeaderDropdown @bind-SelectedVersion="selectedVersion" />
+                            </SidebarHeader>
+
+                            <SidebarContent>
+                                <SidebarGroup>
+                                    <SidebarGroupLabel>@L.T("快速上手", "Getting Started")</SidebarGroupLabel>
+                                    <SidebarGroupContent>
+                                        <SidebarMenu>
+                                            <SidebarMenuItem>
+                                                <SidebarMenuButton Tooltip="@(L.T("安装", "Installation"))">
+                                                    <LucideIcon Name="download" Size="16" />
+                                                    <span>@L.T("安装", "Installation")</span>
+                                                </SidebarMenuButton>
+                                            </SidebarMenuItem>
+                                            <SidebarMenuItem>
+                                                <SidebarMenuButton Tooltip="@(L.T("快速开始", "Quick Start"))" IsActive="true">
+                                                    <LucideIcon Name="zap" Size="16" />
+                                                    <span>@L.T("快速开始", "Quick Start")</span>
+                                                </SidebarMenuButton>
+                                            </SidebarMenuItem>
+                                        </SidebarMenu>
+                                    </SidebarGroupContent>
+                                </SidebarGroup>
+
+                                <SidebarSeparator />
+
+                                <SidebarGroup>
+                                    <SidebarGroupLabel>@L.T("组件", "Components")</SidebarGroupLabel>
+                                    <SidebarGroupContent>
+                                        <SidebarMenu>
+                                            <SidebarMenuItem>
+                                                <SidebarMenuButton Tooltip="@(L.T("按钮", "Button"))">
+                                                    <LucideIcon Name="mouse-pointer-click" Size="16" />
+                                                    <span>@L.T("按钮", "Button")</span>
+                                                </SidebarMenuButton>
+                                            </SidebarMenuItem>
+                                            <SidebarMenuItem>
+                                                <SidebarMenuButton Tooltip="@(L.T("卡片", "Card"))">
+                                                    <LucideIcon Name="square" Size="16" />
+                                                    <span>@L.T("卡片", "Card")</span>
+                                                </SidebarMenuButton>
+                                            </SidebarMenuItem>
+                                        </SidebarMenu>
+                                    </SidebarGroupContent>
+                                </SidebarGroup>
+                            </SidebarContent>
+                        </Sidebar>
+
+                        <SidebarInset>
+                            <header class="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                                <SidebarTrigger />
+                                <div class="flex items-center gap-2">
+                                    <LucideIcon Name="book-open" Size="16" />
+                                    <span class="text-muted-foreground">&gt;</span>
+                                    <span>@L.T("快速开始", "Quick Start")</span>
+                                </div>
+                            </header>
+                            <div class="flex flex-1 flex-col gap-4 p-4">
+                                <div class="rounded-xl bg-muted/50 p-4">
+                                    <p class="text-sm text-muted-foreground">@L.T("侧边栏页眉包含一个版本下拉选择器。", "Sidebar header includes a version dropdown selector.")</p>
+                                </div>
+                            </div>
+                        </SidebarInset>
+                    </div>
+                </SidebarProvider>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Sidebar/header-dropdown.txt" />
+    </div>
+
+    <!-- Collapsible Submenus Example -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold border-b pb-2">@L.T("可折叠子菜单", "Collapsible Submenus")</h2>
+        <p class="text-muted-foreground">@L.T("带箭头指示器的可展开菜单组。", "Expandable menu groups with chevron indicators.")</p>
+
+        <div class="border rounded-lg p-6 bg-background">
+            <div class="h-[600px] w-full border rounded-lg overflow-hidden bg-background">
+                <SidebarProvider HeightClass="h-full">
+                    <div class="flex h-full w-full">
+                        <Sidebar Collapsible="@isBasicCollapsible">
+                            <SidebarHeader>
+                                <SidebarHeaderContent>
+                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                                        <LucideIcon Name="layout-grid" Size="16" />
+                                    </div>
+                                    <SidebarHeaderInfo>
+                                        <span class="truncate font-semibold">@L.T("仪表盘", "Dashboard")</span>
+                                    </SidebarHeaderInfo>
+                                </SidebarHeaderContent>
+                            </SidebarHeader>
+
+                            <SidebarContent>
+                                <SidebarMenu>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("概览", "Overview"))">
+                                            <LucideIcon Name="house" Size="16" />
+                                            <span>@L.T("概览", "Overview")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+
+                                    <SidebarMenuItem>
+                                        <Collapsible>
+                                            <SidebarMenuButton Tooltip="@(L.T("模型", "Models"))">
+                                                <LucideIcon Name="box" Size="16" />
+                                                <span>@L.T("模型", "Models")</span>
+                                                <SidebarMenuChevron>
+                                                    <LucideIcon Name="chevron-right" Size="16" />
+                                                </SidebarMenuChevron>
+                                            </SidebarMenuButton>
+                                            <AtomBlazor.CollapsibleContent>
+                                                <SidebarMenuSub>
+                                                    <SidebarMenuSubItem>
+                                                        <SidebarMenuSubButton>
+                                                            <span>Genesis</span>
+                                                        </SidebarMenuSubButton>
+                                                    </SidebarMenuSubItem>
+                                                    <SidebarMenuSubItem>
+                                                        <SidebarMenuSubButton>
+                                                            <span>Explorer</span>
+                                                        </SidebarMenuSubButton>
+                                                    </SidebarMenuSubItem>
+                                                    <SidebarMenuSubItem>
+                                                        <SidebarMenuSubButton>
+                                                            <span>Quantum</span>
+                                                        </SidebarMenuSubButton>
+                                                    </SidebarMenuSubItem>
+                                                </SidebarMenuSub>
+                                            </AtomBlazor.CollapsibleContent>
+                                        </Collapsible>
+                                    </SidebarMenuItem>
+
+                                    <SidebarMenuItem>
+                                        <Collapsible>
+                                            <SidebarMenuButton Tooltip="@(L.T("文档", "Documentation"))">
+                                                <LucideIcon Name="book-open" Size="16" />
+                                                <span>@L.T("文档", "Documentation")</span>
+                                                <SidebarMenuChevron>
+                                                    <LucideIcon Name="chevron-right" Size="16" />
+                                                </SidebarMenuChevron>
+                                            </SidebarMenuButton>
+                                            <AtomBlazor.CollapsibleContent>
+                                                <SidebarMenuSub>
+                                                    <SidebarMenuSubItem>
+                                                        <SidebarMenuSubButton>
+                                                            <span>@L.T("简介", "Introduction")</span>
+                                                        </SidebarMenuSubButton>
+                                                    </SidebarMenuSubItem>
+                                                    <SidebarMenuSubItem>
+                                                        <SidebarMenuSubButton>
+                                                            <span>@L.T("入门", "Get Started")</span>
+                                                        </SidebarMenuSubButton>
+                                                    </SidebarMenuSubItem>
+                                                    <SidebarMenuSubItem>
+                                                        <SidebarMenuSubButton>
+                                                            <span>@L.T("教程", "Tutorials")</span>
+                                                        </SidebarMenuSubButton>
+                                                    </SidebarMenuSubItem>
+                                                </SidebarMenuSub>
+                                            </AtomBlazor.CollapsibleContent>
+                                        </Collapsible>
+                                    </SidebarMenuItem>
+
+                                    <SidebarMenuItem>
+                                        <Collapsible>
+                                            <SidebarMenuButton Tooltip="@(L.T("设置", "Settings"))">
+                                                <LucideIcon Name="settings" Size="16" />
+                                                <span>@L.T("设置", "Settings")</span>
+                                                <SidebarMenuChevron>
+                                                    <LucideIcon Name="chevron-right" Size="16" />
+                                                </SidebarMenuChevron>
+                                            </SidebarMenuButton>
+                                            <AtomBlazor.CollapsibleContent>
+                                                <SidebarMenuSub>
+                                                    <SidebarMenuSubItem>
+                                                        <SidebarMenuSubButton>
+                                                            <span>@L.T("通用", "General")</span>
+                                                        </SidebarMenuSubButton>
+                                                    </SidebarMenuSubItem>
+                                                    <SidebarMenuSubItem>
+                                                        <SidebarMenuSubButton>
+                                                            <span>@L.T("团队", "Team")</span>
+                                                        </SidebarMenuSubButton>
+                                                    </SidebarMenuSubItem>
+                                                </SidebarMenuSub>
+                                            </AtomBlazor.CollapsibleContent>
+                                        </Collapsible>
+                                    </SidebarMenuItem>
+                                </SidebarMenu>
+                            </SidebarContent>
+
+                            <SidebarFooter>
+                                <SidebarMenu>
+                                    <SidebarMenuItem>
+                                        <DropdownMenu>
+                                            <AtomBlazor.DropdownMenuTrigger AsChild="false" ActiveClass="bg-sidebar-accent" Class="flex w-full items-center gap-2 px-2 py-1.5 group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-1.5 group-data-[collapsible=icon]:justify-center cursor-pointer hover:bg-sidebar-accent rounded-md transition-colors text-sm outline-none ring-sidebar-ring focus-visible:ring-2">
+                                                <Avatar Class="h-8 w-8 rounded-lg">
+                                                    <AvatarImage Source="_content/AtomBlazor.Demo.Shared/images/mathew-icon.png" alt="Mathew" />
+                                                    <AvatarFallback Class="rounded-lg">M</AvatarFallback>
+                                                </Avatar>
+                                                <div class="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
+                                                    <span class="truncate font-semibold">Mathew</span>
+                                                    <span class="truncate text-xs text-muted-foreground">mathew@example.com</span>
+                                                </div>
+                                                <LucideIcon Name="chevrons-up-down" Size="16" Class="ml-auto group-data-[collapsible=icon]:hidden" />
+                                            </AtomBlazor.DropdownMenuTrigger>
+                                            <AtomBlazor.DropdownMenuContent Align="@PopoverAlign.End" Class="w-[240px]">
+                                                <DropdownMenuLabel Class="font-normal">
+                                                    <div class="flex items-center gap-2 px-1 py-1.5">
+                                                        <Avatar Class="h-8 w-8 rounded-lg">
+                                                            <AvatarImage Source="_content/AtomBlazor.Demo.Shared/images/mathew-icon.png" alt="Mathew" />
+                                                            <AvatarFallback Class="rounded-lg">M</AvatarFallback>
+                                                        </Avatar>
+                                                        <div class="grid flex-1 text-left text-sm leading-tight">
+                                                            <span class="truncate font-semibold">Mathew</span>
+                                                            <span class="truncate text-xs text-muted-foreground">mathew@example.com</span>
+                                                        </div>
+                                                    </div>
+                                                </DropdownMenuLabel>
+                                                <DropdownMenuSeparator />
+                                                <AtomBlazor.DropdownMenuItem>
+                                                    <LucideIcon Name="sparkles" Size="16" />
+                                                    <span class="ml-2">@L.T("升级到 Pro", "Upgrade to Pro")</span>
+                                                </AtomBlazor.DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <AtomBlazor.DropdownMenuItem>
+                                                    <LucideIcon Name="user" Size="16" />
+                                                    <span class="ml-2">@L.T("账户", "Account")</span>
+                                                </AtomBlazor.DropdownMenuItem>
+                                                <AtomBlazor.DropdownMenuItem>
+                                                    <LucideIcon Name="credit-card" Size="16" />
+                                                    <span class="ml-2">@L.T("账单", "Billing")</span>
+                                                </AtomBlazor.DropdownMenuItem>
+                                                <AtomBlazor.DropdownMenuItem>
+                                                    <LucideIcon Name="bell" Size="16" />
+                                                    <span class="ml-2">@L.T("通知", "Notifications")</span>
+                                                </AtomBlazor.DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <AtomBlazor.DropdownMenuItem>
+                                                    <LucideIcon Name="log-out" Size="16" />
+                                                    <span class="ml-2">@L.T("退出登录", "Log out")</span>
+                                                </AtomBlazor.DropdownMenuItem>
+                                            </AtomBlazor.DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </SidebarMenuItem>
+                                </SidebarMenu>
+                            </SidebarFooter>
+                        </Sidebar>
+
+                        <SidebarInset>
+                            <header class="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                                <SidebarTrigger />
+                                <h1 class="text-lg font-semibold">@L.T("概览", "Overview")</h1>
+                            </header>
+                            <div class="flex flex-1 flex-col gap-4 p-4">
+                                <div class="rounded-xl bg-muted/50 p-4">
+                                    <p class="text-sm text-muted-foreground">@L.T("带箭头图标的菜单项表示可折叠的子菜单。", "Menu items with chevron icons indicate collapsible submenus.")</p>
+                                </div>
+                            </div>
+                        </SidebarInset>
+                    </div>
+                </SidebarProvider>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Sidebar/collapsible-submenus.txt" />
+    </div>
+
+    <!-- 3-Level Nested Menu Example -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold border-b pb-2">@L.T("三级嵌套菜单", "3-Level Nested Menu")</h2>
+        <p class="text-muted-foreground">@L.T("深层嵌套：第 2 级为可折叠子菜单，第 3 级为右侧下拉菜单。", "Deep nesting with collapsible submenus at level 2 and a right-side dropdown at level 3.")</p>
+
+        <div class="border rounded-lg p-6 bg-background">
+            <div class="h-[600px] w-full border rounded-lg overflow-hidden bg-background">
+                <SidebarProvider HeightClass="h-full">
+                    <div class="flex h-full w-full">
+                        <Sidebar Collapsible="@isBasicCollapsible">
+                            <SidebarHeader>
+                                <SidebarHeaderContent>
+                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                                        <LucideIcon Name="folder-tree" Size="16" />
+                                    </div>
+                                    <SidebarHeaderInfo>
+                                        <span class="truncate font-semibold">@L.T("项目管理器", "Project Manager")</span>
+                                    </SidebarHeaderInfo>
+                                </SidebarHeaderContent>
+                            </SidebarHeader>
+
+                            <SidebarContent>
+                                <SidebarMenu>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("仪表盘", "Dashboard"))">
+                                            <LucideIcon Name="layout-dashboard" Size="16" />
+                                            <span>@L.T("仪表盘", "Dashboard")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+
+                                    <SidebarMenuItem>
+                                        <Collapsible>
+                                            <SidebarMenuButton Tooltip="@(L.T("项目", "Projects"))">
+                                                <LucideIcon Name="folder" Size="16" />
+                                                <span>@L.T("项目", "Projects")</span>
+                                                <SidebarMenuChevron>
+                                                    <LucideIcon Name="chevron-right" Size="16" />
+                                                </SidebarMenuChevron>
+                                            </SidebarMenuButton>
+
+                                            <AtomBlazor.CollapsibleContent>
+                                                <SidebarMenuSub>
+                                                    <SidebarMenuSubItem>
+                                                        <SidebarMenuSubButton>
+                                                            <span>@L.T("活跃项目", "Active Projects")</span>
+                                                        </SidebarMenuSubButton>
+                                                    </SidebarMenuSubItem>
+
+                                                    <SidebarMenuSubItem>
+                                                        <SidebarMenuSubButton>
+                                                            <span>@L.T("已归档项目", "Archived Projects")</span>
+                                                        </SidebarMenuSubButton>
+                                                    </SidebarMenuSubItem>
+
+                                                    <SidebarMenuSubItem class="-mr-6">
+                                                        <DropdownMenu>
+                                                            <AtomBlazor.DropdownMenuTrigger AsChild="false" ActiveClass="bg-sidebar-accent" Class="flex w-full h-7 min-w-0 items-center gap-2 overflow-hidden rounded-md px-2 text-sm text-sidebar-foreground outline-none ring-sidebar-ring transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 cursor-pointer">
+                                                                <span class="truncate">@L.T("项目设置", "Project Settings")</span>
+                                                                <LucideIcon Name="chevron-right" Size="16" Class="ml-auto shrink-0" />
+                                                            </AtomBlazor.DropdownMenuTrigger>
+                                                            <AtomBlazor.DropdownMenuContent Side="PopoverSide.Right" Align="PopoverAlign.Start" Class="min-w-[180px]">
+                                                                <AtomBlazor.DropdownMenuItem>@L.T("常规设置", "General Settings")</AtomBlazor.DropdownMenuItem>
+                                                                <AtomBlazor.DropdownMenuItem>@L.T("访问控制", "Access Control")</AtomBlazor.DropdownMenuItem>
+                                                                <AtomBlazor.DropdownMenuItem>@L.T("通知", "Notifications")</AtomBlazor.DropdownMenuItem>
+                                                                <AtomBlazor.DropdownMenuItem>@L.T("集成", "Integrations")</AtomBlazor.DropdownMenuItem>
+                                                            </AtomBlazor.DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    </SidebarMenuSubItem>
+                                                </SidebarMenuSub>
+                                            </AtomBlazor.CollapsibleContent>
+                                        </Collapsible>
+                                    </SidebarMenuItem>
+
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("报表", "Reports"))">
+                                            <LucideIcon Name="file-text" Size="16" />
+                                            <span>@L.T("报表", "Reports")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                </SidebarMenu>
+                            </SidebarContent>
+                        </Sidebar>
+
+                        <SidebarInset>
+                            <header class="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                                <SidebarTrigger />
+                                <h1 class="text-lg font-semibold">@L.T("三级嵌套示例", "3-Level Nesting Demo")</h1>
+                            </header>
+                            <div class="flex flex-1 flex-col gap-4 p-4">
+                                <div class="rounded-xl bg-muted/50 p-4">
+                                    <p class="text-sm text-muted-foreground mb-2">@L.T("本示例演示三级菜单嵌套：", "This example demonstrates 3-level menu nesting:")</p>
+                                    <ul class="text-sm text-muted-foreground list-disc list-inside space-y-1">
+                                        <li>@L.T("第 1 级：Projects（顶层可折叠）", "Level 1: Projects (top-level collapsible)")</li>
+                                        <li>@L.T("第 2 级：Active Projects、Archived Projects、Project Settings", "Level 2: Active Projects, Archived Projects, Project Settings")</li>
+                                        <li>@L.T("第 3 级：右侧下拉菜单，含 General Settings、Access Control、Notifications、Integrations", "Level 3: Right-side dropdown with General Settings, Access Control, Notifications, Integrations")</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </SidebarInset>
+                    </div>
+                </SidebarProvider>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Sidebar/three-level-nested.txt" />
+    </div>
+
+    <!-- Toggle Shortcut Example -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold border-b pb-2">@L.T("禁用键盘快捷键", "Disabling the Keyboard Shortcut")</h2>
+        @if (L.IsChinese)
+        {
+            <p class="text-muted-foreground">
+                默认情况下 <Kbd>Ctrl+B</Kbd> / <Kbd>Cmd+B</Kbd> 会切换侧边栏。当这些按键与页面冲突时（例如富文本编辑器中它们表示加粗），请设置
+                <code class="text-sm">EnableToggleShortcut="false"</code>；该参数是响应式的，可以绑定到状态。
+            </p>
+        }
+        else
+        {
+            <p class="text-muted-foreground">
+                <Kbd>Ctrl+B</Kbd> / <Kbd>Cmd+B</Kbd> toggles the sidebar by default. Set
+                <code class="text-sm">EnableToggleShortcut="false"</code> when those keys conflict with the page,
+                such as a rich-text editor where they mean bold. The parameter is reactive, so it can be bound to state.
+            </p>
+        }
+
+        <div class="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
+            <span class="text-sm font-medium">EnableToggleShortcut:</span>
+            <div class="flex items-center gap-2">
+                <button
+                    @onclick="() => shortcutEnabled = true"
+                    class="@(shortcutEnabled ? "bg-primary text-primary-foreground" : "bg-background text-foreground") px-3 py-1.5 rounded-md text-sm font-medium transition-colors hover:opacity-90">
+                    true
+                </button>
+                <button
+                    @onclick="() => shortcutEnabled = false"
+                    class="@(!shortcutEnabled ? "bg-primary text-primary-foreground" : "bg-background text-foreground") px-3 py-1.5 rounded-md text-sm font-medium transition-colors hover:opacity-90">
+                    false
+                </button>
+            </div>
+            <span class="text-xs text-muted-foreground ml-auto">@L.T("切换后按 Ctrl/Cmd + B", "Toggle, then press Ctrl/Cmd + B")</span>
+        </div>
+
+        <div class="border rounded-lg p-6 bg-background">
+            <div class="h-[600px] w-full border rounded-lg overflow-hidden bg-background">
+                <SidebarProvider EnableToggleShortcut="@shortcutEnabled" HeightClass="h-full">
+                    <div class="flex h-full w-full">
+                        <Sidebar Collapsible="@isBasicCollapsible">
+                            <SidebarHeader>
+                                <SidebarHeaderContent>
+                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                                        <LucideIcon Name="keyboard" Size="16" />
+                                    </div>
+                                    <SidebarHeaderInfo>
+                                        <span class="truncate font-semibold">@L.T("编辑器", "Editor")</span>
+                                        <span class="truncate text-xs text-muted-foreground">
+                                            @L.T("快捷键", "Shortcut") @(shortcutEnabled ? L.T("已启用", "enabled") : L.T("已禁用", "disabled"))
+                                        </span>
+                                    </SidebarHeaderInfo>
+                                </SidebarHeaderContent>
+                            </SidebarHeader>
+
+                            <SidebarContent>
+                                <SidebarMenu>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("文件", "Documents"))" IsActive="true">
+                                            <LucideIcon Name="file" Size="16" />
+                                            <span>@L.T("文件", "Documents")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("草稿", "Drafts"))">
+                                            <LucideIcon Name="pencil" Size="16" />
+                                            <span>@L.T("草稿", "Drafts")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("归档", "Archive"))">
+                                            <LucideIcon Name="archive" Size="16" />
+                                            <span>@L.T("归档", "Archive")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                </SidebarMenu>
+                            </SidebarContent>
+                        </Sidebar>
+
+                        <SidebarInset>
+                            <header class="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                                <SidebarTrigger />
+                                <h1 class="text-lg font-semibold">@L.T("快捷键退出", "Shortcut Opt-Out")</h1>
+                            </header>
+                            <div class="flex flex-1 flex-col gap-4 p-4">
+                                <div class="rounded-xl bg-muted/50 p-4">
+                                    @if (L.IsChinese)
+                                    {
+                                        <p class="text-sm text-muted-foreground mb-2">
+                                            快捷键<strong>启用</strong>时，Ctrl/Cmd + B 会切换此侧边栏。<strong>禁用</strong>时，此侧边栏完全忽略该按键。
+                                        </p>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-sm text-muted-foreground mb-2">
+                                            With the shortcut <strong>enabled</strong>, Ctrl/Cmd + B toggles this sidebar.
+                                            With it <strong>disabled</strong>, this sidebar ignores the key entirely.
+                                        </p>
+                                    }
+                                    <p class="text-sm text-muted-foreground">
+                                        @L.T("每个 provider 只为自己占用该快捷键。在只有单个 provider 的应用中，禁用它还会让 Ctrl/Cmd + B 透传到页面，因此富文本编辑器会把它当作加粗。本页承载了许多侧边栏示例，它们各自仍会占用该键，所以这种透传在这里看不到。", "Each provider only claims the shortcut for itself. In an app with a single provider, disabling it also lets Ctrl/Cmd + B through to the page, so a rich-text editor receives it as bold. This page hosts many sidebar examples that each still claim the key, so that fall-through is not visible here.")
+                                    </p>
+                                </div>
+                            </div>
+                        </SidebarInset>
+                    </div>
+                </SidebarProvider>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Sidebar/toggle-shortcut.txt" />
+    </div>
+
+
+
+
+
+    <!-- API Reference -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold border-b pb-2">@L.T("控制侧边栏", "Controlling the Sidebar")</h2>
+        @if (L.IsChinese)
+        {
+            <p class="text-sm text-muted-foreground">
+                打开状态位于 <code class="text-xs bg-muted px-1 py-0.5 rounded">SidebarProvider</code> 上，而非
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">Sidebar</code> 上。不去管它时，provider 自己拥有该状态——
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">DefaultOpen</code> 用于设定初值，
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">CookieKey</code> 用于持久化，
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">SidebarTrigger</code> 用于切换。绑定
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Open</code> 后，你的值就成为唯一来源，
+                与 Dialog、Sheet、Popover 及库中其余部分相同的受控/非受控模式。
+            </p>
+        }
+        else
+        {
+            <p class="text-sm text-muted-foreground">
+                Open state lives on <code class="text-xs bg-muted px-1 py-0.5 rounded">SidebarProvider</code>, not on
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">Sidebar</code>. Leave it alone and the provider owns it —
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">DefaultOpen</code> seeds it,
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">CookieKey</code> persists it, and
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">SidebarTrigger</code> toggles it. Bind
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Open</code> and your value becomes the source of truth
+                instead, the same controlled/uncontrolled pattern as Dialog, Sheet, Popover and the rest of the library.
+            </p>
+        }
+        @if (L.IsChinese)
+        {
+            <p class="text-sm text-muted-foreground">
+                <strong>绑定 <code class="text-xs bg-muted px-1 py-0.5 rounded">Open</code> 会关闭 Cookie 持久化</strong>
+                ——包括启动时的读取与变化时的写入。当状态由组件外部持有时，重新加载时 Cookie 会与你的绑定值相互竞争，而非恢复它，
+                因此若需要它得以保留，请自行持久化。
+            </p>
+        }
+        else
+        {
+            <p class="text-sm text-muted-foreground">
+                <strong>Binding <code class="text-xs bg-muted px-1 py-0.5 rounded">Open</code> turns cookie persistence off</strong>
+                — both the read on startup and the write on change. With the state owned outside the component, a cookie would
+                compete with your bound value on reload rather than restore it, so persist it yourself if you need it to survive.
+            </p>
+        }
+        @if (L.IsChinese)
+        {
+            <p class="text-sm text-muted-foreground">
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">Open</code> 是<em>桌面端</em>状态，与
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">DefaultOpen</code> 对应。在移动端断点以下，侧边栏是带有自己状态的抽屉——
+                若两者都需要，也请绑定 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-OpenMobile</code>；
+                而当仅仅是从级联的
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">SidebarContext</code> 中<em>读取</em>时，优先用
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">IsOpen</code> 而非
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">Open</code>：它会解析为当前视口适用的那个值，因此在两端都保持正确。
+            </p>
+        }
+        else
+        {
+            <p class="text-sm text-muted-foreground">
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">Open</code> is the <em>desktop</em> state, matching
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">DefaultOpen</code>. Below the mobile breakpoint the sidebar is a
+                drawer with its own state — bind <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-OpenMobile</code> as well
+                if you need both, and when merely <em>reading</em> from the cascaded
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">SidebarContext</code>, prefer
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">IsOpen</code> over
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">Open</code>: it resolves to whichever applies to the current
+                viewport, so it stays correct on both.
+            </p>
+        }
+
+        <div class="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
+            <span class="text-sm font-medium">@@bind-Open:</span>
+            <div class="flex items-center gap-2">
+                <button type="button"
+                        @onclick="() => _controlledOpen = true"
+                        class="@(_controlledOpen ? "bg-primary text-primary-foreground" : "bg-background text-foreground") px-3 py-1.5 rounded-md text-sm font-medium transition-colors hover:opacity-90">
+                    @L.T("打开", "Open")
+                </button>
+                <button type="button"
+                        @onclick="() => _controlledOpen = false"
+                        class="@(!_controlledOpen ? "bg-primary text-primary-foreground" : "bg-background text-foreground") px-3 py-1.5 rounded-md text-sm font-medium transition-colors hover:opacity-90">
+                    @L.T("关闭", "Closed")
+                </button>
+            </div>
+            @if (L.IsChinese)
+            {
+                <span class="text-xs text-muted-foreground ml-auto">绑定值：<code class="text-xs">@_controlledOpen</code> ——侧边栏自身的触发按钮也会更新它</span>
+            }
+            else
+            {
+                <span class="text-xs text-muted-foreground ml-auto">Bound value: <code class="text-xs">@_controlledOpen</code> — the sidebar's own trigger updates it too</span>
+            }
+        </div>
+
+        <div class="border rounded-lg overflow-hidden h-[300px]">
+            <SidebarProvider @bind-Open="_controlledOpen" HeightClass="h-full" CookieKey="@null">
+                <Sidebar>
+                    <SidebarContent>
+                        <SidebarGroup>
+                            <SidebarGroupLabel>@L.T("受控", "Controlled")</SidebarGroupLabel>
+                            <SidebarGroupContent>
+                                <SidebarMenu>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("首页", "Home"))">
+                                            <LucideIcon Name="house" Size="16" />
+                                            <span>@L.T("首页", "Home")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton Tooltip="@(L.T("设置", "Settings"))">
+                                            <LucideIcon Name="settings" Size="16" />
+                                            <span>@L.T("设置", "Settings")</span>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                </SidebarMenu>
+                            </SidebarGroupContent>
+                        </SidebarGroup>
+                    </SidebarContent>
+                </Sidebar>
+                <SidebarInset>
+                    <div class="p-4 space-y-2">
+                        <SidebarTrigger />
+                        @if (L.IsChinese)
+                        {
+                            <p class="text-sm text-muted-foreground">
+                                从两侧任意一处切换——上方按钮设置绑定值，触发按钮引发
+                                <code class="text-xs">OpenChanged</code>，两者保持同步。
+                            </p>
+                        }
+                        else
+                        {
+                            <p class="text-sm text-muted-foreground">
+                                Toggle from either side — the buttons above set the bound value, the trigger raises
+                                <code class="text-xs">OpenChanged</code>, and both stay in sync.
+                            </p>
+                        }
+                    </div>
+                </SidebarInset>
+            </SidebarProvider>
+        </div>
+
+        <CodeBlock Source="Components/Sidebar/programmatic-control.txt" />
+    </div>
+
+    <AccessibilityList>
+            <AriaAttributes>
+                <AccessibilityItem>
+                    @L.T("响应式设计，移动端以 Sheet 遮罩呈现、桌面端为常驻侧边栏。", "Responsive design with Sheet overlay on mobile and persistent sidebar on desktop.")
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @L.T("可折叠，支持仅图标模式，折叠状态下自动显示提示。", "Collapsible with icon-only mode and automatic tooltips in collapsed state.")
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @L.T("通过 Cookie 持久化状态，记住用户的侧边栏偏好。", "State persistence via cookies to remember user's sidebar preference.")
+                </AccessibilityItem>
+                        <AccessibilityItem>@L.T("胶囊导航使用带标签的链接或按钮，并以 aria-current 标记当前页面。选中指示器为装饰性元素并遵循减弱动效。", "Pill navigation uses labelled links or buttons and marks the active page with aria-current. Selection indicators are decorative and respect reduced motion.")</AccessibilityItem>
+        </AriaAttributes>
+            <KeyboardNavigation>
+                @if (L.IsChinese)
+                {
+                    <KeyboardShortcutItem Description="切换侧边栏开关（用 EnableToggleShortcut=&quot;false&quot; 禁用）">
+                        <Kbd>Ctrl+B</Kbd> / <Kbd>Cmd+B</Kbd>
+                    </KeyboardShortcutItem>
+                }
+                else
+                {
+                    <KeyboardShortcutItem Description="Toggle sidebar open/closed (disable with EnableToggleShortcut=&quot;false&quot;)">
+                        <Kbd>Ctrl+B</Kbd> / <Kbd>Cmd+B</Kbd>
+                    </KeyboardShortcutItem>
+                }
+            </KeyboardNavigation>
+        </AccessibilityList>
+
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold border-b pb-2">@L.T("API 参考", "API Reference")</h2>
+
+        <div class="space-y-6">
+            <div>
+                <h3 class="text-lg font-semibold mb-2">SidebarProvider</h3>
+                <p class="text-sm text-muted-foreground mb-3">@L.T("管理侧边栏状态的根 provider 组件。", "The root provider component that manages sidebar state.")</p>
+                <div class="rounded-lg border overflow-hidden">
+                    <table class="w-full">
+                        <thead class="border-b bg-muted/50">
+                            <tr>
+                                <th class="p-3 text-left font-medium">@L.T("属性", "Prop")</th>
+                                <th class="p-3 text-left font-medium">@L.T("类型", "Type")</th>
+                                <th class="p-3 text-left font-medium">@L.T("默认值", "Default")</th>
+                                <th class="p-3 text-left font-medium">@L.T("说明", "Description")</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">DefaultOpen</code></td>
+                                <td class="p-3 text-sm">bool</td>
+                                <td class="p-3 text-sm">true</td>
+                                @if (L.IsChinese)
+                                {
+                                    <td class="p-3 text-sm">初始桌面打开状态，用于非受控用法；绑定 <code class="text-sm">Open</code> 时被忽略。</td>
+                                }
+                                else
+                                {
+                                    <td class="p-3 text-sm">Initial desktop open state, for uncontrolled usage. Ignored when <code class="text-sm">Open</code> is bound.</td>
+                                }
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">Open</code></td>
+                                <td class="p-3 text-sm">bool?</td>
+                                <td class="p-3 text-sm">null</td>
+                                @if (L.IsChinese)
+                                {
+                                    <td class="p-3 text-sm">桌面端打开状态，用于配合 <code class="text-sm">@@bind-Open</code> 的受控用法。留作 null 则由 provider 自行管理状态。绑定它会关闭 Cookie 持久化——见下文。</td>
+                                }
+                                else
+                                {
+                                    <td class="p-3 text-sm">Desktop open state, for controlled usage with <code class="text-sm">@@bind-Open</code>. Leave null and the provider owns the state. Binding it turns cookie persistence off — see below.</td>
+                                }
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">OpenChanged</code></td>
+                                <td class="p-3 text-sm">EventCallback&lt;bool&gt;</td>
+                                <td class="p-3 text-sm">—</td>
+                                @if (L.IsChinese)
+                                {
+                                    <td class="p-3 text-sm">当桌面端状态改变时触发，来源可能是触发按钮、轨道、键盘快捷键或 <code class="text-sm">SetOpen</code></td>
+                                }
+                                else
+                                {
+                                    <td class="p-3 text-sm">Raised when the desktop state changes, from the trigger, the rail, the keyboard shortcut or <code class="text-sm">SetOpen</code></td>
+                                }
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">OpenMobile</code></td>
+                                <td class="p-3 text-sm">bool?</td>
+                                <td class="p-3 text-sm">null</td>
+                                @if (L.IsChinese)
+                                {
+                                    <td class="p-3 text-sm">移动端抽屉状态，用于配合 <code class="text-sm">@@bind-OpenMobile</code> 的受控用法。与 <code class="text-sm">Open</code> 相互独立。</td>
+                                }
+                                else
+                                {
+                                    <td class="p-3 text-sm">Mobile drawer state, for controlled usage with <code class="text-sm">@@bind-OpenMobile</code>. Independent of <code class="text-sm">Open</code>.</td>
+                                }
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">OpenMobileChanged</code></td>
+                                <td class="p-3 text-sm">EventCallback&lt;bool&gt;</td>
+                                <td class="p-3 text-sm">—</td>
+                                <td class="p-3 text-sm">@L.T("移动抽屉的开合状态发生变化时触发。", "Raised when the mobile drawer state changes")</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">Variant</code></td>
+                                <td class="p-3 text-sm">SidebarVariant</td>
+                                <td class="p-3 text-sm">Sidebar</td>
+                                <td class="p-3 text-sm">@L.T("视觉变体（Sidebar、Floating、Inset）", "Visual variant (Sidebar, Floating, Inset)")</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">Side</code></td>
+                                <td class="p-3 text-sm">SidebarSide</td>
+                                <td class="p-3 text-sm">Left</td>
+                                <td class="p-3 text-sm">@L.T("渲染所在侧（Left、Right）", "Side to render (Left, Right)")</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">CookieKey</code></td>
+                                <td class="p-3 text-sm">string</td>
+                                <td class="p-3 text-sm">"sidebar:state"</td>
+                                @if (L.IsChinese)
+                                {
+                                    <td class="p-3 text-sm">用于持久化的 Cookie 键。设为 null 可禁用。绑定 <code class="text-sm">Open</code> 时被忽略。</td>
+                                }
+                                else
+                                {
+                                    <td class="p-3 text-sm">Cookie key for persistence. Set null to disable. Ignored while <code class="text-sm">Open</code> is bound.</td>
+                                }
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">EnableToggleShortcut</code></td>
+                                <td class="p-3 text-sm">bool</td>
+                                <td class="p-3 text-sm">true</td>
+                                <td class="p-3 text-sm">@L.T("Ctrl/Cmd + B 是否切换侧边栏", "Whether Ctrl/Cmd + B toggles the sidebar")</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3"><code class="text-sm">HeightClass</code></td>
+                                <td class="p-3 text-sm">string</td>
+                                <td class="p-3 text-sm">"min-h-screen"</td>
+                                <td class="p-3 text-sm">@L.T("控制容器高度的 CSS 类", "CSS class controlling container height")</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-semibold mb-2">Sidebar</h3>
+                <p class="text-sm text-muted-foreground mb-3">@L.T("侧边栏面板本身。打开状态位于 provider 上而非此处——见下文 SidebarContext。", "The sidebar panel itself. Open state lives on the provider, not here — see SidebarContext below.")</p>
+                <div class="rounded-lg border overflow-hidden">
+                    <table class="w-full">
+                        <thead class="border-b bg-muted/50">
+                            <tr>
+                                <th class="p-3 text-left font-medium">@L.T("属性", "Prop")</th>
+                                <th class="p-3 text-left font-medium">@L.T("类型", "Type")</th>
+                                <th class="p-3 text-left font-medium">@L.T("默认值", "Default")</th>
+                                <th class="p-3 text-left font-medium">@L.T("说明", "Description")</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">Collapsible</code></td>
+                                <td class="p-3 text-sm">bool</td>
+                                <td class="p-3 text-sm">true</td>
+                                <td class="p-3 text-sm">@L.T("侧边栏是否可折叠。设为 false 可将其固定展开。", "Whether the sidebar can collapse. Set false to pin it open.")</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3"><code class="text-sm">Class</code></td>
+                                <td class="p-3 text-sm">string?</td>
+                                <td class="p-3 text-sm">null</td>
+                                <td class="p-3 text-sm">@L.T("额外的 CSS 类", "Additional CSS classes")</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-semibold mb-2">SidebarTrigger</h3>
+                <p class="text-sm text-muted-foreground mb-3">@L.T("切换侧边栏。这是从标记中打开与关闭它的受支持方式。", "Toggles the sidebar. This is the supported way to open and close it from markup.")</p>
+                <div class="rounded-lg border overflow-hidden">
+                    <table class="w-full">
+                        <thead class="border-b bg-muted/50">
+                            <tr>
+                                <th class="p-3 text-left font-medium">@L.T("属性", "Prop")</th>
+                                <th class="p-3 text-left font-medium">@L.T("类型", "Type")</th>
+                                <th class="p-3 text-left font-medium">@L.T("默认值", "Default")</th>
+                                <th class="p-3 text-left font-medium">@L.T("说明", "Description")</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">OnClick</code></td>
+                                <td class="p-3 text-sm">EventCallback&lt;MouseEventArgs&gt;</td>
+                                <td class="p-3 text-sm">—</td>
+                                <td class="p-3 text-sm">@L.T("除切换外还会调用，用于观察切换动作", "Invoked in addition to toggling, for observing the toggle")</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">ChildContent</code></td>
+                                <td class="p-3 text-sm">RenderFragment?</td>
+                                <td class="p-3 text-sm">null</td>
+                                <td class="p-3 text-sm">@L.T("替换默认的切换图标", "Replaces the default toggle icon")</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3"><code class="text-sm">Class</code></td>
+                                <td class="p-3 text-sm">string?</td>
+                                <td class="p-3 text-sm">null</td>
+                                <td class="p-3 text-sm">@L.T("额外的 CSS 类", "Additional CSS classes")</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-semibold mb-2">SidebarContext</h3>
+                @if (L.IsChinese)
+                {
+                    <p class="text-sm text-muted-foreground mb-3">
+                        由 <code class="text-sm">SidebarProvider</code> 级联下发。用
+                        <code class="text-sm">[CascadingParameter]</code> 取用它，即可在你自己的代码中读取或改变打开状态。
+                        <code class="text-sm">Sidebar</code> 上没有 <code class="text-sm">Open</code>/<code class="text-sm">OpenChanged</code> 参数对——
+                        状态由 provider 持有，并通过此 context 访问。
+                    </p>
+                }
+                else
+                {
+                    <p class="text-sm text-muted-foreground mb-3">
+                        Cascaded by <code class="text-sm">SidebarProvider</code>. Take it with a
+                        <code class="text-sm">[CascadingParameter]</code> to read or change the open state from your own code.
+                        There is no <code class="text-sm">Open</code>/<code class="text-sm">OpenChanged</code> parameter pair on
+                        <code class="text-sm">Sidebar</code> — state is owned by the provider and reached through this context.
+                    </p>
+                }
+                <div class="rounded-lg border overflow-hidden">
+                    <table class="w-full">
+                        <thead class="border-b bg-muted/50">
+                            <tr>
+                                <th class="p-3 text-left font-medium">@L.T("成员", "Member")</th>
+                                <th class="p-3 text-left font-medium">@L.T("类型", "Type")</th>
+                                <th class="p-3 text-left font-medium">@L.T("说明", "Description")</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">IsOpen</code></td>
+                                <td class="p-3 text-sm">bool</td>
+                                <td class="p-3 text-sm">@L.T("有效的打开状态——解析为当前视口对应的移动端或桌面端值。除非你特别需要另外两个，否则请读取这一个。", "Effective open state — resolves to the mobile or desktop value for the current viewport. Read this one unless you specifically need the other two.")</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">Open</code></td>
+                                <td class="p-3 text-sm">bool</td>
+                                <td class="p-3 text-sm">@L.T("桌面端打开状态（只读）", "Desktop open state (read-only)")</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">OpenMobile</code></td>
+                                <td class="p-3 text-sm">bool</td>
+                                <td class="p-3 text-sm">@L.T("移动端抽屉打开状态（只读）", "Mobile drawer open state (read-only)")</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">IsMobile</code></td>
+                                <td class="p-3 text-sm">bool</td>
+                                <td class="p-3 text-sm">@L.T("视口当前是否处于移动端断点以下", "Whether the viewport is currently below the mobile breakpoint")</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">Side</code></td>
+                                <td class="p-3 text-sm">SidebarSide</td>
+                                <td class="p-3 text-sm">@L.T("侧边栏渲染所在侧", "Side the sidebar renders on")</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">ToggleSidebar()</code></td>
+                                <td class="p-3 text-sm">void</td>
+                                <td class="p-3 text-sm">@L.T("切换适用于当前视口的状态", "Toggles whichever state applies to the current viewport")</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">SetOpen(bool)</code></td>
+                                <td class="p-3 text-sm">void</td>
+                                <td class="p-3 text-sm">@L.T("设置桌面端打开状态", "Sets the desktop open state")</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">SetOpenMobile(bool)</code></td>
+                                <td class="p-3 text-sm">void</td>
+                                <td class="p-3 text-sm">@L.T("设置移动端抽屉打开状态", "Sets the mobile drawer open state")</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3"><code class="text-sm">StateChanged</code></td>
+                                <td class="p-3 text-sm">event EventHandler?</td>
+                                <td class="p-3 text-sm">@L.T("每当上述任一项变化时触发——订阅它以便在切换时重渲染，并在释放时取消订阅", "Raised whenever any of the above changes — subscribe to re-render on toggle, and unsubscribe on dispose")</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-semibold mb-2">SidebarMenuButton</h3>
+                <p class="text-sm text-muted-foreground mb-3">@L.T("可点击的菜单项，支持提示。", "Clickable menu item with tooltip support.")</p>
+                <div class="rounded-lg border overflow-hidden">
+                    <table class="w-full">
+                        <thead class="border-b bg-muted/50">
+                            <tr>
+                                <th class="p-3 text-left font-medium">@L.T("属性", "Prop")</th>
+                                <th class="p-3 text-left font-medium">@L.T("类型", "Type")</th>
+                                <th class="p-3 text-left font-medium">@L.T("默认值", "Default")</th>
+                                <th class="p-3 text-left font-medium">@L.T("说明", "Description")</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">Tooltip</code></td>
+                                <td class="p-3 text-sm">string?</td>
+                                <td class="p-3 text-sm">null</td>
+                                <td class="p-3 text-sm">@L.T("折叠状态下显示的提示", "Tooltip shown in collapsed state")</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">Size</code></td>
+                                <td class="p-3 text-sm">SidebarMenuButtonSize</td>
+                                <td class="p-3 text-sm">Default</td>
+                                <td class="p-3 text-sm">@L.T("尺寸变体（Small、Default、Large）", "Size variant (Small, Default, Large)")</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">Variant</code></td>
+                                <td class="p-3 text-sm">SidebarMenuButtonVariant</td>
+                                <td class="p-3 text-sm">Default</td>
+                                <td class="p-3 text-sm">@L.T("样式变体（Default、Outline）", "Style variant (Default, Outline)")</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">IsActive</code></td>
+                                <td class="p-3 text-sm">bool?</td>
+                                <td class="p-3 text-sm">null</td>
+                                @if (L.IsChinese)
+                                {
+                                    <td class="p-3 text-sm">活动/选中状态。留空时由 <code class="text-sm">Href</code> 与 <code class="text-sm">Match</code> 推导。</td>
+                                }
+                                else
+                                {
+                                    <td class="p-3 text-sm">Active/selected state. Leave unset to derive it from <code class="text-sm">Href</code> and <code class="text-sm">Match</code>.</td>
+                                }
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">AsChild</code></td>
+                                <td class="p-3 text-sm">SidebarMenuButtonElement</td>
+                                <td class="p-3 text-sm">Button</td>
+                                <td class="p-3 text-sm">@L.T("渲染的元素（Button、Anchor）", "Element to render (Button, Anchor)")</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">Href</code></td>
+                                <td class="p-3 text-sm">string?</td>
+                                <td class="p-3 text-sm">null</td>
+                                @if (L.IsChinese)
+                                {
+                                    <td class="p-3 text-sm">导航目标。设置它会渲染一个锚点链接，并根据当前路由驱动 <code class="text-sm">IsActive</code>。</td>
+                                }
+                                else
+                                {
+                                    <td class="p-3 text-sm">Navigation target. Setting it renders an anchor and drives <code class="text-sm">IsActive</code> from the current route.</td>
+                                }
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">Match</code></td>
+                                <td class="p-3 text-sm">NavLinkMatch</td>
+                                <td class="p-3 text-sm">Prefix</td>
+                                @if (L.IsChinese)
+                                {
+                                    <td class="p-3 text-sm">活动状态下 <code class="text-sm">Href</code> 如何与路由匹配</td>
+                                }
+                                else
+                                {
+                                    <td class="p-3 text-sm">How <code class="text-sm">Href</code> is matched against the route for active state</td>
+                                }
+                            </tr>
+                            <tr>
+                                <td class="p-3"><code class="text-sm">OnClick</code></td>
+                                <td class="p-3 text-sm">EventCallback&lt;MouseEventArgs&gt;</td>
+                                <td class="p-3 text-sm">—</td>
+                                <td class="p-3 text-sm">@L.T("点击按钮时调用", "Invoked when the button is clicked")</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-semibold mb-2">SidebarInset</h3>
+                <p class="text-sm text-muted-foreground mb-3">@L.T("侧边栏旁边的主内容区。", "Main content area next to the sidebar.")</p>
+                <div class="rounded-lg border overflow-hidden">
+                    <table class="w-full">
+                        <thead class="border-b bg-muted/50">
+                            <tr>
+                                <th class="p-3 text-left font-medium">@L.T("属性", "Prop")</th>
+                                <th class="p-3 text-left font-medium">@L.T("类型", "Type")</th>
+                                <th class="p-3 text-left font-medium">@L.T("默认值", "Default")</th>
+                                <th class="p-3 text-left font-medium">@L.T("说明", "Description")</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b">
+                                <td class="p-3"><code class="text-sm">ResetScrollOnNavigation</code></td>
+                                <td class="p-3 text-sm">bool</td>
+                                <td class="p-3 text-sm">true</td>
+                                <td class="p-3 text-sm">@L.T("路由变化时自动滚动到顶部", "Automatically scrolls to the top when the route changes")</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3"><code class="text-sm">Class</code></td>
+                                <td class="p-3 text-sm">string?</td>
+                                <td class="p-3 text-sm">null</td>
+                                <td class="p-3 text-sm">@L.T("额外的 CSS 类", "Additional CSS classes")</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        <ApiReference Since="v4" ComponentName="Sidebar pill navigation">
+            <ApiParameter Name="SidebarProvider.CollapsedMode" Type="SidebarCollapsedMode" Default="Icon">@L.T("胶囊模式会完全隐藏折叠后的侧边栏，请将 SidebarPillNav 与之并列放置。现有的桌面/移动端打开绑定与快捷键行为保持不变。", "Pill completely hides the collapsed sidebar. Place SidebarPillNav alongside it. Existing desktop/mobile open bindings and shortcut behavior are retained.")</ApiParameter>
+            <ApiParameter Name="PillNav.ChildContent / TrailingContent" Type="RenderFragment?">@L.T("导航项与可选的尾部操作。", "Navigation items and optional trailing actions.")</ApiParameter>
+            <ApiParameter Name="PillNav.Fixed / AnimatedIndicator / AriaLabel" Type="bool / bool / string?" Default="true / true / Primary navigation">@L.T("视口定位、移动的活动指示器与地标名称。Fixed=false 需要一个已定位的祖先元素。", "Viewport placement, moving active indicator and landmark name. Fixed=false requires a positioned ancestor.")</ApiParameter>
+            <ApiParameter Name="PillNavItem.Label / ChildContent / Href / Match" Type="string / RenderFragment / string? / NavLinkMatch" Default="Prefix">@L.T("可访问名称、图标与可选的原生链接。除非提供 IsActive，否则活动状态跟随 URL。", "Accessible name, icon and optional native link. Active state follows the URL unless IsActive is supplied.")</ApiParameter>
+            <ApiParameter Name="PillNavItem.IsActive / Disabled / OnClick / Class" Type="bool? / bool / EventCallback&lt;MouseEventArgs&gt; / string?">@L.T("显式的活动状态、禁用状态、激活回调与 CSS 类。", "Explicit active state, disabled state, activation callback and classes.")</ApiParameter>
+            <ApiParameter Name="PillInset.ChildContent / ExpandedClass / CollapsedClass / Class" Type="RenderFragment / string?">@L.T("在胶囊导航处于活动状态时预留顶部空间；可为每种状态自定义。PillNav 与 PillInset 也接受 AdditionalAttributes。", "Reserves top space while pill navigation is active; customization for each state. PillNav and PillInset also accept AdditionalAttributes.")</ApiParameter>
+        </ApiReference>
+
+        <ApiReference Since="v4" ComponentName="SidebarSelectionIndicator">
+            <ApiParameter Name="SidebarSelectionIndicator.FollowHover / Duration / Class" Type="bool / int / string?" Default="false / 200 / null">@L.T("用于普通侧边栏菜单的可复用选中指示器。将其置于菜单之前、放在相对定位的包裹容器中，并把前景项设为相对定位。遵循减弱动效。", "Reusable selection indicator for normal sidebar menus. Place before the menu in a relative wrapper and position foreground items relative. Honors reduced motion.")</ApiParameter>
+        </ApiReference>
+        </div>
+    </div>
+
+    <LocalizationSection
+        Description="@(L.T("侧边栏切换按钮的 aria 标签可配置。", "The sidebar toggle button aria label is configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("ToggleSidebar", "Toggle Sidebar", L.T("侧边栏触发按钮/轨道按钮的 aria 标签。", "Aria label for the sidebar trigger/rail button")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""Sidebar.ToggleSidebar"", ""Seitenleiste umschalten"");
+});")" />
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string indicatorPage = "Overview";
+    private bool pillOpen = true;
+    private string pillPage = "Overview";
+    private bool isBasicCollapsible = true;
+    private bool _controlledOpen = true;
+    private bool shortcutEnabled = true;
+    private string selectedVersion = "v1.0.1";
+
+    private string GetRandomIcon(int index)
+    {
+        var icons = new[] {
+            "house", "file", "folder", "users", "settings", "search",
+            "bell", "calendar", "mail", "star", "bookmark", "tag",
+            "database", "server", "cloud", "package", "square", "table",
+            "list", "inbox", "archive", "trash", "download", "upload",
+            "share", "copy", "pencil", "filter", "arrow-up-down", "rotate-cw"
+        };
+        return icons[index % icons.Length];
+    }
+}

@@ -1,0 +1,19 @@
+@* The picker turns declared fields and values on and off. A field switched off is
+   still declared, so it comes back without the markup changing. The last value
+   standing stays on: a pivot with nothing in its cells is not a table. *@
+<PivotDataGrid TItem="Sale" Data="@sales" ShowFieldPicker="true" Totals="PivotTotals.All">
+    <Rows>
+        <PivotField TItem="Sale" Title="Region" Value="@(s => s.Region)" />
+        <PivotField TItem="Sale" Title="Country" Value="@(s => s.Country)" />
+    </Rows>
+    <Columns>
+        <PivotField TItem="Sale" Title="Year" Value="@(s => s.Year)" />
+        <PivotField TItem="Sale" Title="Category" Value="@(s => s.Category)" />
+    </Columns>
+    <Values>
+        <PivotValue TItem="Sale" Title="Sales" Function="AggregateFunction.Sum"
+                      Value="@(s => s.Amount)" Format="C0" />
+        <PivotValue TItem="Sale" Title="Units" Function="AggregateFunction.Sum"
+                      Value="@(s => s.Units)" Format="N0" />
+    </Values>
+</PivotDataGrid>

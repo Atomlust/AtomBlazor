@@ -1,0 +1,70 @@
+@namespace AtomBlazor
+@implements IDisposable
+
+@if (!_hasVisibleItems)
+{
+    <div class="@CssClass" @attributes="AdditionalAttributes">
+        @ChildContent
+    </div>
+}
+
+@code {
+    [CascadingParameter]
+    public CommandContext? Context { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到空状态容器的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取或设置无结果时渲染的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private bool _hasVisibleItems = true;
+
+    /// <summary>
+    /// 获取空状态容器计算后的 CSS 类。
+    /// </summary>
+    private string CssClass => ClassNames.cn(
+        "atom:py-6 atom:text-center atom:text-sm atom:text-muted-foreground",
+        Class
+    );
+
+    protected override void OnInitialized()
+    {
+        if (Context != null)
+        {
+            Context.OnStateChanged += HandleContextStateChanged;
+            UpdateVisibility();
+        }
+    }
+
+    private void HandleContextStateChanged()
+    {
+        UpdateVisibility();
+        StateHasChanged();
+    }
+
+    private void UpdateVisibility()
+    {
+        _hasVisibleItems = Context?.HasVisibleItems() ?? true;
+    }
+
+    public void Dispose()
+    {
+        if (Context != null)
+        {
+            Context.OnStateChanged -= HandleContextStateChanged;
+        }
+    }
+}

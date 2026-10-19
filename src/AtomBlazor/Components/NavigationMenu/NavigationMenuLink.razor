@@ -1,0 +1,64 @@
+@namespace AtomBlazor
+@using Microsoft.AspNetCore.Components.Routing
+
+@*
+    Navigation Menu Link——菜单内的导航链接。
+*@
+
+<NavLink href="@Href"
+         class="@CssClass"
+         Match="@Match"
+         ActiveClass="@ActiveCssClass"
+         role="menuitem"
+         tabindex="-1"
+         @attributes="AdditionalAttributes">
+    @ChildContent
+</NavLink>
+
+@code {
+    /// <summary>
+    /// 链接导航指向的 URL。
+    /// </summary>
+    [Parameter]
+    public string? Href { get; set; }
+
+    /// <summary>
+    /// 链接的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 激活态的 URL 匹配方式。
+    /// </summary>
+    [Parameter]
+    public NavLinkMatch Match { get; set; } = NavLinkMatch.Prefix;
+
+    /// <summary>
+    /// 要应用到链接上的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 要应用到链接上的附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取链接计算出的 CSS 类串。
+    /// </summary>
+    private string CssClass => ClassNames.cn(
+        "atom:group atom:inline-flex atom:h-10 atom:w-max atom:items-center atom:justify-center atom:rounded-md atom:bg-background atom:px-4 atom:py-2 atom:text-sm atom:font-medium",
+        "atom:transition-colors atom:hover:bg-accent atom:hover:text-accent-foreground",
+        "atom:outline-none atom:focus:bg-accent atom:focus:text-accent-foreground atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2",
+        "atom:disabled:pointer-events-none atom:disabled:opacity-50",
+        Class
+    );
+
+    /// <summary>
+    /// 获取激活态的 CSS 类。
+    /// </summary>
+    private string ActiveCssClass => "atom:bg-accent/50";
+}

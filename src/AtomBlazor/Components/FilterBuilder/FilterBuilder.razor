@@ -1,0 +1,45 @@
+@namespace AtomBlazor
+
+<CascadingValue Value="@context" IsFixed="false">
+    <div class="@ContainerCssClass" role="region" aria-label="@Localizer["FilterBuilder.FilterBuilderAriaLabel"]" @attributes="AdditionalAttributes">
+        @if (Presets.Count > 0)
+        {
+            <div class="atom:flex atom:flex-wrap atom:gap-1" role="group" aria-label="@Localizer["FilterBuilder.Presets"]">
+                @if (PresetDisplay == FilterPresetDisplay.Dropdown)
+                {
+                    <Select TValue="string" Value="selectedPresetId" ValueChanged="SelectPresetAsync"
+                              Options="@(Presets.Select(preset => new SelectOption<string>(preset.Id, preset.Label)))"
+                              Placeholder="@Localizer["FilterBuilder.Presets"]" Class="atom:w-52" />
+                }
+                else
+                {
+                    @foreach (var preset in Presets)
+                    {
+                        <Button Variant="@(selectedPresetId == preset.Id ? ButtonVariant.Secondary : ButtonVariant.Ghost)"
+                                  Size="ButtonSize.Small" OnClick="@(() => ApplyPresetAsync(preset.Id))"
+                                  aria-pressed="@((selectedPresetId == preset.Id).ToString().ToLowerInvariant())">@preset.Label</Button>
+                    }
+                }
+            </div>
+        }
+        <FilterGroup Group="@(draftFilter ?? Filter)"
+                       Depth="0"
+                       IsRoot="true" />
+
+        @if (ShowApplyButton)
+        {
+            <div class="@ActionsCssClass">
+                <Button Variant="ButtonVariant.Default"
+                          Size="@(Compact ? ButtonSize.Small : ButtonSize.Default)"
+                          OnClick="HandleApply">
+                    @(ApplyButtonText ?? Localizer["FilterBuilder.Apply"])
+                </Button>
+                <Button Variant="ButtonVariant.Outline"
+                          Size="@(Compact ? ButtonSize.Small : ButtonSize.Default)"
+                          OnClick="HandleClear">
+                    @(ClearButtonText ?? Localizer["FilterBuilder.Clear"])
+                </Button>
+            </div>
+        }
+    </div>
+</CascadingValue>

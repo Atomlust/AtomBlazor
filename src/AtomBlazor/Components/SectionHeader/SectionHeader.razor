@@ -1,0 +1,44 @@
+@namespace AtomBlazor
+
+<div @attributes="AdditionalAttributes" class="@ClassNames.cn("atom:flex atom:items-center atom:justify-between atom:gap-4", Separator ? "atom:border-b atom:pb-3" : null, Class)">
+    <div class="atom:min-w-0">
+        @Heading
+        @if (!string.IsNullOrEmpty(Description))
+        {
+            <p class="atom:text-sm atom:text-muted-foreground">@Description</p>
+        }
+    </div>
+    @if (Actions is not null)
+    {
+        <div class="atom:shrink-0">@Actions</div>
+    }
+</div>
+
+@code {
+    /// <summary>语义标题级别，取值 1 到 6，默认为 2。</summary>
+    [Parameter] public int HeadingLevel { get; set; } = 2;
+    protected override void OnParametersSet()
+    {
+        if (HeadingLevel is < 1 or > 6) throw new ArgumentOutOfRangeException(nameof(HeadingLevel));
+    }
+    private RenderFragment Heading => builder =>
+    {
+        builder.OpenElement(0, $"h{HeadingLevel}");
+        builder.AddAttribute(1, "class", "atom:text-lg atom:font-semibold");
+        builder.AddContent(2, Title);
+        builder.CloseElement();
+    };
+
+    /// <summary>章节标题文本。</summary>
+    [Parameter] public string? Title { get; set; }
+    /// <summary>可选的辅助说明文本。</summary>
+    [Parameter] public string? Description { get; set; }
+    /// <summary>尾部的操作按钮或链接。</summary>
+    [Parameter] public RenderFragment? Actions { get; set; }
+    /// <summary>是否在底部添加分隔线。</summary>
+    [Parameter] public bool Separator { get; set; }
+    /// <summary>额外的 CSS 类。</summary>
+    [Parameter] public string? Class { get; set; }
+    /// <summary>额外的 HTML 属性。</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}

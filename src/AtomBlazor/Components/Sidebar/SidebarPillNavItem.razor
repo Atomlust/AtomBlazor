@@ -1,0 +1,29 @@
+@namespace AtomBlazor
+@using Microsoft.AspNetCore.Components.Routing
+
+<SidebarMenuButton Href="@(Disabled ? null : Href)" Match="Match" IsActive="IsActive" Tooltip="@Label" OnClick="HandleClick" aria-label="@Label" disabled="@Disabled"
+                     aria-disabled="@Disabled.ToString().ToLowerInvariant()" tabindex="@(Disabled ? -1 : 0)"
+                     Class="@ClassNames.cn("atom:relative atom:size-11 atom:shrink-0 atom:justify-center atom:rounded-full", Disabled ? "atom:pointer-events-none atom:opacity-50" : null, Parent?.AnimatedIndicator == true ? "atom:data-[active=true]:bg-transparent atom:hover:bg-transparent" : null, Class)">
+    <span aria-hidden="true" class="atom:inline-flex atom:[&>svg]:size-5">@ChildContent</span>
+</SidebarMenuButton>
+
+@code {
+    [CascadingParameter] private SidebarPillNav? Parent { get; set; }
+    private Task HandleClick(MouseEventArgs args) => Disabled ? Task.CompletedTask : OnClick.InvokeAsync(args);
+    /// <summary>无障碍项名称，兼折叠态工具提示。</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    /// <summary>装饰性图标内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>可选的导航 URL。</summary>
+    [Parameter] public string? Href { get; set; }
+    /// <summary>激活 URL 匹配行为。</summary>
+    [Parameter] public NavLinkMatch Match { get; set; } = NavLinkMatch.Prefix;
+    /// <summary>显式激活态；null 时从 Href 推导。</summary>
+    [Parameter] public bool? IsActive { get; set; }
+    /// <summary>阻止激活。</summary>
+    [Parameter] public bool Disabled { get; set; }
+    /// <summary>激活回调。</summary>
+    [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+    /// <summary>附加项类。</summary>
+    [Parameter] public string? Class { get; set; }
+}

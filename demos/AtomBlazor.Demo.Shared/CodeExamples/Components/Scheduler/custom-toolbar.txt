@@ -1,0 +1,40 @@
+@* Keep the built-in toolbar and add around it. *@
+<Scheduler @bind-Events="events">
+    <ToolbarContent>
+        <div class="flex items-center justify-between gap-2">
+            @context.DefaultContent
+            <Button OnClick="Export">Export</Button>
+        </div>
+    </ToolbarContent>
+</Scheduler>
+
+@* Or replace it entirely. Leave DefaultContent out. *@
+<Scheduler @bind-Events="events" @bind-Date="date" @bind-View="view">
+    <ToolbarContent>
+        <div class="flex items-center justify-between gap-2 rounded-md bg-muted/50 p-2">
+            <div class="flex items-center gap-2">
+                @* Navigate knows the step size for the current view: one day, seven
+                   days, or one calendar month. GoToToday resolves "today" in the
+                   schedule's TimeZoneId, not the server's local zone. *@
+                <Button OnClick="@(() => context.Navigate.InvokeAsync(-1))">&#8249;</Button>
+                <Button OnClick="@(() => context.GoToToday.InvokeAsync())">Today</Button>
+                <Button OnClick="@(() => context.Navigate.InvokeAsync(1))">&#8250;</Button>
+            </div>
+
+            <strong>@context.Heading</strong>
+
+            <Button OnClick="@(() => context.SetView.InvokeAsync(SchedulerView.Month))">Month</Button>
+        </div>
+    </ToolbarContent>
+</Scheduler>
+
+@code {
+    // Date, View, FirstDayOfWeek and VisibleResourceIds are ordinary bindable
+    // parameters, so a custom toolbar can drive them from its own state instead
+    // of through the context.
+    private DateOnly date = new(2026, 9, 14);
+    private SchedulerView view = SchedulerView.Week;
+    private IReadOnlyList<SchedulerEvent> events = [];
+
+    private void Export() { }
+}

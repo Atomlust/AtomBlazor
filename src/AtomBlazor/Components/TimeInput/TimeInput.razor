@@ -1,0 +1,81 @@
+@namespace AtomBlazor
+@using System.Globalization
+@using AtomBlazor.Icons.Lucide
+
+@* TimeInput：当日时刻的分段输入，可附 12/24 小时制选择与时钟弹层。 *@
+<div @ref="root" class="@CssClass" role="group" aria-label="@(AriaLabel ?? Localizer["TimeInput.Label"])"
+     aria-describedby="@AriaDescribedBy" aria-invalid="@(validation.IsInvalid ? "true" : null)" @attributes="AdditionalAttributes">
+    @foreach (var segment in Segments)
+    {
+        <input @key="segment" id="@(Id == null ? null : segment == "Hour" ? Id : $"{Id}-{segment.ToLowerInvariant()}")"
+               type="text" inputmode="numeric" autocomplete="off" role="spinbutton" data-atom-segment="@segment"
+               data-min="@Minimum(segment)" data-max="@Maximum(segment)" data-digits="2" data-step="@(segment == "Minute" ? MinuteStep : 1)"
+               maxlength="2" size="2" placeholder="@(segment == "Hour" ? "hh" : segment == "Minute" ? "mm" : "ss")"
+               aria-label="@Localizer[$"TimeInput.{segment}"]" aria-valuemin="@Minimum(segment)" aria-valuemax="@Maximum(segment)"
+               aria-valuenow="@DateTimeSegments.Number(parts[segment])" aria-describedby="@AriaDescribedBy"
+               aria-invalid="@(validation.IsInvalid ? "true" : null)" disabled="@Disabled" readonly="@ReadOnly" required="@Required"
+               class="atom:min-w-0 atom:rounded-sm atom:bg-transparent atom:text-center atom:tabular-nums atom:placeholder:text-muted-foreground atom:focus:outline-none atom:focus:bg-accent atom:focus:text-accent-foreground"
+               @bind:get="parts[segment]" @bind:set="@(text => EditAsync(segment, text))" @bind:event="oninput" />
+        @if (segment != Segments[^1])
+        {
+            <span aria-hidden="true" class="atom:text-muted-foreground">@EffectiveCulture.DateTimeFormat.TimeSeparator</span>
+        }
+    }
+    @if (Hour12)
+    {
+        <Select TValue="string" Value="@(pm ? "PM" : "AM")" ValueChanged="@(v => SetPeriodAsync(v == "PM"))"
+                  DisplayTextSelector="@(v => v == "PM" ? PmLabel : AmLabel)" Disabled="@(Disabled || ReadOnly)">
+            <AtomBlazor.SelectTrigger Class="atom:h-7 atom:w-auto atom:min-w-16 atom:border-0 atom:bg-transparent atom:px-1 atom:shadow-none"
+                             aria-label="@Localizer["TimeInput.Period"]" aria-describedby="@AriaDescribedBy"
+                             aria-invalid="@(validation.IsInvalid ? "true" : null)">
+                <AtomBlazor.SelectValue />
+            </AtomBlazor.SelectTrigger>
+            <AtomBlazor.SelectContent>
+                <AtomBlazor.SelectItem Value="@("AM")" Text="@AmLabel" />
+                <AtomBlazor.SelectItem Value="@("PM")" Text="@PmLabel" />
+            </AtomBlazor.SelectContent>
+        </Select>
+    }
+    @if (ShowPicker)
+    {
+        <Popover @bind-Open="open">
+            <AtomBlazor.PopoverTrigger AsChild="true">
+                <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Icon" Class="atom:ms-auto atom:h-7 atom:w-7" Disabled="@(Disabled || ReadOnly)" aria-label="@Localizer["TimeInput.OpenPicker"]">
+                    <LucideIcon Name="clock" Size="16" />
+                </Button>
+            </AtomBlazor.PopoverTrigger>
+            <AtomBlazor.PopoverContent Class="atom:w-auto atom:p-3">
+                <div class="atom:flex atom:items-end atom:gap-2">
+                    @foreach (var segment in Segments)
+                    {
+                        <div class="atom:flex atom:flex-col atom:gap-1 atom:text-xs">
+                            <span>@Localizer[$"TimeInput.{segment}"]</span>
+                            <Select TValue="string" Value="@parts[segment]" ValueChanged="@(v => EditAsync(segment, v ?? string.Empty))" Disabled="@(Disabled || ReadOnly)">
+                                <AtomBlazor.SelectTrigger Class="atom:w-20" aria-label="@Localizer[$"TimeInput.{segment}"]"><AtomBlazor.SelectValue Placeholder="--" /></AtomBlazor.SelectTrigger>
+                                <AtomBlazor.SelectContent>
+                                    @foreach (var number in PickerValues(segment))
+                                    {
+                                        var text = number.ToString("D2", CultureInfo.InvariantCulture);
+                                        <AtomBlazor.SelectItem Value="@text" Text="@text" />
+                                    }
+                                </AtomBlazor.SelectContent>
+                            </Select>
+                        </div>
+                    }
+                    @if (Hour12)
+                    {
+                        <Select TValue="string" Value="@(pm ? "PM" : "AM")" ValueChanged="@(v => SetPeriodAsync(v == "PM"))"
+                                  DisplayTextSelector="@(v => v == "PM" ? PmLabel : AmLabel)" Disabled="@(Disabled || ReadOnly)">
+                            <AtomBlazor.SelectTrigger Class="atom:w-20" aria-label="@Localizer["TimeInput.Period"]"><AtomBlazor.SelectValue /></AtomBlazor.SelectTrigger>
+                            <AtomBlazor.SelectContent>
+                                <AtomBlazor.SelectItem Value="@("AM")" Text="@AmLabel" />
+                                <AtomBlazor.SelectItem Value="@("PM")" Text="@PmLabel" />
+                            </AtomBlazor.SelectContent>
+                        </Select>
+                    }
+                </div>
+            </AtomBlazor.PopoverContent>
+        </Popover>
+    }
+    <input type="hidden" name="@validation.GetName(Name)" value="@Value?.ToString(@"hh\:mm\:ss", CultureInfo.InvariantCulture)" disabled="@Disabled" />
+</div>

@@ -1,0 +1,100 @@
+@page "/charts/map"
+
+<PageTitle>@L.T("地图图表 - Atom BlazorUI", "Map Chart - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-6xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("地图图表", "Map Chart")</h1>
+        <p class="text-xl text-muted-foreground">@L.T("看清受众身在何处。按访客、销售额或任意数值为国家着色。", "See where your audience is. Color countries by visitors, sales, or any numeric value.")</p>
+    </div>
+
+    <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-4 p-6">
+            <div class="space-y-1.5">
+                <h2 class="font-semibold leading-none tracking-tight">@L.T("按国家统计的访客", "Visitors by country")</h2>
+                <p class="text-sm text-muted-foreground">@(_lastMonth ? L.T("最近 30 天", "Last 30 days") : L.T("最近 7 天", "Last 7 days")) · @L.T("悬停看访客数，点击看国家详情", "Hover for visitors, click for country details")</p>
+            </div>
+            <Button Variant="ButtonVariant.Outline" OnClick="TogglePeriod">@(_lastMonth ? L.T("查看最近 7 天", "Show last 7 days") : L.T("查看最近 30 天", "Show last 30 days"))</Button>
+        </div>
+        <div class="p-6 pt-0">
+            <MapChart Data="@Visitors" Height="420px" OnDataPointClick="SelectCountry"
+                        aria-label="@(L.T("按国家统计的网站访客", "Website visitors by country"))">
+                <ChartTooltip />
+                <Map CountryKey="Country" DataKey="Visitors" Name="@(L.T("访客", "Visitors"))" />
+            </MapChart>
+            <p class="text-sm text-muted-foreground" role="status">@_selection</p>
+        </div>
+    </div>
+    <CodeBlock Source="Charts/MapChart/default.txt" />
+
+    <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+        <div class="space-y-1.5 p-6">
+            <h2 class="font-semibold leading-none tracking-tight">@L.T("你的配色，你的标度", "Your colors, your scale")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("固定标度让不同周期之间可比。拖动可平移，滚轮可缩放。", "A fixed scale makes periods comparable. Drag to pan and scroll to zoom.")</p>
+        </div>
+        <div class="p-6 pt-0">
+            <MapChart Data="@Visitors" Height="420px" aria-label="@(L.T("使用自定义色阶的访客", "Visitors with a custom color scale"))">
+                <VisualMap Min="0" Max="50000" Colors="@_colors" />
+                <ChartTooltip />
+                <Map CountryKey="Country" DataKey="Visitors" Name="@(L.T("访客", "Visitors"))" Roam="true" />
+            </MapChart>
+        </div>
+    </div>
+    <CodeBlock Source="Charts/MapChart/custom-colors.txt" />
+
+    <div class="space-y-3">
+        <h2 class="text-2xl font-semibold tracking-tight">@L.T("国家数据", "Country data")</h2>
+        <p class="text-muted-foreground">@L.T("使用 US、GBR、SG 一类的 ISO 国家代码，或英文国家名称。每个国家提供一行数据。没有数据的国家使用柔和填充色；零值仍是一个测量结果。", "Use ISO country codes such as US, GBR, or SG, or English country names. Supply one row per country. Countries without data use a muted fill; zero remains a measured value.")</p>
+        <table class="w-full text-sm">
+            <caption class="sr-only">@L.T("所选周期内的网站访客", "Website visitors in the selected period")</caption>
+            <thead><tr class="border-b"><th class="py-2 text-left">@L.T("国家", "Country")</th><th class="py-2 text-right">@L.T("访客", "Visitors")</th></tr></thead>
+            <tbody>
+                @foreach (var row in Visitors)
+                {
+                    <tr class="border-b"><td class="py-2">@row.Country</td><td class="py-2 text-right">@row.Visitors.ToString("N0")</td></tr>
+                }
+            </tbody>
+        </table>
+        <p class="text-sm text-muted-foreground">@L.T("底图来自 Natural Earth。总览地图包含 241 个国家与地区，不含南极洲；极小的岛屿在世界尺度下可能缺失或难以看清。", "Made with Natural Earth. The overview map includes 241 countries and regions, excluding Antarctica; very small islands may be absent or difficult to see at world scale.")</p>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private sealed record CountryVisitors(string Country, int Visitors);
+
+    private bool _lastMonth;
+    private string _selection = "Select a country to see its visitor count.";
+
+    // 级联语言要到参数赋值阶段才就位，故初始化时按当前语言重取一次状态条提示语。
+    protected override void OnInitialized() =>
+        _selection = (L.T("选择一个国家以查看其访客数。", "Select a country to see its visitor count."));
+
+    private readonly string[] _colors = ["#dbeafe", "#60a5fa", "#1d4ed8"];
+    private readonly CountryVisitors[] _weekly =
+    [
+        new("US", 12400), new("GBR", 8200), new("Germany", 6100), new("FR", 4700),
+        new("IN", 9300), new("JP", 5600), new("SG", 3100), new("AU", 4200),
+        new("BR", 3800), new("CA", 5100), new("ZA", 1700), new("CN", 7600)
+    ];
+
+    private CountryVisitors[] Visitors => _lastMonth
+        ? _weekly.Select(row => row with { Visitors = row.Visitors * 4 }).ToArray()
+        : _weekly;
+
+    private void TogglePeriod()
+    {
+        _lastMonth = !_lastMonth;
+        _selection = (L.T("选择一个国家以查看其访客数。", "Select a country to see its visitor count."));
+    }
+
+    private void SelectCountry(ChartClickEventArgs args)
+    {
+        _selection = args.Value is { } visitors
+            ? (L.IsChinese ? $"{args.Name}：{visitors:N0} 位访客（数据行 {args.DataIndex + 1}）。" : $"{args.Name}: {visitors:N0} visitors (dataset row {args.DataIndex + 1}).")
+            : (L.IsChinese ? $"{args.Name}：暂无访客数据。" : $"{args.Name}: no visitor data.");
+    }
+
+}

@@ -1,0 +1,400 @@
+@page "/primitives/checkbox"
+<PageTitle>@L.T("Checkbox 基元 - Atom BlazorUI", "Checkbox Primitive - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Checkbox 基元", "Checkbox Primitive")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("用于自建复选框的无样式、可访问基元组件。", "Unstyled, accessible primitive component for building custom checkboxes.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基础无样式基元", "Basic Headless Primitive")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("基元只提供行为与无障碍支持，不带样式。", "The primitive provides behavior and accessibility without styling.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 max-w-md">
+                <div class="flex items-center gap-3">
+                    <AtomBlazor.Primitives.CheckboxPrimitive @bind-Checked="basicChecked" Id="basic" class="h-5 w-5 border rounded cursor-pointer flex items-center justify-center">
+                        <AtomBlazor.Primitives.CheckboxIndicator />
+                    </AtomBlazor.Primitives.CheckboxPrimitive>
+                    <label for="basic">@L.T("无样式基元复选框", "Unstyled primitive checkbox")</label>
+                </div>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mt-2">
+                            状态：<strong>@(basicChecked ? "已勾选" : "未勾选")</strong>
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mt-2">
+                            State: <strong>@(basicChecked ? "Checked" : "Unchecked")</strong>
+                        </p>
+                    </text>
+                }
+            </div>
+
+            <CodeBlock Source="Primitives/Checkbox/basic.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("受控状态", "Controlled State")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("在外部控制基元状态。", "Control the primitive state externally.")
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex gap-2">
+                    <button @onclick="@(() => controlledChecked = true)"
+                            class="px-3 py-2 border rounded text-sm">
+                        @L.T("勾选", "Check")
+                    </button>
+                    <button @onclick="@(() => controlledChecked = false)"
+                            class="px-3 py-2 border rounded text-sm">
+                        @L.T("取消勾选", "Uncheck")
+                    </button>
+                </div>
+
+                <div class="rounded-lg border bg-card p-6 max-w-md">
+                    <div class="flex items-center gap-3">
+                        <AtomBlazor.Primitives.CheckboxPrimitive @bind-Checked="controlledChecked" Id="controlled" class="h-5 w-5 border rounded cursor-pointer flex items-center justify-center">
+                            <AtomBlazor.Primitives.CheckboxIndicator />
+                        </AtomBlazor.Primitives.CheckboxPrimitive>
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                <label for="controlled">
+                                    受控复选框（状态：@(controlledChecked ? "已勾选" : "未勾选")）
+                                </label>
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                <label for="controlled">
+                                    Controlled Checkbox (State: @(controlledChecked ? "Checked" : "Unchecked"))
+                                </label>
+                            </text>
+                        }
+                    </div>
+                </div>
+
+                <CodeBlock Source="Primitives/Checkbox/controlled.txt" />
+            </div>
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("不确定态", "Indeterminate State")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("适用于「全选」等只有部分选项被勾选的场景。", "Useful for \"select all\" scenarios when only some items are selected.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 max-w-md">
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3">
+                        <AtomBlazor.Primitives.CheckboxPrimitive Checked="@allChecked" class="h-5 w-5 border rounded cursor-pointer flex items-center justify-center"
+                                           Indeterminate="@indeterminate"
+                                           CheckedChanged="@HandleParentChanged"
+                                           Id="parent">
+                            <AtomBlazor.Primitives.CheckboxIndicator />
+                        </AtomBlazor.Primitives.CheckboxPrimitive>
+                        <label for="parent" class="font-medium">@L.T("全选", "Select All")</label>
+                    </div>
+                    <div class="ml-6 space-y-2">
+                        <div class="flex items-center gap-3">
+                            <AtomBlazor.Primitives.CheckboxPrimitive Checked="@child1" class="h-5 w-5 border rounded cursor-pointer flex items-center justify-center" CheckedChanged="@(v => { child1 = v; HandleChildChanged(); })" Id="child1">
+                                <AtomBlazor.Primitives.CheckboxIndicator />
+                            </AtomBlazor.Primitives.CheckboxPrimitive>
+                            <label for="child1">@L.T("选项 1", "Option 1")</label>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <AtomBlazor.Primitives.CheckboxPrimitive Checked="@child2" class="h-5 w-5 border rounded cursor-pointer flex items-center justify-center" CheckedChanged="@(v => { child2 = v; HandleChildChanged(); })" Id="child2">
+                                <AtomBlazor.Primitives.CheckboxIndicator />
+                            </AtomBlazor.Primitives.CheckboxPrimitive>
+                            <label for="child2">@L.T("选项 2", "Option 2")</label>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <AtomBlazor.Primitives.CheckboxPrimitive Checked="@child3" class="h-5 w-5 border rounded cursor-pointer flex items-center justify-center" CheckedChanged="@(v => { child3 = v; HandleChildChanged(); })" Id="child3">
+                                <AtomBlazor.Primitives.CheckboxIndicator />
+                            </AtomBlazor.Primitives.CheckboxPrimitive>
+                            <label for="child3">@L.T("选项 3", "Option 3")</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <CodeBlock Source="Primitives/Checkbox/indeterminate.txt" />
+        </section>
+
+        <AccessibilityList>
+            <AriaAttributes>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="checkbox"</code> 供屏幕阅读器使用
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="checkbox"</code> for screen readers
+                        </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-checked</code> 标明勾选状态（true/false/mixed）
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-checked</code> indicates checked state (true/false/mixed)
+                        </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">data-state</code> 特性用于 CSS 样式（checked|unchecked|indeterminate）
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">data-state</code> attribute for CSS styling (checked|unchecked|indeterminate)
+                        </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code> 特性用于禁用状态
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code> attribute for disabled state
+                        </AccessibilityItem>
+                    </text>
+                }
+                <AccessibilityItem>
+                    @L.T("焦点管理，并带有可见的焦点指示器", "Focus management with visible focus indicators")
+                </AccessibilityItem>
+            </AriaAttributes>
+            <KeyboardNavigation>
+                <KeyboardShortcutItem Description="@(L.T("移动到复选框", "Navigate to checkbox"))">
+                    <Kbd>Tab</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("切换复选框", "Toggle checkbox"))">
+                    <Kbd>Space</Kbd>
+                </KeyboardShortcutItem>
+            </KeyboardNavigation>
+        </AccessibilityList>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("组件属性与参数。", "Component properties and parameters.")
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <ApiReference ComponentName="Checkbox">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="Checked" Type="bool" Default="false">
+                                控制复选框是否勾选。支持通过 <code>@@bind-Checked</code> 双向绑定。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="Checked" Type="bool" Default="false">
+                                Controls whether the checkbox is checked. Supports two-way binding with <code>@@bind-Checked</code>.
+                            </ApiParameter>
+                        </text>
+                    }
+                    <ApiParameter Name="CheckedChanged" Type="EventCallback&lt;bool&gt;">
+                        @L.T("勾选状态发生变化时调用的回调。", "Callback invoked when the checked state changes.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="Indeterminate" Type="bool" Default="false">
+                                把复选框设为不确定态（用于「全选」场景）。会设置 <code>aria-checked="mixed"</code>。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="Indeterminate" Type="bool" Default="false">
+                                Sets the checkbox to indeterminate state (for "select all" scenarios). Sets <code>aria-checked="mixed"</code>.
+                            </ApiParameter>
+                        </text>
+                    }
+                    <ApiParameter Name="IndeterminateChanged" Type="EventCallback&lt;bool&gt;">
+                        @L.T("不确定态发生变化时调用的回调。", "Callback invoked when the indeterminate state changes.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="Disabled" Type="bool" Default="false">
+                                为 true 时阻止切换。会设置 <code>aria-disabled</code>。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="Disabled" Type="bool" Default="false">
+                                Prevents toggling when true. Sets <code>aria-disabled</code>.
+                            </ApiParameter>
+                        </text>
+                    }
+                    <ApiParameter Name="Id" Type="string?">
+                        @L.T("复选框元素的唯一标识符。用于与标签建立关联。", "Unique identifier for the checkbox element. Used for label association.")
+                    </ApiParameter>
+                    <ApiParameter Name="AriaLabel" Type="string?">
+                        @L.T("当没有可见标签关联时供屏幕阅读器使用的可访问标签。", "Accessible label for screen readers when no visible label is associated.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                                在复选框内部渲染的内容（通常是一个 <code>CheckboxIndicator</code>）。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                                Content rendered inside the checkbox (typically a <code>CheckboxIndicator</code>).
+                            </ApiParameter>
+                        </text>
+                    }
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                应用到根 button 元素上的附加 HTML 特性（例如 <code>class</code>、<code>style</code>）。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                Additional HTML attributes applied to the root button element (e.g. <code>class</code>, <code>style</code>).
+                            </ApiParameter>
+                        </text>
+                    }
+                </ApiReference>
+
+                <ApiReference ComponentName="CheckboxIndicator">
+                    <ApiParameter Name="Size" Type="int" Default="14">
+                        @L.T("默认 SVG 图标的尺寸（像素）。", "Size of the default SVG icons in pixels.")
+                    </ApiParameter>
+                    <ApiParameter Name="StrokeWidth" Type="int" Default="3">
+                        @L.T("默认 SVG 图标的描边宽度。", "Stroke width of the default SVG icons.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("用来替代默认图标的自定义内容。", "Custom content to render instead of default icons.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到 SVG 图标元素上的附加 HTML 特性。", "Additional HTML attributes applied to the SVG icon elements.")
+                    </ApiParameter>
+                </ApiReference>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    private bool basicChecked = false;
+    private bool controlledChecked = false;
+
+    // 不确定态演示
+    private bool child1 = true;
+    private bool child2 = false;
+    private bool child3 = true;
+    private bool allChecked = false;
+    private bool indeterminate = true;
+
+    protected override void OnInitialized()
+    {
+        UpdateParentState();
+    }
+
+    private void HandleChildChanged()
+    {
+        UpdateParentState();
+    }
+
+    private void HandleParentChanged(bool value)
+    {
+        allChecked = value;
+        indeterminate = false;
+        child1 = value;
+        child2 = value;
+        child3 = value;
+    }
+
+    private void UpdateParentState()
+    {
+        var checkedCount = (child1 ? 1 : 0) + (child2 ? 1 : 0) + (child3 ? 1 : 0);
+
+        if (checkedCount == 0)
+        {
+            allChecked = false;
+            indeterminate = false;
+        }
+        else if (checkedCount == 3)
+        {
+            allChecked = true;
+            indeterminate = false;
+        }
+        else
+        {
+            allChecked = false;
+            indeterminate = true;
+        }
+    }
+
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

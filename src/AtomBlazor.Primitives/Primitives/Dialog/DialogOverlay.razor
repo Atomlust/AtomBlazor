@@ -1,0 +1,89 @@
+@namespace AtomBlazor.Primitives
+@using AtomBlazor.Primitives.Services
+@inject INativeOverlayService NativeOverlayService
+
+@*
+    DialogOverlay 为模态对话框提供背景遮罩。
+    若已配置，可处理点击外部关闭的行为。
+    在 Native 策略模式下它不渲染任何内容——浏览器 <dialog>::backdrop
+    提供遮罩，且背景关闭由 DialogContent 处理。
+*@
+
+@if (!_useNative && Context.IsOpen)
+{
+    <div id="@(Context.Id)-overlay"
+         @onclick="HandleClick"
+         @attributes="AdditionalAttributes"
+         data-state="@(Context.IsOpen ? "open" : "closed")">
+        @ChildContent
+    </div>
+}
+
+@code {
+    [CascadingParameter]
+    private DialogContext Context { get; set; } = null!;
+
+    [CascadingParameter(Name = "DialogRenderingStrategy")]
+    private OverlayRenderingStrategy? RenderingStrategy { get; set; }
+
+    /// <summary>
+    /// 在遮罩内渲染的内容（对于简单的背景遮罩通常为空）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用到遮罩 div 元素的附加特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 点击遮罩时是否关闭对话框。
+    /// 默认值为 true。
+    /// </summary>
+    [Parameter]
+    public bool CloseOnClick { get; set; } = true;
+
+    /// <summary>
+    /// 点击遮罩时触发的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    private bool _useNative;
+
+    protected override void OnInitialized()
+    {
+        if (Context == null)
+        {
+            throw new InvalidOperationException(
+                "DialogOverlay must be used within a Dialog component. " +
+                "Ensure DialogOverlay is a child of a Dialog component.");
+        }
+
+        _useNative = NativeOverlayService.ResolveStrategy(RenderingStrategy) == OverlayRenderingStrategy.Native;
+    }
+
+    protected override void OnParametersSet() =>
+        // Re-resolved every time: a browser without <dialog>.showModal() makes the service fall back
+        // to the JavaScript strategy after the first render, and the backdrop has to appear when
+        // that happens — the native ::backdrop it was standing aside for never arrives.
+        _useNative = NativeOverlayService.ResolveStrategy(RenderingStrategy) == OverlayRenderingStrategy.Native;
+
+    private async Task HandleClick(MouseEventArgs args)
+    {
+        // Invoke custom click handler if provided
+        if (OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync(args);
+        }
+
+        // Close dialog if configured
+        if (CloseOnClick && Context.AllowDismiss)
+        {
+            Context.Close();
+        }
+    }
+
+}

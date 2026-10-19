@@ -1,0 +1,144 @@
+@page "/components/tree-select"
+
+<PageTitle>@L.T("TreeSelect 树形选择 - Atom BlazorUI", "TreeSelect Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("TreeSelect 组件", "TreeSelect Component")</h1>
+        <p class="text-xl text-muted-foreground">@L.T("从可搜索的层级中选择一个或多个值。", "Select one or more values from a searchable hierarchy.")</p>
+    </div>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本示例", "Basic Example")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("搜索或展开树以选择一个团队。当某个节点获得焦点时，Space 打开或收起它的分支；Enter 选中它并关闭下拉框。", "Search or expand the tree to choose a team. With a node focused, Space opens or closes its branch; Enter selects it and closes the dropdown.")</p>
+        </div>
+        <div class="rounded-lg border p-6 space-y-4">
+            <div class="max-w-sm">
+                <TreeSelect TItem="Category" Items="categories" ValueField="@(c => c.Id)" TextField="@(c => c.Name)" ChildrenProperty="@(c => c.Children)" @bind-Value="selected" AriaLabel="@(L.T("团队", "Team"))" />
+            </div>
+            @if (L.IsChinese)
+            {
+                <text><p class="text-sm text-muted-foreground" role="status">已选择：@(selected ?? "无")</p></text>
+            }
+            else
+            {
+                <text><p class="text-sm text-muted-foreground" role="status">Selected: @(selected ?? "None")</p></text>
+            }
+        </div>
+        <CodeBlock Source="Components/TreeSelect/basic.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("多选", "Multiple Selection")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("父级复选框会选中所有后代。部分选中的分支显示不确定状态；LeafOnly 只存储叶子键。Space 打开或收起分支；Enter 勾选或取消勾选当前聚焦项，同时保持下拉框打开。", "Parent checkboxes select every descendant. Partially selected branches show an indeterminate state; LeafOnly stores only leaf keys. Space opens or closes a branch; Enter checks or unchecks the focused item while keeping the dropdown open.")</p>
+        </div>
+        <div class="rounded-lg border p-6 space-y-4">
+            <div class="max-w-sm">
+                <TreeSelect TItem="Category" Items="categories" ValueField="@(c => c.Id)" TextField="@(c => c.Name)" ChildrenProperty="@(c => c.Children)" Multiple="true" LeafOnly="true" @bind-Values="selectedMany" AriaLabel="@(L.T("团队", "Teams"))" />
+            </div>
+            @if (L.IsChinese)
+            {
+                <text><p class="text-sm text-muted-foreground" role="status">已选择：@(selectedMany.Count == 0 ? "无" : string.Join(", ", selectedMany))</p></text>
+            }
+            else
+            {
+                <text><p class="text-sm text-muted-foreground" role="status">Selected: @(selectedMany.Count == 0 ? "None" : string.Join(", ", selectedMany))</p></text>
+            }
+        </div>
+        <CodeBlock Source="Components/TreeSelect/multiple.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("叶子选择", "Leaf Selection")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("允许从叶子节点进行单选，同时保留分支用于导航。", "Allow a single selection from the leaves while keeping branches available for navigation.")</p>
+        </div>
+        <div class="rounded-lg border p-6 space-y-4">
+            <div class="max-w-sm">
+                <TreeSelect TItem="Category" Items="categories" ValueField="@(c => c.Id)" TextField="@(c => c.Name)" ChildrenProperty="@(c => c.Children)" LeafOnly="true" @bind-Value="leaf" Placeholder="@(L.T("选择一个团队……", "Choose a team..."))" AriaLabel="@(L.T("叶子团队", "Leaf team"))" />
+            </div>
+            @if (L.IsChinese)
+            {
+                <text><p class="text-sm text-muted-foreground" role="status">已选择：@(leaf ?? "无")</p></text>
+            }
+            else
+            {
+                <text><p class="text-sm text-muted-foreground" role="status">Selected: @(leaf ?? "None")</p></text>
+            }
+        </div>
+        <CodeBlock Source="Components/TreeSelect/leaf-only.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("禁用状态的选择器会显示当前值，但不允许更改。", "A disabled picker displays its current value without allowing changes.")</p>
+        </div>
+        <div class="rounded-lg border p-6 space-y-4">
+            <div class="max-w-sm">
+                <TreeSelect TItem="Category" Items="categories" ValueField="@(c => c.Id)" TextField="@(c => c.Name)" ChildrenProperty="@(c => c.Children)" Value="runtime" Disabled="true" AriaLabel="@(L.T("禁用团队", "Disabled team"))" />
+            </div>
+
+        </div>
+        <CodeBlock Source="Components/TreeSelect/disabled.txt" />
+    </section>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("触发器会暴露其展开状态，并标识树形弹出层。", "The trigger exposes its expanded state and identifies the tree popup.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("树节点会播报选中、展开以及勾选或不确定状态。", "Tree items announce selection, expansion and checked or indeterminate states.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("搜索与清除控件带有无障碍标签。禁用的选择器无法打开或清除。", "Search and clear controls have accessible labels. Disabled pickers cannot be opened or cleared.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("从其触发器打开选择器", "Open the picker from its trigger"))"><Kbd>Enter</Kbd> / <Kbd>Space</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("打开或收起聚焦的分支而不选中它", "Toggle the focused branch open or closed without selecting"))"><Kbd>Space</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("单选模式下选中并关闭；多选模式下勾选或取消勾选并保持打开", "Select and close in single mode; check or uncheck and stay open in multiple mode"))"><Kbd>Enter</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("从搜索框移动到树", "Move from search to the tree"))"><Kbd>Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在可见的树节点之间移动", "Move between visible tree nodes"))"><Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("展开或收起一个分支", "Expand or collapse a branch"))"><Kbd>ArrowRight</Kbd> / <Kbd>ArrowLeft</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭弹出层并把焦点交回触发器", "Close the popup and return focus to the trigger"))"><Kbd>Escape</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <ApiReference Since="v4" ComponentName="TreeSelect">
+            <ApiParameter Name="Items" Type="IEnumerable&lt;TItem&gt;">@L.T("嵌套层级中的根节点。重复的键与循环会被拒绝。", "Root nodes in a nested hierarchy. Duplicate keys and cycles are rejected.")</ApiParameter>
+            <ApiParameter Name="ValueField / TextField / ChildrenProperty" Type="accessor delegates">@L.T("必需的键、显示标签与子节点选择器。键在整个层级中必须唯一。", "Required key, display label and children selectors. Keys must be unique across the entire hierarchy.")</ApiParameter>
+            <ApiParameter Name="Value / ValueChanged / ValueExpression" Type="string? / callback / expression">@L.T("针对单个选中键的双向绑定与 EditContext 校验。对预选值标题会立即解析。Enter 会选中一个符合条件的聚焦节点并关闭下拉框，即使它已被选中。Space 只展开或收起分支。", "Two-way binding and EditContext validation for a single selected key. The caption resolves immediately for preselected values. Enter selects an eligible focused node and closes the dropdown, including when it is already selected. Space only expands or collapses branches.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                <text><ApiParameter Name="Multiple / Values / ValuesChanged / ValuesExpression" Type="multiple selection">设置 Multiple 并将一个 HashSet&lt;string&gt; 绑定到 Values。父级复选框会选中或清除所有后代，包括折叠以及被搜索过滤的节点。父节点对部分选中显示不确定状态。LeafOnly 只存储叶子键，但不禁用父级复选框操作。单选使用 Value。</ApiParameter></text>
+            }
+            else
+            {
+                <text><ApiParameter Name="Multiple / Values / ValuesChanged / ValuesExpression" Type="multiple selection">Set Multiple and bind a HashSet&lt;string&gt; to Values. Parent checkboxes select or clear all descendants, including collapsed and search-filtered nodes. Parents show an indeterminate state for partial selection. LeafOnly stores only leaf keys without disabling parent checkbox actions. Single selection uses Value.</ApiParameter></text>
+            }
+            <ApiParameter Name="LeafOnly / Required" Type="bool" Default="false">@L.T("LeafOnly 将单选限制为叶子节点，并为多选只存储叶子键；父级复选框仍会选中整个分支。Required 将字段标记为必填。必填值的强制校验请使用模型校验。", "LeafOnly limits single selection to leaves and stores only leaf keys for multiple selection; parent checkboxes still select whole branches. Required marks the field as required. Use model validation for required-value enforcement.")</ApiParameter>
+            <ApiParameter Name="ShowSearch / Clearable" Type="bool" Default="true">@L.T("在层级中搜索并显示一个独立的清除按钮。", "Search the hierarchy and show a separate clear button.")</ApiParameter>
+            <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("禁用打开、清除与选择。", "Disables opening, clearing and selection.")</ApiParameter>
+            <ApiParameter Name="Placeholder / AriaLabel / Id / Name" Type="string?">@L.T("空标题、无障碍标签、触发器 ID 与表单字段名。隐藏输入会在表单提交中包含选中的键。", "Empty caption, accessible label, trigger ID and form field name. Hidden inputs include selected keys in form submissions.")</ApiParameter>
+            <ApiParameter Name="Class / AdditionalAttributes" Type="presentation parameters">@L.T("容器样式以及转发给触发器的属性。", "Container styling and attributes forwarded to the trigger.")</ApiParameter>
+        </ApiReference>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string? selected = "runtime";
+    private HashSet<string> selectedMany = ["runtime", "brand"];
+    private string? leaf;
+    private readonly List<Category> categories =
+    [
+        new("engineering", "Engineering", [new("platform", "Platform", [new("runtime", "Runtime", []), new("tools", "Tools", [])]), new("web", "Web", [])]),
+        new("design", "Design", [new("product", "Product", []), new("brand", "Brand", [])])
+    ];
+    private sealed record Category(string Id, string Name, List<Category> Children);
+}

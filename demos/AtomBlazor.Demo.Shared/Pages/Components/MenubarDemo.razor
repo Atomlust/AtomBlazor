@@ -1,0 +1,493 @@
+@page "/components/menubar"
+@implements IAsyncDisposable
+
+<PageTitle>@L.T("Menubar 菜单栏 - Atom BlazorUI", "Menubar Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Menubar 菜单栏组件", "Menubar Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("桌面应用中常见的视觉常驻菜单。", "A visually persistent menu common in desktop applications.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Example with Keyboard Shortcuts -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("示例", "Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带可用键盘快捷键的菜单栏。快捷键在页面任意位置按下都会生效——即使菜单处于关闭状态。", "A menubar with working keyboard shortcuts. Press shortcuts anywhere on the page - they work even when menus are closed.")
+            </p>
+        </div>
+
+        <div class="flex items-start gap-4">
+            <Menubar>
+                <AtomBlazor.MenubarMenu>
+                    <AtomBlazor.MenubarTrigger>@L.T("文件", "File")</AtomBlazor.MenubarTrigger>
+                    <AtomBlazor.MenubarContent>
+                        <AtomBlazor.MenubarItem Shortcut="Ctrl+Shift+T" OnClick="@(() => HandleShortcutAction("New Tab"))">
+                            @L.T("新建标签页", "New Tab")
+                            <MenubarShortcut>Ctrl+Shift+T</MenubarShortcut>
+                        </AtomBlazor.MenubarItem>
+                        <AtomBlazor.MenubarItem Shortcut="Ctrl+Shift+N" OnClick="@(() => HandleShortcutAction("New Window"))">
+                            @L.T("新建窗口", "New Window")
+                            <MenubarShortcut>Ctrl+Shift+N</MenubarShortcut>
+                        </AtomBlazor.MenubarItem>
+                        <AtomBlazor.MenubarSeparator />
+                        <AtomBlazor.MenubarItem OnClick="@(() => HandleShortcutAction("Share"))">@L.T("分享", "Share")</AtomBlazor.MenubarItem>
+                        <AtomBlazor.MenubarSeparator />
+                        <AtomBlazor.MenubarItem Shortcut="Ctrl+Shift+P" OnClick="@(() => HandleShortcutAction("Print"))">
+                            @L.T("打印……", "Print...")
+                            <MenubarShortcut>Ctrl+Shift+P</MenubarShortcut>
+                        </AtomBlazor.MenubarItem>
+                    </AtomBlazor.MenubarContent>
+                </AtomBlazor.MenubarMenu>
+                <AtomBlazor.MenubarMenu>
+                    <AtomBlazor.MenubarTrigger>@L.T("编辑", "Edit")</AtomBlazor.MenubarTrigger>
+                    <AtomBlazor.MenubarContent>
+                        <AtomBlazor.MenubarItem Shortcut="Ctrl+Z" OnClick="@(() => HandleShortcutAction("Undo"))">
+                            @L.T("撤销", "Undo")
+                            <MenubarShortcut>Ctrl+Z</MenubarShortcut>
+                        </AtomBlazor.MenubarItem>
+                        <AtomBlazor.MenubarItem Shortcut="Ctrl+Y" OnClick="@(() => HandleShortcutAction("Redo"))">
+                            @L.T("重做", "Redo")
+                            <MenubarShortcut>Ctrl+Y</MenubarShortcut>
+                        </AtomBlazor.MenubarItem>
+                        <AtomBlazor.MenubarSeparator />
+                        <AtomBlazor.MenubarItem Shortcut="Ctrl+F" OnClick="@(() => HandleShortcutAction("Find"))">
+                            @L.T("查找", "Find")
+                            <MenubarShortcut>Ctrl+F</MenubarShortcut>
+                        </AtomBlazor.MenubarItem>
+                        <AtomBlazor.MenubarItem Shortcut="Ctrl+H" OnClick="@(() => HandleShortcutAction("Replace"))">
+                            @L.T("替换", "Replace")
+                            <MenubarShortcut>Ctrl+H</MenubarShortcut>
+                        </AtomBlazor.MenubarItem>
+                    </AtomBlazor.MenubarContent>
+                </AtomBlazor.MenubarMenu>
+                <AtomBlazor.MenubarMenu>
+                    <AtomBlazor.MenubarTrigger>@L.T("视图", "View")</AtomBlazor.MenubarTrigger>
+                    <AtomBlazor.MenubarContent>
+                        <AtomBlazor.MenubarLabel>@L.T("外观", "Appearance")</AtomBlazor.MenubarLabel>
+                        <AtomBlazor.MenubarCheckboxItem @bind-Checked="_showStatusBar">@L.T("状态栏", "Status Bar")</AtomBlazor.MenubarCheckboxItem>
+                        <AtomBlazor.MenubarCheckboxItem @bind-Checked="_showActivityBar">@L.T("活动栏", "Activity Bar")</AtomBlazor.MenubarCheckboxItem>
+                        <AtomBlazor.MenubarCheckboxItem @bind-Checked="_showSidebar">@L.T("侧边栏", "Sidebar")</AtomBlazor.MenubarCheckboxItem>
+                        <AtomBlazor.MenubarSeparator />
+                        <AtomBlazor.MenubarLabel>@L.T("缩放", "Zoom")</AtomBlazor.MenubarLabel>
+                        <AtomBlazor.MenubarItem OnClick="@(() => HandleShortcutAction("Zoom In"))">
+                            @L.T("放大", "Zoom In")
+                            <MenubarShortcut>Ctrl+=</MenubarShortcut>
+                        </AtomBlazor.MenubarItem>
+                        <AtomBlazor.MenubarItem OnClick="@(() => HandleShortcutAction("Zoom Out"))">
+                            @L.T("缩小", "Zoom Out")
+                            <MenubarShortcut>Ctrl+-</MenubarShortcut>
+                        </AtomBlazor.MenubarItem>
+                        <AtomBlazor.MenubarSeparator />
+                        <AtomBlazor.MenubarCheckboxItem @bind-Checked="_fullScreen">@L.T("全屏", "Full Screen")</AtomBlazor.MenubarCheckboxItem>
+                    </AtomBlazor.MenubarContent>
+                </AtomBlazor.MenubarMenu>
+                <AtomBlazor.MenubarMenu>
+                    <AtomBlazor.MenubarTrigger>@L.T("帮助", "Help")</AtomBlazor.MenubarTrigger>
+                    <AtomBlazor.MenubarContent>
+                        <AtomBlazor.MenubarItem Shortcut="F1" OnClick="@(() => HandleShortcutAction("Documentation"))">
+                            @L.T("文档", "Documentation")
+                            <MenubarShortcut>F1</MenubarShortcut>
+                        </AtomBlazor.MenubarItem>
+                        <AtomBlazor.MenubarSeparator />
+                        <AtomBlazor.MenubarItem OnClick="@(() => HandleShortcutAction("About"))">@L.T("关于", "About")</AtomBlazor.MenubarItem>
+                    </AtomBlazor.MenubarContent>
+                </AtomBlazor.MenubarMenu>
+            </Menubar>
+
+            @if (!string.IsNullOrEmpty(_shortcutAction))
+            {
+                <div class="flex items-center gap-2 p-3 bg-primary/10 text-primary rounded-md animate-pulse">
+                    <LucideIcon Name="circle-check" Size="16" />
+                    <span>@L.T("已触发快捷键：", "Shortcut triggered: ")<strong>@_shortcutAction</strong></span>
+                </div>
+            }
+        </div>
+
+        <div class="mt-4 p-4 bg-muted rounded-lg">
+            <p class="font-medium mb-3">@L.T("可用快捷键：", "Available shortcuts:")</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                <div class="flex items-center gap-2">
+                    <Kbd Keys="Ctrl+Shift+T" Size="KbdSize.Small" /> <span class="text-muted-foreground">@L.T("新建标签页", "New Tab")</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <Kbd Keys="Ctrl+Shift+N" Size="KbdSize.Small" /> <span class="text-muted-foreground">@L.T("新建窗口", "New Window")</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <Kbd Keys="Ctrl+Z" Size="KbdSize.Small" /> <span class="text-muted-foreground">@L.T("撤销", "Undo")</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <Kbd Keys="Ctrl+Y" Size="KbdSize.Small" /> <span class="text-muted-foreground">@L.T("重做", "Redo")</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <Kbd Keys="Ctrl+F" Size="KbdSize.Small" /> <span class="text-muted-foreground">@L.T("查找", "Find")</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <Kbd Keys="Ctrl+H" Size="KbdSize.Small" /> <span class="text-muted-foreground">@L.T("替换", "Replace")</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <Kbd Keys="F1" Size="KbdSize.Small" /> <span class="text-muted-foreground">@L.T("文档", "Documentation")</span>
+                </div>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Menubar/example.txt" />
+    </div>
+
+    <!-- Custom Trigger Styling -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义触发项样式", "Custom Trigger Styling")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    在 <code class="bg-muted px-1 py-0.5 rounded">Menubar</code> 上使用 <code class="bg-muted px-1 py-0.5 rounded">TriggerClass</code>，一次性为所有触发项设置样式，而不必给每个 <code class="bg-muted px-1 py-0.5 rounded">MenubarTrigger</code> 添加 <code class="bg-muted px-1 py-0.5 rounded">Class</code>。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="bg-muted px-1 py-0.5 rounded">TriggerClass</code> on the <code class="bg-muted px-1 py-0.5 rounded">Menubar</code> to style all triggers at once instead of adding <code class="bg-muted px-1 py-0.5 rounded">Class</code> to each <code class="bg-muted px-1 py-0.5 rounded">MenubarTrigger</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-3">
+            <Menubar TriggerClass="font-bold text-primary">
+                <AtomBlazor.MenubarMenu>
+                    <AtomBlazor.MenubarTrigger>@L.T("文件", "File")</AtomBlazor.MenubarTrigger>
+                    <AtomBlazor.MenubarContent>
+                        <AtomBlazor.MenubarItem>@L.T("新建", "New")</AtomBlazor.MenubarItem>
+                        <AtomBlazor.MenubarItem>@L.T("打开", "Open")</AtomBlazor.MenubarItem>
+                        <AtomBlazor.MenubarItem>@L.T("保存", "Save")</AtomBlazor.MenubarItem>
+                    </AtomBlazor.MenubarContent>
+                </AtomBlazor.MenubarMenu>
+                <AtomBlazor.MenubarMenu>
+                    <AtomBlazor.MenubarTrigger>@L.T("编辑", "Edit")</AtomBlazor.MenubarTrigger>
+                    <AtomBlazor.MenubarContent>
+                        <AtomBlazor.MenubarItem>@L.T("撤销", "Undo")</AtomBlazor.MenubarItem>
+                        <AtomBlazor.MenubarItem>@L.T("重做", "Redo")</AtomBlazor.MenubarItem>
+                    </AtomBlazor.MenubarContent>
+                </AtomBlazor.MenubarMenu>
+                <AtomBlazor.MenubarMenu>
+                    <AtomBlazor.MenubarTrigger>@L.T("视图", "View")</AtomBlazor.MenubarTrigger>
+                    <AtomBlazor.MenubarContent>
+                        <AtomBlazor.MenubarItem>@L.T("放大", "Zoom In")</AtomBlazor.MenubarItem>
+                        <AtomBlazor.MenubarItem>@L.T("缩小", "Zoom Out")</AtomBlazor.MenubarItem>
+                    </AtomBlazor.MenubarContent>
+                </AtomBlazor.MenubarMenu>
+            </Menubar>
+        </div>
+
+        <CodeBlock Source="Components/Menubar/custom-trigger-styling.txt" />
+    </div>
+
+    <!-- Accessibility Notes -->
+
+    <!-- API Reference -->
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("单选子项与嵌套子菜单", "Radio choices and nested submenus")</h2>
+        <p class="text-sm text-muted-foreground">@L.T("用方向键在条目间移动，用前进方向键进入子菜单，用 Escape 或后退方向键返回其触发项。前进与后退的方向随文字方向翻转。这里的单选项在选中后不会关闭菜单。", "Use arrows to move through items, the forward arrow to enter a submenu, and Escape or the back arrow to return to its trigger. Forward and back follow text direction. Radio choices here keep the menu open.")</p>
+<Menubar>
+    <AtomBlazor.MenubarMenu>
+        <AtomBlazor.MenubarTrigger>@L.T("查看与分享", "View and share")</AtomBlazor.MenubarTrigger>
+        <AtomBlazor.MenubarContent>
+<MenubarRadioGroup TValue="string" @bind-Value="menuDensity" aria-label="@(L.T("密度", "Density"))">
+    <MenubarRadioItem Value='@("Comfortable")' CloseOnSelect="false">@L.T("宽松", "Comfortable")</MenubarRadioItem>
+    <MenubarRadioItem Value='@("Compact")' CloseOnSelect="false">@L.T("紧凑", "Compact")</MenubarRadioItem>
+    <MenubarRadioItem Value='@("Unavailable")' Disabled="true">@L.T("不可用", "Unavailable")</MenubarRadioItem>
+</MenubarRadioGroup>
+<AtomBlazor.MenubarSeparator />
+<MenubarSub>
+    <MenubarSubTrigger>@L.T("分享", "Share")</MenubarSubTrigger>
+    <MenubarSubContent>
+        <AtomBlazor.MenubarItem OnClick='@(() => menuResult = "Link copied")'>@L.T("复制链接", "Copy link")</AtomBlazor.MenubarItem>
+        <MenubarSub>
+            <MenubarSubTrigger>@L.T("导出", "Export")</MenubarSubTrigger>
+            <MenubarSubContent>
+                <AtomBlazor.MenubarItem OnClick='@(() => menuResult = "Exported CSV")'>CSV</AtomBlazor.MenubarItem>
+                <AtomBlazor.MenubarItem OnClick='@(() => menuResult = "Exported JSON")'>JSON</AtomBlazor.MenubarItem>
+            </MenubarSubContent>
+        </MenubarSub>
+    </MenubarSubContent>
+</MenubarSub>
+        </AtomBlazor.MenubarContent>
+    </AtomBlazor.MenubarMenu>
+</Menubar>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm">密度：@menuDensity。@menuResult</p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm">Density: @menuDensity. @menuResult</p>
+                </text>
+}
+        <CodeBlock Source="Components/Menubar/composition.txt" />
+    </section>
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    根容器使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menubar"</code>
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    触发项使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menuitem"</code>，并带 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-haspopup="menu"</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code>
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    下拉内容使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menu"</code>，条目上带 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menuitem"</code>
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    复选项使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menuitemcheckbox"</code>，并带 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-checked</code>
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    分隔线使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="separator"</code>
+                </AccessibilityItem>
+                <AccessibilityItem>单选项使用 role="menuitemradio" 与 aria-checked；复选项使用 role="menuitemcheckbox"。子菜单触发项会播报自身的展开状态。</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Root container uses <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menubar"</code>
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    Triggers use <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menuitem"</code> with <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-haspopup="menu"</code> and <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code>
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    Dropdown content uses <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menu"</code> with <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menuitem"</code> on items
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    Checkbox items use <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menuitemcheckbox"</code> with <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-checked</code>
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    Separators use <code class="text-xs bg-muted px-1 py-0.5 rounded">role="separator"</code>
+                </AccessibilityItem>
+                        <AccessibilityItem>Radio items use role="menuitemradio" and aria-checked; checkbox items use role="menuitemcheckbox". Submenu triggers announce their expanded state.</AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在菜单栏的各菜单之间移动", "Navigate between menus in the menubar"))">
+                <Kbd>ArrowLeft</Kbd> / <Kbd>ArrowRight</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在菜单项之间移动", "Navigate menu items"))">
+                <Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("跳到首项/末项", "Jump to first/last item"))">
+                <Kbd>Home</Kbd> / <Kbd>End</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("激活获得焦点的条目", "Activate the focused item"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭菜单", "Close the menu"))">
+                <Kbd>Escape</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("打开子菜单或返回上级菜单（RTL 时方向相反）", "Open a submenu or return to its parent (directions reverse in RTL)"))"><Kbd>ArrowRight</Kbd> / <Kbd>ArrowLeft</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件的属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="Menubar">
+                <ApiParameter Name="TriggerClass" Type="string?" Default="null">
+                    @L.T("应用到全部 MenubarTrigger 组件的 CSS 类。", "CSS classes to apply to all MenubarTrigger components.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="MenubarItem">
+                <ApiParameter Name="OnClick" Type="EventCallback" Default="default">
+                    @L.T("菜单项的点击处理回调。", "Click handler for the menu item.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("菜单项是否禁用。", "Whether the menu item is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="Inset" Type="bool" Default="false">
+                    @L.T("增加左侧内边距，与含图标的条目对齐。", "Adds left padding to align with items that have icons.")
+                </ApiParameter>
+                <ApiParameter Name="Shortcut" Type="string?" Default="null">
+                    @L.T("自动全局注册的键盘快捷键（例如 \"Ctrl+N\"、\"F1\"）。", "Keyboard shortcut to auto-register globally (e.g., \"Ctrl+N\", \"F1\").")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="MenubarCheckboxItem">
+                <ApiParameter Name="Checked" Type="bool" Default="false">
+                    @L.T("复选项是否已勾选。", "Whether the checkbox item is checked.")
+                </ApiParameter>
+                <ApiParameter Name="CheckedChanged" Type="EventCallback<bool>" Default="default">
+                    @L.T("勾选状态变化时调用的回调。", "Callback invoked when the checked state changes.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("复选项是否禁用。", "Whether the checkbox item is disabled.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+
+        <span id="menubar-radio-group" class="block scroll-mt-20" aria-hidden="true"></span>
+        <ApiReference Since="v4" ComponentName="MenubarRadioGroup&lt;TValue&gt;">
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="Value / ValueChanged" Type="TValue / EventCallback&lt;TValue&gt;">选中值；支持 @@bind-Value。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="Value / ValueChanged" Type="TValue / EventCallback&lt;TValue&gt;">Selected value; supports @@bind-Value.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("禁用该组内的全部单选项。", "Disables every radio item in the group.")</ApiParameter>
+            <ApiParameter Name="ChildContent / AdditionalAttributes" Type="RenderFragment / Dictionary&lt;string, object&gt;">@L.T("单选项集合与分组的 HTML 特性；用 aria-label 或 aria-labelledby 为分组命名。", "Radio items and group HTML attributes; use aria-label or aria-labelledby to label the group.")</ApiParameter>
+        </ApiReference>
+
+        <span id="menubar-radio-item" class="block scroll-mt-20" aria-hidden="true"></span>
+        <ApiReference Since="v4" ComponentName="MenubarRadioItem&lt;TValue&gt;">
+            <ApiParameter Name="Value" Type="TValue">@L.T("该条目所代表的必填值。", "Required value represented by this item.")</ApiParameter>
+            <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("禁止选中。", "Disables selection.")</ApiParameter>
+            <ApiParameter Name="CloseOnSelect" Type="bool" Default="true">@L.T("选中后关闭整个菜单。", "Closes the entire menu after selection.")</ApiParameter>
+            <ApiParameter Name="ChildContent / Class / AdditionalAttributes" Type="RenderFragment / string / Dictionary&lt;string, object&gt;">@L.T("标签、CSS 类与 HTML 特性。", "Label, CSS classes and HTML attributes.")</ApiParameter>
+        </ApiReference>
+
+        <span id="menubar-submenu" class="block scroll-mt-20" aria-hidden="true"></span>
+        <ApiReference Since="v4" ComponentName="MenubarSub">
+            <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("禁止打开该子菜单。", "Disables opening this submenu.")</ApiParameter>
+            <ApiParameter Name="ChildContent" Type="RenderFragment">@L.T("一个 SubTrigger 后接 SubContent。子菜单可以嵌套。", "A SubTrigger followed by SubContent. Submenus may be nested.")</ApiParameter>
+        </ApiReference>
+
+        <span id="menubar-submenu-trigger" class="block scroll-mt-20" aria-hidden="true"></span>
+        <ApiReference Since="v4" ComponentName="MenubarSubTrigger">
+            <ApiParameter Name="OpenOnHover" Type="bool" Default="true">@L.T("悬停即打开，且不转移键盘焦点。点击或前进方向键会打开子菜单并聚焦首项。", "Opens on hover without moving keyboard focus. Click or the forward arrow opens and focuses the first item.")</ApiParameter>
+            <ApiParameter Name="Inset" Type="bool" Default="false">@L.T("让标签与含图标的条目对齐。", "Aligns the label with items that contain icons.")</ApiParameter>
+            <ApiParameter Name="ChildContent / Class / AdditionalAttributes" Type="RenderFragment / string / Dictionary&lt;string, object&gt;">@L.T("标签、CSS 类与 HTML 特性。", "Label, CSS classes and HTML attributes.")</ApiParameter>
+        </ApiReference>
+
+        <span id="menubar-submenu-content" class="block scroll-mt-20" aria-hidden="true"></span>
+        <ApiReference Since="v4" ComponentName="MenubarSubContent">
+            <ApiParameter Name="Side" Type="PopoverSide" Default="Right">@L.T("首选弹出方位；从右到左的布局请改用 Left。靠近视口边缘时会自动翻转位置。", "Preferred placement; use Left in right-to-left layouts. Positioning flips near the viewport edge.")</ApiParameter>
+            <ApiParameter Name="Offset / ZIndex" Type="int / int" Default="2 / 60">@L.T("与触发项的距离及堆叠层级。", "Trigger distance and stacking order.")</ApiParameter>
+            <ApiParameter Name="Loop" Type="bool" Default="true">@L.T("方向键导航在首项与末项之间循环。", "Wraps arrow navigation at the first and last item.")</ApiParameter>
+            <ApiParameter Name="ChildContent / Class / AdditionalAttributes" Type="RenderFragment / string / Dictionary&lt;string, object&gt;">@L.T("条目集合、CSS 类与 HTML 特性。", "Items, CSS classes and HTML attributes.")</ApiParameter>
+        </ApiReference>
+    </section>
+
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string menuDensity = "Comfortable";
+    private string menuResult = "";
+
+    private string? _shortcutAction;
+
+    // View menu checkbox states
+    private bool _showStatusBar = true;
+    private bool _showActivityBar = true;
+    private bool _showSidebar = false;
+    private bool _fullScreen = false;
+
+    private CancellationTokenSource? _clearCts;
+
+    private async Task HandleShortcutAsync(string action)
+    {
+        _shortcutAction = action;
+        await InvokeAsync(StateHasChanged);
+
+        // Cancel any previous clear timer
+        _clearCts?.Cancel();
+        _clearCts = new CancellationTokenSource();
+
+        // Clear after 2 seconds
+        try
+        {
+            await Task.Delay(2000, _clearCts.Token);
+            _shortcutAction = null;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (TaskCanceledException)
+        {
+            // Timer was cancelled, ignore
+        }
+    }
+
+    private void HandleShortcutAction(string action)
+    {
+        _ = HandleShortcutAsync(action);
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        _clearCts?.Cancel();
+        _clearCts?.Dispose();
+        return ValueTask.CompletedTask;
+    }
+}

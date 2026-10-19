@@ -1,0 +1,30 @@
+@namespace AtomBlazor
+
+<AtomBlazor.Primitives.MenubarTrigger class="@CssClass" @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.MenubarTrigger>
+
+@code {
+    [CascadingParameter]
+    public Menubar? Context { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用于根元素的额外 HTML 特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private string CssClass => ClassNames.cn(
+        "atom:relative atom:z-50 atom:flex atom:cursor-default atom:select-none atom:items-center atom:rounded-sm atom:px-3 atom:py-1.5 atom:text-sm atom:font-medium atom:outline-none",
+        "atom:focus:bg-accent atom:focus:text-accent-foreground",
+        "atom:data-[state=open]:bg-accent atom:data-[state=open]:text-accent-foreground",
+        Context?.TriggerClass,
+        Class
+    );
+}

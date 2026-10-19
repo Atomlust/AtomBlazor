@@ -1,0 +1,30 @@
+@namespace AtomBlazor
+
+<AtomBlazor.Primitives.CheckboxPrimitive
+    Id="@EffectiveId"
+    Checked="@Checked"
+    CheckedChanged="@HandleCheckedChanged"
+    Indeterminate="@Indeterminate"
+    IndeterminateChanged="@IndeterminateChanged"
+    Disabled="@Disabled"
+    Required="@Required"
+    AriaLabel="@AriaLabel"
+    class="@CssClass"
+    aria-invalid="@(IsInvalid ? "true" : null)"
+    aria-describedby="@AriaDescribedBy"
+    @attributes="AdditionalAttributes">
+    <AtomBlazor.Primitives.CheckboxIndicator />
+</AtomBlazor.Primitives.CheckboxPrimitive>
+@if (EffectiveName is not null)
+{
+    @* 镜像选中态的隐藏原生 checkbox，让值参与表单提交（可见复选框是 button，什么都不提交）。
+       选中时提交 "true"；未选中时整个字段缺席，模型绑定把 bool 视为 false。 *@
+    <input type="checkbox"
+           name="@EffectiveName"
+           value="true"
+           checked="@Checked"
+           disabled="@Disabled"
+           aria-hidden="true"
+           tabindex="-1"
+           class="atom:sr-only" />
+}

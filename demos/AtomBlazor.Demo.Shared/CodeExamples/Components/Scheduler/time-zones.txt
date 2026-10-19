@@ -1,0 +1,27 @@
+@* Left alone, the editor lists every IANA zone the host supports — about 600,
+   labelled by identifier. Pass TimeZones to cut it down and name them yourself. *@
+<Scheduler @bind-Events="events"
+             TimeZones="zones"
+             TimeZoneId="Australia/Sydney" />
+
+@code {
+    private readonly IReadOnlyList<SchedulerTimeZone> zones =
+    [
+        new("Australia/Sydney", "Sydney"),
+        new("Asia/Singapore",   "Singapore"),
+        new("Europe/London",    "London"),
+        new("America/New_York", "New York"),
+        new("UTC",              "Coordinated Universal Time")
+    ];
+
+    private IReadOnlyList<SchedulerEvent> events = [];
+}
+
+@* Notes:
+   - The Id must be a real IANA zone the host supports. It is validated when the
+     parameter is set, so a typo fails loudly instead of at save time.
+   - The Title is yours. It is used in the editor's picker and in the toolbar label.
+   - An event already stored in a zone you did not list is still offered, so
+     opening it cannot quietly move it to whichever zone happened to sort first.
+   - EnableTimeZones="false" hides the picker entirely and uses TimeZoneId for
+     both display and editing. *@

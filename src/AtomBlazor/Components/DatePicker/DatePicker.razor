@@ -1,0 +1,350 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Linq.Expressions
+@inject ILocalizer Localizer
+@implements IDisposable
+
+@* DatePicker 组件——把按钮触发器与日历浮层组合成日期选择器。
+*@
+
+<Popover Open="_isOpen" OpenChanged="HandleOpenChanged" RestoreFocusOnClose="true">
+    <AtomBlazor.PopoverTrigger AsChild="true">
+        @if (Editable)
+        {
+            <DatePickerInput AriaLabel="@AriaLabel" IsInvalid="@EffectiveInvalid" Text="@_inputText"
+                             Placeholder="@EffectivePlaceholder"
+                             Disabled="@Disabled"
+                             Required="@Required"
+                             Class="@Class"
+                             OnCommit="HandleInputCommit"
+                             @attributes="AdditionalAttributes" />
+        }
+        else
+        {
+            <Button AriaLabel="@AriaLabel" Variant="ButtonVariant.Outline"
+                    Class="@ButtonCssClass"
+                    aria-required="@(Required ? "true" : null)"
+                    @attributes="AdditionalAttributes">
+                <LucideIcon Name="calendar" Class="atom:me-2 atom:h-4 atom:w-4" />
+                @if (Value.HasValue)
+                {
+                    <span>@Value.Value.ToString(DateFormat)</span>
+                }
+                else
+                {
+                    <span class="atom:text-muted-foreground">@EffectivePlaceholder</span>
+                }
+            </Button>
+        }
+    </AtomBlazor.PopoverTrigger>
+    <AtomBlazor.PopoverContent Class="atom:w-auto atom:p-0" Align="PopoverAlign.Start" OnContentReady="@HandleContentReady">
+        <Calendar @ref="_calendar"
+                  Selected="@Value"
+                  SelectedChanged="@HandleDateSelected"
+                  MinDate="@MinDate"
+                  MaxDate="@MaxDate"
+                  DisabledDates="@DisabledDates"
+                  FirstDayOfWeek="@FirstDayOfWeek"
+                  DayClassFunc="@DayClassFunc"
+                  DayTemplate="@DayTemplate" />
+    </AtomBlazor.PopoverContent>
+</Popover>
+
+@code {
+    /// <summary>在 EditForm 校验之外，额外把可编辑输入标记为无效。</summary>
+    [Parameter] public bool IsInvalid { get; set; }
+    private bool EffectiveInvalid => IsInvalid || (CascadedEditContext is not null && ValueExpression is not null
+        && CascadedEditContext.GetValidationMessages(FieldIdentifier.Create(ValueExpression)).Any());
+
+    /// <summary>控件的无障碍名称。</summary>
+    [Parameter] public string? AriaLabel { get; set; }
+
+
+    private const string isoInputFormat = "yyyy-MM-dd";
+
+    private bool _isOpen;
+    private Calendar? _calendar;
+    private bool _focusDone;
+    private FieldIdentifier _fieldIdentifier;
+    private EditContext? _editContext;
+    private string? _inputText;
+    private DateTime? _lastSyncedValue;
+    private bool _inputTextInitialized;
+
+    [CascadingParameter]
+    private EditContext? CascadedEditContext { get; set; }
+
+    /// <summary>
+    /// 选中的日期值。
+    /// </summary>
+    [Parameter]
+    public DateTime? Value { get; set; }
+
+    /// <summary>
+    /// 选中日期变化时的回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<DateTime?> ValueChanged { get; set; }
+
+    /// <summary>
+    /// 获取或设置标识绑定值的表达式。
+    /// </summary>
+    [Parameter]
+    public Expression<Func<DateTime?>>? ValueExpression { get; set; }
+
+    /// <summary>
+    /// 显示用的日期格式。
+    /// 缺省为 "d"（随文化区的短日期模式）。
+    /// </summary>
+    [Parameter]
+    public string DateFormat { get; set; } = "d";
+
+    /// <summary>
+    /// 未选择日期时显示的占位文本。
+    /// </summary>
+    [Parameter]
+    public string? Placeholder { get; set; }
+
+    private string EffectivePlaceholder => Placeholder ?? Localizer["DatePicker.Placeholder"];
+
+    /// <summary>
+    /// 可选日期的下界。
+    /// </summary>
+    [Parameter]
+    public DateTime? MinDate { get; set; }
+
+    /// <summary>
+    /// 可选日期的上界。
+    /// </summary>
+    [Parameter]
+    public DateTime? MaxDate { get; set; }
+
+    /// <summary>
+    /// 判定某个日期是否禁用的函数。
+    /// </summary>
+    [Parameter]
+    public Func<DateTime, bool>? DisabledDates { get; set; }
+
+    /// <summary>
+    /// 为日历中某个日期按钮返回附加 CSS 类的函数，与内置日格类叠加。
+    /// </summary>
+    [Parameter]
+    public Func<DateTime, string?>? DayClassFunc { get; set; }
+
+    /// <summary>
+    /// 自定义每个日历日期按钮内部内容的可选模板。
+    /// 为 null 时渲染日号。
+    /// </summary>
+    [Parameter]
+    public RenderFragment<CalendarDayContext>? DayTemplate { get; set; }
+
+    /// <summary>
+    /// 每周的第一天。缺省取当前文化区的首日设置。
+    /// </summary>
+    [Parameter]
+    public DayOfWeek? FirstDayOfWeek { get; set; }
+
+    /// <summary>
+    /// 为 true 时触发器渲染为文本输入框，可直接键入日期
+    /// 旁边附带一个日历切换按钮。键入文本在失焦或回车时按
+    /// <see cref="InputFormats"/>（未设置时为 <see cref="DateFormat"/>）解析
+    /// ISO 格式（yyyy-MM-dd）恒被接受。无法解析——或解析结果被
+    /// MinDate/MaxDate/DisabledDates 排除的文本——将回退为当前值。
+    /// </summary>
+    [Parameter]
+    public bool Editable { get; set; }
+
+    /// <summary>
+    /// <see cref="Editable"/> 模式下键入日期时被接受的格式，按优先级排列
+    /// （如 <c>new[] { "dd/MM/yyyy", "d/M/yyyy" }</c>），以当前文化区解析。
+    /// 为 null 时使用 <see cref="DateFormat"/>。除这些格式外
+    /// ISO 格式（yyyy-MM-dd）恒被接受。
+    /// </summary>
+    [Parameter]
+    public string[]? InputFormats { get; set; }
+
+    /// <summary>
+    /// 日期选择器是否禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 获取或设置日期选择器是否为必填。
+    /// </summary>
+    [Parameter]
+    public bool Required { get; set; }
+
+    /// <summary>
+    /// 应用到触发按钮的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 应用到日期选择器的附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (!ReferenceEquals(_editContext, CascadedEditContext))
+        {
+            if (_editContext is not null)
+            {
+                _editContext.OnValidationStateChanged -= HandleValidationStateChanged;
+            }
+            _editContext = CascadedEditContext;
+            if (_editContext is not null)
+            {
+                _editContext.OnValidationStateChanged += HandleValidationStateChanged;
+            }
+        }
+        if (ValueExpression is not null)
+        {
+            _fieldIdentifier = FieldIdentifier.Create(ValueExpression);
+        }
+
+        // 当 Value 被外部变更（初次绑定、程序化赋值或日历选中）时同步可编辑
+        // 输入框文本，不打断正在进行的键入。
+        if (!_inputTextInitialized || Value != _lastSyncedValue)
+        {
+            _inputTextInitialized = true;
+            _lastSyncedValue = Value;
+            _inputText = Value?.ToString(DateFormat);
+        }
+    }
+
+    private void HandleValidationStateChanged(object? sender, ValidationStateChangedEventArgs args) =>
+        _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        if (_editContext is not null)
+        {
+            _editContext.OnValidationStateChanged -= HandleValidationStateChanged;
+        }
+        GC.SuppressFinalize(this);
+    }
+
+    private async Task HandleDateSelected(DateTime? date)
+    {
+        await SetValueAsync(date);
+        _isOpen = false;
+    }
+
+    private async Task SetValueAsync(DateTime? date)
+    {
+        Value = date;
+        _lastSyncedValue = date;
+        _inputText = date?.ToString(DateFormat);
+        await ValueChanged.InvokeAsync(date);
+
+        if (_editContext != null && ValueExpression != null && _fieldIdentifier.FieldName != null)
+        {
+            _editContext.NotifyFieldChanged(_fieldIdentifier);
+        }
+    }
+
+    private async Task HandleInputCommit(string? text)
+    {
+        var trimmed = text?.Trim();
+
+        if (string.IsNullOrEmpty(trimmed))
+        {
+            await SetValueAsync(null);
+            return;
+        }
+
+        if (TryParseInput(trimmed, out var date) && IsSelectable(date))
+        {
+            await SetValueAsync(date);
+            return;
+        }
+
+        // 无法解析或不可选：把输入框回退为当前值。先把渲染树对齐到
+        // DOM 中被拒绝的文本并冲刷，否则 diff 认为无变化，被拒绝的文本会留在界面上。
+        _inputText = trimmed;
+        StateHasChanged();
+        await Task.Yield();
+        _inputText = Value?.ToString(DateFormat);
+        // BL0012（.NET 11）：事件处理器末尾的重渲染由框架自动完成
+        // 此处的显式 StateHasChanged 无需保留。
+    }
+
+    /// <summary>
+    /// 以当前文化区按 <see cref="InputFormats"/>（未设置时为 <see cref="DateFormat"/>）
+    /// 解析键入文本，同时恒接受 ISO 格式 yyyy-MM-dd。
+    /// </summary>
+    private bool TryParseInput(string text, out DateTime date)
+    {
+        var formats = InputFormats is { Length: > 0 } ? InputFormats : new[] { DateFormat };
+
+        foreach (var format in formats)
+        {
+            if (DateTime.TryParseExact(text, format, System.Globalization.CultureInfo.CurrentCulture,
+                    System.Globalization.DateTimeStyles.None, out date))
+            {
+                return true;
+            }
+        }
+
+        return DateTime.TryParseExact(text, isoInputFormat, System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.None, out date);
+    }
+
+    private bool IsSelectable(DateTime date)
+    {
+        if (MinDate.HasValue && date.Date < MinDate.Value.Date)
+        {
+            return false;
+        }
+
+        if (MaxDate.HasValue && date.Date > MaxDate.Value.Date)
+        {
+            return false;
+        }
+
+        return DisabledDates?.Invoke(date) != true;
+    }
+
+    private void HandleOpenChanged(bool isOpen)
+    {
+        _isOpen = isOpen;
+
+        // 每次浮层打开都重新装载"打开时聚焦"，这样无论上一次因何关闭
+        // （选中日期是直接改 _isOpen 关闭的，绕过本回调），下次打开仍会
+        // 聚焦活动日。
+        if (isOpen)
+        {
+            _focusDone = false;
+        }
+    }
+
+    private async Task HandleContentReady()
+    {
+        // 浮层定位完成后把焦点移入日历，使活动日被聚焦、方向键导航打开即用。
+        // 加闩防止重新定位导致重复触发，把焦点从用户已导航的位置拽回去。
+        if (_focusDone || _calendar is null)
+        {
+            return;
+        }
+
+        _focusDone = true;
+        await _calendar.FocusActiveDayAsync();
+    }
+
+    /// <summary>
+    /// 获取触发按钮的完整 CSS 类。
+    /// </summary>
+    private string ButtonCssClass => ClassNames.cn(
+        "atom:w-[280px] atom:justify-start atom:text-start atom:font-normal",
+        !Value.HasValue ? "atom:text-muted-foreground" : null,
+        Disabled ? "atom:opacity-50 atom:pointer-events-none" : null,
+        Class
+    );
+}

@@ -1,0 +1,325 @@
+@namespace AtomBlazor
+@using Microsoft.JSInterop
+@inject AtomBlazor.Primitives.Services.IFocusManager FocusManager
+@inject IJSRuntime JS
+@inject ILocalizer Localizer
+@implements IAsyncDisposable
+
+@if (Context?.IsOpen == true)
+{
+    @* 遮罩 *@
+    <div class="atom:fixed atom:inset-0 atom:z-50 atom:bg-black/80 atom:data-[state=open]:animate-in atom:data-[state=closed]:animate-out atom:data-[state=closed]:fade-out-0 atom:data-[state=open]:fade-in-0"
+         data-state="open"
+         @onclick="HandleOverlayClick">
+    </div>
+
+    @* 抽屉内容 *@
+    <div @ref="_contentRef"
+         class="@CssClass"
+         data-state="open"
+         role="dialog"
+         aria-modal="true"
+         tabindex="-1"
+         @attributes="AdditionalAttributes" style="@MergedSnapStyle">
+        @if (ShowHandle)
+        {
+            @if (HasSnapPoints)
+            {
+                <div data-atom-drawer-handle role="slider" tabindex="0" aria-label="@Localizer["Drawer.Resize"]"
+                     aria-orientation="@(Horizontal ? "horizontal" : "vertical")" aria-valuemin="1" aria-valuemax="@Context!.SnapPoints.Count"
+                     aria-valuenow="@(Context.SnapIndex + 1)" aria-valuetext="@Context.SnapPoints[Context.SnapIndex].ToString("P0")"
+                     class="atom:mx-auto atom:flex atom:min-h-[44px] atom:w-[100px] atom:shrink-0 atom:touch-none atom:cursor-grab atom:items-center atom:justify-center atom:rounded-md atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring">
+                    <span class="atom:h-2 atom:w-full atom:rounded-full atom:bg-muted"></span>
+                </div>
+            }
+            else
+            {
+                <div class="atom:mx-auto atom:mt-4 atom:h-2 atom:w-[100px] atom:rounded-full atom:bg-muted"></div>
+            }
+        }
+        @if (HasSnapPoints)
+        {
+            <div class="atom:min-h-0 atom:flex-1 atom:overflow-y-auto">@ChildContent</div>
+        }
+        else
+        {
+            @ChildContent
+        }
+    </div>
+}
+
+@code {
+    [CascadingParameter]
+    public Drawer? Context { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public bool ShowHandle { get; set; } = true;
+
+    [Parameter]
+    public bool TrapFocus { get; set; } = true;
+
+    /// <summary>
+    /// 建立焦点陷阱时应当聚焦的目标。默认聚焦第一个可聚焦的后代元素。
+    /// </summary>
+    /// <remarks>
+    /// 当第一个可聚焦子元素在聚焦时会产生副作用时，可将其设置为
+    /// <see cref="FocusTrapInitialFocus.Container"/>；或使用 <see cref="InitialFocusElement"/>
+    /// 来指定一个具体的目标元素。带有 <c>data-autofocus</c> 属性的元素优先级高于此设置。
+    /// </remarks>
+    [Parameter]
+    public FocusTrapInitialFocus InitialFocus { get; set; } = FocusTrapInitialFocus.FirstFocusable;
+
+    /// <summary>
+    /// 建立焦点陷阱时要聚焦的明确元素，其优先级高于 <see cref="InitialFocus"/> 以及任何
+    /// 带有 <c>data-autofocus</c> 的元素。当该元素不在抽屉内部时将被忽略。
+    /// </summary>
+    [Parameter]
+    public ElementReference? InitialFocusElement { get; set; }
+
+    [Parameter]
+    public bool LockScroll { get; set; } = true;
+
+    [Parameter]
+    public bool CloseOnEscape { get; set; } = true;
+
+    private ElementReference _contentRef;
+    private IAsyncDisposable? _focusTrap;
+    private IJSObjectReference? _portalModule;
+    private IJSObjectReference? _scrollLockCleanup;
+    private IJSObjectReference? _escapeModule;
+    private DotNetObjectReference<DrawerContent>? _dotNetRef;
+    private string _instanceId = Guid.NewGuid().ToString("N");
+    private bool _isInitialized;
+    private bool _disposed;
+    private IJSObjectReference? snapModule;
+    private string? lastSnapConfiguration;
+    private bool HasSnapPoints => Context?.SnapPoints.Count > 0;
+    private bool Horizontal => Context?.Direction is DrawerDirection.Left or DrawerDirection.Right;
+    private string? MergedSnapStyle => AdditionalAttributes?.TryGetValue("style", out var style) == true
+        ? $"{style};{SnapStyle}" : SnapStyle;
+    private string? SnapStyle => HasSnapPoints ? FormattableString.Invariant($"{(Horizontal ? "width" : "height")}: {Context!.SnapPoints[Context.SnapIndex] * 100}d{(Horizontal ? "vw" : "vh")}; {(Horizontal ? "max-width" : "max-height")}: 100d{(Horizontal ? "vw" : "vh")}") : null;
+
+    /// <summary>在拖拽手柄手势或键盘操作之后，提交最近的吸附点。</summary>
+    [JSInvokable]
+    public async Task JsOnSnapChanged(int index)
+    {
+        if (_disposed || Context?.IsOpen != true) { return; }
+        if (index < 0)
+        {
+            if (Context.DismissOnDrag) { await Context.SetOpen(false); }
+        }
+        else
+        {
+            await Context.SetSnapIndexAsync(index);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Context?.IsOpen == true && !_isInitialized)
+        {
+            _isInitialized = true;
+
+            // 设置焦点陷阱
+            if (TrapFocus)
+            {
+                try
+                {
+                    _focusTrap = await FocusManager.TrapFocus(_contentRef, InitialFocus, InitialFocusElement);
+                }
+                catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+                {
+                    // Blazor Server 电路断开期间属预期情况
+                }
+                catch (InvalidOperationException)
+                {
+                    // 预渲染期间 JS 互操作不可用
+                }
+            }
+
+            // 锁定页面滚动
+            if (LockScroll)
+            {
+                try
+                {
+                    _portalModule = await PrimitiveModules.GetAsync(JS);
+                    _scrollLockCleanup = await _portalModule.InvokeAsync<IJSObjectReference>("portal.lockBodyScroll");
+                }
+                catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+                {
+                    // Blazor Server 电路断开期间属预期情况
+                }
+                catch (InvalidOperationException)
+                {
+                    // 预渲染期间 JS 互操作不可用
+                }
+            }
+
+            // 在 JS 中设置 Esc 键检测（避免每次按键都往返 C#）
+            try
+            {
+                _escapeModule = await PrimitiveModules.GetAsync(JS);
+                _dotNetRef = DotNetObjectReference.Create(this);
+                await _escapeModule.InvokeVoidAsync("escapeKeydown.initialize", _dotNetRef, _instanceId);
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            {
+                // Blazor Server 电路断开期间属预期情况
+            }
+            catch (InvalidOperationException)
+            {
+                // 预渲染期间 JS 互操作不可用
+            }
+        }
+        else if (Context?.IsOpen != true && _isInitialized)
+        {
+            await CleanupAsync();
+            // 只有主动关闭才会恢复焦点。导航期间的释放绝不能将焦点移回正在被移除的页面，
+            // 且必须先释放焦点陷阱。
+            await FocusManager.RestoreFocus(Context?.TriggerElement);
+        }
+        await ConfigureSnapsAsync();
+    }
+
+    private async Task ConfigureSnapsAsync()
+    {
+        if (Context?.IsOpen != true) { return; }
+        var configuration = $"{Context.Direction}|{Context.SnapIndex}|{Context.DismissOnDrag}|{ShowHandle}|{string.Join(',', Context.SnapPoints)}";
+        if (configuration == lastSnapConfiguration) { return; }
+        lastSnapConfiguration = configuration;
+        try
+        {
+            if (!HasSnapPoints)
+            {
+                if (snapModule is not null) { await snapModule.InvokeVoidAsync("dispose", _contentRef); }
+                return;
+            }
+            snapModule ??= await JsModules.GetAsync(JS, JsModules.Versioned("./_content/AtomBlazor/js/drawer-snaps.js", typeof(DrawerContent).Assembly));
+            _dotNetRef ??= DotNetObjectReference.Create(this);
+            await snapModule.InvokeVoidAsync("configure", _contentRef, _dotNetRef, new
+            {
+                direction = Context.Direction.ToString().ToLowerInvariant(), points = Context.SnapPoints,
+                index = Context.SnapIndex, dismiss = Context.DismissOnDrag
+            });
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or JSException or TaskCanceledException or ObjectDisposedException or InvalidOperationException)
+        {
+            lastSnapConfiguration = null;
+        }
+    }
+
+    private async Task HandleOverlayClick()
+    {
+        if (Context != null)
+        {
+            await Context.SetOpen(false);
+        }
+    }
+
+    [JSInvokable]
+    public async Task JsOnEscapeKey()
+    {
+        if (_disposed || Context == null) { return; }
+
+        if (CloseOnEscape)
+        {
+            await Context.SetOpen(false);
+        }
+    }
+
+    private async Task CleanupAsync()
+    {
+        lastSnapConfiguration = null;
+        if (snapModule is not null)
+        {
+            try { await snapModule.InvokeVoidAsync("dispose", _contentRef); }
+            catch (Exception ex) when (ex is JSDisconnectedException or JSException or TaskCanceledException or ObjectDisposedException) { }
+        }
+        // 释放焦点陷阱
+        if (_focusTrap != null)
+        {
+            try
+            {
+                await _focusTrap.DisposeAsync();
+            }
+            catch
+            {
+                // 忽略释放错误
+            }
+            _focusTrap = null;
+        }
+
+        // 解除页面滚动锁定
+        if (_scrollLockCleanup != null)
+        {
+            try
+            {
+                await _scrollLockCleanup.InvokeVoidAsync("apply");
+            }
+            catch
+            {
+                // 清理对象可能已被释放
+            }
+            _scrollLockCleanup = null;
+        }
+
+        // 移除 Esc 键监听器
+        if (_escapeModule != null)
+        {
+            try
+            {
+                await _escapeModule.InvokeVoidAsync("escapeKeydown.dispose", _instanceId);
+            }
+            catch
+            {
+                // 清理对象可能已被释放
+            }
+        }
+
+        _dotNetRef?.Dispose();
+        _dotNetRef = null;
+
+        _isInitialized = false;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _disposed = true;
+        GC.SuppressFinalize(this);
+
+        await CleanupAsync();
+
+
+
+        _dotNetRef?.Dispose();
+    }
+
+    private string DirectionClasses => Context?.Direction switch
+    {
+        DrawerDirection.Top => "atom:inset-x-0 atom:top-0 atom:border-b atom:data-[state=open]:slide-in-from-top atom:data-[state=closed]:slide-out-to-top",
+        DrawerDirection.Bottom => "atom:inset-x-0 atom:bottom-0 atom:border-t atom:data-[state=open]:slide-in-from-bottom atom:data-[state=closed]:slide-out-to-bottom",
+        DrawerDirection.Left => "atom:inset-y-0 atom:left-0 atom:h-full atom:w-3/4 atom:border-r atom:data-[state=open]:slide-in-from-left atom:data-[state=closed]:slide-out-to-left atom:sm:max-w-sm",
+        DrawerDirection.Right => "atom:inset-y-0 atom:right-0 atom:h-full atom:w-3/4 atom:border-l atom:data-[state=open]:slide-in-from-right atom:data-[state=closed]:slide-out-to-right atom:sm:max-w-sm",
+        _ => "atom:inset-x-0 atom:bottom-0 atom:border-t atom:data-[state=open]:slide-in-from-bottom atom:data-[state=closed]:slide-out-to-bottom"
+    };
+
+    private string CssClass => ClassNames.cn(
+        "atom:fixed atom:z-50 atom:gap-4 atom:bg-background atom:p-6 atom:shadow-lg atom:transition atom:ease-in-out",
+        "atom:data-[state=open]:animate-in atom:data-[state=closed]:animate-out atom:data-[state=closed]:duration-300 atom:data-[state=open]:duration-500",
+        DirectionClasses,
+        HasSnapPoints ? "atom:flex atom:flex-col atom:overflow-hidden" : null,
+        Class
+    );
+}

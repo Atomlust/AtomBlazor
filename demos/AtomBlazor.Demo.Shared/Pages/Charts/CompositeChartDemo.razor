@@ -1,0 +1,276 @@
+@page "/charts/composite"
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("组合图 - Atom BlazorUI", "Composite Chart - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-6xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("组合图", "Composite Chart")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("在同一张图里混用多种系列类型——把柱、线、面积组合起来，讲出更丰富的数据故事。", "Mix multiple series types in a single chart — combine bars, lines, and areas for rich data storytelling.")
+            </p>
+        </div>
+    </div>
+
+    <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+        <div class="flex items-start justify-between p-6">
+            <div class="flex flex-col space-y-1.5">
+                <h3 class="font-semibold leading-none tracking-tight">@L.T("营收与利润总览", "Revenue & Profit Overview")</h3>
+                <p class="text-sm text-muted-foreground">@L.T("营收用柱子、利润用折线、预测用面积", "Showing revenue (bars), profit (line), and forecast (area)")</p>
+            </div>
+            <div class="flex">
+                <div class="flex flex-col gap-1 border-l px-6 py-0.5">
+                    <span class="text-xs text-muted-foreground">@L.T("营收合计", "Total Revenue")</span>
+                    <span class="text-2xl font-bold leading-none">@_revenueData.Sum(d => d.Revenue).ToString("N0")</span>
+                </div>
+                <div class="flex flex-col gap-1 border-l px-6 py-0.5">
+                    <span class="text-xs text-muted-foreground">@L.T("利润合计", "Total Profit")</span>
+                    <span class="text-2xl font-bold leading-none">@_revenueData.Sum(d => d.Profit).ToString("N0")</span>
+                </div>
+            </div>
+        </div>
+        <div class="p-6 pt-0">
+            <Chart Data="@_revenueData" Height="300px">
+                <XAxis DataKey="month" />
+                <YAxis />
+                <ChartTooltip />
+                <ChartLegend />
+                <Bar DataKey="revenue" Name="@(L.T("营收", "Revenue"))" Color="var(--chart-1)" BorderRadius="4" />
+                <Line DataKey="profit" Name="@(L.T("利润", "Profit"))" Color="var(--chart-2)" Curve="CurveType.Smooth" ShowDots="false" StrokeWidth="3" />
+                <AtomBlazor.Area DataKey="forecast" Name="@(L.T("预测", "Forecast"))" Color="var(--chart-3)" Curve="CurveType.Smooth" FillOpacity="0.15" />
+            </Chart>
+        </div>
+    </div>
+    <CodeBlock Source="Charts/CompositeChart/default.txt" />
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("柱 + 线", "Bar + Line")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("2024 年 1 月 - 6 月", "January - June 2024")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <Chart Data="@_monthlyData" Height="200px">
+                        <XAxis DataKey="month" />
+                        <YAxis Show="false" />
+                        <ChartTooltip />
+                        <Bar DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" BorderRadius="4" />
+                        <Line DataKey="mobile" Name="@(L.T("移动端", "Mobile"))" Color="var(--chart-2)" Curve="CurveType.Smooth" ShowDots="false" />
+                    </Chart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("本月上升 5.2%", "Trending up by 5.2% this month") <LucideIcon Name="trending-up" Size="16" />
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/CompositeChart/bar-line.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("堆叠柱 + 线", "Stacked Bar + Line")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("2024 年 1 月 - 6 月", "January - June 2024")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <Chart Data="@_monthlyData" Height="200px">
+                        <XAxis DataKey="month" />
+                        <YAxis Show="false" />
+                        <ChartTooltip />
+                        <ChartLegend />
+                        <Bar DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" Stacked="true" />
+                        <Bar DataKey="mobile" Name="@(L.T("移动端", "Mobile"))" Color="var(--chart-2)" Stacked="true" />
+                        <Line DataKey="desktop" Name="@(L.T("趋势线", "Trend"))" Color="var(--chart-4)" Curve="CurveType.Smooth" ShowDots="false" Dashed="true" />
+                    </Chart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("堆叠柱加趋势线覆盖", "Stacked bars with trend overlay")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/CompositeChart/stacked-bar-line.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("面积 + 线", "Area + Line")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("2024 年 1 月 - 6 月", "January - June 2024")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <Chart Data="@_monthlyData" Height="200px">
+                        <XAxis DataKey="month" />
+                        <YAxis Show="false" />
+                        <ChartTooltip />
+                        <AtomBlazor.Area DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" Curve="CurveType.Smooth" FillOpacity="0.2" />
+                        <Line DataKey="mobile" Name="@(L.T("移动端", "Mobile"))" Color="var(--chart-2)" Curve="CurveType.Smooth" ShowDots="true" DotSize="6" />
+                    </Chart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("面积填充加折线覆盖", "Area fill with line overlay")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/CompositeChart/area-line.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("柱 + 散点", "Bar + Scatter")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("2024 年 1 月 - 6 月", "January - June 2024")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <Chart Data="@_monthlyData" Height="200px">
+                        <XAxis DataKey="month" />
+                        <YAxis Show="false" />
+                        <ChartTooltip />
+                        <Bar DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" BorderRadius="4" />
+                        <Scatter DataKey="mobile" Name="@(L.T("移动端", "Mobile"))" Color="var(--chart-5)" SymbolSize="12" />
+                    </Chart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("柱状图加散点覆盖", "Bar chart with scatter overlay")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/CompositeChart/bar-scatter.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("多面积 + 线", "Multi-Area + Line")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("2024 年 1 月 - 6 月", "January - June 2024")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <Chart Data="@_monthlyData" Height="200px">
+                        <XAxis DataKey="month" />
+                        <YAxis Show="false" />
+                        <ChartTooltip />
+                        <ChartLegend />
+                        <AtomBlazor.Area DataKey="desktop" Name="@(L.T("桌面端", "Desktop"))" Color="var(--chart-1)" Curve="CurveType.Smooth" FillOpacity="0.3" Stacked="true" />
+                        <AtomBlazor.Area DataKey="mobile" Name="@(L.T("移动端", "Mobile"))" Color="var(--chart-2)" Curve="CurveType.Smooth" FillOpacity="0.3" Stacked="true" />
+                    </Chart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("平滑曲线的堆叠面积", "Stacked areas with smooth curves")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("展示最近 6 个月的访客总量", "Showing total visitors for the last 6 months")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/CompositeChart/multi-area.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("三种类型齐用", "All Three Types")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("2024 年 1 月 - 6 月", "January - June 2024")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <Chart Data="@_revenueData" Height="200px">
+                        <XAxis DataKey="month" />
+                        <YAxis Show="false" />
+                        <ChartTooltip />
+                        <ChartLegend />
+                        <Bar DataKey="revenue" Name="@(L.T("营收", "Revenue"))" Color="var(--chart-1)" BorderRadius="4" />
+                        <Line DataKey="profit" Name="@(L.T("利润", "Profit"))" Color="var(--chart-2)" Curve="CurveType.Smooth" ShowDots="false" />
+                        <AtomBlazor.Area DataKey="forecast" Name="@(L.T("预测", "Forecast"))" Color="var(--chart-3)" Curve="CurveType.Smooth" FillOpacity="0.15" />
+                    </Chart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("柱、线、面积三者合一", "Bar, line, and area combined")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("营收、利润与预测同图呈现", "Revenue, profit, and forecast together")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/CompositeChart/all-three.txt" />
+        </div>
+    </div>
+
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+        </div>
+        <div class="border rounded-lg p-6 space-y-4">
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Chart</h3>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("通用组合图，可把任意系列类型（Bar、Line、Area、Scatter 等）作为子内容放入，默认带网格，并支持 XAxis/YAxis。", "A general-purpose composite chart that accepts any combination of series types (Bar, Line, Area, Scatter, etc.) as children. Provides grid-based defaults with XAxis/YAxis support.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">@L.T("混用系列类型", "Mixing Series Types")</h3>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("每个系列组件各自决定自己的 ECharts 类型，同一个 Chart 里可以自由搭配 Bar、Line、Area 与 Scatter。", "Each series component independently sets its ECharts type. You can freely combine Bar, Line, Area, and Scatter within a single Chart.")
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    public class MonthlyData
+    {
+        public string Month { get; set; } = "";
+        public int Desktop { get; set; }
+        public int Mobile { get; set; }
+    }
+
+    public class RevenueData
+    {
+        public string Month { get; set; } = "";
+        public int Revenue { get; set; }
+        public int Profit { get; set; }
+        public int Forecast { get; set; }
+    }
+
+    private readonly List<MonthlyData> _monthlyData =
+    [
+        new() { Month = "Jan", Desktop = 186, Mobile = 80 },
+        new() { Month = "Feb", Desktop = 305, Mobile = 200 },
+        new() { Month = "Mar", Desktop = 237, Mobile = 120 },
+        new() { Month = "Apr", Desktop = 73, Mobile = 190 },
+        new() { Month = "May", Desktop = 209, Mobile = 130 },
+        new() { Month = "Jun", Desktop = 214, Mobile = 140 }
+    ];
+
+    private readonly List<RevenueData> _revenueData =
+    [
+        new() { Month = "Jan", Revenue = 4200, Profit = 1800, Forecast = 4000 },
+        new() { Month = "Feb", Revenue = 5100, Profit = 2200, Forecast = 4800 },
+        new() { Month = "Mar", Revenue = 4700, Profit = 1900, Forecast = 5200 },
+        new() { Month = "Apr", Revenue = 6300, Profit = 2800, Forecast = 5500 },
+        new() { Month = "May", Revenue = 5800, Profit = 2400, Forecast = 6000 },
+        new() { Month = "Jun", Revenue = 7100, Profit = 3200, Forecast = 6500 }
+    ];
+}

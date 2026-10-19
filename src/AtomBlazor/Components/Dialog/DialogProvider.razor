@@ -1,0 +1,252 @@
+@namespace AtomBlazor
+@using AtomBlazor.Components.Dialog.Internals
+@implements IAsyncDisposable
+@inject DialogService DialogService
+@inject IFocusManager FocusManager
+@inject IJSRuntime JSRuntime
+
+@*
+    Dialog Provider - renders programmatic confirm dialogs from DialogService.
+    Place this component once at the root of your application (e.g., in MainLayout).
+*@
+
+@foreach (var dialog in DialogService.Dialogs)
+{
+    var titleId = $"atom-dialog-{dialog.Id}-title";
+    var descId = $"atom-dialog-{dialog.Id}-desc";
+
+    <div @key="dialog.Id">
+
+        @* Overlay *@
+        <div class="atom:animate-in atom:fade-in-0 atom:fixed atom:inset-0 atom:z-50 atom:bg-black/80"
+             @onclick="() => TryBackdropClose(dialog)" />
+
+        @* Content *@
+        <div class="@GetDialogContainerClass(dialog)"
+             @ref="contentRefs[dialog.Id]"
+             role="@(dialog is AlertDialogData or ConfirmDialogData ? "alertdialog" : "dialog")"
+             aria-modal="true"
+             aria-labelledby="@titleId"
+             aria-describedby="@(dialog.Description != null ? descId : null)">
+            @switch (dialog)
+            {
+                case ConfirmDialogData confirm:
+                    <ConfirmDialog Dialog="confirm" TitleId="@titleId" DescriptionId="@descId" />
+                    break;
+
+                case AlertDialogData alert:
+                    <AlertDialog Dialog="alert" TitleId="@titleId" DescriptionId="@descId" />
+                    break;
+
+                case PromptDialogData prompt:
+                    <PromptDialog Dialog="prompt" TitleId="@titleId" DescriptionId="@descId" />
+                    break;
+
+                case ComponentDialogData component:
+                    <ComponentDialog Dialog="component" TitleId="@titleId" DescriptionId="@descId" />
+                    break;
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private const string dialogContainerBaseClass =
+        "atom:fixed atom:left-[50%] atom:top-[50%] atom:z-50 atom:grid atom:w-full " +
+        "atom:translate-x-[-50%] atom:translate-y-[-50%] atom:gap-4 atom:border atom:bg-background atom:p-6 atom:shadow-lg atom:sm:rounded-lg atom:animate-in atom:fade-in-0 atom:zoom-in-95";
+
+    private readonly Dictionary<string, ElementReference> contentRefs = new();
+    private IAsyncDisposable? focusTrap;
+    private string? focusTrapDialogId;
+    private IJSObjectReference? portalModule;
+    private IJSObjectReference? scrollLockCleanup;
+    private IJSObjectReference? escapeModule;
+    private DotNetObjectReference<DialogProvider>? dotNetRef;
+    private readonly string instanceId = Guid.NewGuid().ToString("N");
+    private bool isInitialized;
+    private bool disposed;
+
+    protected override void OnInitialized()
+        => DialogService.OnChange += HandleChange;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (DialogService.Dialogs.Count > 0 && !isInitialized)
+        {
+            isInitialized = true;
+
+            // Focus trap on the topmost dialog
+            await TrapFocusOnTopmostAsync();
+
+            // Scroll lock
+            try
+            {
+                portalModule = await PrimitiveModules.GetAsync(JSRuntime);
+                scrollLockCleanup = await portalModule.InvokeAsync<IJSObjectReference>("portal.lockBodyScroll");
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException or InvalidOperationException)
+            {
+            }
+
+            // Escape key
+            try
+            {
+                escapeModule = await PrimitiveModules.GetAsync(JSRuntime);
+                dotNetRef = DotNetObjectReference.Create(this);
+                await escapeModule.InvokeVoidAsync("escapeKeydown.initialize", dotNetRef, instanceId);
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException or InvalidOperationException)
+            {
+            }
+        }
+        else if (DialogService.Dialogs.Count > 0 && isInitialized)
+        {
+            // Re-trap focus on the topmost dialog when the stack changes
+            var topmostId = DialogService.Dialogs[^1].Id;
+            if (focusTrapDialogId != topmostId)
+            {
+                await TrapFocusOnTopmostAsync();
+            }
+        }
+        else if (DialogService.Dialogs.Count == 0 && isInitialized)
+        {
+            await CleanupJsAsync();
+        }
+    }
+
+    private async Task TrapFocusOnTopmostAsync()
+    {
+        // Release previous focus trap
+        if (focusTrap != null)
+        {
+            try
+            {
+                await focusTrap.DisposeAsync();
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            {
+            }
+            focusTrap = null;
+            focusTrapDialogId = null;
+        }
+
+        var topmostDialog = DialogService.Dialogs[^1];
+        if (contentRefs.TryGetValue(topmostDialog.Id, out var elementRef))
+        {
+            try
+            {
+                focusTrap = await FocusManager.TrapFocus(elementRef);
+                focusTrapDialogId = topmostDialog.Id;
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException or InvalidOperationException)
+            {
+            }
+        }
+    }
+
+    [JSInvokable]
+    public void JsOnEscapeKey()
+    {
+        if (disposed || DialogService.Dialogs.Count == 0)
+        {
+            return;
+        }
+
+        var topmost = DialogService.Dialogs[^1];
+        InvokeAsync(() => TryBackdropClose(topmost));
+    }
+
+    private void HandleChange()
+        => InvokeAsync(StateHasChanged);
+
+    private void TryBackdropClose(DialogData dialog)
+    {
+        if (dialog is AlertDialogData)
+        {
+            return;
+        }
+
+        if (dialog is ComponentDialogData component &&
+            component.Options.PreventClose)
+        {
+            return;
+        }
+
+        DialogService.Resolve(dialog.Id, DialogResult.Cancel());
+    }
+
+    private static string GetDialogContainerClass(DialogData dialog)
+    {
+        var sizeClass = dialog is ComponentDialogData component
+            ? component.Options.Size switch
+            {
+                DialogSize.Small => "atom:max-w-sm",
+                DialogSize.Large => "atom:max-w-2xl",
+                DialogSize.ExtraLarge => "atom:max-w-4xl",
+                DialogSize.Full => "atom:max-w-[95vw]",
+                _ => "atom:max-w-lg"
+            }
+            : "atom:max-w-lg";
+
+        return $"{dialogContainerBaseClass} {sizeClass}";
+    }
+
+    private async Task CleanupJsAsync()
+    {
+        if (focusTrap != null)
+        {
+            try
+            {
+                await focusTrap.DisposeAsync();
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            {
+            }
+            focusTrap = null;
+            focusTrapDialogId = null;
+        }
+
+        if (scrollLockCleanup != null)
+        {
+            try
+            {
+                await scrollLockCleanup.InvokeVoidAsync("apply");
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            {
+            }
+            scrollLockCleanup = null;
+        }
+
+        if (escapeModule != null)
+        {
+            try
+            {
+                await escapeModule.InvokeVoidAsync("escapeKeydown.dispose", instanceId);
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            {
+            }
+            escapeModule = null;
+        }
+
+
+        dotNetRef?.Dispose();
+        dotNetRef = null;
+        contentRefs.Clear();
+        isInitialized = false;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (disposed)
+        {
+            return;
+        }
+
+        disposed = true;
+        DialogService.OnChange -= HandleChange;
+        await CleanupJsAsync();
+        DialogService.CancelAll();
+    }
+}

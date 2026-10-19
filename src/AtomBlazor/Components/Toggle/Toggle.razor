@@ -1,0 +1,93 @@
+@namespace AtomBlazor
+
+<AtomBlazor.Primitives.TogglePrimitive
+    Pressed="@Pressed"
+    PressedChanged="@PressedChanged"
+    DefaultPressed="@DefaultPressed"
+    Disabled="@Disabled"
+    class="@CssClass"
+    @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.TogglePrimitive>
+
+@code {
+    /// <summary>
+    /// 获取或设置切换按钮的按下状态（受控模式）。
+    /// </summary>
+    [Parameter]
+    public bool Pressed { get; set; }
+
+    /// <summary>
+    /// 获取或设置按下状态变化时调用的回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> PressedChanged { get; set; }
+
+    /// <summary>
+    /// 获取或设置默认的按下状态（非受控模式）。
+    /// </summary>
+    [Parameter]
+    public bool DefaultPressed { get; set; }
+
+    /// <summary>
+    /// 获取或设置切换按钮是否禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 获取或设置视觉样式变体。
+    /// </summary>
+    [Parameter]
+    public ToggleVariant Variant { get; set; } = ToggleVariant.Default;
+
+    /// <summary>
+    /// 获取或设置按钮尺寸。
+    /// </summary>
+    [Parameter]
+    public ToggleSize Size { get; set; } = ToggleSize.Default;
+
+    /// <summary>
+    /// 获取或设置应用到按钮上的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置渲染在按钮内部的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string VariantClasses => Variant switch
+    {
+        ToggleVariant.Default => "atom:bg-transparent",
+        ToggleVariant.Outline => "atom:border atom:border-input atom:bg-transparent atom:hover:bg-accent atom:hover:text-accent-foreground",
+        _ => "atom:bg-transparent"
+    };
+
+    private string SizeClasses => Size switch
+    {
+        ToggleSize.Small => "atom:h-9 atom:px-2.5",
+        ToggleSize.Default => "atom:h-10 atom:px-3",
+        ToggleSize.Large => "atom:h-11 atom:px-5",
+        _ => "atom:h-10 atom:px-3"
+    };
+
+    private string CssClass => ClassNames.cn(
+        "atom:inline-flex atom:items-center atom:justify-center atom:rounded-md atom:text-sm atom:font-medium atom:ring-offset-background atom:transition-colors",
+        "atom:hover:bg-muted atom:hover:text-muted-foreground",
+        "atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2",
+        "atom:disabled:pointer-events-none atom:disabled:opacity-50",
+        "atom:data-[state=on]:bg-accent atom:data-[state=on]:text-accent-foreground",
+        VariantClasses,
+        SizeClasses,
+        Class
+    );
+}

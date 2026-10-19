@@ -1,0 +1,698 @@
+@page "/components/qr-code"
+@using System.Text
+@using AtomBlazor.Primitives.QrCode
+<PageTitle>@L.T("QR Code 二维码 - Atom BlazorUI", "QR Code - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("QR Code 二维码", "QR Code")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("以 SVG 绘制的可扫描码。编码器由 C# 写成 —— 不用 JavaScript，不发图片请求，也不依赖任何第三方库，所以码本身就是标记的一部分，缩放、打印、复制都和其他矢量图形没有两样。", "A scannable code drawn as SVG. The encoder is written in C# — no JavaScript, no image request and no dependency — so the code is part of the markup and scales, prints and copies like any other vector.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        给 <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code> 赋值，码就可用了。
+                        把手机摄像头对准它即可。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        Set <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code> and you have a
+                        working code. Point a phone camera at it.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 flex flex-col items-center gap-4">
+                <QrCode Value="https://example.com" ShowValue="true" />
+            </div>
+
+            <CodeBlock Source="Components/QrCode/basic.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("试一试", "Try It")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("随便输入什么都行。编码器会挑选它能用的最紧凑的模式 —— 数字串的密度约为文本的三倍 —— 再选出装得下结果的最小码制。", "Type anything. The encoder picks the most compact mode it can — digits pack about three times tighter than text — and then the smallest symbol that holds the result.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <Input @bind-Value="liveValue"
+                         UpdateTiming="UpdateTiming.Debounced"
+                         DebounceInterval="250"
+                         Placeholder="@(L.T("随便输入点什么", "Anything you like"))" />
+
+                <div class="flex flex-col items-center gap-3">
+                    <QrCode Value="@liveValue" OnEncoded="@(m => liveMatrix = m)" Size="14rem" />
+                    @if (liveMatrix is { } live)
+                    {
+                        <dl class="grid grid-cols-[6rem_1fr] gap-x-4 gap-y-1 text-sm">
+                            <dt class="text-muted-foreground">@L.T("模式", "Mode")</dt>
+                            <dd class="font-mono">@live.Mode</dd>
+                            <dt class="text-muted-foreground">@L.T("版本", "Version")</dt>
+                            @if (L.IsChinese)
+                            {
+                                                        <text>
+                                                            <dd class="font-mono">@live.Version（@live.Size × @live.Size 个模块）</dd>
+                                                        </text>
+}
+                            else
+                            {
+                                                        <text>
+                                                            <dd class="font-mono">@live.Version (@live.Size &times; @live.Size modules)</dd>
+                                                        </text>
+}
+                            <dt class="text-muted-foreground">@L.T("掩码", "Mask")</dt>
+                            <dd class="font-mono">@live.Mask</dd>
+                        </dl>
+                    }
+                </div>
+            </div>
+
+            <CodeBlock Source="Components/QrCode/inspect.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("容错等级", "Error Correction")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("二维码自带数据的冗余副本，因此一部分被撕破、污损或遮盖之后仍然能读。冗余越多，同样文本画出来的码就越大 —— 下面四个码装的是同一个字符串。", "A QR code carries spare copies of its own data, so it still reads when part of it is torn, smudged or covered. More spare data means a bigger code for the same text — all four below hold the same string.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    @foreach (var level in levels)
+                    {
+                        <div class="flex flex-col items-center gap-2">
+                            <QrCode Value="@correctionSample" ErrorCorrection="level" Size="9rem" />
+                            <p class="text-sm font-medium">@level</p>
+                            <p class="text-xs text-muted-foreground">@L.F("可恢复 {0}", "recovers {0}", Recovery(level))</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <CodeBlock Source="Components/QrCode/error-correction.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("颜色", "Colour")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("默认是深色的码配白底，在深色主题里也是如此。扫码设备预期的是浅色背景上的深色码，而且拒绝读反色码的实在太多，跟着主题走等于拿一个能用的码去换页面更整齐。值得这样换的场合再去覆盖它，并保持高对比度。", "The default is dark on white, and it stays that way in a dark theme. A reader expects a dark code on a light field and enough of them refuse an inverted one that following the theme would trade a working code for a tidier page. Override it where that trade is worth making, and keep the contrast high.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <div class="grid gap-6 sm:grid-cols-3">
+                    <div class="flex flex-col items-center gap-2">
+                        <QrCode Value="https://example.com" Size="9rem" />
+                        <p class="text-xs text-muted-foreground">@L.T("默认配色", "Default")</p>
+                    </div>
+                    <div class="flex flex-col items-center gap-2">
+                        <QrCode Value="https://example.com" Size="9rem"
+                                  Foreground="#1e3a8a" Background="#eff6ff" />
+                        <p class="text-xs text-muted-foreground">@L.T("品牌配色", "Brand colours")</p>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 rounded-md bg-white p-3">
+                        <QrCode Value="https://example.com" Size="9rem" Background="transparent" />
+                        <p class="text-xs text-slate-500">@L.T("透明底，衬白展示", "Transparent, over white")</p>
+                    </div>
+                </div>
+            </div>
+
+            <CodeBlock Source="Components/QrCode/colour.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("模块形状", "Module Shape")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("圆角与圆点模块看起来更柔和。两者都会牺牲一点扫描余量，所以无论选哪种形状，三角的定位方阵始终保持实心 —— 扫码设备是先找它们，再读其他内容的。", "Rounded and dotted modules read as softer. Both cost a little scanning margin, which is why the three finder squares in the corners stay solid whichever shape is chosen — a reader looks for those before it reads anything else.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <div class="grid gap-6 sm:grid-cols-3">
+                    @foreach (var shape in shapes)
+                    {
+                        <div class="flex flex-col items-center gap-2">
+                            <QrCode Value="https://example.com" ModuleShape="shape" Size="9rem" />
+                            <p class="text-sm font-medium">@shape</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <CodeBlock Source="Components/QrCode/module-shape.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("中间放一个 Logo", "A Logo in the Middle")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        中心图像会盖住模块，这种损伤必须由容错来吸收。因此设置了
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Image</code> 之后，等级会自行升到
+                        <strong>Quartile</strong>，而 <code class="text-xs bg-muted px-1 py-0.5 rounded">ImageSize</code>
+                        的上限是宽度的 30%。上线前请用真机扫一扫。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        A centre image covers modules, which is damage the error correction has to absorb.
+                        Setting <code class="text-xs bg-muted px-1 py-0.5 rounded">Image</code> therefore
+                        raises the level to <strong>Quartile</strong> on its own, and
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">ImageSize</code> is capped at
+                        30% of the width. Scan the real thing before you ship it.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <div class="grid gap-6 sm:grid-cols-3">
+                    @foreach (var fraction in new[] { 0.15, 0.2, 0.3 })
+                    {
+                        <div class="flex flex-col items-center gap-2">
+                            <QrCode Value="https://example.com"
+                                      Image="@logoDataUrl"
+                                      ImageSize="fraction"
+                                      Size="9rem" />
+                            <p class="text-sm font-medium">ImageSize @fraction</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <CodeBlock Source="Components/QrCode/logo.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("一个码能做什么", "What a Code Can Do")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        二维码承载的只是文本。真正让一个码<em>做</em>某件事的，是手机上那个前缀被识别了出来。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        A QR code only carries text. What makes one <em>do</em> something is the prefix
+                        the phone recognises.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <ListBox TValue="string"
+                           Label="@(L.T("选一种载荷", "Pick a payload"))"
+                           Options="payloadOptions"
+                           @bind-Value="payloadKey"
+                           Height="10rem" />
+
+                <div class="flex flex-col items-center gap-3">
+                    <QrCode Value="@SelectedPayload" Size="11rem" AriaLabel="@SelectedPayloadLabel" />
+                    <pre class="w-full overflow-x-auto rounded-md bg-muted p-3 text-xs"><code>@SelectedPayload</code></pre>
+                </div>
+            </div>
+
+            <CodeBlock Source="Components/QrCode/payloads.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("不用摄像头也能读到它", "Reaching It Without a Camera")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        二维码是只有摄像头才能读的文本。使用屏幕阅读器的人没法把手机对准自己的屏幕，所以
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowValue</code> 会把内容写成可选择的文本，
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AriaLabel</code> 则说明扫码会发生什么。
+                        只要页面上没有现成的内容值，就至少用其中一个。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        A QR code is text that only a camera can read. Someone using a screen reader
+                        cannot point their phone at their own screen, so
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowValue</code> writes the
+                        value out as selectable text, and
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AriaLabel</code> says what
+                        scanning it does. Use one of them wherever the value is not already on the page.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <div class="grid gap-6 sm:grid-cols-2">
+                    <div class="flex flex-col items-center gap-2">
+                        <QrCode Value="WIFI:T:WPA;S:Guest;P:welcome123;;"
+                                  Size="9rem"
+                                  AriaLabel="@(L.T("用于加入 Guest 无线网络（wi-fi）的二维码", "QR code to join the Guest wi-fi network"))" />
+                        <p class="text-xs text-muted-foreground text-center">
+                            @L.T("带说明的码。标签说明了它的用途。", "A described code. The label says what it does.")
+                        </p>
+                    </div>
+                    <div class="flex flex-col items-center gap-2">
+                        <QrCode Value="https://example.com"
+                                  Size="9rem"
+                                  ShowValue="true" />
+                        <p class="text-xs text-muted-foreground text-center">
+                            @L.T("内容写成了文字，因此可以阅读或复制。", "The value written out, so it can be read or copied.")
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <CodeBlock Source="Components/QrCode/accessible.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("存成文件", "Saving It")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">GetSvg()</code> 返回的就是组件渲染的这份标记
+                        —— 一份独立文档，颜色已经写死在里面。下载需要的仅此而已 —— 不需要 canvas，也不需要 JavaScript。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">GetSvg()</code> returns the same
+                        markup the component rendered, as a standalone document with its colours baked in.
+                        That is all a download needs — no canvas and no JavaScript.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 flex flex-col items-center gap-4">
+                <QrCode @ref="downloadCode" Value="https://example.com" Size="10rem" />
+                <a class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                   download=".svg"
+                   href="@DownloadHref">
+                    @L.T("下载 SVG", "Download the SVG")
+                </a>
+            </div>
+
+            <CodeBlock Source="Components/QrCode/download.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("长度放不下时", "Too Long to Fit")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("版本 40 的码在高容错下最多装 1,273 字节，而版本 40 之上再无更高的版本。超出这个上限时，组件会在码的位置说明情况而不是抛出异常 —— 在 Blazor Server 上，异常会直接掀掉整个线路。", "A version 40 code at High correction holds 1,273 bytes, and there is nothing above version 40. Past that the component says so in place of the code rather than throwing, which on Blazor Server would take the circuit down.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 flex flex-col items-center gap-3">
+                <QrCode Value="@overlongValue" ErrorCorrection="QrErrorCorrection.High" />
+            </div>
+
+            <CodeBlock Source="Components/QrCode/too-long.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("不带界面", "Headless")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AtomBlazor.Primitives</code>
+                        里的 <code class="text-xs bg-muted px-1 py-0.5 rounded">QrEncoder</code>
+                        可以只把网格交给你 —— 只有几何信息，没有颜色也没有尺寸。
+                        想怎么画就怎么画：画到 canvas 上、画成位图、放进 PDF，或者直接用文本。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">QrEncoder</code> in
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AtomBlazor.Primitives</code>
+                        returns the grid on its own — geometry, no colour and no size. Draw it however
+                        suits: to a canvas, to a bitmap, into a PDF, or as text.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-3">
+                @* Fixed dark-on-light, not the theme's colours: block characters take the text colour, and in a dark theme that would draw an inverted code. *@
+                <pre class="overflow-x-auto rounded-md bg-white text-black p-3 text-[0.5rem] leading-[0.55rem] font-mono"><code>@AsciiArt</code></pre>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        同一个码，每个模块用两个字符表示，直接来自
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">QrEncoder.Encode</code>。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        The same code as two characters per module, straight from
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">QrEncoder.Encode</code>.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <CodeBlock Source="Components/QrCode/headless.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            </div>
+            <div class="space-y-4">
+                <ApiReference ComponentName="QrCode">
+                    <ApiParameter Name="Value" Type="string?">
+                        @L.T("要编码的文本。此项为空时什么都不渲染。", "The text to encode. Nothing renders while this is empty.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="ErrorCorrection" Type="QrErrorCorrection" Default="Medium">
+                            码可以损失多少仍然读得出：<code class="text-xs bg-muted px-1 py-0.5 rounded">Low</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Medium</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Quartile</code> 或 <code class="text-xs bg-muted px-1 py-0.5 rounded">High</code>。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="ErrorCorrection" Type="QrErrorCorrection" Default="Medium">
+                            How much of the code can be lost and still be read: <code class="text-xs bg-muted px-1 py-0.5 rounded">Low</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Medium</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Quartile</code> or <code class="text-xs bg-muted px-1 py-0.5 rounded">High</code>.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="MinVersion" Type="int" Default="1">
+                        @L.T("允许使用的最小 QR 版本，1 到 40。把它调高可以让一组码彼此保持同样的尺寸。文本需要更多空间时，编码器仍会越过它继续增长。", "The smallest QR version to use, 1 to 40. Raise it to keep a set of codes the same size as each other. The encoder still grows past it when the text needs more room.")
+                    </ApiParameter>
+                    <ApiParameter Name="Size" Type="string" Default="12rem">
+                        @L.T("渲染出的宽与高，取 CSS 长度值。", "The rendered width and height, as a CSS length.")
+                    </ApiParameter>
+                    <ApiParameter Name="Foreground" Type="string" Default="#18181b">
+                        @L.T("深色模块的颜色，取 CSS 颜色值。", "The colour of the dark modules, as a CSS colour.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="Background" Type="string" Default="#ffffff">
+                            码背后的颜色，静区也算在内。<code class="text-xs bg-muted px-1 py-0.5 rounded">transparent</code> 会让页面透出来。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="Background" Type="string" Default="#ffffff">
+                            The colour behind the code, including the quiet zone. <code class="text-xs bg-muted px-1 py-0.5 rounded">transparent</code> lets the page show through.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="QuietZone" Type="int" Default="4">
+                        @L.T("码四周的浅色留白，以模块计。四个是规范规定的下限。", "The light margin around the code, in modules. Four is the specified minimum.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="ModuleShape" Type="QrCodeModuleShape" Default="Square">
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">Square</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Rounded</code> 或 <code class="text-xs bg-muted px-1 py-0.5 rounded">Dot</code>。无论选哪种，定位方阵都保持实心。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="ModuleShape" Type="QrCodeModuleShape" Default="Square">
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">Square</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Rounded</code> or <code class="text-xs bg-muted px-1 py-0.5 rounded">Dot</code>. The finder squares stay solid either way.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="Image" Type="string?">
+                        @L.T("放在码中心的图像，取 URL 或 data URL。设置了它，容错等级至少会升到 Quartile。", "An image for the centre of the code, as a URL or a data URL. Setting it raises the error correction level to at least Quartile.")
+                    </ApiParameter>
+                    <ApiParameter Name="ImageSize" Type="double" Default="0.2">
+                        @L.T("中心图像的宽度相对于码的比例，钳制在 0.05 – 0.3。", "The width of the centre image as a fraction of the code, clamped to 0.05 – 0.3.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="ImageBackground" Type="string?">
+                            中心图像背后那块补丁的颜色。默认为 <code class="text-xs bg-muted px-1 py-0.5 rounded">Background</code>。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="ImageBackground" Type="string?">
+                            The colour of the patch behind the centre image. Defaults to <code class="text-xs bg-muted px-1 py-0.5 rounded">Background</code>.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="ShowValue" Type="bool" Default="false">
+                        @L.T("内容是否同时写成可选择的文本，显示在码的下方。", "Whether the value is also written as selectable text under the code.")
+                    </ApiParameter>
+                    <ApiParameter Name="Label" Type="string?">
+                        @L.T("显示在码上方的标签。", "A label shown above the code.")
+                    </ApiParameter>
+                    <ApiParameter Name="AriaLabel" Type="string?">
+                        @L.T("无障碍名称。内容较短时默认取内容本身，较长时默认为 \"QR code\"。", "The accessible name. Defaults to the value where it is short, and to \"QR code\" where it is not.")
+                    </ApiParameter>
+                    <ApiParameter Name="Matrix" Type="QrMatrix?">
+                        @L.T("只读。已编码的网格，用于报告版本，或者换一种方式绘制这个码。", "Read-only. The encoded grid, for reporting the version or drawing the code another way.")
+                    </ApiParameter>
+                    <ApiParameter Name="GetSvg()" Type="string?">
+                        @L.T("方法。把渲染出来的 SVG 作为一份独立文档返回。", "Method. The rendered SVG as a standalone document.")
+                    </ApiParameter>
+                    <ApiParameter Name="Class" Type="string?">
+                        @L.T("追加到根元素上的 CSS 类。", "Additional CSS classes for the root element.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到根元素上的额外 HTML 属性。", "Additional HTML attributes applied to the root element.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="QrEncoder">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="Encode(value, errorCorrection, minVersion, mask)" Type="QrMatrix">
+                            把文本编码为二维码。当值为空、或装不进版本 40 的码制时抛出 <code class="text-xs bg-muted px-1 py-0.5 rounded">ArgumentException</code>。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="Encode(value, errorCorrection, minVersion, mask)" Type="QrMatrix">
+                            Encodes text as a QR code. Throws <code class="text-xs bg-muted px-1 py-0.5 rounded">ArgumentException</code> when the value is empty or will not fit in a version 40 symbol.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="GetCapacity(version, errorCorrection, mode)" Type="int">
+                        @L.T("某个版本在某一等级、某一种模式下最多能容纳的字符数。", "The largest number of characters a version holds at a level, in a given mode.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="QrMatrix">
+                    <ApiParameter Name="this[int x, int y]" Type="bool">
+                        @L.T("该坐标上的模块是否为深色。越界读取按浅色处理，所以渲染器可以一路走完静区而不必做边界检查。", "Whether the module at that position is dark. Out-of-range reads as light, so a renderer can walk the quiet zone without bounds checks.")
+                    </ApiParameter>
+                    <ApiParameter Name="Size" Type="int">
+                        @L.T("宽高以模块计，不含静区。", "The width and height in modules, excluding the quiet zone.")
+                    </ApiParameter>
+                    <ApiParameter Name="Version" Type="int">
+                        @L.T("QR 版本，1 到 40。", "The QR version, 1 to 40.")
+                    </ApiParameter>
+                    <ApiParameter Name="ErrorCorrection" Type="QrErrorCorrection">
+                        @L.T("构建这个码时采用的容错等级。", "The level the code was built with.")
+                    </ApiParameter>
+                    <ApiParameter Name="Mask" Type="int">
+                        @L.T("应用到数据区域的掩码样式，0 到 7。", "The mask pattern applied to the data region, 0 to 7.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="Mode" Type="QrEncodingMode">
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">Numeric</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Alphanumeric</code> 或 <code class="text-xs bg-muted px-1 py-0.5 rounded">Byte</code>。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="Mode" Type="QrEncodingMode">
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">Numeric</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Alphanumeric</code> or <code class="text-xs bg-muted px-1 py-0.5 rounded">Byte</code>.
+                        </ApiParameter>
+                                        </text>
+}
+                </ApiReference>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private const string logoSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="10" fill="#1e293b"/><path d="M14 34V14h9a6 6 0 0 1 0 12h-9m0 0h10a6 6 0 0 1 0 8H14" fill="none" stroke="#f8fafc" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        """;
+
+    private static readonly string logoDataUrl =
+        "data:image/svg+xml;base64," + Convert.ToBase64String(Encoding.UTF8.GetBytes(logoSvg));
+
+    private readonly QrErrorCorrection[] levels =
+    [
+        QrErrorCorrection.Low,
+        QrErrorCorrection.Medium,
+        QrErrorCorrection.Quartile,
+        QrErrorCorrection.High,
+    ];
+
+    private readonly QrCodeModuleShape[] shapes =
+    [
+        QrCodeModuleShape.Square,
+        QrCodeModuleShape.Rounded,
+        QrCodeModuleShape.Dot,
+    ];
+
+    private readonly SelectOption<string>[] payloadOptions =
+    [
+        new("url", "Open a web page"),
+        new("wifi", "Join a wi-fi network"),
+        new("mailto", "Start an email"),
+        new("tel", "Dial a number"),
+        new("sms", "Start a text message"),
+        new("geo", "Drop a map pin"),
+        new("vcard", "Add a contact"),
+        new("otp", "Set up an authenticator app"),
+    ];
+
+    private const string overlongSeed = "This string is deliberately longer than any QR code can hold. ";
+
+    private static readonly string overlongValue = string.Concat(Enumerable.Repeat(overlongSeed, 40));
+
+    private static readonly string correctionSample = "https://example.com";
+
+    private string liveValue = "https://example.com";
+    private string payloadKey = "url";
+
+    private QrMatrix? liveMatrix;
+    private QrCode? downloadCode;
+
+    private string SelectedPayload => payloadKey switch
+    {
+        "wifi" => "WIFI:T:WPA;S:Guest network;P:welcome123;;",
+        "mailto" => "mailto:hello@example.com?subject=Hello&body=I%20scanned%20your%20code",
+        "tel" => "tel:+441234567890",
+        "sms" => "SMSTO:+441234567890:Send me the docs",
+        "geo" => "geo:51.5074,-0.1278?q=London",
+        "vcard" => "BEGIN:VCARD\nVERSION:3.0\nN:Taylor;Mathew\nORG:Atom BlazorUI\nURL:https://example.com",
+        "otp" => "otpauth://totp/Atom%20BlazorUI:demo?secret=JBSWY3DPEHPK3PXP&issuer=Atom%20BlazorUI",
+        _ => "https://example.com",
+    };
+
+    private static string Recovery(QrErrorCorrection level) => level switch
+    {
+        QrErrorCorrection.Low => "about 7%",
+        QrErrorCorrection.Medium => "about 15%",
+        QrErrorCorrection.Quartile => "about 25%",
+        _ => "about 30%",
+    };
+
+    private string SelectedPayloadLabel =>
+        "QR code to " + (payloadOptions.FirstOrDefault(o => o.Value == payloadKey)?.Text?.ToLowerInvariant()
+            ?? "open a web page");
+
+    private string DownloadHref
+    {
+        get
+        {
+            var markup = downloadCode?.GetSvg();
+            return markup is null
+                ? "#"
+                : "data:image/svg+xml;base64," + Convert.ToBase64String(Encoding.UTF8.GetBytes(markup));
+        }
+    }
+
+    private static string AsciiArt
+    {
+        get
+        {
+            var code = QrEncoder.Encode("Atom BlazorUI", QrErrorCorrection.Low);
+            var builder = new StringBuilder();
+
+            // Two rows of quiet zone above and below, four columns either side.
+            for (var y = -2; y < code.Size + 2; y++)
+            {
+                for (var x = -4; x < code.Size + 4; x++)
+                {
+                    builder.Append(code[x, y] ? "██" : "  ");
+                }
+
+                builder.Append('\n');
+            }
+
+            return builder.ToString();
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        // The @ref behind the download link is only populated after the first render, so the link
+        // needs one more pass before it has an SVG to point at.
+        if (firstRender)
+        {
+            StateHasChanged();
+        }
+    }
+}

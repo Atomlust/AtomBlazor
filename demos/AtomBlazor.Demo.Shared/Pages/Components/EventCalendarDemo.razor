@@ -1,0 +1,639 @@
+@page "/components/event-calendar"
+
+<PageTitle>@L.T("Event Calendar 事件日历组件 - Atom BlazorUI", "Event Calendar Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-5xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Event Calendar 事件日历组件", "Event Calendar Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("以月网格、按周分列或时间顺序的日程视图展示事件。组件对事件类型泛型化——用访问器委托映射你自己的模型，而不必改造模型。", "Displays events in a month grid, week columns, or a chronological agenda. Generic over your own event type — map it with accessor delegates instead of adapting your model.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Month View -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基础月视图", "Basic Month View")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    通过 <code class="bg-muted px-1 py-0.5 rounded">Items</code> 传入事件，并用
+                    <code class="bg-muted px-1 py-0.5 rounded">EventStart</code>、<code class="bg-muted px-1 py-0.5 rounded">EventEnd</code>
+                    与 <code class="bg-muted px-1 py-0.5 rounded">EventTitle</code> 完成映射。每天最多显示
+                    <code class="bg-muted px-1 py-0.5 rounded">MaxEventsPerDay</code> 个事件条；本地化的 "+x more" 按钮
+                    会跳转到日程视图中的那一天。跨天事件会绘制为横跨其所覆盖日期的一根长条，
+                    跨越周边界时则每周行绘制一根长条。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Pass your events via <code class="bg-muted px-1 py-0.5 rounded">Items</code> and map them with
+                    <code class="bg-muted px-1 py-0.5 rounded">EventStart</code>, <code class="bg-muted px-1 py-0.5 rounded">EventEnd</code>,
+                    and <code class="bg-muted px-1 py-0.5 rounded">EventTitle</code>. Days show up to
+                    <code class="bg-muted px-1 py-0.5 rounded">MaxEventsPerDay</code> chips; the localized "+x more" button
+                    jumps to that day in the agenda view. A multi-day event is drawn as one bar across the days it covers,
+                    and as one bar per week row when it crosses a week boundary.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="border rounded-lg p-6">
+            <EventCalendar Items="events"
+                             EventStart="e => e.Start"
+                             EventEnd="e => e.End"
+                             EventTitle="e => e.Title" />
+        </div>
+        <CodeBlock Source="Components/EventCalendar/basic.txt" />
+    </div>
+
+    <!-- Multi-Day Events -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("跨天事件", "Multi-Day Events")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    把事件的 <code class="bg-muted px-1 py-0.5 rounded">EventEnd</code> 设在更晚的一天，
+                    它就会绘制成横跨所覆盖日期的一根长条，而不是每天一个独立事件条。重叠的长条会堆叠——最长的
+                    在最上方——互不接触的长条共享同一行。跨越周边界的长条变成每行一根，
+                    在接缝处收平，让两半读起来是同一个事件。无需任何开关。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Give an event an <code class="bg-muted px-1 py-0.5 rounded">EventEnd</code> on a later day and it is drawn
+                    as one bar across the days it covers, not a separate chip in each of them. Overlapping runs stack — longest
+                    at the top — and runs that never touch share a line. A run crossing a week boundary becomes one bar per row,
+                    squared off at the join so the two halves read as one event. Nothing to switch on.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="border rounded-lg p-6">
+            <EventCalendar Items="trips"
+                             EventStart="e => e.Start"
+                             EventEnd="e => e.End"
+                             EventTitle="e => e.Title"
+                             EventClass="e => e.Class"
+                             MaxEventsPerDay="4" />
+        </div>
+        <CodeBlock Source="Components/EventCalendar/multi-day.txt" />
+    </div>
+
+    <!-- Per-Event Colors -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("按事件着色", "Per-Event Colors")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="bg-muted px-1 py-0.5 rounded">EventClass</code> 为每个事件返回额外的 CSS 类——
+                    例如按类别给事件条着色。这些类会与内置的事件条样式合并。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="bg-muted px-1 py-0.5 rounded">EventClass</code> to return extra CSS classes per event —
+                    for example to color chips by category. Classes are merged with the built-in chip styling.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="border rounded-lg p-6">
+            <EventCalendar Items="events"
+                             EventStart="e => e.Start"
+                             EventEnd="e => e.End"
+                             EventTitle="e => e.Title"
+                             EventClass="GetCategoryClass" />
+        </div>
+        <CodeBlock Source="Components/EventCalendar/colors.txt" />
+    </div>
+
+    <!-- Custom Event Template -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义事件模板", "Custom Event Template")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="bg-muted px-1 py-0.5 rounded">EventTemplate</code> 会完全替换内置事件条的内容；
+                    事件条按钮上只保留最少的布局与焦点类。可与
+                    <code class="bg-muted px-1 py-0.5 rounded">EventClass</code> 组合做事件条级样式。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="bg-muted px-1 py-0.5 rounded">EventTemplate</code> replaces the built-in chip content entirely;
+                    only minimal layout and focus classes remain on the chip button. Combine with
+                    <code class="bg-muted px-1 py-0.5 rounded">EventClass</code> for chip-level styling.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="border rounded-lg p-6">
+            <EventCalendar Items="events"
+                             EventStart="e => e.Start"
+                             EventEnd="e => e.End"
+                             EventTitle="e => e.Title"
+                             EventClass="GetCategoryClass">
+                <EventTemplate>
+                    <span class="flex items-center gap-1 px-1.5 py-0.5">
+                        <LucideIcon Name="@GetCategoryIcon(context)" Size="12" Class="shrink-0" />
+                        <span class="truncate text-xs font-medium">@context.Title</span>
+                    </span>
+                </EventTemplate>
+            </EventCalendar>
+        </div>
+        <CodeBlock Source="Components/EventCalendar/template.txt" />
+    </div>
+
+    <!-- Views & Navigation -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <h2 class="text-2xl font-semibold">视图与导航</h2>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <h2 class="text-2xl font-semibold">Views &amp; Navigation</h2>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="bg-muted px-1 py-0.5 rounded">@@bind-View</code> 绑定当前视图，用
+                    <code class="bg-muted px-1 py-0.5 rounded">@@bind-CurrentDate</code> 绑定可见区间。周视图按开始时间
+                    把每天的事件堆叠排列（v1 没有小时网格），日程视图则按时间顺序列出当前月份的事件。
+                    <code class="bg-muted px-1 py-0.5 rounded">OnViewRangeChanged</code> 上报可见范围——便于按需加载
+                    事件。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Bind the active view with <code class="bg-muted px-1 py-0.5 rounded">@@bind-View</code> and the visible period with
+                    <code class="bg-muted px-1 py-0.5 rounded">@@bind-CurrentDate</code>. The week view stacks each day's events in start
+                    order (no hour grid in v1), and the agenda view lists the current month chronologically.
+                    <code class="bg-muted px-1 py-0.5 rounded">OnViewRangeChanged</code> reports the visible range — useful for loading
+                    events on demand.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="border rounded-lg p-6 space-y-4">
+            <EventCalendar Items="events"
+                             EventStart="e => e.Start"
+                             EventEnd="e => e.End"
+                             EventTitle="e => e.Title"
+                             EventClass="GetCategoryClass"
+                             @bind-View="currentView"
+                             @bind-CurrentDate="currentDate"
+                             OnDateClick="d => lastClickedDate = d"
+                             OnViewRangeChanged="r => visibleRange = r" />
+            <div class="text-sm text-muted-foreground space-y-1">
+                <p>@L.T("当前视图：", "Active view:") <span class="font-medium text-foreground">@currentView</span></p>
+                <p>@L.T("可见区间：", "Visible range:") <span class="font-medium text-foreground">@visibleRange.Start.ToShortDateString() – @visibleRange.End.ToShortDateString()</span></p>
+                @if (lastClickedDate is not null)
+                {
+                    <p>@L.T("最近点击的日期：", "Last clicked date:") <span class="font-medium text-foreground">@lastClickedDate.Value.ToLongDateString()</span></p>
+                }
+            </div>
+        </div>
+        <CodeBlock Source="Components/EventCalendar/views.txt" />
+    </div>
+
+    <!-- Handling Event Clicks -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("处理事件点击", "Handling Event Clicks")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="bg-muted px-1 py-0.5 rounded">OnEventClick</code> 收到被点击的事件——是你自己的模型，
+                    不是包装类型——因此可以打开详情面板、对话框或执行导航。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="bg-muted px-1 py-0.5 rounded">OnEventClick</code> receives the clicked event — your own model,
+                    not a wrapper — so you can open a details panel, dialog, or navigate.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="border rounded-lg p-6 space-y-4">
+            <EventCalendar Items="events"
+                             EventStart="e => e.Start"
+                             EventEnd="e => e.End"
+                             EventTitle="e => e.Title"
+                             EventClass="GetCategoryClass"
+                             OnEventClick="(DemoEvent e) => selectedEvent = e" />
+            @if (selectedEvent is not null)
+            {
+                <Card>
+                    <CardHeader>
+                        <CardTitle>@selectedEvent.Title</CardTitle>
+                        <CardDescription>
+                            @selectedEvent.Start.ToString("f")
+                            @if (selectedEvent.End is not null)
+                            {
+                                <text> – @selectedEvent.End.Value.ToString("f")</text>
+                            }
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Badge Variant="BadgeVariant.Outline">@selectedEvent.Category</Badge>
+                    </CardContent>
+                </Card>
+            }
+        </div>
+        <CodeBlock Source="Components/EventCalendar/event-click.txt" />
+    </div>
+
+    <!-- Filling the available height -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("填充可用高度", "Filling the Available Height")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="bg-muted px-1 py-0.5 rounded">Class</code> 作用于根元素，它同时包裹着工具条与
+                    视图，所以给根元素定尺寸并不等于给日历定尺寸。
+                    <code class="bg-muted px-1 py-0.5 rounded">ContainerClass</code> 则作用于视图容器本身——
+                    月网格、周网格或日程列表。把根元素设为纵向弹性盒，让视图撑满工具条之外剩余的高度。
+                    这些类在每个视图中都同样生效，切换视图后高度依然保持。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="bg-muted px-1 py-0.5 rounded">Class</code> styles the root, which wraps the toolbar as well
+                    as the view, so sizing it does not size the calendar.
+                    <code class="bg-muted px-1 py-0.5 rounded">ContainerClass</code> styles the view container itself — the
+                    month grid, the week grid, or the agenda list. Make the root a column flex box and let the view grow into
+                    what the toolbar leaves behind. The same classes apply in every view, so the height survives a switch.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="border rounded-lg p-6">
+            <div class="h-[28rem]">
+                <EventCalendar Items="events"
+                                 EventStart="e => e.Start"
+                                 EventEnd="e => e.End"
+                                 EventTitle="e => e.Title"
+                                 Class="flex h-full flex-col"
+                                 ContainerClass="grow overflow-auto" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/EventCalendar/container-class.txt" />
+    </div>
+
+    <!-- v1 Notes -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <h2 class="text-2xl font-semibold">说明与限制</h2>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <h2 class="text-2xl font-semibold">Notes &amp; Limitations</h2>
+                        </text>
+}
+            <ul class="list-disc pl-6 text-sm text-muted-foreground space-y-1">
+                <li>@L.T("跨天长条在月视图与周视图中绘制。日程视图会逐日分别列出，这正是按时间排序列表的用途。", "Multi-day bars are drawn in the month and week views. The agenda view lists each day separately, which is what a chronological list is for.")</li>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <li>长条在其覆盖的每一天都会占用当天的 <code class="bg-muted px-1 py-0.5 rounded">MaxEventsPerDay</code> 名额；超出名额的长条与事件条一样归入 "+x more"。</li>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <li>A bar spends the day's <code class="bg-muted px-1 py-0.5 rounded">MaxEventsPerDay</code> budget in every day it covers; bars past the budget fall into "+x more" like chips do.</li>
+                                </text>
+}
+                <li>@L.T("周视图是按开始时间排序的逐日堆叠列表；没有小时网格，也没有拖拽创建。", "The week view is a stacked per-day list ordered by start time; there is no hour grid or drag-to-create.")</li>
+                <li>@L.T("当事件的开始（及结束，若有）恰好落在零点整时，该事件被视为全天事件。", "An event is treated as all-day when its start (and end, if any) fall exactly on midnight.")</li>
+                <li>@L.T("事件可按 Tab 键序依次到达；月网格本身没有方向键导航。", "Events are reached in tab order; the month grid has no arrow-key navigation of its own.")</li>
+            </ul>
+        </div>
+    </div>
+
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("月视图与周视图使用 role=“grid”，并带有 role=“row”、role=“columnheader” 与 role=“gridcell”", "The month and week views use role=\"grid\" with role=\"row\", role=\"columnheader\", and role=\"gridcell\"")</AccessibilityItem>
+            <AccessibilityItem>@L.T("日期格与日期按钮带有 aria-label，内容为完整的本地化日期", "Day cells and day buttons carry aria-label with the full localized date")</AccessibilityItem>
+            <AccessibilityItem>@L.T("每个事件都是真正的按钮——可点击，且可通过 Tab 键序到达", "Every event is a real button — clickable and keyboard reachable via tab order")</AccessibilityItem>
+            <AccessibilityItem>@L.T("导航按钮带有本地化的 aria-label；视图切换按钮暴露 aria-pressed", "Navigation buttons have localized aria-labels; view switcher buttons expose aria-pressed")</AccessibilityItem>
+            <AccessibilityItem>@L.T("页眉标题使用 aria-live=“polite”，区间变化会被播报", "The header title uses aria-live=\"polite\" so period changes are announced")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在导航控件、日期按钮与事件条之间移动", "Move through navigation controls, day buttons, and event chips"))">
+                <Kbd>Tab</Kbd> / <Kbd>Shift+Tab</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("激活聚焦的按钮（导航、切换视图，或触发事件/日期回调）", "Activate the focused button (navigate, switch view, or raise event/date callbacks)"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+<ApiReference ComponentName="EventCalendar">
+            <ApiParameter Name="Items" Type="IEnumerable&lt;TEvent&gt;?" Default="null">
+                @L.T("要显示的事件。TEvent 是你自己的模型类型。", "The events to display. TEvent is your own model type.")
+            </ApiParameter>
+            <ApiParameter Name="EventStart" Type="Func&lt;TEvent, DateTime&gt;" Default="required">
+                @L.T("返回事件的开始日期/时间。", "Returns the start date/time of an event.")
+            </ApiParameter>
+            <ApiParameter Name="EventEnd" Type="Func&lt;TEvent, DateTime?&gt;?" Default="null">
+                @L.T("返回事件的结束日期/时间；时间点事件返回 null。当委托本身为 null 时，所有事件都视为时间点事件。结束日期落在比开始更晚一天的事件，会绘制成横跨其所覆盖日期的一根长条，跨越周边界时则每周行绘制一根长条。", "Returns the end date/time of an event, or null for a point-in-time event. When the delegate itself is null, all events are point-in-time. An event whose end date falls on a later day than its start is drawn as one bar across the days it covers, and as one bar per week row when it crosses a week boundary.")
+            </ApiParameter>
+            <ApiParameter Name="EventTitle" Type="Func&lt;TEvent, string&gt;" Default="required">
+                @L.T("返回事件的显示标题。", "Returns the display title of an event.")
+            </ApiParameter>
+            <ApiParameter Name="EventClass" Type="Func&lt;TEvent, string?&gt;?" Default="null">
+                @L.T("返回特定事件事件条的额外 CSS 类，与内置事件条类合并。用于按事件着色。", "Returns additional CSS classes for a specific event's chip, merged with the built-in chip classes. Use for per-event coloring.")
+            </ApiParameter>
+            <ApiParameter Name="EventTemplate" Type="RenderFragment&lt;TEvent&gt;?" Default="null">
+                @L.T("完全替换内置事件条内容的模板。事件条按钮上只保留最少的布局/焦点类。", "Template that fully replaces the built-in event chip content. Only minimal layout/focus classes remain on the chip button.")
+            </ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="View" Type="EventCalendarView" Default="EventCalendarView.Month">
+                    当前视图（Month、Week 或 Agenda）。使用 @@bind-View 进行双向绑定。
+                </ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="View" Type="EventCalendarView" Default="EventCalendarView.Month">
+                    The active view (Month, Week, or Agenda). Use @@bind-View for two-way binding.
+                </ApiParameter>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="CurrentDate" Type="DateTime" Default="DateTime.Today">
+                    控制可见区间的日期（所在月份或周）。使用 @@bind-CurrentDate 进行双向绑定。
+                </ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="CurrentDate" Type="DateTime" Default="DateTime.Today">
+                    The date that controls the visible period (the month or week containing it). Use @@bind-CurrentDate for two-way binding.
+                </ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="FirstDayOfWeek" Type="DayOfWeek?" Default="null">
+                @L.T("一周的第一天。默认取当前文化设置的一周首日。", "The first day of the week. Defaults to the current culture's first day of the week.")
+            </ApiParameter>
+            <ApiParameter Name="MaxEventsPerDay" Type="int" Default="3">
+                @L.T("月视图中每天显示的事件条上限，超出后出现 “+x more” 溢出按钮。点击溢出按钮会跳转到日程视图中的那一天。", "Maximum event chips per day in the month view before the \"+x more\" overflow button appears. Clicking the overflow navigates to that day in the agenda view.")
+            </ApiParameter>
+            <ApiParameter Name="OnEventClick" Type="EventCallback&lt;TEvent&gt;">
+                @L.T("点击事件条时的回调。", "Callback when an event chip is clicked.")
+            </ApiParameter>
+            <ApiParameter Name="OnDateClick" Type="EventCallback&lt;DateTime&gt;">
+                @L.T("点击日期数字（月视图）或日期表头（周视图）时的回调。", "Callback when a day number (month view) or day header (week view) is clicked.")
+            </ApiParameter>
+            <ApiParameter Name="OnViewRangeChanged" Type="EventCallback&lt;EventCalendarRange&gt;">
+                @L.T("可见日期区间变化（含初始区间）时的回调。EventCalendarRange 暴露闭区间 Start 与 End 日期。", "Callback when the visible date range changes, including the initial range. EventCalendarRange exposes inclusive Start and End dates.")
+            </ApiParameter>
+            <ApiParameter Name="Class" Type="string?" Default="null">
+                @L.T("根元素的额外 CSS 类。", "Additional CSS classes for the root element.")
+            </ApiParameter>
+            <ApiParameter Name="ContainerClass" Type="string?" Default="null">
+                @L.T("视图容器——月网格、周网格或日程列表——而非根元素的额外 CSS 类。根元素还包裹了工具条，因此要让日历撑满整页，应调整的是这个容器。", "Additional CSS classes for the view container — the month grid, the week grid, or the agenda list — rather than the root. The root also wraps the toolbar, so this is what you size to make the calendar fill a page.")
+            </ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                </ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                </ApiParameter>
+                        </text>
+}
+        </ApiReference>
+
+        <ApiReference ComponentName="EventCalendar">
+            <ApiParameter Name="EventStart" Type="Func&lt;TEvent, DateTime&gt;">@L.T("必填函数，返回每个事件的开始日期与时间。", "Required function returning each event's start date and time.")</ApiParameter>
+            <ApiParameter Name="EventTitle" Type="Func&lt;TEvent, string&gt;">@L.T("必填函数，返回每个事件的显示标题。", "Required function returning each event's display title.")</ApiParameter>
+            <ApiParameter Name="Items" Type="IEnumerable&lt;TEvent&gt;?">@L.T("要显示的事件。", "The events to display.")</ApiParameter>
+            <ApiParameter Name="EventEnd" Type="Func&lt;TEvent, DateTime?&gt;?">@L.T("返回事件的结束日期/时间；时间点事件返回 null。当委托本身为 null 时，所有事件都视为时间点事件。结束日期落在比开始更晚一天的事件，会绘制成横跨其所覆盖日期的一根长条，跨越周边界时则每周行绘制一根长条。", "Returns the end date/time of an event, or null for a point-in-time event. When the delegate itself is null, all events are treated as point-in-time. An event whose end date falls on a later day than its start is drawn as one bar across the days it covers, and as one bar per week row when it crosses a week boundary.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="EventClass" Type="Func&lt;TEvent, string?&gt;?">返回特定事件事件条的额外 CSS 类，与内置事件条类合并。用于按事件着色（例如按类别）。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="EventClass" Type="Func&lt;TEvent, string?&gt;?">Returns additional CSS classes for a specific event&#x27;s chip, merged with the built-in chip classes. Use this for per-event coloring (e.g. by category).</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="EventTemplate" Type="RenderFragment&lt;TEvent&gt;?">@L.T("可选模板，完全替换内置事件条的内容。设置后事件条按钮只应用最少的布局/焦点类；可与 EventClass 组合做事件条级样式。", "Optional template that fully replaces the built-in event chip content. When set, only minimal layout/focus classes are applied to the chip button; combine with EventClass for chip-level styling.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="View" Type="EventCalendarView" Default="EventCalendarView.Month">当前视图。使用 @@bind-View 进行双向绑定。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="View" Type="EventCalendarView" Default="EventCalendarView.Month">The active view. Use @@bind-View for two-way binding.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="ViewChanged" Type="EventCallback&lt;EventCalendarView&gt;">@L.T("当前视图变化时的回调。", "Callback when the active view changes.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="CurrentDate" Type="DateTime" Default="DateTime.Today">控制可见区间的日期（所在月份或周）。使用 @@bind-CurrentDate 进行双向绑定。默认为今天。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="CurrentDate" Type="DateTime" Default="DateTime.Today">The date that controls the visible period (the month or week containing it). Use @@bind-CurrentDate for two-way binding. Defaults to today.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="CurrentDateChanged" Type="EventCallback&lt;DateTime&gt;">@L.T("通过导航改变当前日期时的回调。", "Callback when the current date changes through navigation.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="FirstDayOfWeek" Type="DayOfWeek?">一周的第一天。默认取当前文化的一周首日。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="FirstDayOfWeek" Type="DayOfWeek?">The first day of the week. Defaults to the current culture&#x27;s first day of the week.</ApiParameter>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="MaxEventsPerDay" Type="int" Default="3">月视图中每天最多显示的事件条数量，超出后出现溢出按钮 “+x more”。默认为 3。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="MaxEventsPerDay" Type="int" Default="3">The maximum number of event chips shown per day in the month view before the overflow &quot;+x more&quot; button appears. Defaults to 3.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="OnEventClick" Type="EventCallback&lt;TEvent&gt;">@L.T("点击事件条时的回调。", "Callback when an event chip is clicked.")</ApiParameter>
+            <ApiParameter Name="OnDateClick" Type="EventCallback&lt;DateTime&gt;">@L.T("点击日期数字（月视图）或日期表头（周视图）时的回调。", "Callback when a day number (month view) or day header (week view) is clicked.")</ApiParameter>
+            <ApiParameter Name="OnViewRangeChanged" Type="EventCallback&lt;EventCalendarRange&gt;">@L.T("可见日期区间变化（含初始区间）时的回调。便于按需加载事件。", "Callback when the visible date range changes (including the initial range). Useful for loading events on demand.")</ApiParameter>
+            <ApiParameter Name="Class" Type="string?">@L.T("应用到根元素上的额外 CSS 类。", "Additional CSS classes to apply to the root element.")</ApiParameter>
+            <ApiParameter Name="ContainerClass" Type="string?">@L.T("应用到视图容器（月网格、周网格或日程列表）而非根元素上的额外 CSS 类。根元素还包裹了工具条，因此给它定尺寸并不等于给视图定尺寸。", "Additional CSS classes to apply to the view container (month grid, week grid or agenda list) rather than the root element. The root wraps the toolbar too, so sizing it does not size the view.")</ApiParameter>
+            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">@L.T("应用到根元素上的额外属性。", "Additional attributes to apply to the root element.")</ApiParameter>
+        </ApiReference>
+    </section>
+
+<LocalizationSection
+        Description="@(L.T("事件日历的全部界面文案——视图名称、导航标签、溢出与空状态文本——均可配置。", "All Event Calendar chrome strings — view names, navigation labels, and the overflow/empty-state text — are configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("Today", "Today", L.T("今天按钮的文案。", "Label for the today button")),
+            new("Month", "Month", L.T("月视图切换按钮的文案。", "Month view switcher label")),
+            new("Week", "Week", L.T("周视图切换按钮的文案。", "Week view switcher label")),
+            new("Agenda", "Agenda", L.T("日程视图切换按钮的文案。", "Agenda view switcher label")),
+            new("PreviousPeriod", "Go to previous period", L.T("上一个按钮的 Aria 标签。", "Aria label for the previous button")),
+            new("NextPeriod", "Go to next period", L.T("下一个按钮的 Aria 标签。", "Aria label for the next button")),
+            new("ViewSwitcher", "Calendar view", L.T("视图切换组的 Aria 标签。", "Aria label for the view switcher group")),
+            new("MoreEvents", "+{0} more", L.T("溢出按钮文案；{0} 是被隐藏的事件数。", "Overflow button label; {0} is the hidden event count")),
+            new("NoEvents", "No events to display.", L.T("日程视图的空状态文案。", "Agenda view empty state")),
+            new("AllDay", "All day", L.T("全天事件的时间标签。", "Time label for all-day events")),
+        })"
+        CultureAware="true"
+        CultureDescription="@(L.T("月份/日期名称、日期页眉与时间标签都取自 CultureInfo.CurrentCulture。一周的首日默认跟随文化设置，除非用 FirstDayOfWeek 覆盖。", "Month/day names, date headers, and time labels are derived from CultureInfo.CurrentCulture. The first day of the week follows the culture unless overridden with FirstDayOfWeek."))"
+        CodeExample="@(@"services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""EventCalendar.Today"", ""Heute"");
+    localizer.Set(""EventCalendar.MoreEvents"", ""+{0} weitere"");
+});")" />
+
+    <!-- API Reference -->
+    <div class="space-y-4">
+
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private sealed record DemoEvent(string Title, DateTime Start, DateTime? End, string Category);
+
+    private static readonly DateTime today = DateTime.Today;
+
+    private sealed record Trip(string Title, DateTime Start, DateTime? End, string Class);
+
+    private static readonly DateTime monthStart = new(DateTime.Today.Year, DateTime.Today.Month, 1);
+
+    private readonly List<Trip> trips = new()
+    {
+        new("Onsite week", monthStart.AddDays(7), monthStart.AddDays(11), "bg-blue-500/15 text-blue-700 hover:bg-blue-500/25"),
+        new("Design sprint", monthStart.AddDays(9), monthStart.AddDays(14), "bg-purple-500/15 text-purple-700 hover:bg-purple-500/25"),
+        new("Conference", monthStart.AddDays(2), monthStart.AddDays(4), "bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/25"),
+        new("Retro", monthStart.AddDays(3), null, "bg-orange-500/15 text-orange-700 hover:bg-orange-500/25"),
+    };
+
+    private readonly List<DemoEvent> events = new()
+    {
+        new("Standup", today.AddHours(9), today.AddHours(9.25), "meeting"),
+        new("Sprint planning", today.AddHours(10), today.AddHours(11.5), "meeting"),
+        new("Marketing sync", today.AddHours(13), today.AddHours(13.75), "meeting"),
+        new("Retro", today.AddHours(16), today.AddHours(17), "meeting"),
+        new("Demo prep", today.AddHours(17), null, "release"),
+        new("1:1 with Sam", today.AddDays(-2).AddHours(15), today.AddDays(-2).AddHours(15.5), "meeting"),
+        new("Design review", today.AddDays(1).AddHours(13), today.AddDays(1).AddHours(14), "meeting"),
+        new("Dentist", today.AddDays(1).AddHours(8.5), null, "personal"),
+        new("Release v3.13", today.AddDays(3), null, "release"),
+        new("Code freeze", today.AddDays(5), null, "release"),
+        new("DotNet Conf", today.AddDays(7), today.AddDays(9), "travel"),
+    };
+
+    private EventCalendarView currentView = EventCalendarView.Week;
+    private DateTime currentDate = today;
+    private DateTime? lastClickedDate;
+    private EventCalendarRange visibleRange;
+    private DemoEvent? selectedEvent;
+
+    private string? GetCategoryClass(DemoEvent e) => e.Category switch
+    {
+        "meeting" => "bg-sky-500/15 text-sky-700 hover:bg-sky-500/25 dark:text-sky-400",
+        "release" => "bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/25 dark:text-emerald-400",
+        "travel" => "bg-amber-500/15 text-amber-700 hover:bg-amber-500/25 dark:text-amber-400",
+        "personal" => "bg-violet-500/15 text-violet-700 hover:bg-violet-500/25 dark:text-violet-400",
+        _ => null,
+    };
+
+    private string GetCategoryIcon(DemoEvent e) => e.Category switch
+    {
+        "meeting" => "users",
+        "release" => "rocket",
+        "travel" => "plane",
+        "personal" => "heart",
+        _ => "calendar",
+    };
+}

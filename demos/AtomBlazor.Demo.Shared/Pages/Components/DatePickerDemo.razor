@@ -1,0 +1,597 @@
+@page "/components/date-picker"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("日期选择器组件 - Atom BlazorUI", "Date Picker Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("日期选择器组件", "Date Picker Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("带弹出日历的日期选择器组件。", "A date picker component with a popover calendar.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本示例", "Basic Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("点击按钮打开日历弹出层并选择日期。", "Click the button to open the calendar popover and select a date.")
+            </p>
+        </div>
+        <DatePicker AriaLabel="@(L.T("选择日期", "Choose a date"))" @bind-Value="_basicDate" />
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                已选择：@(_basicDate?.ToString("MMMM d, yyyy") ?? "无")
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Selected: @(_basicDate?.ToString("MMMM d, yyyy") ?? "None")
+            </p>
+                </text>
+}
+        <CodeBlock Source="Components/DatePicker/basic.txt" />
+    </div>
+
+    <!-- With Preselected Date -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("预选日期", "Preselected Date")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带初始值的日期选择器。", "Date picker with an initial value.")
+            </p>
+        </div>
+        <DatePicker @bind-Value="_preselectedDate" />
+        <CodeBlock Source="Components/DatePicker/preselected.txt" />
+    </div>
+
+    <!-- Custom Placeholder -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义占位文案", "Custom Placeholder")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("自定义未选择日期时显示的占位文本。", "Customize the placeholder text when no date is selected.")
+            </p>
+        </div>
+        <DatePicker @bind-Value="_customPlaceholder" Placeholder="@(L.T("请选择出生日期", "Select birth date"))" />
+        <CodeBlock Source="Components/DatePicker/custom-placeholder.txt" />
+    </div>
+
+    <!-- Custom Date Format -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义日期格式", "Custom Date Format")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("自定义所选日期的显示方式。", "Customize how the selected date is displayed.")
+            </p>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <p class="text-sm mb-2">@L.T("长格式（默认）：", "Long format (default):")</p>
+                <DatePicker @bind-Value="_formatDate1" DateFormat="MMMM d, yyyy" />
+            </div>
+            <div>
+                <p class="text-sm mb-2">@L.T("短格式：", "Short format:")</p>
+                <DatePicker @bind-Value="_formatDate2" DateFormat="MM/dd/yyyy" />
+            </div>
+            <div>
+                <p class="text-sm mb-2">@L.T("ISO 格式：", "ISO format:")</p>
+                <DatePicker @bind-Value="_formatDate3" DateFormat="yyyy-MM-dd" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/DatePicker/custom-format.txt" />
+    </div>
+
+    <!-- Date Constraints -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("日期限制", "Date Constraints")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("限定可选择的日期范围。", "Limit the selectable date range.")
+            </p>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <p class="text-sm mb-2">@L.T("仅今天起的未来日期：", "Future dates only (from today):")</p>
+                <DatePicker @bind-Value="_futureDate" MinDate="@DateTime.Today" />
+            </div>
+            <div>
+                <p class="text-sm mb-2">@L.T("仅今天止的历史日期：", "Past dates only (until today):")</p>
+                <DatePicker @bind-Value="_pastDate" MaxDate="@DateTime.Today" />
+            </div>
+            <div>
+                <p class="text-sm mb-2">@L.T("仅未来 30 天：", "Next 30 days only:")</p>
+                <DatePicker @bind-Value="_rangeDate" MinDate="@DateTime.Today" MaxDate="@DateTime.Today.AddDays(30)" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/DatePicker/constraints.txt" />
+    </div>
+
+    <!-- Disabled Weekends -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用日期", "Disabled Dates")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("用自定义函数禁用指定日期。", "Disable specific dates using a custom function.")
+            </p>
+        </div>
+        <div>
+            <p class="text-sm mb-2">@L.T("不含周末：", "No weekends:")</p>
+            <DatePicker @bind-Value="_noWeekendsDate" DisabledDates="@IsWeekend" />
+        </div>
+        <CodeBlock Source="Components/DatePicker/disabled-dates.txt" />
+    </div>
+
+    <!-- Week Start Day -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("每周起始日", "Week Start Day")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("配置一周从星期几开始。", "Configure which day the week starts on.")
+            </p>
+        </div>
+        <div class="flex gap-8">
+            <div>
+                <p class="text-sm mb-2">@L.T("周日（默认）：", "Sunday (default):")</p>
+                <DatePicker @bind-Value="_sundayStart" FirstDayOfWeek="DayOfWeek.Sunday" />
+            </div>
+            <div>
+                <p class="text-sm mb-2">@L.T("周一：", "Monday:")</p>
+                <DatePicker @bind-Value="_mondayStart" FirstDayOfWeek="DayOfWeek.Monday" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/DatePicker/week-start-day.txt" />
+    </div>
+
+    <!-- Per-Day Customization -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("逐日自定义", "Per-Day Customization")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code>DayTemplate</code> 在每个日历日内渲染自定义内容（例如给有数据的日期加一个圆点
+                    标记），用 <code>DayClassFunc</code> 给单个日期设置样式（例如给周末染色）。两者都会转发给底层的日历。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code>DayTemplate</code> to render custom content inside each calendar day (e.g. a dot
+                    marker on days with data) and <code>DayClassFunc</code> to style individual days
+                    (e.g. tint weekends). Both are forwarded to the underlying calendar.
+                </p>
+                        </text>
+}
+        </div>
+        <DatePicker @bind-Value="_customDayDate" DayClassFunc="@GetWeekendDayClass">
+            <DayTemplate>
+                <div class="relative flex h-full w-full items-center justify-center">
+                    @context.Date.Day
+                    @if (HasEvent(context.Date))
+                    {
+                        <span class="absolute bottom-1 h-1 w-1 rounded-full @(context.IsSelected ? "bg-primary-foreground" : "bg-primary")"></span>
+                    }
+                </div>
+            </DayTemplate>
+        </DatePicker>
+        <CodeBlock Source="Components/DatePicker/day-customization.txt" />
+    </div>
+
+    <!-- Manual Entry -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("手动输入", "Manual Entry")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    设置 <code class="text-xs bg-muted px-1 py-0.5 rounded">Editable</code> 后用户可以直接键入日期——
+                    日历仍可通过切换按钮打开。输入的文本会在失焦或按 Enter 时按
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">InputFormats</code>
+                    解析（回落到 <code class="text-xs bg-muted px-1 py-0.5 rounded">DateFormat</code>），
+                    ISO 格式（<code class="text-xs bg-muted px-1 py-0.5 rounded">yyyy-MM-dd</code>）始终接受。
+                    无效的文本会回退为当前值。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Set <code class="text-xs bg-muted px-1 py-0.5 rounded">Editable</code> to let users type
+                    the date directly — the calendar stays available via the toggle button. Typed text is parsed
+                    on blur or Enter against <code class="text-xs bg-muted px-1 py-0.5 rounded">InputFormats</code>
+                    (falling back to <code class="text-xs bg-muted px-1 py-0.5 rounded">DateFormat</code>), and ISO
+                    format (<code class="text-xs bg-muted px-1 py-0.5 rounded">yyyy-MM-dd</code>) is always accepted.
+                    Invalid text reverts to the current value.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-4">
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("所用文化的短日期格式或 ISO", "Culture short date or ISO")</label>
+                <DatePicker @bind-Value="_editableDate" Editable />
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("dd/MM/yyyy（也接受 d/M/yyyy）或 ISO", "dd/MM/yyyy (also d/M/yyyy) or ISO")</label>
+                <DatePicker @bind-Value="_editableDateDmy" Editable
+                              InputFormats="@(new[] { "dd/MM/yyyy", "d/M/yyyy" })"
+                              DateFormat="dd/MM/yyyy"
+                              Placeholder="dd/mm/yyyy" />
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("MM/dd/yyyy（也接受 M/d/yyyy）或 ISO", "MM/dd/yyyy (also M/d/yyyy) or ISO")</label>
+                <DatePicker @bind-Value="_editableDateMdy" Editable
+                              InputFormats="@(new[] { "MM/dd/yyyy", "M/d/yyyy" })"
+                              DateFormat="MM/dd/yyyy"
+                              Placeholder="mm/dd/yyyy" />
+            </div>
+            <div class="rounded-lg border p-3 bg-muted/50 max-w-md">
+                <p class="text-xs text-muted-foreground mb-1">@L.T("已选中的值：", "Selected values:")</p>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm font-mono">@(_editableDate?.ToString("yyyy-MM-dd") ?? "（无）") · @(_editableDateDmy?.ToString("yyyy-MM-dd") ?? "（无）") · @(_editableDateMdy?.ToString("yyyy-MM-dd") ?? "（无）")</p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm font-mono">@(_editableDate?.ToString("yyyy-MM-dd") ?? "(none)") · @(_editableDateDmy?.ToString("yyyy-MM-dd") ?? "(none)") · @(_editableDateMdy?.ToString("yyyy-MM-dd") ?? "(none)")</p>
+                                </text>
+}
+            </div>
+        </div>
+        <CodeBlock Source="Components/DatePicker/manual-entry.txt" />
+    </div>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("手动校验状态", "Manual validation state")</h2>
+        <DatePicker Editable IsInvalid="true" AriaLabel="@(L.T("需要修正的日期", "Date needing correction"))" Placeholder="@(L.T("请输入有效日期", "Enter a valid date"))" />
+        <CodeBlock Source="Components/DatePicker/invalid.txt" />
+    </section>
+
+    <!-- Form Validation with EditForm -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表单校验", "Form Validation")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    DatePicker 与 Blazor 的 EditForm、EditContext 集成以完成模型校验。
+                    在 EditForm 内使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code>，
+                    校验错误会自动通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> 应用错误样式。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    DatePicker integrates with Blazor's EditForm and EditContext for model validation.
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code> within an EditForm and
+                    validation errors will automatically apply error styling via <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <EditForm Model="dateFormModel" OnValidSubmit="HandleDateFormSubmit" class="max-w-md space-y-4">
+            <DataAnnotationsValidator />
+
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("活动日期", "Event Date")</label>
+                <DatePicker @bind-Value="dateFormModel.EventDate" Placeholder="@(L.T("请选择活动日期", "Select event date"))" />
+                <ValidationMessage For="@(() => dateFormModel.EventDate)" class="text-sm text-destructive" />
+            </div>
+
+            <div class="flex gap-4">
+                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Default">@L.T("提交", "Submit")</Button>
+                <Button Type="ButtonType.Button" Variant="ButtonVariant.Outline" OnClick="ResetDateForm">@L.T("重置", "Reset")</Button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(dateFormMessage))
+            {
+                <div class="p-4 bg-card rounded-lg border">
+                    <p class="text-sm">@dateFormMessage</p>
+                </div>
+            }
+        </EditForm>
+    </div>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    触发按钮通过 Popover 基础件带上 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-haspopup</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code>
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Trigger button includes <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-haspopup</code> and <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> via the Popover primitive
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    日历使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="grid"</code>，每个日期带上 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="gridcell"</code>
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Calendar uses <code class="text-xs bg-muted px-1 py-0.5 rounded">role="grid"</code> with <code class="text-xs bg-muted px-1 py-0.5 rounded">role="gridcell"</code> on each day
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-selected</code> 标出当前选中的日期
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-selected</code> indicates the currently selected date
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    导航按钮带有描述性的 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code>（“Go to previous month” / “Go to next month”）
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Navigation buttons include descriptive <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> ("Go to previous month" / "Go to next month")
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    被禁用的日期在日期按钮上带 <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code> 属性
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Disabled dates have the <code class="text-xs bg-muted px-1 py-0.5 rounded">disabled</code> attribute on day buttons
+                </AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("移到前一天/后一天", "Move to the previous/next day"))">
+                <Kbd>ArrowLeft</Kbd> / <Kbd>ArrowRight</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("移到上周/下周的同一天", "Move to the same day in the previous/next week"))">
+                <Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("跳到本月第一天/最后一天", "Jump to the first/last day of the month"))">
+                <Kbd>Home</Kbd> / <Kbd>End</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("移到上一个月/下一个月（按住 Shift 则按年移动）", "Go to the previous/next month (or year with Shift)"))">
+                <Kbd>PageUp</Kbd> / <Kbd>PageDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("选中聚焦的日期", "Select the focused date"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭弹出层", "Close the popover"))">
+                <Kbd>Escape</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件的属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="DatePicker">
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">@L.T("转发给交互控件或分组的无障碍名称。", "Accessible name forwarded to the interactive control or group.")</ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Value" Type="DateTime?">
+                        选中的日期。用 @@bind-Value 实现双向绑定。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Value" Type="DateTime?">
+                        The selected date. Use @@bind-Value for two-way binding.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="DateFormat" Type="string" Default="&quot;MMMM d, yyyy&quot;">
+                    @L.T("用于显示日期的格式字符串。", "Format string for displaying the date.")
+                </ApiParameter>
+                <ApiParameter Name="Placeholder" Type="string" Default="&quot;Pick a date&quot;">
+                    @L.T("未选择日期时的占位文本。", "Placeholder text when no date is selected.")
+                </ApiParameter>
+                <ApiParameter Name="MinDate" Type="DateTime?">
+                    @L.T("可选择的最小日期。", "Minimum selectable date.")
+                </ApiParameter>
+                <ApiParameter Name="MaxDate" Type="DateTime?">
+                    @L.T("可选择的最大日期。", "Maximum selectable date.")
+                </ApiParameter>
+                <ApiParameter Name="DisabledDates" Type="Func&lt;DateTime, bool&gt;?">
+                    @L.T("判断某个日期是否应当禁用的函数。", "Function to determine if a date should be disabled.")
+                </ApiParameter>
+                <ApiParameter Name="DayTemplate" Type="RenderFragment&lt;CalendarDayContext&gt;?" Default="null">
+                    @L.T("在每个日历日期按钮内渲染自定义内容的模板。为 null 时渲染日期数字。", "Template for rendering custom content inside each calendar day button. When null, the day number is rendered.")
+                </ApiParameter>
+                <ApiParameter Name="DayClassFunc" Type="Func&lt;DateTime, string?&gt;?" Default="null">
+                    @L.T("为指定日历日期按钮返回额外 CSS 类的函数。", "Function returning additional CSS classes for a specific calendar day button.")
+                </ApiParameter>
+                <ApiParameter Name="IsInvalid" Type="bool" Default="false">@L.T("把可输入输入框标记为无效。EditForm 校验与表单包装件同样可以提供该状态。", "Marks the editable input invalid. EditForm validation and the form wrapper can also supply this state.")</ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Editable" Type="bool" Default="false">
+                        把触发器渲染成文本输入框，从而可以直接键入日期，旁边保留一个日历切换按钮。输入的文本在失焦或按 Enter 时解析；无效或超出范围的文本会回退为当前值。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Editable" Type="bool" Default="false">
+                        Renders the trigger as a text input so the date can be typed directly, with a calendar toggle alongside. Typed text is parsed on blur or Enter; invalid or out-of-range text reverts to the current value.
+                    </ApiParameter>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="InputFormats" Type="string[]?" Default="null">
+                        Editable 模式下键入时接受的日期格式，按优先级排列（例如 “dd/MM/yyyy”）。为 null 时回落到 DateFormat。此外始终接受 ISO 格式（yyyy-MM-dd）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="InputFormats" Type="string[]?" Default="null">
+                        Date formats accepted when typing in Editable mode, in priority order (e.g. "dd/MM/yyyy"). Falls back to DateFormat when null. ISO format (yyyy-MM-dd) is always accepted in addition.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("日期选择器是否禁用。", "Whether the date picker is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">
+                    @L.T("日期选择器是否必填。", "Whether the date picker is required.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+
+    <LocalizationSection
+        Description="@(L.T("日期选择器的占位文案与其内部日历的标签都可以配置。", "The date picker placeholder and its internal calendar labels are configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("Placeholder", "Pick a date", L.T("未选择日期时的占位文本。", "Placeholder text when no date is selected")),
+            new("OpenCalendar", "Open calendar", L.T("Editable 模式下日历切换按钮的 aria-label。", "Aria-label for the calendar toggle button in Editable mode")),
+        })"
+        CultureAware="true"
+        CultureDescription="@(L.T("内部日历用 CultureInfo.CurrentCulture 取月份名与星期名。DateFormat 参数接受遵循当前文化的标准 .NET 格式字符串。", "The internal calendar uses CultureInfo.CurrentCulture for month/day names. The DateFormat parameter accepts standard .NET format strings that respect the current culture."))"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""DatePicker.Placeholder"", ""Datum auswählen"");
+});")" />
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private DateTime? _basicDate;
+    private DateTime? _preselectedDate = DateTime.Today;
+    private DateTime? _customPlaceholder;
+    private DateTime? _formatDate1;
+    private DateTime? _formatDate2;
+    private DateTime? _formatDate3;
+    private DateTime? _futureDate;
+    private DateTime? _pastDate;
+    private DateTime? _rangeDate;
+    private DateTime? _noWeekendsDate;
+    private DateTime? _sundayStart;
+    private DateTime? _mondayStart;
+    private DateTime? _customDayDate;
+    private DateTime? _editableDate;
+    private DateTime? _editableDateDmy;
+    private DateTime? _editableDateMdy;
+
+    private static readonly HashSet<int> eventDays = new() { 3, 8, 12, 17, 21, 26 };
+
+    private bool HasEvent(DateTime date) =>
+        date.Month == DateTime.Today.Month && date.Year == DateTime.Today.Year && eventDays.Contains(date.Day);
+
+    private string? GetWeekendDayClass(DateTime date) =>
+        date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday ? "text-destructive" : null;
+
+    private bool IsWeekend(DateTime date)
+    {
+        return date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
+    }
+
+    private DateFormModel dateFormModel = new();
+    private string? dateFormMessage;
+
+    private void HandleDateFormSubmit()
+    {
+        dateFormMessage = L.IsChinese
+            ? $"表单已提交！活动日期：{dateFormModel.EventDate?.ToString("MMMM d, yyyy")}"
+            : $"Form submitted! Event Date: {dateFormModel.EventDate?.ToString("MMMM d, yyyy")}";
+    }
+
+    private void ResetDateForm()
+    {
+        dateFormModel = new();
+        dateFormMessage = null;
+    }
+
+    private class DateFormModel
+    {
+        [Required(ErrorMessage = "Please select an event date.")]
+        public DateTime? EventDate { get; set; }
+    }
+}

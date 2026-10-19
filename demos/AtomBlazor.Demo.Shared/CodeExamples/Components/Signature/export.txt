@@ -1,0 +1,27 @@
+@* SVG arrives with the value. PNG and the raw strokes are pulled on demand. *@
+<Signature @ref="field" @bind-Value="signature" />
+
+<Button OnClick="SaveAsync">Save</Button>
+
+@code {
+    private Signature? field;
+    private SignatureValue? signature;
+
+    private async Task SaveAsync()
+    {
+        if (signature is null or { IsEmpty: true } || field is null)
+        {
+            return;
+        }
+
+        // Portable and recolourable: the ink is currentColor. Store this.
+        var svg = signature.Svg;
+
+        // Black ink on white. The default ink is deliberately not the theme's,
+        // because a dark theme draws in near-white and it would vanish here.
+        var png = await field.GetPngAsync(background: "#ffffff");
+
+        // Timings included, for checking later how the signature was written.
+        var strokes = await field.GetStrokesAsync();
+    }
+}

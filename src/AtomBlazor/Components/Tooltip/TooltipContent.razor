@@ -1,0 +1,115 @@
+@namespace AtomBlazor
+
+@* 带样式的 TooltipContent——附加 shadcn/ui Tailwind 类 *@
+<AtomBlazor.Primitives.TooltipContent class="@CssClass"
+                                                  Side="@Side"
+                                                  Align="@Align"
+                                                  Offset="@Offset"
+                                                  @attributes="AdditionalAttributes">
+    @ChildContent
+    @if (ShowArrow)
+    {
+        <div class="@ArrowClass"></div>
+    }
+</AtomBlazor.Primitives.TooltipContent>
+
+@code {
+    [CascadingParameter]
+    private AtomBlazor.Primitives.TooltipContext? Context { get; set; }
+
+    /// <summary>
+    /// 气泡内渲染的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 追加到内容容器上的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的其他 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 定位的偏好边。未设置时取自父级 Tooltip 上下文的 Placement。
+    /// </summary>
+    [Parameter]
+    public PopoverSide? Side { get; set; }
+
+    /// <summary>
+    /// 相对触发器的对齐方式。未设置时取自父级 Tooltip 上下文的 Placement。
+    /// </summary>
+    [Parameter]
+    public PopoverAlign? Align { get; set; }
+
+    /// <summary>
+    /// 与触发器的偏移距离（像素），默认 8。
+    /// </summary>
+    [Parameter]
+    public int Offset { get; set; } = 8;
+
+    /// <summary>
+    /// 是否显示指向触发器元素的方向箭头。
+    /// </summary>
+    [Parameter]
+    public bool ShowArrow { get; set; }
+
+    /// <summary>
+    /// 获取用于计算 CSS 类的实际边：设置了 Side 则用之，否则由上下文的 Placement 推导。
+    /// </summary>
+    private PopoverSide EffectiveSide
+    {
+        get
+        {
+            if (Side.HasValue)
+            {
+                return Side.Value;
+            }
+
+            var placement = Context?.Placement ?? "top";
+            var basePlacement = placement.Split('-')[0];
+
+            return basePlacement switch
+            {
+                "top" => PopoverSide.Top,
+                "bottom" => PopoverSide.Bottom,
+                "left" => PopoverSide.Left,
+                "right" => PopoverSide.Right,
+                _ => PopoverSide.Top
+            };
+        }
+    }
+
+    private string CssClass => ClassNames.cn(
+        "atom:z-50 atom:rounded-md atom:border atom:bg-popover atom:px-3 atom:py-1.5",
+        ShowArrow ? "atom:relative" : "atom:overflow-hidden",
+        "atom:text-sm atom:text-popover-foreground atom:shadow-md",
+        "atom:animate-in atom:fade-in-0 atom:zoom-in-95 atom:max-w-md",
+        EffectiveSide switch
+        {
+            PopoverSide.Top => "atom:slide-in-from-bottom-2",
+            PopoverSide.Bottom => "atom:slide-in-from-top-2",
+            PopoverSide.Left => "atom:slide-in-from-right-2",
+            PopoverSide.Right => "atom:slide-in-from-left-2",
+            _ => "atom:slide-in-from-bottom-2"
+        },
+        Class
+    );
+
+    private string ArrowClass => ClassNames.cn(
+        "atom:absolute atom:h-2 atom:w-2 atom:rotate-45 atom:bg-popover",
+        EffectiveSide switch
+        {
+            PopoverSide.Top => "atom:bottom-0 atom:left-1/2 atom:-translate-x-1/2 atom:translate-y-1/2 atom:border-b atom:border-r atom:border-border",
+            PopoverSide.Bottom => "atom:top-0 atom:left-1/2 atom:-translate-x-1/2 atom:-translate-y-1/2 atom:border-t atom:border-l atom:border-border",
+            PopoverSide.Left => "atom:right-0 atom:top-1/2 atom:translate-x-1/2 atom:-translate-y-1/2 atom:border-t atom:border-r atom:border-border",
+            PopoverSide.Right => "atom:left-0 atom:top-1/2 atom:-translate-x-1/2 atom:-translate-y-1/2 atom:border-b atom:border-l atom:border-border",
+            _ => "atom:bottom-0 atom:left-1/2 atom:-translate-x-1/2 atom:translate-y-1/2 atom:border-b atom:border-r atom:border-border"
+        }
+    );
+}

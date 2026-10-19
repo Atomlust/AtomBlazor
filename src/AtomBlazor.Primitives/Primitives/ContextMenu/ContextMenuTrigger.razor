@@ -1,0 +1,61 @@
+@namespace AtomBlazor.Primitives
+
+@*
+    ContextMenu 触发器 —— 捕获右键点击并在点击位置打开菜单。
+    当菜单打开时，触发器位于关闭遮罩之上（z-index：41 对比 40），
+    因此在触发器区域内右键点击会重新定位菜单，而不仅仅是关闭它。
+*@
+
+<div @oncontextmenu="HandleContextMenu"
+     @oncontextmenu:preventDefault
+     @onclick="HandleClick"
+     @onclick:stopPropagation="@(Context?.IsOpen == true)"
+     data-state="@(Context?.IsOpen == true ? "open" : "closed")"
+     style="@MergedTriggerStyle"
+     @attributes="FilteredAttributes">
+    @ChildContent
+</div>
+
+@inherits AtomBlazor.Primitives.PrimitiveBase
+
+@code {
+    [CascadingParameter]
+    private ContextMenuPrimitive? Context { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        if (Context == null)
+        {
+            throw new InvalidOperationException(
+                "ContextMenuTrigger must be used within a ContextMenu component.");
+        }
+    }
+
+    /// <summary>
+    /// 触发器内容（响应右键点击的区域）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private string? TriggerStyle => Context?.IsOpen == true ? "position: relative; z-index: 41" : null;
+
+    private string? MergedTriggerStyle => MergeStyles(TriggerStyle);
+
+    private async Task HandleContextMenu(MouseEventArgs e)
+    {
+        if (Context != null)
+        {
+            await Context.OpenAt(e.ClientX, e.ClientY);
+        }
+    }
+
+    private async Task HandleClick()
+    {
+        if (Context?.IsOpen == true)
+        {
+            await Context.Close();
+        }
+    }
+}

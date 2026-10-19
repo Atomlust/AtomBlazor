@@ -1,0 +1,39 @@
+<Gantt TItem="PlanTask"
+         Data="@plan"
+         IdSelector="@(t => t.Id)"
+         ParentIdSelector="@(t => t.Parent)"
+         TextSelector="@(t => t.Name)"
+         StartSelector="@(t => t.Start)"
+         EndSelector="@(t => t.End)"
+         ProgressSelector="@(t => t.Progress)"
+         Height="26rem">
+    <Columns>
+        @* The first column declared carries the expander, unless another sets IsTree. *@
+        <GanttColumn TItem="PlanTask" Title="Task" Width="230" IsTree="true" Sortable="true" />
+
+        <GanttColumn TItem="PlanTask" Title="Owner" Width="110"
+                       Value="@(t => t.Owner)" Sortable="true" />
+
+        @* Value reads your task, and is what a sort compares.
+           The content reads the row, which is the task after roll-up: a summary's dates
+           are its children's, so the column and the bar beside it cannot disagree. *@
+        <GanttColumn TItem="PlanTask" Title="Start" Width="100"
+                       Value="@(t => t.Start)" Sortable="true">
+            @context.Start.ToString("d MMM")
+        </GanttColumn>
+
+        <GanttColumn TItem="PlanTask" Title="Days" Width="70"
+                       Align="GanttColumnAlign.End">
+            @((context.End - context.Start).TotalDays.ToString("0"))
+        </GanttColumn>
+
+        <GanttColumn TItem="PlanTask" Title="Done" Width="70"
+                       Align="GanttColumnAlign.End">
+            @context.Progress.ToString("P0")
+        </GanttColumn>
+    </Columns>
+</Gantt>
+
+@* Widths are pixels, not shares. The chart has to know how wide the task list is before it
+   can place the first bar, and a width settled by the browser is one it cannot draw against.
+   A drag on a column's edge overrides the declared width without touching the markup. *@

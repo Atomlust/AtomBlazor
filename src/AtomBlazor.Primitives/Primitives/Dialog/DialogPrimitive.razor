@@ -1,0 +1,174 @@
+@namespace AtomBlazor.Primitives
+@using AtomBlazor.Primitives.Services
+@using Microsoft.Extensions.Logging
+@inject ILogger<DialogPrimitive> Logger
+@implements IDisposable
+
+@* Dialog 基元根组件 - 仅提供无样式（headless）的行为逻辑 *@
+<CascadingValue Value="@_context" IsFixed="false">
+    <CascadingValue TValue="OverlayRenderingStrategy?" Name="DialogRenderingStrategy" Value="@RenderingStrategy" IsFixed="false">
+        @ChildContent
+    </CascadingValue>
+</CascadingValue>
+
+@code {
+    private DialogContext _context = new();
+    private UseControllableState<bool> _state = null!;
+
+    /// <summary>
+    /// 我们上次向使用者（consumer）上报的打开状态。
+    /// <para>
+    /// 这里有意不读取 <c>_state.Value</c>，因为在受控（controlled）模式下它返回的是
+    /// <c>ControlledValue</c> —— 该值仅在 <see cref="OnParametersSet"/> 时刷新
+    /// 也就是说只有在使用者重新渲染时才会更新。若使用者抑制了重新渲染
+    /// （任何 <c>ShouldRender</c> 重写）就会使其过期，于是下一次真实的状态变化比较相等
+    /// <c>OpenChanged</c> 永远不会触发，而使用者自身的打开标志永远停留在 <c>true</c>
+    /// 从而与上下文永久失步（#437）。
+    /// </para>
+    /// </summary>
+    private bool lastNotifiedOpen;
+
+    /// <summary>
+    /// 保留此参数以便带样式的包装组件可以把自己的属性铺展到该根节点上，但它没有任何效果：
+    /// Dialog 不会渲染自身的元素 —— 它只向子组件提供上下文。
+    /// 请将额外的属性放到 DialogContent、DialogOverlay 或 DialogTrigger 上。
+    /// 在此处提供属性会在每个组件实例中记录一次警告。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private bool rootAttributesWarningLogged;
+
+    /// <summary>
+    /// 要在 Dialog 上下文中渲染的子内容。
+    /// 通常包括 DialogTrigger、DialogPortal 以及其他 Dialog 部件。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 覆盖此 Dialog 的渲染方式。为 null 时，使用通过
+    /// <c>AddAtomBlazorPrimitives(configureOverlays)</c> 配置的全局默认策略。
+    /// <see cref="OverlayRenderingStrategy.Native"/> 通过浏览器内置的
+    /// <c>&lt;dialog&gt;</c> 元素渲染（顶层、原生焦点陷阱、Esc 键与背景）
+    /// 可跨越 Blazor 渲染模式边界工作，且不需要门户宿主。
+    /// 默认值为 null（使用全局默认，即 <see cref="OverlayRenderingStrategy.JavaScript"/>）。
+    /// 该策略在首次渲染时解析一次，之后更改不会生效。
+    /// </summary>
+    [Parameter]
+    public OverlayRenderingStrategy? RenderingStrategy { get; set; }
+
+    /// <summary>
+    /// 控制 Dialog 是否打开（受控模式）。
+    /// 为 null 时，Dialog 自行管理状态（非受控模式）。
+    /// </summary>
+    [Parameter]
+    public bool? Open { get; set; }
+
+    /// <summary>
+    /// 打开状态变化时触发的事件回调。
+    /// 可与 @bind-Open 配合实现双向绑定。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>
+    /// 非受控模式下的默认打开状态。
+    /// </summary>
+    [Parameter]
+    public bool DefaultOpen { get; set; } = false;
+
+    /// <summary>
+    /// Dialog 打开状态变化时触发的事件回调。
+    /// 接收新的打开状态作为参数。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OnOpenChange { get; set; }
+
+    /// <summary>
+    /// Dialog 是否可以通过点击外部或按下 Esc 键来关闭（Dismiss）。
+    /// 此遗留参数控制的是关闭行为，而非焦点陷阱或渲染策略。
+    /// 默认值为 true。
+    /// </summary>
+    [Parameter]
+    public bool Modal { get; set; } = true;
+
+    protected override void OnInitialized()
+    {
+        // 初始化可控状态
+        _state = new UseControllableState<bool>(DefaultOpen)
+        {
+            ControlledValue = Open.HasValue ? Open.Value : DefaultOpen,
+            OnValueChanged = OpenChanged,
+            IsControlled = OpenChanged.HasDelegate
+        };
+
+        // 将初始状态同步到上下文
+        _context.State.IsOpen = _state.Value;
+        lastNotifiedOpen = _state.Value;
+
+        // 订阅上下文状态变更
+        _context.OnStateChanged += HandleContextStateChanged;
+    }
+
+    protected override void OnParametersSet()
+    {
+        _context.AllowDismiss = Modal;
+        rootAttributesWarningLogged = ContextRootAttributes.WarnOnce(
+            Logger,
+            rootAttributesWarningLogged,
+            "Dialog",
+            "Put extra attributes on DialogContent, DialogOverlay or DialogTrigger instead.",
+            AdditionalAttributes);
+
+            // 若受控值发生变化则更新
+            if (_state.IsControlled && Open.HasValue)
+        {
+            _state.ControlledValue = Open.Value;
+            _context.State.IsOpen = Open.Value;
+
+            // 这里使用者具有权威性，因此将其值视为已上报 —— 否则下一次变更会基于一个我们
+            // 从未真正发出过的状态进行比较。
+            lastNotifiedOpen = Open.Value;
+        }
+    }
+
+    private void HandleContextStateChanged()
+    {
+        // 当上下文状态发生变化时（例如来自 DialogTrigger 或 DialogClose）
+        // 更新可控状态
+        var newOpenState = _context.State.IsOpen;
+
+        if (lastNotifiedOpen != newOpenState)
+        {
+            lastNotifiedOpen = newOpenState;
+
+            _ = _state.SetValueAsync(newOpenState);
+
+            // 若提供了额外回调则触发
+            if (OnOpenChange.HasDelegate)
+            {
+                _ = OnOpenChange.InvokeAsync(newOpenState);
+            }
+        }
+
+        // 无条件执行 —— 触发器的 aria-expanded 与 pointer-events 防护，以及内容是否已挂载
+        // 都上下文状态，因此只要该状态变动，这个子树就必须重绘
+        // 即便使用者的受控值并未改变（#437）。
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// 取消对上下文的订阅。
+    /// </summary>
+    /// <remarks>
+    /// 这个方法一直存在，但组件从未声明 <c>IDisposable</c>，因此
+    /// Blazor 从未调用过它：每个根节点都把一个处理器留在了它不再渲染的上下文上
+    /// 而这个闭包又让已释放的组件随之一直存活。
+    /// </remarks>
+    public void Dispose()
+    {
+        _context.OnStateChanged -= HandleContextStateChanged;
+        GC.SuppressFinalize(this);
+    }
+}

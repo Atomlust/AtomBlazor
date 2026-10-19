@@ -1,0 +1,295 @@
+@page "/components/marker"
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("Marker 标记 - Atom BlazorUI", "Marker Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Marker 标记组件", "Marker Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("在对话中展示行内状态备注、带边框的行与带标签的分隔线。", "Displays inline status notes, bordered rows, and labeled separators in conversations.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("样式变体", "Variants")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">Variant</code> 切换标记的布局样式。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">Variant</code> to switch marker layout styles.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-3 rounded-lg border p-4 justify-center items-center flex">
+            <div class="flex w-full max-w-sm flex-col gap-8 py-12">
+                <Marker>
+                    <MarkerIcon>
+                        <LucideIcon Name="git-branch"/>
+                    </MarkerIcon>
+                    <MarkerContent>@L.T("已切换到新分支", "Switched to a new branch")</MarkerContent>
+                </Marker>
+                <Marker role="status">
+                    <MarkerIcon>
+                        <Spinner/>
+                    </MarkerIcon>
+                    <MarkerContent>@L.T("正在思考……", "Thinking...")</MarkerContent>
+                </Marker>
+                <Marker Variant="MarkerVariant.Separator">
+                    <MarkerContent>@L.T("对话已压缩", "Conversation compacted")</MarkerContent>
+                </Marker>
+                <Marker>
+                    <MarkerIcon>
+                        <LucideIcon Name="search"/>
+                    </MarkerIcon>
+                    <MarkerContent>@L.T("正在搜索……", "Searching...")</MarkerContent>
+                </Marker>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Marker/variants.txt"/>
+    </div>
+
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("可交互标记", "Interactive Markers")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    通过 <code
+                        class="text-xs bg-muted px-1 py-0.5 rounded">AsChild</code> 把标记渲染成链接或按钮。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Render markers as links or buttons with <code
+                        class="text-xs bg-muted px-1 py-0.5 rounded">AsChild</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-2 rounded-lg border p-4">
+            <Marker AsChild="MarkerElement.Anchor" Href="#">
+                <MarkerIcon>
+                    <LucideIcon Name="external-link" Size="14"/>
+                </MarkerIcon>
+                <MarkerContent>@L.T("查看拉取请求", "View pull request")</MarkerContent>
+            </Marker>
+            <Marker Class="transition-colors hover:text-foreground" AsChild="MarkerElement.Button" @onclick="() => { }">
+                <MarkerIcon>
+                    <LucideIcon Name="rotate-ccw" Size="14"/>
+                </MarkerIcon>
+                <MarkerContent>@L.T("重试失败的上传", "Retry failed upload")</MarkerContent>
+            </Marker>
+        </div>
+        <CodeBlock Source="Components/Marker/interactive.txt"/>
+    </div>
+
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("边框", "Borders")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    需要保持默认标记对齐、又要在下一行前加分隔线的状态行，使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">Border</code>
+                    变体。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use the <code class="text-xs bg-muted px-1 py-0.5 rounded">Border</code> variant for status rows that
+                    should keep the default marker alignment while adding a divider before the next row.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-3 rounded-lg border p-4 justify-center items-center flex">
+            <div class="flex w-full max-w-sm flex-col gap-8 py-12">
+                <Marker Variant="MarkerVariant.Border">
+                    <MarkerIcon>
+                        <LucideIcon Name="git-branch"/>
+                    </MarkerIcon>
+                    <MarkerContent>@L.T("已切换到 release-candidate 分支", "Switched to release-candidate")</MarkerContent>
+                </Marker>
+                <Marker Variant="MarkerVariant.Border">
+                    <MarkerIcon>
+                        <LucideIcon Name="search"/>
+                    </MarkerIcon>
+                    <MarkerContent>@L.T("已审阅 8 个相关文件", "Reviewed 8 related files")</MarkerContent>
+                </Marker>
+                <Marker Variant="MarkerVariant.Border">
+                    <MarkerIcon>
+                        <LucideIcon Name="file-text"/>
+                    </MarkerIcon>
+                    <MarkerContent>@L.T("已打开实现笔记", "Opened implementation notes")</MarkerContent>
+                </Marker>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Marker/border.txt"/>
+    </div>
+
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带图标", "With Icon")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">MarkerIcon</code> 在内容旁渲染图标；用
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">flex-col</code> 把图标堆叠在内容上方。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">MarkerIcon</code> to render an icon alongside the
+                    content. Use <code class="text-xs bg-muted px-1 py-0.5 rounded">flex-col</code> to stack the icon above
+                    the content.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-3 rounded-lg border p-4 justify-center items-center flex">
+            <div class="flex w-full max-w-sm flex-col gap-8 py-12">
+                <Marker>
+                    <MarkerIcon>
+                        <LucideIcon Name="git-branch"/>
+                    </MarkerIcon>
+                    <MarkerContent>@L.T("已切换到 release-candidate 分支", "Switched to release-candidate")</MarkerContent>
+                </Marker>
+                <Marker Variant="MarkerVariant.Separator">
+                    <MarkerIcon>
+                        <LucideIcon Name="search"/>
+                    </MarkerIcon>
+                    <MarkerContent>@L.T("已探索 4 个文件", "Explored 4 files")</MarkerContent>
+                </Marker>
+                <Marker Class="flex-col">
+                    <MarkerIcon>
+                        <LucideIcon Name="book-open"/>
+                    </MarkerIcon>
+                    <MarkerContent>@L.T("同步已完成", "Syncing completed")</MarkerContent>
+                </Marker>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Marker/with-icon.txt"/>
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    在进行中的标记上设置 <code>role="status"</code>，让更新内容被播报。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Set <code>role="status"</code> on in-progress markers so updates are announced.
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    <code>MarkerIcon</code> 仅作装饰；含义要保留在可见的标记文本里。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    <code>MarkerIcon</code> is decorative; keep meaning in visible marker text.
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    交互式标记使用 <code>AsChild="MarkerElement.Anchor"</code> 或
+                    <code>AsChild="MarkerElement.Button"</code> 获得原生语义。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    For interactive markers, use <code>AsChild="MarkerElement.Anchor"</code> or
+                    <code>AsChild="MarkerElement.Button"</code> for native semantics.
+                </AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件的属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <ApiReference ComponentName="Marker">
+            <ApiParameter Name="Variant" Type="MarkerVariant" Default="Default">
+                @L.T("标记的视觉样式。可选值：Default、Border、Separator。", "Marker visual style. Options: Default, Border, Separator.")
+            </ApiParameter>
+            <ApiParameter Name="AsChild" Type="MarkerElement" Default="Div">
+                @L.T("要渲染的元素类型。可选值：Div、Anchor、Button。设置了 Href 时自动切换为 Anchor。", "Element type to render. Options: Div, Anchor, Button. Automatically switches to Anchor when Href is set.")
+            </ApiParameter>
+            <ApiParameter Name="Href" Type="string?">
+                @L.T("以链接形式渲染时的跳转目标。", "Link target when rendering as an anchor.")
+            </ApiParameter>
+            <ApiParameter Name="Class" Type="string?">
+                @L.T("追加到标记根元素的额外 CSS 类。", "Additional CSS classes to apply to marker root.")
+            </ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    应用到根 <code>&lt;a&gt;</code> 元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                </ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    Additional HTML attributes applied to the root <code>&lt;a&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                </ApiParameter>
+                        </text>
+}
+        </ApiReference>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

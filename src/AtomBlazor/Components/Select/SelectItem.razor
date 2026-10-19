@@ -1,0 +1,177 @@
+@typeparam TValue
+@namespace AtomBlazor
+@implements IDisposable
+
+@* SelectItem 基元的带样式包装 *@
+<AtomBlazor.Primitives.SelectItem TValue="TValue"
+                                           Value="Value"
+                                           Text="@GetDisplayText()"
+                                           Disabled="Disabled"
+                                           class="@CssClass"
+                                           @attributes="FilteredAttributes">
+    <span class="atom:truncate">
+        @if (ChildContent is not null)
+        {
+            @ChildContent
+        }
+        else
+        {
+            @GetDisplayText()
+        }
+    </span>
+    @if (IsSelected)
+    {
+        <svg class="atom:ms-auto atom:h-4 atom:w-4 atom:shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+    }
+</AtomBlazor.Primitives.SelectItem>
+
+@code {
+    [CascadingParameter]
+    private AtomBlazor.Primitives.SelectContext<TValue>? _context { get; set; }
+
+    // ShouldRender 跟踪字段
+    private bool lastIsSelected;
+    private bool lastDisabled;
+
+    /// <summary>
+    /// 获取或设置本项的值。
+    /// </summary>
+    [Parameter, EditorRequired]
+    public TValue Value { get; set; } = default!;
+
+    /// <summary>
+    /// 获取或设置本项的展示文本。
+    /// 未提供时使用 ChildContent 文本或 Value.ToString()。
+    /// </summary>
+    [Parameter]
+    public string? Text { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到本项的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的附加 HTML 特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 返回移除了已显式处理参数（class, value, text, disabled）的 AdditionalAttributes。
+    /// </summary>
+    private Dictionary<string, object>? FilteredAttributes
+    {
+        get
+        {
+            if (AdditionalAttributes == null) return null;
+            
+            var filtered = new Dictionary<string, object>();
+            foreach (var kvp in AdditionalAttributes)
+            {
+                var key = kvp.Key.ToLowerInvariant();
+                if (key != "class" && 
+                    key != "value" && 
+                    key != "text" && 
+                    key != "disabled")
+                {
+                    filtered[kvp.Key] = kvp.Value;
+                }
+            }
+            
+            return filtered.Count > 0 ? filtered : null;
+        }
+    }
+
+    /// <summary>
+    /// 获取或设置作为本项展示文本渲染的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置本项是否禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 获取本项当前是否被选中。
+    /// </summary>
+    private bool IsSelected
+    {
+        get
+        {
+            if (_context == null) return false;
+            return EqualityComparer<TValue?>.Default.Equals(_context.Value, Value);
+        }
+    }
+
+    private const string baseClasses =
+        "atom:relative atom:flex atom:w-full atom:cursor-default atom:select-none atom:items-center atom:rounded-sm atom:py-1.5 atom:px-2 atom:text-sm " +
+        "atom:outline-none atom:transition-colors " +
+        "atom:data-[focused=true]:bg-accent atom:data-[focused=true]:text-accent-foreground " +
+        "atom:data-[disabled=true]:pointer-events-none atom:data-[disabled=true]:opacity-50";
+
+    private const string selectedClasses =
+        baseClasses + " atom:bg-accent/50 atom:text-accent-foreground";
+
+    /// <summary>
+    /// 获取本项计算出的 CSS 类。
+    /// </summary>
+    private string CssClass => string.IsNullOrEmpty(Class)
+        ? (IsSelected ? selectedClasses : baseClasses)
+        : ClassNames.cn(IsSelected ? selectedClasses : baseClasses, Class);
+
+    protected override void OnInitialized()
+    {
+        if (_context != null)
+        {
+            _context.OnStateChanged += HandleStateChanged;
+        }
+
+        // 初始化 ShouldRender 跟踪
+        lastIsSelected = IsSelected;
+        lastDisabled = Disabled;
+    }
+
+    protected override bool ShouldRender()
+    {
+        var currentIsSelected = IsSelected;
+
+        if (currentIsSelected != lastIsSelected ||
+            Disabled != lastDisabled)
+        {
+            lastIsSelected = currentIsSelected;
+            lastDisabled = Disabled;
+            return true;
+        }
+
+        return false;
+    }
+
+    private void HandleStateChanged()
+    {
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// 获取本项的展示文本。
+    /// 优先使用 Text 参数，否则回退到 Value.ToString()。
+    /// </summary>
+    private string? GetDisplayText()
+    {
+        return Text ?? Value?.ToString();
+    }
+
+    public void Dispose()
+    {
+        if (_context != null)
+        {
+            _context.OnStateChanged -= HandleStateChanged;
+        }
+    }
+}

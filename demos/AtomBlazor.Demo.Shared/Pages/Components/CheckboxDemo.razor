@@ -1,0 +1,503 @@
+@page "/components/checkbox"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("复选框组件 - Atom BlazorUI", "Checkbox Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("复选框组件", "Checkbox Component")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("复选框控件，让用户在勾选与未勾选两种状态之间切换。", "A checkbox control that allows users to toggle between checked and unchecked states.")
+        </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+    </div>
+
+    <!-- Basic Usage -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("用双向绑定实现的带标签简单复选框。", "Simple checkbox with label using two-way binding.")
+            </p>
+        </div>
+        <div class="space-y-3">
+            <div class="flex items-center space-x-2">
+                <Checkbox @bind-Checked="basicChecked" Id="basic-checkbox" />
+                <label for="basic-checkbox" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    @L.T("接受相关条款", "Accept terms and conditions")
+                </label>
+            </div>
+            <p class="text-sm text-muted-foreground">
+                @L.T("当前状态：", "Current state:") @(basicChecked ? L.T("已勾选 ✓", "Checked ✓") : L.T("未勾选", "Unchecked"))
+            </p>
+        </div>
+        <CodeBlock Source="Components/Checkbox/basic.txt" />
+    </div>
+
+    <!-- Multiple Checkboxes -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("多选项", "Multiple Options")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一组复选框，可同时选中多项。", "Group of checkboxes for multiple selections.")
+            </p>
+        </div>
+        <div class="space-y-3">
+            <div class="flex items-center space-x-2">
+                <Checkbox @bind-Checked="option1" Id="option1" />
+                <label for="option1" class="text-sm font-medium leading-none">
+                    @L.T("邮件通知", "Email notifications")
+                </label>
+            </div>
+            <div class="flex items-center space-x-2">
+                <Checkbox @bind-Checked="option2" Id="option2" />
+                <label for="option2" class="text-sm font-medium leading-none">
+                    @L.T("短信通知", "SMS notifications")
+                </label>
+            </div>
+            <div class="flex items-center space-x-2">
+                <Checkbox @bind-Checked="option3" Id="option3" />
+                <label for="option3" class="text-sm font-medium leading-none">
+                    @L.T("推送通知", "Push notifications")
+                </label>
+            </div>
+            <p class="text-sm text-muted-foreground">
+                @L.T("已选择：", "Selected:") @string.Join(L.T("、", ", "), GetSelectedOptions())
+            </p>
+        </div>
+        <CodeBlock Source="Components/Checkbox/multiple-options.txt" />
+    </div>
+
+    <!-- Indeterminate (Select All) -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("不确定态", "Indeterminate")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("父级复选框反映子项的整体状态。选中部分（但不是全部）子项时，父级显示为不确定态的横线。", "A parent checkbox that reflects the aggregate state of its children. When some (but not all) items are selected, the parent shows an indeterminate dash.")
+            </p>
+        </div>
+        <div class="space-y-3">
+            <div class="flex items-center space-x-2">
+                <Checkbox Checked="@_selectAllChecked"
+                          CheckedChanged="HandleSelectAllChanged"
+                          Indeterminate="@_selectAllIndeterminate"
+                          Id="select-all" />
+                <label for="select-all" class="text-sm font-semibold leading-none">
+                    @L.T("全选", "Select all")
+                </label>
+            </div>
+            <div class="ml-6 space-y-3">
+                <div class="flex items-center space-x-2">
+                    <Checkbox Checked="@_itemRead"
+                              CheckedChanged="@(v => { _itemRead = v; UpdateSelectAll(); })"
+                              Id="item-read" />
+                    <label for="item-read" class="text-sm font-medium leading-none">
+                        @L.T("读取", "Read")
+                    </label>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <Checkbox Checked="@_itemWrite"
+                              CheckedChanged="@(v => { _itemWrite = v; UpdateSelectAll(); })"
+                              Id="item-write" />
+                    <label for="item-write" class="text-sm font-medium leading-none">
+                        @L.T("写入", "Write")
+                    </label>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <Checkbox Checked="@_itemExecute"
+                              CheckedChanged="@(v => { _itemExecute = v; UpdateSelectAll(); })"
+                              Id="item-execute" />
+                    <label for="item-execute" class="text-sm font-medium leading-none">
+                        @L.T("执行", "Execute")
+                    </label>
+                </div>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Checkbox/indeterminate.txt" />
+    </div>
+
+    <!-- Disabled State -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用状态", "Disabled State")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("无法交互的复选框。", "Checkboxes that cannot be interacted with.")
+            </p>
+        </div>
+        <div class="space-y-3">
+            <div class="flex items-center space-x-2">
+                <Checkbox Disabled="true" Checked="false" Id="disabled-unchecked" />
+                <label for="disabled-unchecked" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    @L.T("禁用（未勾选）", "Disabled (unchecked)")
+                </label>
+            </div>
+            <div class="flex items-center space-x-2">
+                <Checkbox Disabled="true" Checked="true" Id="disabled-checked" />
+                <label for="disabled-checked" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    @L.T("禁用（已勾选）", "Disabled (checked)")
+                </label>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Checkbox/disabled.txt" />
+    </div>
+
+    <!-- Form Validation -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表单校验", "Form Validation")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("与 Blazor 的 EditForm 及校验机制集成的复选框。", "Checkbox integrated with Blazor's EditForm and validation.")
+            </p>
+        </div>
+        <EditForm Model="formModel" OnValidSubmit="HandleValidSubmit" class="space-y-4">
+            <DataAnnotationsValidator />
+
+            <div class="space-y-3">
+                <div class="flex items-center space-x-2">
+                    <Checkbox @bind-Checked="formModel.AcceptTerms" Id="terms" />
+                    <label for="terms" class="text-sm font-medium leading-none">
+                        @L.T("我已接受相关条款", "I accept the terms and conditions")
+                    </label>
+                </div>
+                <ValidationMessage For="@(() => formModel.AcceptTerms)" class="text-sm text-destructive" />
+            </div>
+
+            <div class="space-y-3">
+                <div class="flex items-center space-x-2">
+                    <Checkbox @bind-Checked="formModel.Subscribe" Id="subscribe" />
+                    <label for="subscribe" class="text-sm font-medium leading-none">
+                        @L.T("订阅简报（可选）", "Subscribe to newsletter (optional)")
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Default">@L.T("提交", "Submit")</Button>
+                <Button Type="ButtonType.Button" Variant="ButtonVariant.Outline" OnClick="ResetForm">@L.T("重置", "Reset")</Button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(formMessage))
+            {
+                <div class="p-4 bg-card rounded-lg border">
+                    <p class="text-sm">@formMessage</p>
+                </div>
+            }
+        </EditForm>
+        <CodeBlock Source="Components/Checkbox/form-validation.txt" />
+    </div>
+
+    <!-- Interactive Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("交互示例", "Interactive")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带自定义变更处理的复选框。", "Checkbox with custom change handler.")
+            </p>
+        </div>
+        <div class="space-y-3">
+            <div class="flex items-center space-x-2">
+                <Checkbox @bind-Checked="interactiveChecked" Id="interactive" />
+                <label for="interactive" class="text-sm font-medium leading-none">
+                    @L.T("切换功能开关", "Toggle feature flag")
+                </label>
+            </div>
+            @if (interactiveChecked)
+            {
+                <div class="p-4 bg-primary/10 rounded-lg border border-primary">
+                    <p class="text-sm">@L.T("✓ 功能已开启！最近一次切换时间：", "✓ Feature is enabled! Last toggled at") @lastToggleTime</p>
+                </div>
+            }
+            else
+            {
+                <div class="p-4 bg-muted rounded-lg">
+                    <p class="text-sm text-muted-foreground">@L.T("功能已关闭", "Feature is disabled")</p>
+                </div>
+            }
+        </div>
+        <CodeBlock Source="Components/Checkbox/interactive.txt" />
+    </div>
+
+    <!-- Checkbox Card -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("卡片式复选框", "Checkbox Card")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    借助 CSS <code class="text-xs bg-muted px-1 py-0.5 rounded">has-[data-state]</code> 选择器，按复选框状态给容器设置样式，无需额外的条件 C# 类名。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Style a container based on checkbox state using the CSS <code class="text-xs bg-muted px-1 py-0.5 rounded">has-[data-state]</code> selector. No conditional C# classes needed.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-3">
+            <label
+                for="card-1"
+                class="flex items-center space-x-3 rounded-lg border border-input p-4 cursor-pointer transition-colors has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5">
+                <Checkbox @bind-Checked="cardChecked1" Id="card-1" />
+                <div class="flex-1">
+                    <div class="text-sm font-medium leading-none">
+                        @L.T("接受相关条款", "Accept terms and conditions")
+                    </div>
+                </div>
+            </label>
+            <label
+                for="card-2"
+                class="flex items-start space-x-3 rounded-lg border border-input p-4 cursor-pointer transition-colors has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5">
+                <div class="mt-0.5">
+                    <Checkbox @bind-Checked="cardChecked2" Id="card-2" />
+                </div>
+                <div class="flex-1">
+                    <div class="text-sm font-medium leading-none">
+                        @L.T("开启通知", "Enable notifications")
+                    </div>
+                    <p class="text-sm text-muted-foreground mt-1.5">
+                        @L.T("你可以随时开启或关闭通知。", "You can enable or disable notifications at any time.")
+                    </p>
+                </div>
+            </label>
+        </div>
+        <CodeBlock Source="Components/Checkbox/checkbox-card.txt" />
+    </div>
+
+    <!-- Custom Styling -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义样式", "Custom Styling")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("追加了额外 CSS 类的复选框。", "Checkboxes with additional CSS classes.")
+            </p>
+        </div>
+        <div class="space-y-3">
+            <div class="flex items-center space-x-2">
+                <Checkbox @bind-Checked="styled1" Class="border-2" Id="styled1" />
+                <label for="styled1" class="text-sm font-medium leading-none">
+                    @L.T("更粗的边框", "Thicker border")
+                </label>
+            </div>
+            <div class="flex items-center space-x-2">
+                <Checkbox @bind-Checked="styled2" Class="shadow-md" Id="styled2" />
+                <label for="styled2" class="text-sm font-medium leading-none">
+                    @L.T("带阴影", "With shadow")
+                </label>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Checkbox/custom-styling.txt" />
+    </div>
+
+    <!-- Accessibility Notes -->
+
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    被禁用的复选框不参与聚焦（tabindex="-1"）
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Disabled checkboxes are not focusable (tabindex="-1")
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    正确设置了 ARIA 属性（<code class="text-xs bg-muted px-1 py-0.5 rounded">role="checkbox"</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">aria-checked</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled</code>）
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    ARIA attributes set correctly (<code class="text-xs bg-muted px-1 py-0.5 rounded">role="checkbox"</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-checked</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled</code>)
+                </AccessibilityItem>
+                        </text>
+}
+            <AccessibilityItem>
+                @L.T("键盘聚焦时会出现焦点环（focus-visible:ring-2）", "Focus ring appears on keyboard focus (focus-visible:ring-2)")
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @L.T("颜色对比按可读性设计", "Color contrast designed for readability")
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @L.T("通过 htmlFor 属性建立语义化的标签关联", "Semantic label association using htmlFor attribute")
+            </AccessibilityItem>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    复选框带 role="checkbox" 与 aria-checked，为辅助技术提供上下文
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Uses role="checkbox" and aria-checked for assistive technology context
+                </AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("按顺序聚焦各复选框", "Focus checkboxes in sequence"))">
+                <Kbd>Tab</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("切换获得焦点的复选框", "Toggle focused checkbox"))">
+                <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <ApiReference ComponentName="Checkbox">
+            <ApiParameter Name="Checked" Type="bool">@L.T("获取或设置复选框是否被勾选。", "Gets or sets whether the checkbox is checked.")</ApiParameter>
+            <ApiParameter Name="CheckedChanged" Type="EventCallback&lt;bool&gt;">@L.T("获取或设置勾选状态变化时调用的回调。", "Gets or sets the callback invoked when the checked state changes.")</ApiParameter>
+            <ApiParameter Name="Indeterminate" Type="bool">@L.T("获取或设置复选框是否处于不确定态。", "Gets or sets whether the checkbox is in an indeterminate state.")</ApiParameter>
+            <ApiParameter Name="IndeterminateChanged" Type="EventCallback&lt;bool&gt;">@L.T("获取或设置不确定态变化时调用的回调。", "Gets or sets the callback invoked when the indeterminate state changes.")</ApiParameter>
+            <ApiParameter Name="Disabled" Type="bool">@L.T("获取或设置复选框是否被禁用。", "Gets or sets whether the checkbox is disabled.")</ApiParameter>
+            <ApiParameter Name="Required" Type="bool">@L.T("获取或设置该复选框在表单上下文中是否为必填。", "Gets or sets whether the checkbox is required in a form context.")</ApiParameter>
+            <ApiParameter Name="Class" Type="string?">@L.T("获取或设置追加到复选框上的额外 CSS 类。", "Gets or sets additional CSS classes to apply to the checkbox.")</ApiParameter>
+            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">@L.T("获取或设置追加到根元素上的额外 HTML 属性。", "Gets or sets additional HTML attributes to apply to the root element.")</ApiParameter>
+            <ApiParameter Name="AriaLabel" Type="string?">@L.T("获取或设置复选框的 ARIA 标签。", "Gets or sets the ARIA label for the checkbox.")</ApiParameter>
+            <ApiParameter Name="Id" Type="string?">@L.T("获取或设置复选框元素的 ID 属性。", "Gets or sets the ID attribute for the checkbox element.")</ApiParameter>
+            <ApiParameter Name="AriaDescribedBy" Type="string?">@L.T("获取或设置用于描述该复选框的元素 ID 列表，供无障碍读取使用。", "Gets or sets the IDs of elements that describe the checkbox, for accessibility.")</ApiParameter>
+            <ApiParameter Name="CheckedExpression" Type="Expression&lt;Func&lt;bool&gt;&gt;?">@L.T("获取或设置标识被绑定值的表达式。", "Gets or sets an expression that identifies the bound value.")</ApiParameter>
+            <ApiParameter Name="Name" Type="string?">@L.T("获取或设置用于表单提交的 HTML name 属性。", "Gets or sets the HTML name attribute used for form submission.")</ApiParameter>
+        </ApiReference>
+    </section>
+
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    // 基础复选框
+    private bool basicChecked = false;
+
+    // 多选项
+    private bool option1 = true;
+    private bool option2 = false;
+    private bool option3 = true;
+
+    // 不确定态（全选）
+    private bool _selectAllChecked;
+    private bool _selectAllIndeterminate;
+    private bool _itemRead = true;
+    private bool _itemWrite;
+    private bool _itemExecute;
+
+    protected override void OnInitialized() => UpdateSelectAll();
+
+    private void HandleSelectAllChanged(bool value)
+    {
+        _selectAllChecked = value;
+        _selectAllIndeterminate = false;
+        _itemRead = value;
+        _itemWrite = value;
+        _itemExecute = value;
+    }
+
+    private void UpdateSelectAll()
+    {
+        var all = _itemRead && _itemWrite && _itemExecute;
+        var none = !_itemRead && !_itemWrite && !_itemExecute;
+        _selectAllChecked = all;
+        _selectAllIndeterminate = !all && !none;
+    }
+
+    // 交互式
+    private bool _interactiveChecked = false;
+    private bool interactiveChecked
+    {
+        get => _interactiveChecked;
+        set
+        {
+            _interactiveChecked = value;
+            if (value)
+            {
+                lastToggleTime = DateTime.Now.ToString("HH:mm:ss");
+            }
+        }
+    }
+    private string lastToggleTime = "";
+
+    // 卡片式复选框
+    private bool cardChecked1 = false;
+    private bool cardChecked2 = true;
+
+    // 自定义样式
+    private bool styled1 = false;
+    private bool styled2 = false;
+
+    // 表单校验
+    private FormModel formModel = new();
+    private string formMessage = "";
+
+    private List<string> GetSelectedOptions()
+    {
+        var selected = new List<string>();
+        if (option1) selected.Add(L.T("邮件通知", "Email"));
+        if (option2) selected.Add(L.T("短信通知", "SMS"));
+        if (option3) selected.Add(L.T("推送通知", "Push"));
+        return selected.Count > 0 ? selected : new List<string> { L.T("未选择", "None") };
+    }
+
+    private void HandleValidSubmit()
+    {
+        if (L.IsChinese)
+        {
+            formMessage = $"已于 {DateTime.Now:HH:mm:ss} 提交表单成功。" +
+                          $"接受条款：{formModel.AcceptTerms}，" +
+                          $"订阅简报：{formModel.Subscribe}";
+        }
+        else
+        {
+            formMessage = $"Form submitted successfully at {DateTime.Now:HH:mm:ss}. " +
+                         $"Terms accepted: {formModel.AcceptTerms}, " +
+                         $"Newsletter: {formModel.Subscribe}";
+        }
+    }
+
+    private void ResetForm()
+    {
+        formModel = new FormModel();
+        formMessage = "";
+    }
+
+    public class FormModel
+    {
+        [Required(ErrorMessage = "You must accept the terms and conditions")]
+        [Range(typeof(bool), "true", "true", ErrorMessage = "You must accept the terms and conditions")]
+        public bool AcceptTerms { get; set; }
+
+        public bool Subscribe { get; set; }
+    }
+}

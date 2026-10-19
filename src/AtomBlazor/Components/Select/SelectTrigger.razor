@@ -1,0 +1,86 @@
+@typeparam TValue
+@namespace AtomBlazor
+
+@* SelectTrigger 基元的带样式包装 *@
+<AtomBlazor.Primitives.SelectTrigger TValue="TValue"
+                                               aria-label="@ParentSelect?.AriaLabel" class="@CssClass"
+                                               @attributes="FilteredAttributes">
+    @ChildContent
+    <svg class="atom:ms-2 atom:h-4 atom:w-4 atom:opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"></polyline>
+    </svg>
+</AtomBlazor.Primitives.SelectTrigger>
+
+@code {
+    [CascadingParameter] private Select<TValue>? ParentSelect { get; set; }
+    /// <summary>
+    /// 级联参数，用于从上级 Select 上下文推断 TValue。
+    /// </summary>
+    [CascadingParameter]
+    private AtomBlazor.Primitives.SelectContext<TValue>? Context { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到触发按钮的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置下拉打开时应用的 CSS 类。
+    /// 默认值为 <c>"bg-accent text-accent-foreground"</c>。
+    /// 设为 <c>null</c> 或空串可停用激活样式。
+    /// </summary>
+    [Parameter]
+    public string? ActiveClass { get; set; } = "atom:bg-accent atom:text-accent-foreground";
+
+    /// <summary>
+    /// 获取或设置要在触发按钮内部渲染的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到触发按钮的附加特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 返回移除了已显式处理参数（class, aria-label）的 AdditionalAttributes。
+    /// </summary>
+    private Dictionary<string, object>? FilteredAttributes
+    {
+        get
+        {
+            if (AdditionalAttributes == null) return null;
+            
+            var filtered = new Dictionary<string, object>();
+            foreach (var kvp in AdditionalAttributes)
+            {
+                var key = kvp.Key.ToLowerInvariant();
+                if (key != "class" && key != "aria-label")
+                {
+                    filtered[kvp.Key] = kvp.Value;
+                }
+            }
+            
+            return filtered.Count > 0 ? filtered : null;
+        }
+    }
+
+    private bool IsOpen => Context?.IsOpen ?? false;
+
+    /// <summary>
+    /// 获取触发按钮计算出的 CSS 类。
+    /// </summary>
+    private string CssClass => ClassNames.cn(
+        "atom:flex atom:h-10 atom:w-full atom:items-center atom:justify-between atom:rounded-md atom:border atom:border-input",
+        "atom:bg-background atom:px-3 atom:py-2 atom:text-sm",
+        "atom:placeholder:text-muted-foreground",
+        "atom:hover:bg-accent atom:hover:text-accent-foreground",
+        "atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring",
+        "atom:disabled:cursor-not-allowed atom:disabled:opacity-50",
+        IsOpen ? ActiveClass : null,
+        Class
+    );
+}

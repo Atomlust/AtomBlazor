@@ -1,0 +1,135 @@
+# =============================================================================
+# AtomBlazor NuGet 自动打包与发布（Trusted Publishing / OIDC 免密钥）
+#
+# 触发方式：
+#   1. 推送版本标签（推荐）：git tag v0.1.0 && git push origin v0.1.0
+#   2. 手动运行（Actions 页面 → Run workflow）：
+#      - publish_to_nuget = false：仅打包并上传 workflow 产物（试运行，不推送）
+#      - publish_to_nuget = true ：打包并推送到 nuget.org
+#
+# GitHub 仓库需配置（Settings → Secrets and variables → Actions）：
+#   NUGET_USER —— 创建 nuget.org Trusted Publishing 策略所用的 nuget.org 用户名
+#                （是 nuget.org 个人主页名，不是邮箱，也不是 GitHub 用户名）
+#
+# nuget.org 一侧需配置（Trusted Publishing 页面）：
+#   - Repository owner: Atomlust
+#   - Repository: 必须填 GitHub 上实际的仓库名（当前为 Atom.BlazorUI；
+#     若你在 GitHub 上也已把仓库改名为 AtomBlazor，则这里填 AtomBlazor）
+#   - Workflow file: publish-nuget.yml   （只填文件名，不要带 .github/workflows/ 前缀）
+#   - 若此处指定了 Environment，则本工作流 job 需加 environment: release（名称一致）
+#   - Package owner 需拥有全部 6 个包（AtomBlazor / AtomBlazor.Primitives /
+#     AtomBlazor.Icons.Lucide / AtomBlazor.Icons.Feather / AtomBlazor.Icons.FontAwesome /
+#     AtomBlazor.Icons.Heroicons）。注意：包 ID 已随重命名变更，旧 ID 策略不可复用。
+#
+# 说明：
+#   - 本流程通过 GitHub OIDC 令牌经 NuGet/login 换取一次性临时 API Key（约 1 小时有效），
+#     不再需要任何长期存储的 NUGET_API_KEY 密钥。
+#   - 所有包版本取自各库 csproj 的 <Version>（当前 0.1.0）；
+#     打标签时请确保标签版本与 csproj 版本一致。
+#   - AtomBlazor 构建期会用 Tailwind CLI（仓库根 npm 依赖中的 @tailwindcss/cli）
+#     生成 wwwroot/atomblazor.css，因此流程中必须先 npm ci。
+# =============================================================================
+name: publish-nuget
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      publish_to_nuget:
+        description: "打包后通过 Trusted Publishing 推送到 nuget.org（不勾选则仅试运行）"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  id-token: write   # REQUIRED：允许 job 申请 GitHub OIDC 令牌，NuGet/login 才能换取临时 Key
+
+concurrency:
+  group: publish-nuget-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  PACK_DIR: artifacts
+
+jobs:
+  pack-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 仓库 global.json 锁定 .NET 11 预览 SDK（rollForward: latestFeature）
+      - name: 安装 .NET SDK（按 global.json）
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.x
+          include-prerelease: true
+
+      # Tailwind CSS 构建管线依赖仓库根 npm 依赖（@tailwindcss/cli）
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 还原 npm 依赖
+        run: npm ci
+
+      - name: 还原 NuGet 依赖
+        run: dotnet restore AtomBlazor.slnx
+
+      - name: 打包全部库项目
+        run: |
+          set -euo pipefail
+          mkdir -p "$PACK_DIR"
+          failed=0
+          for csproj in $(find src -name "*.csproj" | sort); do
+            echo "::group::pack $csproj"
+            dotnet pack "$csproj" \
+              -c Release \
+              --no-restore \
+              -o "$PACK_DIR" \
+              -p:ContinuousIntegrationBuild=true || failed=1
+            echo "::endgroup::"
+          done
+          exit $failed
+
+      - name: 列出打包产物
+        run: ls -la "$PACK_DIR"
+
+      - name: 上传打包产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: nupkg-${{ github.sha }}
+          path: ${{ env.PACK_DIR }}/*.nupkg
+          if-no-files-found: error
+          retention-days: 14
+
+      # Trusted Publishing：用 GitHub OIDC 令牌换取一次性临时 API Key
+      - name: NuGet 登录（OIDC → 临时 API Key）
+        if: >-
+          startsWith(github.ref, 'refs/tags/v') ||
+          inputs.publish_to_nuget == true
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      # 推送条件：推送了 v* 标签，或手动运行时勾选了 publish_to_nuget
+      - name: 推送到 nuget.org
+        if: >-
+          startsWith(github.ref, 'refs/tags/v') ||
+          inputs.publish_to_nuget == true
+        run: |
+          set -euo pipefail
+          dotnet nuget push "$PACK_DIR/*.nupkg" \
+            --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+          echo "::notice::已推送 $PACK_DIR 下全部包到 nuget.org（已存在的版本将被跳过）"

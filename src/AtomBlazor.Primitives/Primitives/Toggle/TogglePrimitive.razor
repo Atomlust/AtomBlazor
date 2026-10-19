@@ -1,0 +1,87 @@
+@namespace AtomBlazor.Primitives
+
+<button type="button"
+        aria-pressed="@IsPressed.ToString().ToLower()"
+        data-state="@(IsPressed ? "on" : "off")"
+        disabled="@Disabled"
+        @onclick="HandleClick"
+        @attributes="AdditionalAttributes">
+    @ChildContent
+</button>
+
+@code {
+    private bool internalPressed;
+    private bool isControlled;
+
+    /// <summary>
+    /// 获取或设置切换按钮的按下状态（受控模式）。
+    /// </summary>
+    [Parameter]
+    public bool? Pressed { get; set; }
+
+    /// <summary>
+    /// 获取或设置按下状态变化时调用的回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> PressedChanged { get; set; }
+
+    /// <summary>
+    /// 获取或设置默认的按下状态（非受控模式）。
+    /// </summary>
+    [Parameter]
+    public bool DefaultPressed { get; set; }
+
+    /// <summary>
+    /// 获取或设置切换按钮是否禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 获取或设置的子内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到 button 元素的额外属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取当前的按下状态。
+    /// </summary>
+    public bool IsPressed => isControlled ? (Pressed ?? false) : internalPressed;
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        internalPressed = DefaultPressed;
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        isControlled = PressedChanged.HasDelegate || Pressed.HasValue;
+    }
+
+    private async Task HandleClick()
+    {
+        if (Disabled)
+        {
+            return;
+        }
+
+        var newValue = !IsPressed;
+
+        if (isControlled)
+        {
+            await PressedChanged.InvokeAsync(newValue);
+        }
+        else
+        {
+            internalPressed = newValue;
+        }
+    }
+}

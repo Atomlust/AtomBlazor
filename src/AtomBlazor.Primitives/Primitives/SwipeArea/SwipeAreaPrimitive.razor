@@ -1,0 +1,226 @@
+@namespace AtomBlazor.Primitives
+@using System.ComponentModel
+@using System.Globalization
+@inherits PrimitiveBase
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+@*
+    SwipeArea 基元——在任意内容之上做无头（headless）滑动手势检测。
+
+    手势数学全部在浏览器里跑。C# 每次手势只听到一个终结事件，
+    外加仅在挂载了 OnSwipeMove 时才发送的、经过节流的位置更新。
+*@
+
+<div @ref="areaRef"
+     data-axis="@Axis.ToString().ToLowerInvariant()"
+     data-threshold="@Threshold.ToString(CultureInfo.InvariantCulture)"
+     data-min-velocity="@MinVelocity.ToString(CultureInfo.InvariantCulture)"
+     data-report-move="@(OnSwipeMove.HasDelegate ? "true" : null)"
+     data-disabled="@(Disabled ? "true" : null)"
+     @attributes="FilteredAttributes"
+     style="@MergeStyles(TouchActionStyle)">
+    @ChildContent
+</div>
+
+@code {
+    private ElementReference areaRef;
+    private IJSObjectReference? jsModule;
+    private DotNetObjectReference<SwipeAreaPrimitive>? dotNetRef;
+    private readonly string areaId = Guid.NewGuid().ToString("N");
+    private bool jsInitialized;
+    private bool disposed;
+
+    /// <summary>
+    /// 获取或设置在其上检测手势的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置在一次手势移动得足够远、或快得足以构成滑动时恰好调用一次的回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<SwipeEventArgs> OnSwipe { get; set; }
+
+    /// <summary>
+    /// 获取或设置在指针按下期间跟随手势调用的回调。
+    /// </summary>
+    /// <remarks>
+    /// 不挂载则分文不花：没有处理器时浏览器完全不发送位置更新。
+    /// 挂载后意味着手指每移动一次就有 50ms 一条调用，所以除非内容确实要跟随指针，
+    /// 否则请优先只用 <see cref="OnSwipe"/>。
+    /// </remarks>
+    [Parameter]
+    public EventCallback<SwipeMoveEventArgs> OnSwipeMove { get; set; }
+
+    /// <summary>
+    /// 获取或设置在一次手势未构成滑动即结束、或被浏览器夺走时调用的回调。
+    /// </summary>
+    /// <remarks>
+    /// 这是撤销 <see cref="OnSwipeMove"/> 所画内容的信号。它只对上报过移动的手势触发，
+    /// 因此普通点按不会引发任何回调。
+    /// </remarks>
+    [Parameter]
+    public EventCallback OnSwipeCancel { get; set; }
+
+    /// <summary>
+    /// 获取或设置手势在被上报轴上须移动多少 CSS 像素才算滑动。默认 50。
+    /// </summary>
+    [Parameter]
+    public double Threshold { get; set; } = 50;
+
+    /// <summary>
+    /// 获取或设置一个速度阈值（CSS 像素/毫秒）：达到它的即使命不及
+    /// <see cref="Threshold"/> 也算滑动。默认 0.5。
+    /// </summary>
+    /// <remarks>
+    /// 这正是快速轻扫（flick）能生效的原因。它仍要求 16 像素的位移，所以点按时手的
+    /// 抖动——距离极短而速度虚高——骗不过它。设为 <see cref="double.PositiveInfinity"/>
+    /// 即只按距离判定。
+    /// </remarks>
+    [Parameter]
+    public double MinVelocity { get; set; } = 0.5;
+
+    /// <summary>
+    /// 获取或设置滑动在哪个轴上上报。默认 <see cref="SwipeAxis.Both"/>。
+    /// </summary>
+    [Parameter]
+    public SwipeAxis Axis { get; set; } = SwipeAxis.Both;
+
+    /// <summary>
+    /// 获取或设置浏览器对始于区域内的触摸仍可做些什么。默认
+    /// <see cref="SwipeTouchAction.Auto"/>，即完全不改变行为。
+    /// </summary>
+    /// <remarks>
+    /// 在纵向滚动的页面里做横向滑动，想要的是 <see cref="SwipeTouchAction.PanY"/>。
+    /// </remarks>
+    [Parameter]
+    public SwipeTouchAction TouchAction { get; set; } = SwipeTouchAction.Auto;
+
+    /// <summary>
+    /// 获取或设置是否忽略手势。进行中的手势会被丢弃。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    private string? TouchActionStyle => TouchAction switch
+    {
+        SwipeTouchAction.PanX => "touch-action: pan-x",
+        SwipeTouchAction.PanY => "touch-action: pan-y",
+        SwipeTouchAction.None => "touch-action: none",
+        _ => null
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeJsAsync();
+        }
+    }
+
+    private async Task InitializeJsAsync()
+    {
+        if (jsInitialized)
+        {
+            return;
+        }
+
+        try
+        {
+            jsModule = await PrimitiveModules.GetAsync(JSRuntime);
+            dotNetRef = DotNetObjectReference.Create(this);
+            await jsModule.InvokeVoidAsync("swipeArea.initialize", areaRef, dotNetRef, areaId);
+            jsInitialized = true;
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+        {
+            // 电路断开期间属预期情况
+        }
+        catch (InvalidOperationException)
+        {
+            // 预渲染期间 JS interop 不可用
+        }
+    }
+
+    /// <summary>
+    /// 丢弃进行中的手势且不上报，也不触发 <see cref="OnSwipeCancel"/>。
+    /// 没有手势在跑时什么也不做。
+    /// </summary>
+    /// <remarks>
+    /// 用于手势中途被别的东西接管的情形——对话框打开、列表重载——此时正在进行的
+    /// 滑动已不再指向任何事物。
+    /// </remarks>
+    public async Task CancelAsync()
+    {
+        if (disposed || !jsInitialized || jsModule is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await jsModule.InvokeVoidAsync("swipeArea.cancel", areaId);
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+        {
+            // 电路断开期间属预期情况
+        }
+    }
+
+    [JSInvokable]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public async Task JsSwipeMove(double deltaX, double deltaY)
+    {
+        if (disposed || Disabled)
+        {
+            return;
+        }
+
+        await OnSwipeMove.InvokeAsync(new SwipeMoveEventArgs(deltaX, deltaY));
+    }
+
+    [JSInvokable]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public async Task JsSwipeEnd(string direction, double deltaX, double deltaY, double distance, double velocity)
+    {
+        if (disposed || Disabled)
+        {
+            return;
+        }
+
+        var parsed = Enum.TryParse<SwipeDirection>(direction, out var value) ? value : SwipeDirection.None;
+        await OnSwipe.InvokeAsync(new SwipeEventArgs(parsed, deltaX, deltaY, distance, velocity));
+    }
+
+    [JSInvokable]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public async Task JsSwipeCancel()
+    {
+        if (disposed)
+        {
+            return;
+        }
+
+        await OnSwipeCancel.InvokeAsync();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        GC.SuppressFinalize(this);
+        disposed = true;
+        if (jsModule != null && jsInitialized)
+        {
+            try
+            {
+                await jsModule.InvokeVoidAsync("swipeArea.dispose", areaId);
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            {
+                // 电路断开期间属预期情况
+            }
+        }
+        dotNetRef?.Dispose();
+    }
+}

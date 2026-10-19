@@ -1,0 +1,40 @@
+@* With two or more resources visible the band groups by resource — one row per room,
+   one column per day — rather than mirroring the day-major lane order below it.
+
+   Lanes run Mon/Room A, Mon/Room B, Tue/Room A, Tue/Room B. A two-day event for Room A
+   therefore occupies lane 0 and lane 2, which are not adjacent, so no single bar could
+   span them. Grouping the band by resource draws the bar correctly at the cost of
+   column-for-column alignment with the grid.
+
+   Narrowing VisibleResourceIds to one resource restores the alignment: the band falls
+   back to a single row of day columns. *@
+
+<Scheduler @bind-Events="events"
+             Resources="resources"
+             @bind-VisibleResourceIds="visibleResources"
+             ShowResourceFilter="true"
+             View="SchedulerView.Week"
+             TimeZoneId="UTC" />
+
+@code {
+    private IReadOnlyList<string>? visibleResources;
+
+    private readonly IReadOnlyList<SchedulerResource> resources =
+    [
+        new("room-a", "Room A"),
+        new("room-b", "Room B")
+    ];
+
+    private IReadOnlyList<SchedulerEvent> events =
+    [
+        new() { Id = "setup", Title = "Room A setup", IsAllDay = true,
+                Start = new(2026, 9, 15, 0, 0, 0, TimeSpan.Zero),
+                End   = new(2026, 9, 18, 0, 0, 0, TimeSpan.Zero),
+                ResourceIds = ["room-a"] },
+
+        // No ResourceIds: shows in the Unassigned band row.
+        new() { Id = "audit", Title = "Site audit", IsAllDay = true,
+                Start = new(2026, 9, 17, 0, 0, 0, TimeSpan.Zero),
+                End   = new(2026, 9, 19, 0, 0, 0, TimeSpan.Zero) }
+    ];
+}

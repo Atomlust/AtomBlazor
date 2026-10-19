@@ -1,0 +1,474 @@
+@page "/components/theme"
+@inject ThemeService Themes
+
+<PageTitle>@L.T("主题系统 - Atom BlazorUI", "Theme System - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("主题系统", "Theme System")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("内置主题管理，支持暗色模式、配色板、圆角半径，并持久化到 localStorage。", "Built-in theme management with dark mode, color palettes, border radius, and localStorage persistence.")
+        </p>
+    </div>
+
+    <div class="space-y-6">
+
+        <!-- ── Quick Start ── -->
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("快速上手", "Quick Start")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("两步即可为你的应用加上主题能力。无需手动初始化——组件在首次渲染时就会处理好一切。", "Two steps to add theming to your app. No manual initialization needed — the components handle everything on first render.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <div class="space-y-2">
+                    <h3 class="text-sm font-semibold">@L.T("1. 把主题 CSS 加到你的 App.razor", "1. Add the theme CSS to your App.razor")</h3>
+                    <pre class="rounded-md bg-muted p-3 text-xs font-mono overflow-x-auto"><code>&lt;link href="_content/AtomBlazor/css/themes.css" rel="stylesheet" /&gt;</code></pre>
+                </div>
+                <div class="space-y-2">
+                    <h3 class="text-sm font-semibold">@L.T("2. 放入组件", "2. Drop in the component")</h3>
+                    <pre class="rounded-md bg-muted p-3 text-xs font-mono overflow-x-auto"><code>&lt;ThemeSwitcher /&gt;
+@* or just dark mode: *@
+&lt;DarkModeToggle /&gt;</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── ThemeSwitcher ── -->
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("主题切换器", "Theme Switcher")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("一个弹出面板，可配色（基础灰阶 + 主色强调）、选择圆角预设，并切换明暗模式。点击画笔图标即可打开。默认情况下，基础色与主色分成两个区块展示，各自带独立的选中标记——选其中一个绝不会重置另一个。", "A popover panel with color selection (base grays + primary accents), border radius presets, and a light/dark mode toggle. Click the paintbrush icon to open. By default, base and primary colors are shown as separate sections, each with its own selection indicator — selecting one never resets the other.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <div class="flex items-center gap-4">
+                    <ThemeSwitcher />
+                    <span class="text-sm text-muted-foreground">@L.T("点击图标打开主题面板", "Click the icon to open the theme panel")</span>
+                </div>
+
+                <div class="space-y-2">
+                    <p class="text-sm font-medium">@L.T("配色布局", "Color layout")</p>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <p class="text-xs text-muted-foreground">
+                                <code class="text-xs bg-muted px-1 py-0.5 rounded">ColorLayout</code> 决定颜色的呈现方式。默认值
+                                <code class="text-xs bg-muted px-1 py-0.5 rounded">ThemeSwitcherColorLayout.Split</code>
+                                会把基础色与主色分成两个独立区块。
+                                <code class="text-xs bg-muted px-1 py-0.5 rounded">Combined</code> 则回到旧版的单一网格，
+                                在那里选择基础色会把主色重置为默认值。
+                            </p>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <p class="text-xs text-muted-foreground">
+                                <code class="text-xs bg-muted px-1 py-0.5 rounded">ColorLayout</code> controls how
+                                colors are presented. The default,
+                                <code class="text-xs bg-muted px-1 py-0.5 rounded">ThemeSwitcherColorLayout.Split</code>,
+                                shows independent Base color and Primary color sections.
+                                <code class="text-xs bg-muted px-1 py-0.5 rounded">Combined</code> restores the legacy
+                                single grid, where picking a base color resets the primary color to its default.
+                            </p>
+                        </text>
+                    }
+                    <div class="flex items-center gap-4">
+                        <ThemeSwitcher ColorLayout="ThemeSwitcherColorLayout.Combined" />
+                        <span class="text-sm text-muted-foreground">@L.T("Combined（旧版）布局", "Combined (legacy) layout")</span>
+                    </div>
+                    <pre class="rounded-md bg-muted p-3 text-xs font-mono overflow-x-auto"><code>&lt;!-- Split layout (default) --&gt;
+&lt;ThemeSwitcher /&gt;
+
+&lt;!-- Combined (legacy) layout --&gt;
+&lt;ThemeSwitcher ColorLayout="ThemeSwitcherColorLayout.Combined" /&gt;</code></pre>
+                </div>
+
+                <div class="space-y-2">
+                    <p class="text-sm font-medium">@L.T("触发按钮变体", "Trigger variants")</p>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <p class="text-xs text-muted-foreground">
+                                触发按钮默认是 <code class="text-xs bg-muted px-1 py-0.5 rounded">Outline</code>。
+                                设置 <code class="text-xs bg-muted px-1 py-0.5 rounded">Variant</code> 可以让它与周围的
+                                界面风格保持一致。
+                            </p>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <p class="text-xs text-muted-foreground">
+                                The trigger button defaults to <code class="text-xs bg-muted px-1 py-0.5 rounded">Outline</code>.
+                                Set <code class="text-xs bg-muted px-1 py-0.5 rounded">Variant</code> to match it to the
+                                surrounding UI.
+                            </p>
+                        </text>
+                    }
+                    <div class="flex items-center gap-3">
+                        <ThemeSwitcher Variant="ButtonVariant.Default" />
+                        <ThemeSwitcher Variant="ButtonVariant.Secondary" />
+                        <ThemeSwitcher Variant="ButtonVariant.Ghost" />
+                        <ThemeSwitcher Variant="ButtonVariant.Outline" />
+                    </div>
+                    <pre class="rounded-md bg-muted p-3 text-xs font-mono overflow-x-auto"><code>&lt;ThemeSwitcher Variant="ButtonVariant.Ghost" /&gt;</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── DarkModeToggle ── -->
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("暗色模式开关", "Dark Mode Toggle")</h2>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            一个独立的按钮，用来切换暗色模式。浅色模式下显示太阳图标，暗色模式下显示月亮图标。
+                            没有 <code class="text-xs bg-muted px-1 py-0.5 rounded">themes.css</code> 也能工作
+                            —— 它只是切换 <code class="text-xs bg-muted px-1 py-0.5 rounded">.dark</code> 类。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            A standalone button that toggles dark mode. Shows a sun icon in light mode and
+                            a moon icon in dark mode. Works without <code class="text-xs bg-muted px-1 py-0.5 rounded">themes.css</code>
+                            — it only toggles the <code class="text-xs bg-muted px-1 py-0.5 rounded">.dark</code> class.
+                        </p>
+                    </text>
+                }
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <div class="space-y-2">
+                    <p class="text-sm font-medium">@L.T("默认（仅图标）", "Default (icon only)")</p>
+                    <DarkModeToggle />
+                </div>
+
+                <div class="space-y-2">
+                    <p class="text-sm font-medium">@L.T("带文字", "With label")</p>
+                    <DarkModeToggle ShowLabel="true" Size="ButtonSize.Default" />
+                </div>
+
+                <div class="space-y-2">
+                    <p class="text-sm font-medium">@L.T("只有文字，不要图标", "Label only, no icon")</p>
+                    <DarkModeToggle ShowIcon="false" ShowLabel="true" Size="ButtonSize.Default" />
+                </div>
+
+                <div class="space-y-2">
+                    <p class="text-sm font-medium">@L.T("自定义图标", "Custom icons")</p>
+                    <DarkModeToggle>
+                        <LightIcon>
+                            <LucideIcon Name="sun-medium" Class="h-[1.2rem] w-[1.2rem]" />
+                        </LightIcon>
+                        <DarkIcon>
+                            <LucideIcon Name="moon-star" Class="h-[1.2rem] w-[1.2rem]" />
+                        </DarkIcon>
+                    </DarkModeToggle>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── ThemeService Configuration ── -->
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("配置", "Configuration")</h2>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            在 <code class="text-xs bg-muted px-1 py-0.5 rounded">Program.cs</code> 里通过
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">configureTheme</code> 参数设定默认值。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            Configure defaults in <code class="text-xs bg-muted px-1 py-0.5 rounded">Program.cs</code>
+                            via the <code class="text-xs bg-muted px-1 py-0.5 rounded">configureTheme</code> parameter.
+                        </p>
+                    </text>
+                }
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <pre class="rounded-md bg-muted p-3 text-xs font-mono overflow-x-auto"><code>builder.Services.AddAtomBlazorComponents(
+    configureTheme: options =>
+    {
+        options.DefaultBaseColor = BaseColor.Slate;
+        options.DefaultPrimaryColor = PrimaryColor.Blue;
+        options.DefaultRadius = 0.75;
+        options.DefaultDarkMode = false;
+        options.DetectSystemPreference = true;
+        options.PersistToLocalStorage = true;
+    });</code></pre>
+            </div>
+        </section>
+
+        <!-- ── Programmatic Access ── -->
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("程序化访问", "Programmatic Access")</h2>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            注入 <code class="text-xs bg-muted px-1 py-0.5 rounded">ThemeService</code>，
+                            就能在代码里读取或修改主题。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-muted-foreground">
+                            Inject <code class="text-xs bg-muted px-1 py-0.5 rounded">ThemeService</code> to read
+                            or change the theme from code.
+                        </p>
+                    </text>
+                }
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <pre class="rounded-md bg-muted p-3 text-xs font-mono overflow-x-auto"><code>@@inject ThemeService ThemeService
+
+// Read current state
+var isDark = ThemeService.IsDarkMode;
+var baseColor = ThemeService.BaseColor;
+var primaryColor = ThemeService.PrimaryColor;
+var radius = ThemeService.Radius;
+
+// Change programmatically
+await ThemeService.SetDarkModeAsync(true);
+await ThemeService.SetBaseColorAsync(BaseColor.Slate);
+await ThemeService.SetPrimaryColorAsync(PrimaryColor.Blue);
+await ThemeService.SetRadiusAsync(0.75);
+await ThemeService.ToggleDarkModeAsync();</code></pre>
+            </div>
+        </section>
+
+        <!-- ── API Reference ── -->
+
+
+        <LocalizationSection
+            Description="@(L.T("主题切换器与暗色模式开关的文案可通过 ILocalizer 配置。", "Theme switcher and dark mode toggle strings are configurable via ILocalizer."))"
+            Labels="@(new LocalizationSection.LabelInfo[]
+            {
+                new("Switcher.Label", "Customize theme", L.T("主题切换器触发按钮的可读名称", "Aria-label on the theme switcher trigger button")),
+                new("Switcher.Title", "Customize", L.T("主题切换器弹出面板的标题", "Heading of the theme switcher popover")),
+                new("Switcher.Description", "Pick a color and radius for your components.", L.T("弹出面板标题下方的说明文字", "Description text under the popover heading")),
+                new("Color", "Color", L.T("合并配色网格的区块标题（Combined 布局）", "Section label for the combined color grid (Combined layout)")),
+                new("BaseColor", "Base color", L.T("基础色网格的区块标题（Split 布局）", "Section label for the base color grid (Split layout)")),
+                new("PrimaryColor", "Primary color", L.T("主色网格的区块标题（Split 布局）", "Section label for the primary color grid (Split layout)")),
+                new("Default", "Default", L.T("继承基础色板强调色的那个主色选项的标签", "Label of the primary color chip that inherits the base palette's accent")),
+                new("Radius", "Radius", L.T("圆角预设的区块标题", "Section label for the border radius presets")),
+                new("Mode", "Mode", L.T("明暗模式切换的区块标题", "Section label for the light/dark mode toggle")),
+                new("Light", "Light", L.T("浅色模式按钮的标签", "Light mode button label")),
+                new("Dark", "Dark", L.T("暗色模式按钮的标签", "Dark mode button label")),
+                new("SwitchToLight", "Switch to light mode", L.T("暗色模式生效时，暗色模式开关的可读名称", "Aria-label on the dark mode toggle when dark mode is active")),
+                new("SwitchToDark", "Switch to dark mode", L.T("浅色模式生效时，暗色模式开关的可读名称", "Aria-label on the dark mode toggle when light mode is active")),
+            })"
+            CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""Theme.BaseColor"", ""Grundfarbe"");
+    localizer.Set(""Theme.PrimaryColor"", ""Primärfarbe"");
+    localizer.Set(""Theme.Default"", ""Standard"");
+});")" />
+        <section class="space-y-4">
+            <h2 class="text-2xl font-semibold">@L.T("设计预设与局部作用域", "Design presets and local scopes")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("这七个起点组合了圆角、密度、字体与表面设置。在这里套用预设会保留你当前的配色与暗色模式。命名字体在你的应用提供字体文件之前，会使用系统回退字体。", "These seven starting points combine radius, density, font and surface settings. Applying a profile here preserves your current colors and dark mode. Named fonts use system fallbacks until your application supplies the font files.")</p>
+            <div class="flex flex-wrap items-center gap-2">
+                @foreach (var profile in profiles)
+                {
+                    <Button Variant="ButtonVariant.Outline" OnClick="@(() => ApplyProfile(profile.Value))">@profile.Key</Button>
+                }
+                <ThemeSwitcher ShowDesignOptions="true" />
+            </div>
+            <p class="text-sm text-muted-foreground">@L.T("下面的作用域保留自己的设计与圆角，同时继承文档的配色与暗色模式。它的传送式菜单跟随该作用域，显式写出的 utility 类仍然会覆盖控件默认值。", "The scope below keeps its own design and radius while inheriting document colors and dark mode. Its portaled menu follows the scope, and explicit utility classes still override control defaults.")</p>
+<ThemeScope Design="scopeDesign" Radius="0.25">
+    <Card Class="p-4 space-y-3">
+        <Input Placeholder="@(L.T("紧凑作用域输入框", "Compact scoped input"))" />
+        <DropdownMenu>
+            <AtomBlazor.DropdownMenuTrigger><Button Variant="ButtonVariant.Outline">@L.T("作用域菜单", "Scoped menu")</Button></AtomBlazor.DropdownMenuTrigger>
+            <AtomBlazor.DropdownMenuContent>
+                <AtomBlazor.DropdownMenuItem>@L.T("打开", "Open")</AtomBlazor.DropdownMenuItem>
+                <AtomBlazor.DropdownMenuItem>@L.T("保存", "Save")</AtomBlazor.DropdownMenuItem>
+            </AtomBlazor.DropdownMenuContent>
+        </DropdownMenu>
+        <Button Class="h-14 px-8">@L.T("使用方自定义尺寸", "Consumer size override")</Button>
+    </Card>
+</ThemeScope>
+            <CodeBlock Source="Components/Theme/presets.txt" />
+            <CodeBlock Source="Components/Theme/scope.txt" />
+
+        </section>
+    </div>
+
+        <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("主题切换器与暗色模式开关都有本地化的可读名称。颜色、圆角与模式按钮会播报自己的选中状态。", "The theme switcher and dark-mode toggle have localized accessible names. Color, radius and mode buttons announce their selected state.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("ThemeScope 只改变外观，不增加交互语义。自行提供主题值与字体时，请保持足够的对比度。", "ThemeScope changes appearance without adding interactive semantics. Keep sufficient contrast when supplying custom theme values and fonts.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在主题控件之间移动", "Move between theme controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("激活聚焦的按钮或打开下拉选择", "Activate a focused button or open a select"))"><Kbd>Enter</Kbd> / <Kbd>Space</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在主题下拉的选项之间移动", "Navigate options in a theme select"))"><Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭当前弹出的面板", "Close the active popup"))"><Kbd>Escape</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+                <p class="text-muted-foreground">@L.T("组件参数。", "Component parameters.")</p>
+            </div>
+            <div class="space-y-4">
+                <ApiReference ComponentName="ThemeSwitcher">
+                    <ApiParameter Name="Variant" Type="ButtonVariant" Default="ButtonVariant.Outline">
+                        @L.T("触发按钮的视觉变体。", "Visual variant of the trigger button.")
+                    </ApiParameter>
+                    <ApiParameter Name="TriggerClass" Type="string?" Default="null">
+                        @L.T("触发按钮的附加 CSS 类。", "Additional CSS classes for the trigger button.")
+                    </ApiParameter>
+                    <ApiParameter Name="PopoverContentClass" Type="string?" Default="null">
+                        @L.T("弹出内容面板的附加 CSS 类。", "Additional CSS classes for the popover content panel.")
+                    </ApiParameter>
+                    <ApiParameter Name="Align" Type="PopoverAlign" Default="PopoverAlign.End">
+                        @L.T("弹出层相对触发按钮的水平对齐方式。", "Horizontal alignment of the popover relative to the trigger.")
+                    </ApiParameter>
+                    <ApiParameter Name="Strategy" Type="PositioningStrategy" Default="PositioningStrategy.Absolute">
+                        @L.T("弹出层的定位策略。", "Positioning strategy for the popover.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="ColorLayout" Type="ThemeSwitcherColorLayout" Default="ThemeSwitcherColorLayout.Split">
+                                颜色选择区域的布局。<code>Split</code> 把基础色与主色分成两个区块，各自有独立的选中标记；
+                                <code>Combined</code> 是旧版的单一网格，在那里选择基础色会重置主色。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="ColorLayout" Type="ThemeSwitcherColorLayout" Default="ThemeSwitcherColorLayout.Split">
+                                Layout of the color selection area. <code>Split</code> shows separate base and primary
+                                color sections with independent selection indicators; <code>Combined</code> shows the
+                                legacy single grid where selecting a base color resets the primary color.
+                            </ApiParameter>
+                        </text>
+                    }
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                应用到组件根元素的附加 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                            </ApiParameter>
+                        </text>
+                    }
+                </ApiReference>
+
+                <ApiReference ComponentName="DarkModeToggle">
+                    <ApiParameter Name="LightIcon" Type="RenderFragment?" Default="Sun icon">
+                        @L.T("浅色模式下显示的自定义图标。", "Custom icon to show when light mode is active.")
+                    </ApiParameter>
+                    <ApiParameter Name="DarkIcon" Type="RenderFragment?" Default="Moon icon">
+                        @L.T("暗色模式下显示的自定义图标。", "Custom icon to show when dark mode is active.")
+                    </ApiParameter>
+                    <ApiParameter Name="ShowIcon" Type="bool" Default="true">
+                        @L.T("是否显示模式图标。", "Whether to show the mode icon.")
+                    </ApiParameter>
+                    <ApiParameter Name="ShowLabel" Type="bool" Default="false">
+                        @L.T("是否显示标明当前模式的文字。", "Whether to show a text label indicating the current mode.")
+                    </ApiParameter>
+                    <ApiParameter Name="LightLabel" Type="string?" Default="null">
+                        @L.T("浅色模式的自定义文字标签。", "Custom label text for light mode.")
+                    </ApiParameter>
+                    <ApiParameter Name="DarkLabel" Type="string?" Default="null">
+                        @L.T("暗色模式的自定义文字标签。", "Custom label text for dark mode.")
+                    </ApiParameter>
+                    <ApiParameter Name="Variant" Type="ButtonVariant" Default="ButtonVariant.Outline">
+                        @L.T("按钮的样式变体。", "Button styling variant.")
+                    </ApiParameter>
+                    <ApiParameter Name="Size" Type="ButtonSize" Default="ButtonSize.Icon">
+                        @L.T("按钮尺寸。", "Button size.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                应用到组件根元素的附加 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                            </ApiParameter>
+                        </text>
+                    }
+                </ApiReference>
+            </div>
+
+<ApiReference Since="v4" ComponentName="ThemePreset / ThemeDesign">
+                <ApiParameter Name="DarkMode / BaseColor / PrimaryColor / Radius" Type="bool / BaseColor / PrimaryColor / double">@L.T("完整的文档主题；圆角接受 0–4 rem。", "Complete document theme; radius accepts 0–4 rem.")</ApiParameter>
+                <ApiParameter Name="Design" Type="ThemeDesign">@L.T("不可变的 Density、Font、Surface、MenuColor 与 MenuAccent 设置。密度只缩放 Bb 的 spacing utility，不缩放使用方自己写的 utility。", "Immutable Density, Font, Surface, MenuColor and MenuAccent settings. Density scales Bb spacing utilities; it does not scale consumer utilities.")</ApiParameter>
+            </ApiReference>
+
+<ApiReference ComponentName="ThemeOptions / ThemeService">
+                <ApiParameter Since="v4" Name="DefaultPreset" Type="ThemePreset?" Default="null">@L.T("提供时会覆盖各项独立的 Default 选项。持久化与系统偏好选项仍然生效。", "Overrides the individual Default options when supplied. Persistence and system preference options still apply.")</ApiParameter>
+                <ApiParameter Since="v4" Name="Preset" Type="ThemePreset">@L.T("当前完整的配置。", "The current complete configuration.")</ApiParameter>
+                <ApiParameter Since="v4" Name="SetPresetAsync / SetDesignAsync" Type="Task">@L.T("应用并持久化一个完整预设，或只应用它的设计设置。已保存的主题在新增字段上使用配置好的默认值。", "Apply and persist a full preset or only its design settings. Existing saved themes use configured defaults for new fields.")</ApiParameter>
+            </ApiReference>
+
+            <span id="theme-scope" class="block scroll-mt-20" aria-hidden="true"></span>
+            <ApiReference Since="v4" ComponentName="ThemeScope">
+                <ApiParameter Name="Design" Type="ThemeDesign">@L.T("局部外观设置；不改动文档的配色板、暗色模式或存储。", "Local appearance settings; does not change document palettes, dark mode or storage.")</ApiParameter>
+                <ApiParameter Name="Radius" Type="double?" Default="null">@L.T("可选的局部圆角；为 null 时继承。", "Optional local radius; null inherits.")</ApiParameter>
+                <ApiParameter Name="ChildContent / Class / AdditionalAttributes" Type="RenderFragment / string / Dictionary&lt;string, object&gt;">@L.T("被主题化的子树、包装类与 HTML 属性。", "The themed subtree, wrapper classes and HTML attributes.")</ApiParameter>
+            </ApiReference>
+
+<ApiReference ComponentName="ThemeSwitcher">
+                <ApiParameter Since="v4" Name="ShowDesignOptions" Type="bool" Default="false">@L.T("显示密度、字体、表面、菜单色与菜单强调色的选择器。", "Shows selectors for density, font, surfaces, menu color and menu accent.")</ApiParameter>
+            </ApiReference>
+    </section>
+
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private readonly ThemeDesign scopeDesign = new() { Density = ThemeDensity.Compact, Font = ThemeFont.Mono, MenuColor = ThemeMenuColor.Inverse };
+    private static readonly Dictionary<string, ThemePreset> profiles = new()
+    {
+        ["Standard"] = ThemePresets.Standard, ["Balanced"] = ThemePresets.Balanced,
+        ["Compact"] = ThemePresets.Compact, ["Spacious"] = ThemePresets.Spacious,
+        ["Sharp"] = ThemePresets.Sharp, ["Dense"] = ThemePresets.Dense, ["Glass"] = ThemePresets.Glass
+    };
+    private Task ApplyProfile(ThemePreset profile) => Themes.SetPresetAsync(profile with
+    {
+        DarkMode = Themes.IsDarkMode, BaseColor = Themes.BaseColor, PrimaryColor = Themes.PrimaryColor
+    });
+}

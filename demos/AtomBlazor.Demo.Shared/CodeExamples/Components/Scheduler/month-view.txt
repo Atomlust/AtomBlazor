@@ -1,0 +1,33 @@
+<Scheduler @bind-Events="events" @bind-View="view"
+             MaxEventsPerDay="3" TimeZoneId="UTC" />
+
+@code {
+    private SchedulerView view = SchedulerView.Month;
+
+    private IReadOnlyList<SchedulerEvent> events =
+    [
+        // Multi-day events are one bar across the days they cover, all-day or not.
+        new() { Id = "conference", Title = "Conference", IsAllDay = true,
+                Start = new(2026, 9, 16, 0, 0, 0, TimeSpan.Zero),
+                End   = new(2026, 9, 19, 0, 0, 0, TimeSpan.Zero) },
+
+        // Single-day events are chips inside their cell.
+        new() { Id = "standup", Title = "Stand-up",
+                Start = new(2026, 9, 14, 9, 0, 0, TimeSpan.Zero),
+                End   = new(2026, 9, 14, 9, 30, 0, TimeSpan.Zero),
+                RecurrenceRule = "FREQ=WEEKLY;BYDAY=MO,WE,FR;COUNT=12" }
+    ];
+}
+
+@* Notes on Month:
+   - Always six week rows, so the grid height does not change between months.
+   - Previous and Next step one calendar month.
+   - MaxEventsPerDay caps each cell. A bar spends that budget in every day it
+     covers, so a day under a bar shows fewer chips and counts the difference
+     into its own "+x more".
+   - Resources are a filter here, not lanes: a month cell cannot carry one
+     column per resource. Use ShowResourceFilter or VisibleResourceIds.
+   - AllowDrag and AllowResize are ignored. The pointer code derives times from
+     the time grid's 40px-per-slot geometry, which a month cell does not have.
+   - Click a day to select it; double-click, or press Enter, to create an event
+     at StartHour lasting SlotMinutes. *@

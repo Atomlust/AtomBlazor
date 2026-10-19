@@ -1,0 +1,141 @@
+@namespace AtomBlazor
+
+<div class="@RowCssClass" role="group" aria-label="@Localizer["FilterBuilder.FilterCondition"]" @attributes="AdditionalAttributes">
+    @* Field selector *@
+    @if (Context?.SearchableFields == true)
+    {
+        <Combobox TValue="string" Value="@Condition.Field" ValueChanged="HandleFieldChanged"
+                    Options="@fieldOptions" Placeholder="@Localizer["FilterBuilder.SelectField"]" Class="@FieldSelectClass" />
+    }
+    else
+    {
+    <Select TValue="string"
+              Value="@Condition.Field"
+              ValueChanged="HandleFieldChanged"
+              Options="@fieldOptions"
+              Placeholder="@Localizer["FilterBuilder.SelectField"]"
+              Class="@FieldSelectClass" />
+    }
+
+    @* Operator selector *@
+    @if (!string.IsNullOrEmpty(Condition.Field) && selectedField != null)
+    {
+        <Select TValue="FilterOperator"
+                  Value="@Condition.Operator"
+                  ValueChanged="HandleOperatorChanged"
+                  Options="@operatorOptions"
+                  Class="@OperatorSelectClass" />
+
+        @* Value input — type-aware *@
+        @if (!FilterOperatorHelper.IsValuelessOperator(Condition.Operator))
+        {
+            @if (Context?.ValueEditors?.TryGetValue(selectedField.Name, out var editor) == true)
+            {
+                @editor(new FilterValueEditorContext(selectedField, Condition, OnChanged))
+            }
+            else
+            {
+            @switch (selectedField.Type)
+            {
+                case FilterFieldType.Text:
+                    <Input Value="@GetStringValue()"
+                             ValueChanged="HandleStringValueChanged"
+                             Placeholder="@(selectedField.Placeholder ?? Localizer["FilterBuilder.EnterValue"])"
+                             Class="@ValueInputClass" />
+                    break;
+
+                case FilterFieldType.Number when FilterOperatorHelper.IsRangeOperator(Condition.Operator):
+                    <div class="atom:flex atom:flex-wrap atom:items-center atom:gap-2">
+                        <NumericInput TValue="double"
+                                        Value="@GetDoubleValue()"
+                                        ValueChanged="HandleDoubleValueChanged"
+                                        Placeholder="@Localizer["FilterBuilder.Min"]"
+                                        Class="@ValueInputClass" />
+                        <span class="atom:text-sm atom:text-muted-foreground atom:shrink-0">@Localizer["FilterBuilder.And"]</span>
+                        <NumericInput TValue="double"
+                                        Value="@GetDoubleValueEnd()"
+                                        ValueChanged="HandleDoubleValueEndChanged"
+                                        Placeholder="@Localizer["FilterBuilder.Max"]"
+                                        Class="@ValueInputClass" />
+                    </div>
+                    break;
+
+                case FilterFieldType.Number:
+                    <NumericInput TValue="double"
+                                    Value="@GetDoubleValue()"
+                                    ValueChanged="HandleDoubleValueChanged"
+                                    Placeholder="@(selectedField.Placeholder ?? Localizer["FilterBuilder.EnterValue"])"
+                                    Class="@ValueInputClass" />
+                    break;
+
+                case FilterFieldType.Date or FilterFieldType.DateTime when FilterOperatorHelper.IsRangeOperator(Condition.Operator):
+                    <DateRangePicker Value="@GetDateRangeValue()"
+                                       ValueChanged="HandleDateRangeValueChanged"
+                                       Class="@ValueInputClass" />
+                    break;
+
+                case FilterFieldType.Date or FilterFieldType.DateTime when Condition.Operator is FilterOperator.InLast or FilterOperator.InNext:
+                    <div class="atom:flex atom:flex-wrap atom:items-center atom:gap-2">
+                        <NumericInput TValue="int"
+                                        Value="@GetInLastAmount()"
+                                        ValueChanged="HandleInLastAmountChanged"
+                                        Min="1"
+                                        Placeholder="@Localizer["FilterBuilder.Amount"]"
+                                        Class="@ValueInputClass" />
+                        <Select TValue="InLastPeriod"
+                                  Value="@GetInLastPeriod()"
+                                  ValueChanged="HandleInLastPeriodChanged"
+                                  Options="@InLastPeriodOptions"
+                                  Class="@OperatorSelectClass" />
+                    </div>
+                    break;
+
+                case FilterFieldType.Date or FilterFieldType.DateTime when FilterOperatorHelper.IsDatePresetOperator(Condition.Operator):
+                    <Select TValue="DatePreset"
+                              Value="@GetDatePreset()"
+                              ValueChanged="HandleDatePresetChanged"
+                              Options="@DatePresetOptions"
+                              Class="@ValueInputClass" />
+                    break;
+
+                case FilterFieldType.Date or FilterFieldType.DateTime:
+                    <DatePicker Value="@GetDateTimeValue()"
+                                  ValueChanged="HandleDateTimeValueChanged"
+                                  Placeholder="@(selectedField.Placeholder ?? Localizer["FilterBuilder.PickDate"])"
+                                  Class="@ValueInputClass" />
+                    break;
+
+                case FilterFieldType.Enum when Condition.Operator is FilterOperator.In or FilterOperator.NotIn:
+                    <MultiSelect TValue="string"
+                                   Values="@GetMultiSelectValues()"
+                                   ValuesChanged="HandleMultiSelectValuesChanged"
+                                   Options="@(selectedField.Options ?? Array.Empty<SelectOption<string>>())"
+                                   Placeholder="@Localizer["FilterBuilder.SelectValues"]"
+                                   Class="@ValueInputClass" />
+                    break;
+
+                case FilterFieldType.Enum:
+                    <Select TValue="string"
+                              Value="@GetStringValue()"
+                              ValueChanged="HandleStringValueChanged"
+                              Options="@(selectedField.Options ?? Array.Empty<SelectOption<string>>())"
+                              Placeholder="@Localizer["FilterBuilder.SelectValue"]"
+                              Class="@ValueInputClass" />
+                    break;
+            }
+            }
+        }
+    }
+
+    @* Remove button *@
+    <Button Variant="ButtonVariant.Ghost"
+              Size="ButtonSize.IconSmall"
+              OnClick="HandleRemove"
+              Class="atom:shrink-0 atom:text-muted-foreground atom:hover:text-destructive"
+              aria-label="@Localizer["FilterBuilder.RemoveCondition"]">
+        <svg class="atom:h-4 atom:w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+    </Button>
+</div>

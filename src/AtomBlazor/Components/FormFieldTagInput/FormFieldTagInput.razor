@@ -1,0 +1,43 @@
+@namespace AtomBlazor
+@inherits FormFieldBase
+
+<Field Orientation="@Orientation" IsInvalid="@IsInvalid" Class="@Class">
+    @if (Label is not null)
+    {
+        <FieldLabel>@Label</FieldLabel>
+    }
+    <FieldContent>
+        <TagInput Tags="@Tags"
+                  TagsChanged="HandleTagsChanged"
+                  TagsExpression="@TagsExpression"
+                  Placeholder="@Placeholder"
+                  MaxTags="@MaxTags"
+                  MaxTagLength="@MaxTagLength"
+                  AllowDuplicates="@AllowDuplicates"
+                  AddTrigger="@AddTrigger"
+                  Validate="@Validate"
+                  OnTagRejected="@OnTagRejected"
+                  Suggestions="@Suggestions"
+                  OnSearchSuggestions="@OnSearchSuggestions"
+                  SuggestionDebounceMs="@SuggestionDebounceMs"
+                  Variant="@Variant"
+                  Clearable="@Clearable"
+                  Disabled="@Disabled"
+                  TagTemplate="@TagTemplate"
+                  AriaLabel="@AriaLabel"
+                  Class="@InputClass"
+                  @attributes="AdditionalAttributes" />
+        @if (!string.IsNullOrEmpty(HelperText) && !IsInvalid)
+        {
+            <FieldDescription Id="@DescriptionId">@HelperText</FieldDescription>
+        }
+        @if (IsInvalid && !string.IsNullOrEmpty(ErrorText))
+        {
+            <FieldError Id="@ErrorId">@ErrorText</FieldError>
+        }
+        else if (HasEditContextErrors)
+        {
+            <FieldError Id="@ErrorId" Errors="@EditContextErrors" />
+        }
+    </FieldContent>
+</Field>

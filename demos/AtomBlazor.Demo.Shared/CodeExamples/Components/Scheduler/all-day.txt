@@ -1,0 +1,28 @@
+<Scheduler @bind-Events="events" @bind-View="view"
+             MaxAllDayRows="3" TimeZoneId="UTC" />
+
+@code {
+    private SchedulerView view = SchedulerView.Week;
+
+    private IReadOnlyList<SchedulerEvent> events =
+    [
+        // End is EXCLUSIVE. A single all-day event on the 14th ends on the 15th.
+        new() { Id = "holiday", Title = "Public holiday", IsAllDay = true,
+                Start = new(2026, 9, 14, 0, 0, 0, TimeSpan.Zero),
+                End   = new(2026, 9, 15, 0, 0, 0, TimeSpan.Zero) },
+
+        // Three days: the 16th, 17th and 18th. Drawn as one bar, not three chips.
+        new() { Id = "conference", Title = "Conference", IsAllDay = true,
+                Start = new(2026, 9, 16, 0, 0, 0, TimeSpan.Zero),
+                End   = new(2026, 9, 19, 0, 0, 0, TimeSpan.Zero) },
+
+        // Timed events are unaffected and stay in the grid below the band.
+        new() { Id = "standup", Title = "Stand-up",
+                Start = new(2026, 9, 16, 9, 0, 0, TimeSpan.Zero),
+                End   = new(2026, 9, 16, 9, 30, 0, TimeSpan.Zero) }
+    ];
+}
+
+@* Time components on an all-day event are ignored, so flipping IsAllDay on existing
+   timed data is safe. Recurrence is measured in whole local days, which keeps a daily
+   all-day series on midnight across a 23- or 25-hour daylight-saving day. *@

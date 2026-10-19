@@ -1,0 +1,608 @@
+@page "/primitives/dialog"
+<PageTitle>@L.T("Dialog 原语 - Atom BlazorUI", "Dialog Primitive - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Dialog 原语", "Dialog Primitive")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("无头、无样式的对话框原语，具备完整的无障碍支持。", "Headless, unstyled dialog primitive with full accessibility support.")
+        </p>
+    </div>
+
+    <div class="space-y-6">
+        <!-- AsChild Pattern -->
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("AsChild 模式", "AsChild Pattern")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("用 AsChild 把触发器组合到你自己带样式的元素上。", "Use AsChild to compose triggers with your own styled elements.")
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Without AsChild -->
+                <div class="space-y-3 p-4 border rounded-lg">
+                    <h3 class="text-lg font-medium">@L.T("不使用 AsChild", "Without AsChild")</h3>
+                    <p class="text-sm text-muted-foreground">
+                        @L.T("DialogTrigger 会自己渲染一个按钮元素。", "DialogTrigger renders its own button element.")
+                    </p>
+                    <AtomBlazor.Primitives.DialogPrimitive>
+                        <AtomBlazor.Primitives.DialogTrigger class="px-3 py-2 border rounded text-sm">
+                            @L.T("打开对话框", "Open Dialog")
+                        </AtomBlazor.Primitives.DialogTrigger>
+                        <AtomBlazor.Primitives.DialogPortal>
+                            <AtomBlazor.Primitives.DialogOverlay class="fixed inset-0 bg-black/50 z-50" />
+                            <AtomBlazor.Primitives.DialogContent class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background p-6 rounded-lg border max-w-md z-50">
+                                <AtomBlazor.Primitives.DialogTitle class="text-lg font-semibold mb-2">@L.T("不使用 AsChild", "Without AsChild")</AtomBlazor.Primitives.DialogTitle>
+                                <AtomBlazor.Primitives.DialogDescription class="text-sm text-muted-foreground mb-4">
+                                    @L.T("触发器自己渲染了按钮元素。", "Trigger rendered its own button element.")
+                                </AtomBlazor.Primitives.DialogDescription>
+                                <AtomBlazor.Primitives.DialogClose class="px-3 py-2 border rounded text-sm">@L.T("关闭", "Close")</AtomBlazor.Primitives.DialogClose>
+                            </AtomBlazor.Primitives.DialogContent>
+                        </AtomBlazor.Primitives.DialogPortal>
+                    </AtomBlazor.Primitives.DialogPrimitive>
+                </div>
+
+                <!-- With AsChild -->
+                <div class="space-y-3 p-4 border rounded-lg">
+                    <h3 class="text-lg font-medium">@L.T("使用 AsChild", "With AsChild")</h3>
+                    <p class="text-sm text-muted-foreground">
+                        @L.T("Button 通过 TriggerContext 接收点击行为。", "Button receives click behavior via TriggerContext.")
+                    </p>
+                    <AtomBlazor.Primitives.DialogPrimitive>
+                        <AtomBlazor.Primitives.DialogTrigger AsChild>
+                            <Button Variant="ButtonVariant.Outline">@L.T("打开对话框", "Open Dialog")</Button>
+                        </AtomBlazor.Primitives.DialogTrigger>
+                        <AtomBlazor.Primitives.DialogPortal>
+                            <AtomBlazor.Primitives.DialogOverlay class="fixed inset-0 bg-black/50 z-50" />
+                            <AtomBlazor.Primitives.DialogContent class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background p-6 rounded-lg border max-w-md z-50">
+                                <AtomBlazor.Primitives.DialogTitle class="text-lg font-semibold mb-2">@L.T("使用 AsChild", "With AsChild")</AtomBlazor.Primitives.DialogTitle>
+                                <AtomBlazor.Primitives.DialogDescription class="text-sm text-muted-foreground mb-4">
+                                    @L.T("由 Button 组件承接触发行为。", "Button component handles the trigger behavior.")
+                                </AtomBlazor.Primitives.DialogDescription>
+                                <AtomBlazor.Primitives.DialogClose AsChild>
+                                    <Button Variant="ButtonVariant.Secondary">@L.T("关闭", "Close")</Button>
+                                </AtomBlazor.Primitives.DialogClose>
+                            </AtomBlazor.Primitives.DialogContent>
+                        </AtomBlazor.Primitives.DialogPortal>
+                    </AtomBlazor.Primitives.DialogPrimitive>
+                </div>
+            </div>
+
+            <CodeBlock Source="Primitives/Dialog/as-child.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基础无头原语", "Basic Headless Primitive")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("原语只提供行为与无障碍能力，不带样式。", "The primitive provides behavior and accessibility without styling.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 max-w-md">
+                <AtomBlazor.Primitives.DialogPrimitive>
+                    <AtomBlazor.Primitives.DialogTrigger class="px-3 py-2 border rounded text-sm">
+                        @L.T("打开对话框", "Open Dialog")
+                    </AtomBlazor.Primitives.DialogTrigger>
+
+                    <AtomBlazor.Primitives.DialogPortal>
+                        <AtomBlazor.Primitives.DialogOverlay class="fixed inset-0 bg-black/50 z-50" />
+
+                        <AtomBlazor.Primitives.DialogContent class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background p-6 rounded-lg border max-w-md z-50">
+                            <AtomBlazor.Primitives.DialogTitle class="text-lg font-semibold mb-2">
+                                @L.T("对话框标题", "Dialog Title")
+                            </AtomBlazor.Primitives.DialogTitle>
+
+                            <AtomBlazor.Primitives.DialogDescription class="text-sm text-muted-foreground mb-4">
+                                @L.T("这是一个使用无样式原语组件的基础对话框。", "This is a basic dialog using the unstyled primitive components.")
+                            </AtomBlazor.Primitives.DialogDescription>
+
+                            <div class="flex justify-end gap-2">
+                                <AtomBlazor.Primitives.DialogClose class="px-3 py-2 border rounded text-sm">
+                                    @L.T("关闭", "Close")
+                                </AtomBlazor.Primitives.DialogClose>
+                            </div>
+                        </AtomBlazor.Primitives.DialogContent>
+                    </AtomBlazor.Primitives.DialogPortal>
+                </AtomBlazor.Primitives.DialogPrimitive>
+            </div>
+
+            <CodeBlock Source="Primitives/Dialog/basic.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("受控状态", "Controlled State")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("在你的组件代码中控制对话框的打开状态。", "Control the dialog's open state from your component code.")
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex gap-2">
+                    <button @onclick="() => isControlledOpen = true"
+                            class="px-3 py-2 border rounded text-sm">
+                        @L.T("打开对话框", "Open Dialog")
+                    </button>
+                    <button @onclick="() => isControlledOpen = false"
+                            class="px-3 py-2 border rounded text-sm"
+                            disabled="@(!isControlledOpen)">
+                        @L.T("从外部关闭", "Close from Outside")
+                    </button>
+                </div>
+
+                <div class="rounded-lg border bg-card p-6 max-w-md">
+                    <AtomBlazor.Primitives.DialogPrimitive @bind-Open="isControlledOpen">
+                        <AtomBlazor.Primitives.DialogPortal>
+                            <AtomBlazor.Primitives.DialogOverlay class="fixed inset-0 bg-black/50 z-50" />
+
+                            <AtomBlazor.Primitives.DialogContent class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background p-6 rounded-lg border max-w-md z-50">
+                                <AtomBlazor.Primitives.DialogTitle class="text-lg font-semibold mb-2">
+                                    @L.T("受控对话框", "Controlled Dialog")
+                                </AtomBlazor.Primitives.DialogTitle>
+
+                                <AtomBlazor.Primitives.DialogDescription class="text-sm text-muted-foreground mb-4">
+                                    @L.T("该对话框的状态由父组件控制。“从外部关闭”按钮演示了外部状态控制。", "This dialog's state is controlled by the parent component. The \"Close from Outside\" button demonstrates external state control.")
+                                </AtomBlazor.Primitives.DialogDescription>
+
+                                @if (L.IsChinese)
+                                {
+                                    <text>
+                                        <p class="mb-4">打开状态：<strong>@isControlledOpen</strong></p>
+                                    </text>
+                                }
+                                else
+                                {
+                                    <text>
+                                        <p class="mb-4">Open state: <strong>@isControlledOpen</strong></p>
+                                    </text>
+                                }
+
+                                <AtomBlazor.Primitives.DialogClose class="px-3 py-2 border rounded text-sm">
+                                    @L.T("关闭", "Close")
+                                </AtomBlazor.Primitives.DialogClose>
+                            </AtomBlazor.Primitives.DialogContent>
+                        </AtomBlazor.Primitives.DialogPortal>
+                    </AtomBlazor.Primitives.DialogPrimitive>
+                </div>
+
+                <CodeBlock Source="Primitives/Dialog/controlled.txt" />
+            </div>
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("模态行为", "Modal Behavior")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("对话框默认是模态的。点击遮罩或按下 Escape 都会关闭对话框。", "By default, dialogs are modal. Clicking overlay or pressing Escape closes the dialog.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 max-w-md">
+                <AtomBlazor.Primitives.DialogPrimitive>
+                    <AtomBlazor.Primitives.DialogTrigger class="px-3 py-2 border rounded text-sm">
+                        @L.T("打开模态对话框", "Open Modal Dialog")
+                    </AtomBlazor.Primitives.DialogTrigger>
+
+                    <AtomBlazor.Primitives.DialogPortal>
+                        <AtomBlazor.Primitives.DialogOverlay class="fixed inset-0 bg-black/50 z-50" />
+
+                        <AtomBlazor.Primitives.DialogContent class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background p-6 rounded-lg border max-w-md z-50">
+                            <AtomBlazor.Primitives.DialogTitle class="text-lg font-semibold mb-2">
+                                @L.T("模态对话框", "Modal Dialog")
+                            </AtomBlazor.Primitives.DialogTitle>
+
+                            <AtomBlazor.Primitives.DialogDescription class="text-sm text-muted-foreground mb-4">
+                                @L.T("试试点击遮罩或按下 Escape 来关闭这个对话框。", "Try clicking the overlay or pressing Escape to close this dialog.")
+                            </AtomBlazor.Primitives.DialogDescription>
+
+                            <ul class="text-sm space-y-1 mb-4">
+                                <li>✓ @L.T("点击遮罩关闭", "Click overlay to close")</li>
+                                <li>✓ @L.T("按下 Escape 关闭", "Press Escape to close")</li>
+                                <li>✓ @L.T("点击关闭按钮", "Click close button")</li>
+                                <li>✓ @L.T("焦点锁定在对话框内", "Focus trapped inside dialog")</li>
+                                <li>✓ @L.T("页面滚动已锁定", "Body scroll locked")</li>
+                            </ul>
+
+                            <AtomBlazor.Primitives.DialogClose class="px-3 py-2 border rounded text-sm">
+                                @L.T("关闭", "Close")
+                            </AtomBlazor.Primitives.DialogClose>
+                        </AtomBlazor.Primitives.DialogContent>
+                    </AtomBlazor.Primitives.DialogPortal>
+                </AtomBlazor.Primitives.DialogPrimitive>
+            </div>
+        </section>
+
+        <AccessibilityList>
+            <AriaAttributes>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="dialog"</code> 供屏幕阅读器识别
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="dialog"</code> for screen readers
+                        </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-modal="true"</code> 表示模态行为
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-modal="true"</code> indicates modal behavior
+                        </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-labelledby</code> 把标题关联到对话框
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-labelledby</code> links title to dialog
+                        </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code> 把描述关联到对话框
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code> links description to dialog
+                        </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-haspopup="dialog"</code> 位于触发按钮上
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-haspopup="dialog"</code> on trigger button
+                        </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> 在触发器上反映打开状态
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> on trigger reflects open state
+                        </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-controls</code> 在触发器上关联到内容
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-controls</code> on trigger links to content
+                        </AccessibilityItem>
+                    </text>
+                }
+                <AccessibilityItem>
+                    @L.T("自动锁定焦点并在关闭后恢复焦点", "Automatic focus trap and restoration")
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @L.T("对话框打开时锁定页面滚动", "Body scroll lock when dialog is open")
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    @L.T("通过门户渲染以获得正确的 z-index 层叠", "Portal rendering for proper z-index stacking")
+                </AccessibilityItem>
+            </AriaAttributes>
+            <KeyboardNavigation>
+                <KeyboardShortcutItem Description="@(L.T("打开对话框（触发器聚焦时）", "Open dialog (when trigger is focused)"))">
+                    <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("关闭对话框", "Close dialog"))">
+                    <Kbd>Escape</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("在元素之间导航", "Navigate between elements"))">
+                    <Kbd>Tab</Kbd>
+                </KeyboardShortcutItem>
+            </KeyboardNavigation>
+        </AccessibilityList>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("组件属性与参数。", "Component properties and parameters.")
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <ApiReference ComponentName="Dialog (primitive)">
+                    <ApiParameter Name="Open" Type="bool?" Default="null">
+                        @L.T("控制对话框是否打开（受控模式）。为 null 时对话框自行管理状态（非受控模式）。", "Controls whether the dialog is open (controlled mode). When null, the dialog manages its own state (uncontrolled mode).")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="OpenChanged" Type="EventCallback&lt;bool&gt;">
+                                打开状态发生变化时调用的回调。与 <code>@@bind-Open</code> 一起使用可实现双向绑定。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="OpenChanged" Type="EventCallback&lt;bool&gt;">
+                                Callback invoked when the open state changes. Use with <code>@@bind-Open</code> for two-way binding.
+                            </ApiParameter>
+                        </text>
+                    }
+                    <ApiParameter Name="DefaultOpen" Type="bool" Default="false">
+                        @L.T("非受控模式下的初始打开状态。", "Initial open state when in uncontrolled mode.")
+                    </ApiParameter>
+                    <ApiParameter Name="OnOpenChange" Type="EventCallback&lt;bool&gt;">
+                        @L.T("对话框打开状态变化时调用的事件回调。参数为新的打开状态。", "Event callback invoked when the dialog open state changes. Receives the new open state as a parameter.")
+                    </ApiParameter>
+                    <ApiParameter Name="Modal" Type="bool" Default="true">
+                        @L.T("对话框是否为模态（阻止与页面其余部分的交互）。", "Whether the dialog is modal (blocks interaction with rest of page).")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在对话框上下文中渲染的子内容。通常包含 DialogTrigger、DialogPortal 以及其他对话框部件。", "The child content to render within the dialog context. Typically includes DialogTrigger, DialogPortal, and other dialog parts.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                应用到组件根元素上的附加 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                            </ApiParameter>
+                        </text>
+                    }
+                </ApiReference>
+
+                <ApiReference ComponentName="DialogTrigger (primitive)">
+                    <ApiParameter Name="AsChild" Type="bool" Default="false">
+                        @L.T("为 true 时触发器不再自己渲染按钮元素，而是通过 TriggerContext 把触发行为传给子组件。", "When true, the trigger does not render its own button element. Instead, it passes trigger behavior via TriggerContext to child components.")
+                    </ApiParameter>
+                    <ApiParameter Name="OnClick" Type="EventCallback&lt;MouseEventArgs&gt;">
+                        @L.T("自定义点击处理。提供时，除了（或替代）默认切换行为之外还会调用它。", "Custom click handler. If provided, this is called in addition to (or instead of) the default toggle behavior.")
+                    </ApiParameter>
+                    <ApiParameter Name="CustomClickHandling" Type="bool" Default="false">
+                        @L.T("是否使用自定义点击处理。为 true 时只调用 OnClick（对话框不会切换）。", "Whether to use custom click handling. When true, only OnClick is invoked (dialog does not toggle).")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在触发按钮内显示的内容。", "The content to display inside the trigger button.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                应用到触发按钮元素上的附加 HTML 属性（例如 <code>class</code>、<code>style</code>）。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                Additional HTML attributes applied to the trigger button element (e.g. <code>class</code>, <code>style</code>).
+                            </ApiParameter>
+                        </text>
+                    }
+                </ApiReference>
+
+                <ApiReference ComponentName="DialogPortal">
+                    <ApiParameter Name="Container" Type="string?">
+                        @L.T("门户渲染到的目标容器元素。为 null（默认）时通过 PortalService 渲染到 document body；设置后在当前组件树内就地渲染。", "The container element to render the portal into. When null (default), renders into document body via PortalService. When set, renders inline within the current component tree.")
+                    </ApiParameter>
+                    <ApiParameter Name="ForceMount" Type="bool" Default="false">
+                        @L.T("即使对话框处于关闭状态，是否仍强制在门户中渲染。", "Whether to force rendering in a portal even when the dialog is closed.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("为正确层叠而渲染在 document body 层级的内容（通常是 DialogOverlay 与 DialogContent）。", "Content rendered at document body level for proper stacking (typically DialogOverlay and DialogContent).")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="DialogOverlay">
+                    <ApiParameter Name="CloseOnClick" Type="bool" Default="true">
+                        @L.T("点击遮罩是否关闭对话框。", "Whether clicking the overlay should close the dialog.")
+                    </ApiParameter>
+                    <ApiParameter Name="OnClick" Type="EventCallback&lt;MouseEventArgs&gt;">
+                        @L.T("点击遮罩时调用的事件回调。", "Event callback invoked when the overlay is clicked.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在遮罩内渲染的内容（简单背景通常为空）。", "Content to render within the overlay (typically empty for a simple backdrop).")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                应用到遮罩 div 元素上的附加 HTML 属性（例如 <code>class</code>、<code>style</code>）。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                Additional HTML attributes applied to the overlay div element (e.g. <code>class</code>, <code>style</code>).
+                            </ApiParameter>
+                        </text>
+                    }
+                </ApiReference>
+
+                <ApiReference ComponentName="DialogContent (primitive)">
+                    <ApiParameter Name="CloseOnEscape" Type="bool" Default="true">
+                        @L.T("按下 Escape 是否关闭对话框。", "Whether pressing Escape should close the dialog.")
+                    </ApiParameter>
+                    <ApiParameter Name="TrapFocus" Type="bool" Default="true">
+                        @L.T("是否把焦点锁定在对话框内。模态对话框默认值为 true。", "Whether to trap focus within the dialog. Default is true for modal dialogs.")
+                    </ApiParameter>
+                    <ApiParameter Name="LockScroll" Type="bool" Default="true">
+                        @L.T("对话框打开时是否锁定页面滚动。模态对话框默认值为 true。", "Whether to lock body scroll when dialog is open. Default is true for modal dialogs.")
+                    </ApiParameter>
+                    <ApiParameter Name="OnEscapeKeyDown" Type="EventCallback&lt;KeyboardEventArgs&gt;">
+                        @L.T("按下 Escape 键时调用的事件回调。", "Event callback invoked when the Escape key is pressed.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在对话框内渲染的内容。", "The content to render inside the dialog.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                应用到内容容器上的附加 HTML 属性（例如 <code>class</code>、<code>style</code>）。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                Additional HTML attributes applied to the content container (e.g. <code>class</code>, <code>style</code>).
+                            </ApiParameter>
+                        </text>
+                    }
+                    <ApiParameter Name="Class" Type="string?">
+                        @L.T("内容容器的附加 CSS 类。", "Additional CSS classes for the content container.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="DialogTitle">
+                    <ApiParameter Name="As" Type="string" Default="&quot;h2&quot;">
+                        @L.T("标题使用的 HTML 元素标签。", "The HTML element tag to use for the title.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("要显示的标题内容。", "The title content to display.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                应用到标题元素上的附加 HTML 属性（例如 <code>class</code>、<code>style</code>）。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                Additional HTML attributes applied to the title element (e.g. <code>class</code>, <code>style</code>).
+                            </ApiParameter>
+                        </text>
+                    }
+                </ApiReference>
+
+                <ApiReference ComponentName="DialogDescription">
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("要显示的描述内容。", "The description content to display.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                应用到描述元素上的附加 HTML 属性（例如 <code>class</code>、<code>style</code>）。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                Additional HTML attributes applied to the description element (e.g. <code>class</code>, <code>style</code>).
+                            </ApiParameter>
+                        </text>
+                    }
+                </ApiReference>
+
+                <ApiReference ComponentName="DialogClose">
+                    <ApiParameter Name="AsChild" Type="bool" Default="false">
+                        @L.T("为 true 时关闭不再自己渲染按钮元素，而是通过 TriggerContext 把触发行为传给子组件。", "When true, the close does not render its own button element. Instead, it passes trigger behavior via TriggerContext to child components.")
+                    </ApiParameter>
+                    <ApiParameter Name="PreventClose" Type="bool" Default="false">
+                        @L.T("是否阻止默认关闭行为。为 true 时只调用 OnClick 处理。", "Whether to prevent the default close behavior. When true, only the OnClick handler is invoked.")
+                    </ApiParameter>
+                    <ApiParameter Name="OnClick" Type="EventCallback&lt;MouseEventArgs&gt;">
+                        @L.T("自定义点击处理。在对话框关闭之后调用。", "Custom click handler. Called after the dialog is closed.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在关闭按钮内显示的内容。", "The content to display inside the close button.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                应用到关闭按钮元素上的附加 HTML 属性（例如 <code>class</code>、<code>style</code>）。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                Additional HTML attributes applied to the close button element (e.g. <code>class</code>, <code>style</code>).
+                            </ApiParameter>
+                        </text>
+                    }
+                </ApiReference>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private bool isControlledOpen = false;
+}

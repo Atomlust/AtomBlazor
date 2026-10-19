@@ -1,0 +1,50 @@
+@namespace AtomBlazor
+@typeparam TValue
+@inherits FormFieldBase
+
+<Field Orientation="@Orientation" IsInvalid="@IsInvalid" Class="@Class">
+    @if (Label is not null)
+    {
+        <FieldLabel>@Label</FieldLabel>
+    }
+    <FieldContent>
+        <MultiSelect Required="@Required" ActiveClass="@ActiveClass" AriaLabel="@AriaLabel" TValue="TValue"
+                     Options="@Options"
+                     Values="@Values"
+                     ValuesChanged="HandleValuesChanged"
+                     ValuesExpression="@ValuesExpression"
+                     Placeholder="@Placeholder"
+                     SearchPlaceholder="@SearchPlaceholder"
+                     EmptyMessage="@EmptyMessage"
+                     SelectAllLabel="@SelectAllLabel"
+                     ShowSelectAll="@ShowSelectAll"
+                     ClearLabel="@ClearLabel"
+                     CloseLabel="@CloseLabel"
+                     Disabled="@Disabled"
+                     MaxDisplayTags="@MaxDisplayTags"
+                     AriaDescribedBy="@DescribedById"
+                     PopoverWidth="@PopoverWidth"
+                     MatchTriggerWidth="@MatchTriggerWidth"
+                     AutoClose="@AutoClose"
+                     SearchQueryChanged="@SearchQueryChanged"
+                     OnLoadMore="@OnLoadMore"
+                     IsLoading="@IsLoading"
+                     EndOfListMessage="@EndOfListMessage"
+                     Class="@InputClass"
+                     @attributes="AdditionalAttributes">
+            @ChildContent
+        </MultiSelect>
+        @if (!string.IsNullOrEmpty(HelperText) && !IsInvalid)
+        {
+            <FieldDescription Id="@DescriptionId">@HelperText</FieldDescription>
+        }
+        @if (IsInvalid && !string.IsNullOrEmpty(ErrorText))
+        {
+            <FieldError Id="@ErrorId">@ErrorText</FieldError>
+        }
+        else if (HasEditContextErrors)
+        {
+            <FieldError Id="@ErrorId" Errors="@EditContextErrors" />
+        }
+    </FieldContent>
+</Field>

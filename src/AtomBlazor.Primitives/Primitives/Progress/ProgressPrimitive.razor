@@ -1,0 +1,61 @@
+@namespace AtomBlazor.Primitives
+
+<CascadingValue Value="this" IsFixed="false">
+    <div role="progressbar"
+         aria-valuenow="@(Value.HasValue ? Value : null)"
+         aria-valuemin="0"
+         aria-valuemax="@Max"
+         aria-valuetext="@ValueText"
+         data-state="@DataState"
+         data-value="@(Value.HasValue ? Value : null)"
+         data-max="@Max"
+         @attributes="AdditionalAttributes">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    /// <summary>
+    /// 获取或设置当前值。为 null 表示不确定（indeterminate）状态。
+    /// </summary>
+    [Parameter]
+    public double? Value { get; set; }
+
+    /// <summary>
+    /// 获取或设置最大值，默认为 100。
+    /// </summary>
+    [Parameter]
+    public double Max { get; set; } = 100;
+
+    /// <summary>
+    /// 获取或设置一个函数，为屏幕阅读器返回人类可读的值文本。
+    /// 接收 (value, max)，应返回形如 "50% complete" 的字符串。
+    /// </summary>
+    [Parameter]
+    public Func<double, double, string>? GetValueLabel { get; set; }
+
+    /// <summary>
+    /// 获取或设置子内容（通常是进度指示器 indicator）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到 progressbar 元素上的额外属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取完成百分比（0-100）。不确定状态时为 null。
+    /// </summary>
+    public double? Percentage => Value.HasValue && Max > 0 ? (Value.Value / Max) * 100 : null;
+
+    internal string DataState => Value.HasValue
+        ? (Value.Value >= Max ? "complete" : "loading")
+        : "indeterminate";
+
+    private string? ValueText => Value.HasValue && GetValueLabel != null
+        ? GetValueLabel(Value.Value, Max)
+        : null;
+}

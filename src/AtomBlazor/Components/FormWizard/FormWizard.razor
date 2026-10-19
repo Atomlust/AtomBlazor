@@ -1,0 +1,115 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@inject ILocalizer Localizer
+
+<div class="@CssClass" data-slot="form-wizard" @attributes="AdditionalAttributes">
+    @* 步骤指示器 *@
+    <nav class="@IndicatorCssClass" aria-label="@Localizer["FormWizard.WizardProgress"]">
+        @for (int i = 0; i < steps.Count; i++)
+        {
+            var index = i;
+            var step = steps[i];
+            var state = GetStepState(i);
+
+            @* 步骤按钮 *@
+            <button type="button"
+                    class="@GetStepButtonClass(index)"
+                    aria-current="@(state == WizardStepState.Active ? "step" : null)"
+                    disabled="@(!CanNavigateToStep(index) && state != WizardStepState.Active)"
+                    @onclick="() => GoToStepAsync(index)">
+                <span class="@GetStepCircleClass(state)">
+                    @if (state == WizardStepState.Completed)
+                    {
+                        <LucideIcon Name="check" Class="atom:h-4 atom:w-4" />
+                    }
+                    else if (state == WizardStepState.Invalid)
+                    {
+                        <LucideIcon Name="x" Class="atom:h-4 atom:w-4" />
+                    }
+                    else if (state == WizardStepState.Skipped)
+                    {
+                        <LucideIcon Name="minus" Class="atom:h-4 atom:w-4" />
+                    }
+                    else if (step.Icon is not null)
+                    {
+                        <LucideIcon Name="@step.Icon" Class="atom:h-4 atom:w-4" />
+                    }
+                    else
+                    {
+                        @(index + 1)
+                    }
+                </span>
+                @if (Layout == WizardLayout.Vertical && step.Description is not null)
+                {
+                    <span class="atom:flex atom:flex-col">
+                        <span class="@GetStepTitleClass(state)">@step.Title</span>
+                        <span class="atom:text-xs atom:text-muted-foreground">@step.Description</span>
+                    </span>
+                }
+                else
+                {
+                    <span class="@GetStepTitleClass(state)">@step.Title</span>
+                }
+            </button>
+
+            @* 步骤之间的连接线 *@
+            @if (i < steps.Count - 1)
+            {
+                <div class="@GetConnectorClass(state, Layout)" aria-hidden="true"></div>
+            }
+        }
+    </nav>
+
+    @* 内容与导航的包裹层（纵向布局对齐需要） *@
+    <div class="@ContentWrapperCssClass">
+        @* 步骤内容 *@
+        <div class="@ContentCssClass" data-slot="wizard-content">
+            <CascadingValue Value="this" IsFixed="true">
+                @ChildContent
+            </CascadingValue>
+        </div>
+
+        @* 导航 *@
+        @if (ShowNavigation || NavigationTemplate is not null)
+        {
+            <div class="@NavigationCssClass" data-slot="wizard-navigation">
+                @if (NavigationTemplate is not null)
+                {
+                    @NavigationTemplate
+                }
+                else
+                {
+                    <Button Variant="ButtonVariant.Outline"
+                            Disabled="@(!CanGoBack)"
+                            OnClick="GoToBackAsync"
+                            Class="@(IsFirstStep ? "atom:invisible" : "")">
+                        @(BackLabel ?? Localizer["FormWizard.Back"])
+                    </Button>
+
+                    <div class="atom:flex atom:items-center atom:gap-2">
+                        @if (currentStep < steps.Count && steps[currentStep].IsOptional && !IsLastStep)
+                        {
+                            <Button Variant="ButtonVariant.Ghost"
+                                    OnClick="SkipCurrentStepAsync">
+                                @Localizer["FormWizard.Skip"]
+                            </Button>
+                        }
+
+                        @if (IsLastStep)
+                        {
+                            <Button OnClick="CompleteAsync">
+                                @(CompleteLabel ?? Localizer["FormWizard.Complete"])
+                            </Button>
+                        }
+                        else
+                        {
+                            <Button OnClick="GoToNextAsync">
+                                @(NextLabel ?? Localizer["FormWizard.Next"])
+                            </Button>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>

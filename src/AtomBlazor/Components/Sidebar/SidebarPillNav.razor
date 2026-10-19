@@ -1,0 +1,51 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@inject ILocalizer Localizer
+@implements IDisposable
+
+@if (Context?.CollapsedMode == SidebarCollapsedMode.Pill)
+{
+    <nav @attributes="AdditionalAttributes" class="@CssClass" aria-label="@(AriaLabel ?? Localizer["Sidebar.PillNavigation"])" aria-hidden="@(!Visible ? "true" : null)" inert="@(!Visible)">
+        <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Icon" Class="atom:relative atom:size-11 atom:shrink-0 atom:rounded-full" OnClick="Expand" aria-label="@Localizer["Sidebar.ExpandNavigation"]">
+            <LucideIcon Name="@(Context.Side == SidebarSide.Right ? "panel-right-open" : "panel-left-open")" Size="18" />
+        </Button>
+        <span class="atom:h-5 atom:w-px atom:shrink-0 atom:bg-border" aria-hidden="true"></span>
+        <div class="atom:relative atom:flex atom:min-w-0 atom:items-center atom:gap-1 atom:overflow-x-auto">
+            @if (AnimatedIndicator) { <SidebarSelectionIndicator Class="atom:rounded-full" /> }
+            <CascadingValue Value="this" IsFixed="false">@ChildContent</CascadingValue>
+        </div>
+        @if (TrailingContent is not null)
+        {
+            <span class="atom:h-5 atom:w-px atom:shrink-0 atom:bg-border" aria-hidden="true"></span>
+            @TrailingContent
+        }
+    </nav>
+}
+
+@code {
+    [CascadingParameter] private SidebarContext? Context { get; set; }
+    /// <summary>胶囊导航项。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>可选的尾部操作区。</summary>
+    [Parameter] public RenderFragment? TrailingContent { get; set; }
+    /// <summary>视口固定定位。定位样本/应用容器场景请关闭。</summary>
+    [Parameter] public bool Fixed { get; set; } = true;
+    /// <summary>在激活导航项后方动画呈现指示器。</summary>
+    [Parameter] public bool AnimatedIndicator { get; set; } = true;
+    /// <summary>无障碍导航地标名称。</summary>
+    [Parameter] public string? AriaLabel { get; set; }
+    /// <summary>附加导航类。</summary>
+    [Parameter] public string? Class { get; set; }
+    /// <summary>附加 HTML 属性。</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    private SidebarStateSubscription? subscription;
+    private bool Visible => Context is not null && !Context.IsOpen;
+    private void Expand() { if (Context?.IsMobile == true) { Context.SetOpenMobile(true); } else { Context?.SetOpen(true); } }
+    protected override void OnParametersSet() => (subscription ??= new(() => _ = InvokeAsync(StateHasChanged))).Observe(Context);
+    public void Dispose() => subscription?.Dispose();
+    private string CssClass => ClassNames.cn(
+        "atom:z-40 atom:flex atom:max-w-[calc(100%-2rem)] atom:items-center atom:gap-1 atom:rounded-full atom:border atom:bg-background atom:p-1 atom:text-foreground atom:shadow-lg atom:transition-[opacity,transform] atom:duration-200 atom:motion-reduce:transition-none",
+        Fixed ? "atom:fixed atom:top-[max(1rem,env(safe-area-inset-top))] atom:left-1/2 atom:-translate-x-1/2" : "atom:absolute atom:top-3 atom:left-1/2 atom:-translate-x-1/2",
+        Visible ? "atom:translate-y-0 atom:opacity-100" : "atom:pointer-events-none atom:-translate-y-4 atom:opacity-0",
+        Class);
+}

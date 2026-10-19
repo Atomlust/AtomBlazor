@@ -1,0 +1,38 @@
+@namespace AtomBlazor.Primitives
+
+@*
+    DialogDescription 为 Dialog 提供无障碍（accessible）描述。
+    通过 aria-describedby 自动关联到 DialogContent。
+*@
+
+<p id="@Context.DescriptionId"
+   @attributes="AdditionalAttributes">
+    @ChildContent
+</p>
+
+@code {
+    [CascadingParameter]
+    private DialogContext Context { get; set; } = null!;
+
+    /// <summary>
+    /// 要显示的描述内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用到描述元素的额外属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (Context == null)
+        {
+            throw new InvalidOperationException(
+                "DialogDescription must be used within a Dialog component. " +
+                "Ensure DialogDescription is a child of a Dialog component.");
+        }
+    }
+}

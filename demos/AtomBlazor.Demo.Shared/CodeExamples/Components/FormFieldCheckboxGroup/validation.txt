@@ -1,0 +1,30 @@
+<FormFieldCheckboxGroup TValue="string"
+                         Values="selectedTopics"
+                         ValuesChanged="OnTopicsChanged"
+                         Label="Topics of interest"
+                         HelperText="Select at least one topic."
+                         ErrorText="@errorMessage">
+    <CheckboxGroupItem Value="@("tech")" Label="Technology" />
+    <CheckboxGroupItem Value="@("science")" Label="Science" />
+    <CheckboxGroupItem Value="@("art")" Label="Art" />
+    <CheckboxGroupItem Value="@("sports")" Label="Sports" />
+</FormFieldCheckboxGroup>
+<Button OnClick="Validate">Submit</Button>
+
+@code {
+    private IReadOnlyCollection<string> selectedTopics = Array.Empty<string>();
+    private string? errorMessage;
+
+    private void OnTopicsChanged(IReadOnlyCollection<string> values)
+    {
+        selectedTopics = values;
+        errorMessage = null; // Clear error on change
+    }
+
+    private void Validate()
+    {
+        errorMessage = !selectedTopics.Any()
+            ? "Please select at least one topic."
+            : null;
+    }
+}

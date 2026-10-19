@@ -1,0 +1,36 @@
+@namespace AtomBlazor
+@inject ILocalizer Localizer
+
+<nav @attributes="AdditionalAttributes" class="@CssClass" aria-label="@(AriaLabel ?? Localizer["BottomNav.Label"])">
+    <CascadingValue Value="this" IsFixed="false">
+        <div class="atom:flex atom:items-stretch">@ChildContent</div>
+    </CascadingValue>
+</nav>
+
+@code {
+    /// <summary>当前激活项的值。</summary>
+    [Parameter] public string? Value { get; set; }
+    /// <summary>某项被激活时调用。</summary>
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    /// <summary>导航项。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>将导航固定在视口底部。请在页面内容中预留空间。</summary>
+    [Parameter] public bool Fixed { get; set; } = true;
+    /// <summary>包含设备底部安全区内边距。</summary>
+    [Parameter] public bool SafeArea { get; set; } = true;
+    /// <summary>导航地标的标签。</summary>
+    [Parameter] public string? AriaLabel { get; set; }
+    /// <summary>附加 CSS 类。</summary>
+    [Parameter] public string? Class { get; set; }
+    /// <summary>附加 HTML 属性。</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    private string CssClass => ClassNames.cn("atom:z-30 atom:w-full atom:border-t atom:bg-background atom:text-foreground", Fixed ? "atom:fixed atom:inset-x-0 atom:bottom-0" : null, SafeArea ? "atom:pb-[env(safe-area-inset-bottom)]" : null, Class);
+
+    internal async Task SelectAsync(string value)
+    {
+        if (Value == value) { return; }
+        Value = value;
+        await ValueChanged.InvokeAsync(value);
+        StateHasChanged();
+    }
+}

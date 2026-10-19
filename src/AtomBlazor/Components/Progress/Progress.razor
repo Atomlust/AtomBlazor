@@ -1,0 +1,105 @@
+@namespace AtomBlazor
+@using System.Globalization
+
+@*
+    Progress 组件——显示进度条指示器。
+    包装 Progress 原语以提供无障碍语义（role、aria-valuenow 等）。
+*@
+
+@if (ShowLabel)
+{
+    <div class="atom:flex atom:items-center atom:gap-3">
+        <AtomBlazor.Primitives.ProgressPrimitive
+            Value="@Value"
+            Max="@Max"
+            class="@ContainerCssClass"
+            @attributes="AdditionalAttributes">
+            <AtomBlazor.Primitives.ProgressIndicator
+                class="@IndicatorCssClass"
+                style="@IndicatorStyle" />
+        </AtomBlazor.Primitives.ProgressPrimitive>
+        <span class="atom:text-sm atom:font-medium atom:text-muted-foreground atom:tabular-nums">@(string.Format(LabelFormat, (int)ProgressPercentage))</span>
+    </div>
+}
+else
+{
+    <AtomBlazor.Primitives.ProgressPrimitive
+        Value="@Value"
+        Max="@Max"
+        class="@ContainerCssClass"
+        @attributes="AdditionalAttributes">
+        <AtomBlazor.Primitives.ProgressIndicator
+            class="@IndicatorCssClass"
+            style="@IndicatorStyle" />
+    </AtomBlazor.Primitives.ProgressPrimitive>
+}
+
+@code {
+    /// <summary>
+    /// 当前进度值。
+    /// </summary>
+    [Parameter]
+    public double Value { get; set; } = 0;
+
+    /// <summary>
+    /// 进度条的最大值，默认为 100。
+    /// </summary>
+    [Parameter]
+    public double Max { get; set; } = 100;
+
+    /// <summary>
+    /// 应用到进度容器的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 应用到进度指示器的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? IndicatorClass { get; set; }
+
+    /// <summary>
+    /// 获取或设置是否在进度条旁显示百分比标签。
+    /// </summary>
+    [Parameter]
+    public bool ShowLabel { get; set; }
+
+    /// <summary>
+    /// 获取或设置标签的自定义格式字符串，默认为 "{0}%"。
+    /// {0} 占位符会被替换为整数百分比值。
+    /// </summary>
+    [Parameter]
+    public string LabelFormat { get; set; } = "{0}%";
+
+    /// <summary>
+    /// 应用到进度条的额外属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取进度百分比（0-100）。
+    /// </summary>
+    private double ProgressPercentage => Max > 0 ? Math.Min(100, Math.Max(0, (Value / Max) * 100)) : 0;
+
+    // 与源行为一致，但显式使用不变区域格式化：数值流入内联 style，
+    // 逗号小数点的区域会产出非法 CSS（见 CultureInvariantStyleTests 约定）。
+    private string IndicatorStyle => string.Create(CultureInfo.InvariantCulture, $"transform: translateX(-{100 - ProgressPercentage}%)");
+
+    /// <summary>
+    /// 获取进度容器的计算 CSS 类。
+    /// </summary>
+    private string ContainerCssClass => ClassNames.cn(
+        "atom:relative atom:h-4 atom:w-full atom:overflow-hidden atom:rounded-full atom:bg-secondary",
+        Class
+    );
+
+    /// <summary>
+    /// 获取进度指示器的计算 CSS 类。
+    /// </summary>
+    private string IndicatorCssClass => ClassNames.cn(
+        "atom:h-full atom:w-full atom:flex-1 atom:bg-primary atom:transition-all",
+        IndicatorClass
+    );
+}

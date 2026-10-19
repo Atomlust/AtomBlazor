@@ -1,0 +1,209 @@
+@page "/components/image"
+
+<PageTitle>@L.T("Image 图片 - Atom BlazorUI", "Image - Atom BlazorUI")</PageTitle>
+
+<div class="max-w-4xl space-y-8">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">Image</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("一张图片，在图片源无法加载时会显示合适的替代内容。",
+                 "An image that shows something sensible when the source cannot be loaded.")
+        </p>
+    </div>
+
+    <div class="rounded-r-lg border-s-4 border-primary bg-primary/5 p-4">
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                一枚裸的 <code class="rounded bg-muted px-1 py-0.5 text-xs">&lt;img&gt;</code> 遇上失效的 URL，
+                只会留下一个破损图标方块和 alt 文本，看上去更像是页面有 bug，
+                而不是数据缺失。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                A bare <code class="rounded bg-muted px-1 py-0.5 text-xs">&lt;img&gt;</code> with a dead
+                URL leaves a broken-icon box and the alt text, which reads as a bug in the page rather
+                than missing data.
+            </p>
+                </text>
+}
+    </div>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("适配方式", "Fit")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">Cover</code> 会裁切画面以填满盒子，
+                    固定尺寸的缩略图要的正是这种效果。
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">Contain</code> 则会留出空白。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">Cover</code> crops to fill the
+                    box, which is what a fixed-size thumbnail wants.
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">Contain</code> leaves space
+                    instead.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="grid grid-cols-2 gap-4 rounded-lg border p-6 sm:grid-cols-4">
+            @foreach (var fit in new[] { ImageFit.Cover, ImageFit.Contain, ImageFit.Fill, ImageFit.ScaleDown })
+            {
+                <div class="space-y-2">
+                    <Image Src="@photo" Alt="@(L.T("一张占位风景图", "A placeholder landscape"))" Fit="@fit" Lazy="false"
+                           Class="h-24 w-full rounded-md border" />
+                    <p class="text-xs text-muted-foreground">@fit</p>
+                </div>
+            }
+        </div>
+        <CodeBlock Source="Components/Image/basic.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("回退内容", "Fallback")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("下面四个图片源都是坏的。回退内容会保留图片的可访问名称，所以读屏软件仍然能描述本该出现在这里的东西。你的类同样作用于回退内容，因此圆形缩略图依然是圆的。",
+                     "All four sources below are broken. The fallback keeps the image's accessible name, so a screen reader still describes what should have been there. Your classes apply to the fallback too, so a round thumbnail stays round.")
+            </p>
+        </div>
+        <div class="flex flex-wrap items-end gap-6 rounded-lg border p-6">
+            <div class="space-y-2">
+                <Image Src="@broken" Alt="Mathew Taylor" Fit="ImageFit.Cover" Lazy="false"
+                       Class="h-16 w-16 rounded-full">
+                    <Fallback><span class="text-sm font-medium">MT</span></Fallback>
+                </Image>
+                <p class="text-xs text-muted-foreground">@L.T("首字母", "Initials")</p>
+            </div>
+            <div class="space-y-2">
+                <Image Src="@broken" Alt="@(L.T("一张报表图表", "A report chart"))" Fit="ImageFit.Cover" Lazy="false"
+                       Class="h-16 w-24 rounded-md">
+                    <Fallback><LucideIcon Name="chart-column" Class="h-5 w-5" /></Fallback>
+                </Image>
+                <p class="text-xs text-muted-foreground">@L.T("一枚图标", "An icon")</p>
+            </div>
+            <div class="space-y-2">
+                <Image Src="@broken" FallbackSrc="@photo" Alt="@(L.T("一张占位风景图", "A placeholder landscape"))" Lazy="false"
+                       Fit="ImageFit.Cover" Class="h-16 w-24 rounded-md" />
+                <p class="text-xs text-muted-foreground">@L.T("第二个 URL", "A second URL")</p>
+            </div>
+            <div class="space-y-2">
+                <Image Src="@broken" Alt="@(L.T("没有可显示的内容", "Nothing to show"))" Lazy="false"
+                       Class="h-16 w-24 rounded-md" />
+                <p class="text-xs text-muted-foreground">@L.T("默认占位图", "Default placeholder")</p>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Image/fallback.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("上报加载失败", "Reporting a failure")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    除了渲染回退内容，<code class="rounded bg-muted px-1 py-0.5 text-xs">OnError</code> 也会一并触发，
+                    于是失效的 URL 可以被记录下来，而不只是被画出来。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">OnError</code> fires as well as
+                    the fallback rendering, so a dead URL can be logged rather than only drawn.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-3 rounded-lg border p-6">
+            <Image Src="@broken" Alt="@(L.T("一个失效的图片源", "A broken source"))" Lazy="false"
+                   OnError="@(() => failures++)"
+                   Class="h-16 w-24 rounded-md" />
+            <p role="status" class="text-sm text-muted-foreground">
+                @L.T("已报告的失败次数：", "Failures reported:") @failures
+            </p>
+        </div>
+    </section>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>回退内容会带着 <code>role="img"</code> 与同一个 <code>Alt</code> 渲染，所以换掉图片后可访问名称依然存在。</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>The fallback renders with <code>role="img"</code> and the same <code>Alt</code>, so the accessible name survives the swap.</AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>装饰性图片应当传入空的 <code>Alt</code>，这样读屏软件会把它跳过，而不是糟糕地描述它。</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>A decorative image should pass an empty <code>Alt</code>, which hides it from a screen reader rather than describing it badly.</AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>图片默认是懒加载的。首屏之上请把 <code>Lazy</code> 关掉，在那里推迟加载只会拖慢最大内容绘制，而不是帮上忙。</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Images are lazy by default. Turn <code>Lazy</code> off above the fold, where deferring the load delays the largest paint rather than helping it.</AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("组件自身不会接收焦点", "The component takes no focus of its own"))"><Kbd>None</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+        <ApiReference Since="v4" ComponentName="Image">
+            <ApiParameter Name="Src / Alt" Type="string?">@L.T("图片 URL 与它的替代文本。两者都必填；装饰性图片请传入空的 Alt。", "The image URL and its alternative text. Both required; pass an empty Alt for a decorative image.")</ApiParameter>
+            <ApiParameter Name="Fallback" Type="RenderFragment?">@L.T("图片加载失败时显示的内容。优先级高于 FallbackSrc。", "Content shown when the image fails. Takes precedence over FallbackSrc.")</ApiParameter>
+            <ApiParameter Name="FallbackSrc" Type="string?">@L.T("要尝试的第二个 URL。它的失败不会被再次重试，所以两个都缺失也不会循环。", "A second URL to try. A failure of this one is not retried, so a missing pair cannot loop.")</ApiParameter>
+            <ApiParameter Name="Fit" Type="ImageFit" Default="None">@L.T("None、Cover、Contain、Fill 或 ScaleDown。", "None, Cover, Contain, Fill or ScaleDown.")</ApiParameter>
+            <ApiParameter Name="Lazy" Type="bool" Default="true">@L.T("把加载推迟到图片接近视口时。", "Defers loading until the image is near the viewport.")</ApiParameter>
+            <ApiParameter Name="OnError / OnLoad" Type="EventCallback">@L.T("图片加载失败或加载完成时触发。", "Raised when the image fails or finishes loading.")</ApiParameter>
+            <ApiParameter Name="Class / AdditionalAttributes" Type="string? / Dictionary&lt;string, object&gt;?">@L.T("追加的 CSS 类（同样作用于回退内容），以及应用到图片元素上的 HTML 属性。", "Additional CSS classes, which apply to the fallback too, and HTML attributes for the image element.")</ApiParameter>
+        </ApiReference>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private const string photo = "_content/AtomBlazor.Demo.Shared/images/placeholder-landscape.svg";
+    private const string broken = "_content/AtomBlazor.Demo.Shared/images/does-not-exist.png";
+    private int failures;
+}

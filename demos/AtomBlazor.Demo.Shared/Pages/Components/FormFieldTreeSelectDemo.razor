@@ -1,0 +1,288 @@
+@page "/components/form-field-tree-select"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("FormFieldTreeSelect 表单树选择字段 - Atom BlazorUI", "FormFieldTreeSelect Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">FormFieldTreeSelect</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("带内置标签、辅助文本与错误提示的 TreeSelect 表单字段封装。", "A form field wrapper for TreeSelect with built-in label, helper text, and error messages.")
+        </p>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    单选模式绑定 <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code>。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Single selection binds <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldTreeSelect TItem="Category"
+                                   @bind-Value="_selected"
+                                   Label="@(L.T("部门", "Department"))"
+                                   HelperText="@(L.T("可搜索，或展开分支选择团队。", "Search, or expand a branch to pick a team."))"
+                                   Items="_categories"
+                                   ValueField="@(c => c.Id)"
+                                   TextField="@(c => c.Name)"
+                                   ChildrenProperty="@(c => c.Children)" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("值：", "Value:")</p>
+            <p class="text-sm font-mono">@(_selected ?? L.T("（无）", "(none)"))</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldTreeSelect/basic.txt" />
+    </div>
+
+    <!-- Multiple -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("多选", "Multiple Selection")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    多选模式改为绑定
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Values</code>，勾选父节点会级联到子节点。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Multiple</code> binds
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Values</code> instead, and ticking a parent
+                    cascades to its children.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldTreeSelect TItem="Category"
+                                   @bind-Values="_selectedMany"
+                                   Label="@(L.T("团队", "Teams"))"
+                                   HelperText="@(L.T("选择一个或多个团队。", "Pick one or more teams."))"
+                                   Multiple="true"
+                                   LeafOnly="true"
+                                   Items="_categories"
+                                   ValueField="@(c => c.Id)"
+                                   TextField="@(c => c.Name)"
+                                   ChildrenProperty="@(c => c.Children)" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("已选值：", "Values:")</p>
+            <p class="text-sm font-mono">@(_selectedMany.Count > 0 ? string.Join(", ", _selectedMany) : L.T("（无）", "(none)"))</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldTreeSelect/multiple.txt" />
+    </div>
+
+    <!-- Validation -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("校验", "Validation")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    按当前模式绑定对应的表达式：单选绑定 <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code>，
+                    多选绑定 <code class="text-xs bg-muted px-1 py-0.5 rounded">Values</code>。
+                    校验提示会跟随该表达式。什么都不选直接提交即可看到提示。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Bind the expression that matches the mode you are in: <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code>
+                    for single selection, <code class="text-xs bg-muted px-1 py-0.5 rounded">Values</code> for multiple.
+                    The validation message follows it. Submit with nothing chosen to see one.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <EditForm Model="_formModel" OnValidSubmit="HandleFormSubmit">
+                <DataAnnotationsValidator />
+                <div class="space-y-4">
+                    <FormFieldTreeSelect TItem="Category"
+                                           @bind-Value="_formModel.DepartmentId"
+                                           Label="@(L.T("部门", "Department"))"
+                                           HelperText="@(L.T("必填。", "Required."))"
+                                           Required="true"
+                                           Items="_categories"
+                                           ValueField="@(c => c.Id)"
+                                           TextField="@(c => c.Name)"
+                                           ChildrenProperty="@(c => c.Children)" />
+                    <Button Type="ButtonType.Submit">@L.T("提交", "Submit")</Button>
+                </div>
+            </EditForm>
+            @if (_formSubmitted)
+            {
+                <div class="mt-4 rounded-lg border border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800 p-4">
+                    <p class="text-sm font-medium text-green-800 dark:text-green-200">
+                        @L.F("已提交：{0}", "Submitted: {0}", _formModel.DepartmentId)
+                    </p>
+                </div>
+            }
+        </div>
+        <CodeBlock Source="Components/FormFieldTreeSelect/editform.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("一个处于禁用状态的树选择表单字段。", "A disabled tree select form field.")</p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldTreeSelect TItem="Category"
+                                   Value="@("runtime")"
+                                   Label="@(L.T("部门", "Department"))"
+                                   HelperText="@(L.T("你的部门由 HR 设定。", "Your department is set by HR."))"
+                                   Disabled="true"
+                                   Items="_categories"
+                                   ValueField="@(c => c.Id)"
+                                   TextField="@(c => c.Name)"
+                                   ChildrenProperty="@(c => c.Children)" />
+        </div>
+        <CodeBlock Source="Components/FormFieldTreeSelect/disabled.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>标签通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">for</code> 与触发器关联</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Label associated with the trigger through <code class="text-xs bg-muted px-1 py-0.5 rounded">for</code></AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>辅助与错误文本通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code> 关联</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Helper and error text linked with <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code></AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>触发器是一个 <code class="text-xs bg-muted px-1 py-0.5 rounded">combobox</code>，会上报 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-required</code></AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Trigger is a <code class="text-xs bg-muted px-1 py-0.5 rounded">combobox</code> reporting <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-expanded</code> and <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-required</code></AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可用的表单控件之间移动", "Move between enabled form controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("打开树选择面板", "Open the tree"))"><Kbd>Enter</Kbd> / <Kbd>Space</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在节点之间移动", "Move between nodes"))"><Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("展开或折叠分支", "Expand or collapse a branch"))"><Kbd>ArrowRight</Kbd> / <Kbd>ArrowLeft</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("不选择并关闭", "Close without choosing"))"><Kbd>Escape</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="FormFieldTreeSelect&lt;TItem&gt;">
+                <ApiParameter Name="TItem" Type="Type">@L.T("层级中每一项的类型。", "The type of an item in the hierarchy.")</ApiParameter>
+                <ApiParameter Name="Label" Type="string?" Default="null">@L.T("标签文本。", "The label text.")</ApiParameter>
+                <ApiParameter Name="HelperText" Type="string?" Default="null">@L.T("控件下方的辅助文本。", "Helper text below the control.")</ApiParameter>
+                <ApiParameter Name="ErrorText" Type="string?" Default="null">@L.T("手动错误文本覆盖。", "Manual error text override.")</ApiParameter>
+                <ApiParameter Name="Items" Type="IEnumerable&lt;TItem&gt;">@L.T("层级的根节点项。", "The root items of the hierarchy.")</ApiParameter>
+                <ApiParameter Name="ValueField" Type="Func&lt;TItem, string&gt;">@L.T("取每一项唯一键的选择器。", "Selector for an item's unique key.")</ApiParameter>
+                <ApiParameter Name="TextField" Type="Func&lt;TItem, string&gt;">@L.T("取每一项显示文本的选择器。", "Selector for an item's display text.")</ApiParameter>
+                <ApiParameter Name="ChildrenProperty" Type="Func&lt;TItem, IEnumerable&lt;TItem&gt;?&gt;">@L.T("取每一项子节点的选择器。", "Selector for an item's children.")</ApiParameter>
+                <ApiParameter Name="Value" Type="string?" Default="null">@L.T("单选模式下选中的键。使用 @bind-Value。", "The selected key in single-selection mode. Use @bind-Value.")</ApiParameter>
+                <ApiParameter Name="Values" Type="HashSet&lt;string&gt;" Default="empty">@L.T("多选模式下选中的键集合。使用 @bind-Values。", "The selected keys in multiple mode. Use @bind-Values.")</ApiParameter>
+                <ApiParameter Name="Multiple" Type="bool" Default="false">@L.T("允许选择多项。", "Allow more than one selection.")</ApiParameter>
+                <ApiParameter Name="LeafOnly" Type="bool" Default="false">@L.T("仅叶子节点可选。", "Only leaf items are selectable.")</ApiParameter>
+                <ApiParameter Name="ShowSearch" Type="bool" Default="true">@L.T("显示搜索框。", "Show the search box.")</ApiParameter>
+                <ApiParameter Name="Clearable" Type="bool" Default="true">@L.T("显示清除按钮。", "Show a clear button.")</ApiParameter>
+                <ApiParameter Name="Placeholder" Type="string?" Default="null">@L.T("未选择时显示的内容。", "Shown when nothing is selected.")</ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("控件是否被禁用。", "Whether the control is disabled.")</ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">@L.T("字段是否为必填。", "Whether the field is required.")</ApiParameter>
+                <ApiParameter Name="Orientation" Type="FieldOrientation" Default="Vertical">@L.T("标签相对控件的摆放位置。", "Label placement relative to the control.")</ApiParameter>
+                <ApiParameter Name="InputClass" Type="string?" Default="null">@L.T("内部树选择器的 CSS 类。", "CSS classes for the inner tree select.")</ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string? _selected = "runtime";
+    private HashSet<string> _selectedMany = ["runtime", "brand"];
+    private readonly FormModel _formModel = new();
+    private bool _formSubmitted;
+
+    private readonly List<Category> _categories =
+    [
+        new("engineering", "Engineering", [new("platform", "Platform", [new("runtime", "Runtime", []), new("tools", "Tools", [])]), new("web", "Web", [])]),
+        new("design", "Design", [new("product", "Product", []), new("brand", "Brand", [])])
+    ];
+
+    private void HandleFormSubmit() => _formSubmitted = true;
+
+    private sealed record Category(string Id, string Name, List<Category> Children);
+
+    private sealed class FormModel
+    {
+        [Required(ErrorMessage = "Choose a department.")]
+        public string? DepartmentId { get; set; }
+    }
+}

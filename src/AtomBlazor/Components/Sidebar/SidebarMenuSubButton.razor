@@ -1,0 +1,122 @@
+@namespace AtomBlazor
+@using Microsoft.AspNetCore.Components.Routing
+@implements IDisposable
+
+@*
+    SidebarMenuSubButton 组件：可点击的子菜单项。
+*@
+
+@{
+    // 自动检测：提供 Href 且 AsChild 未显式设为 Button 时渲染为 Anchor
+    var shouldRenderAsAnchor = AsChild == SidebarMenuButtonElement.Anchor ||
+                               (!string.IsNullOrEmpty(Href) && AsChild == SidebarMenuButtonElement.Button);
+}
+
+@if (shouldRenderAsAnchor)
+{
+    <a href="@Href" class="@GetClasses()" data-sidebar="menu-sub-button" data-size="@Size.ToValue()" data-active="@(ResolvedActive ? "true" : "false")" aria-current="@(ResolvedActive ? "page" : null)" @attributes="AdditionalAttributes">
+        @ChildContent
+    </a>
+}
+else
+{
+    <button type="button" class="@GetClasses()" data-sidebar="menu-sub-button" data-size="@Size.ToValue()" data-active="@(ResolvedActive ? "true" : "false")" aria-current="@(ResolvedActive ? "page" : null)" @attributes="AdditionalAttributes">
+        @ChildContent
+    </button>
+}
+
+@code {
+    /// <summary>
+    /// 按钮内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 要渲染的元素标签。默认 Button，但提供 Href 时自动切换为 Anchor。
+    /// </summary>
+    [Parameter]
+    public SidebarMenuButtonElement AsChild { get; set; } = SidebarMenuButtonElement.Button;
+
+    /// <summary>
+    /// 要导航到的 URL。提供后按钮自动渲染为 NavLink（除非 AsChild 显式设为 Button）。
+    /// </summary>
+    [Parameter]
+    public string? Href { get; set; }
+
+    /// <summary>
+    /// 链接匹配当前 URL 的方式。默认为 NavLinkMatch.Prefix。
+    /// </summary>
+    [Parameter]
+    public NavLinkMatch Match { get; set; } = NavLinkMatch.Prefix;
+
+    /// <summary>
+    /// 显式控制本子菜单项是否处于激活/选中态。设置后该值优先于
+    /// 自动的 <see cref="Href"/>/<see cref="Match"/> 位置匹配——因此
+    /// 即便 href 与当前 URL 匹配，<c>false</c> 也会强制该项非激活。保持
+    /// <c>null</c>（默认）则从当前位置推导激活态。
+    /// </summary>
+    [Parameter]
+    public bool? IsActive { get; set; }
+
+    /// <summary>
+    /// 按钮尺寸变体。
+    /// </summary>
+    [Parameter]
+    public SidebarMenuSubButtonSize Size { get; set; } = SidebarMenuSubButtonSize.Medium;
+
+    /// <summary>
+    /// 附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+
+    private bool isActiveByLocation;
+
+    /// <summary>
+    /// 按钮是否渲染为激活态。显式的 <see cref="IsActive"/> 值优先；
+    /// 否则由 <see cref="Href"/> 是否匹配当前位置推导。
+    /// </summary>
+    private bool ResolvedActive => IsActive ?? isActiveByLocation;
+
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    protected override void OnParametersSet()
+    {
+        isActiveByLocation = NavLinkMatcher.IsMatch(NavigationManager, NavigationManager.Uri, Href, Match);
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        var nowActive = NavLinkMatcher.IsMatch(NavigationManager, e.Location, Href, Match);
+        if (nowActive != isActiveByLocation)
+        {
+            isActiveByLocation = nowActive;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+
+    private string GetClasses()
+    {
+        var baseClasses = "atom:flex atom:w-full atom:min-w-0 atom:items-center atom:overflow-hidden atom:text-sidebar-foreground atom:outline-none atom:ring-sidebar-ring atom:transition-colors atom:hover:bg-sidebar-accent atom:hover:text-sidebar-accent-foreground atom:focus-visible:ring-2 atom:active:bg-sidebar-accent atom:active:text-sidebar-accent-foreground atom:disabled:pointer-events-none atom:disabled:opacity-50 atom:aria-disabled:pointer-events-none atom:aria-disabled:opacity-50 atom:[&>span:last-child]:truncate atom:[&>svg]:shrink-0 atom:[&>svg]:text-muted-foreground atom:hover:[&>svg]:text-sidebar-accent-foreground atom:data-[active=true]:bg-sidebar-accent atom:data-[active=true]:text-sidebar-accent-foreground";
+
+        return ClassNames.cn(baseClasses, Class);
+    }
+}

@@ -1,0 +1,25 @@
+@namespace AtomBlazor
+
+@* 对话框只在真的有导航被拦下时才构建，所以一个从未触发的已武装提示不花
+   任何代价。 *@
+@if (pending is not null)
+{
+    <AlertDialog Open="true" OpenChanged="HandleOpenChangedAsync">
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>@(Title ?? Localizer["ExitPrompt.Title"])</AlertDialogTitle>
+                <AlertDialogDescription>
+                    @(Message ?? Localizer["ExitPrompt.Message"])
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <Button Variant="ButtonVariant.Outline" OnClick="StayAsync">
+                    @(StayLabel ?? Localizer["ExitPrompt.Stay"])
+                </Button>
+                <Button Variant="ButtonVariant.Destructive" OnClick="LeaveAsync">
+                    @(LeaveLabel ?? Localizer["ExitPrompt.Leave"])
+                </Button>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
+}

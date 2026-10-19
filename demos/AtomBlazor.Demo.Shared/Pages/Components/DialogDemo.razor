@@ -1,0 +1,1682 @@
+@page "/components/dialog"
+@using AtomBlazor.Primitives.Services
+@inject DialogService DialogService
+
+<PageTitle>@L.T("Dialog 对话框 - Atom BlazorUI", "Dialog Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">Dialog</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("覆盖在页面之上的模态窗口，自带遮罩与焦点管理。", "Modal windows overlaid on the page, with backdrop and focus management.")
+        </p>
+    </div>
+
+    <div class="space-y-6">
+        <!-- Basic Usage -->
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code>Dialog</code> 由 <code>DialogTrigger</code>、<code>DialogContent</code>、
+                        <code>DialogHeader</code>（含 <code>DialogTitle</code> 与 <code>DialogDescription</code>）以及
+                        <code>DialogFooter</code> 组合而成。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        Compose a <code>Dialog</code> from <code>DialogTrigger</code>, <code>DialogContent</code>,
+                        <code>DialogHeader</code> (with <code>DialogTitle</code> and <code>DialogDescription</code>) and
+                        <code>DialogFooter</code>.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <Dialog>
+                    <AtomBlazor.DialogTrigger>
+                        <Button>@L.T("打开对话框", "Open Dialog")</Button>
+                    </AtomBlazor.DialogTrigger>
+                    <AtomBlazor.DialogContent>
+                        <DialogHeader>
+                            <AtomBlazor.DialogTitle>@L.T("你确定吗？", "Are you sure?")</AtomBlazor.DialogTitle>
+                            <AtomBlazor.DialogDescription>@L.T("此操作无法撤销。", "This action cannot be undone.")</AtomBlazor.DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <AtomBlazor.DialogClose>
+                                <Button Variant="ButtonVariant.Outline">@L.T("取消", "Cancel")</Button>
+                            </AtomBlazor.DialogClose>
+                            <Button>@L.T("继续", "Continue")</Button>
+                        </DialogFooter>
+                    </AtomBlazor.DialogContent>
+                </Dialog>
+            </div>
+
+            <CodeBlock Source="Components/Dialog/basic.txt" />
+        </section>
+
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("原生 Dialog", "Native Dialog")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                同一个对话框改用浏览器内置的 <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;dialog&gt;</code>
+                元素渲染，方式是 <code class="text-xs bg-muted px-1 py-0.5 rounded">RenderingStrategy="Native"</code>。它位于顶层（top layer），
+                复用浏览器原生的焦点捕获、Escape 处理与遮罩，因此不需要
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">PortalHost</code>，并且可以跨越 Blazor 渲染模式
+                边界（例如 <code class="text-xs bg-muted px-1 py-0.5 rounded">InteractiveWebAssembly</code>）。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                The same dialog rendered through the browser's built-in <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;dialog&gt;</code>
+                element via <code class="text-xs bg-muted px-1 py-0.5 rounded">RenderingStrategy="Native"</code>. It lives in the
+                top layer and uses the browser's native focus trap, Escape handling and backdrop, so it needs no
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">PortalHost</code> and works across Blazor render-mode
+                boundaries (e.g. <code class="text-xs bg-muted px-1 py-0.5 rounded">InteractiveWebAssembly</code>).
+            </p>
+                </text>
+}
+
+        <Dialog RenderingStrategy="OverlayRenderingStrategy.Native">
+            <AtomBlazor.DialogTrigger AsChild="false" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                @L.T("打开原生对话框", "Open Native Dialog")
+            </AtomBlazor.DialogTrigger>
+
+            <AtomBlazor.DialogContent>
+                <DialogHeader>
+                    <AtomBlazor.DialogTitle>@L.T("原生对话框", "Native dialog")</AtomBlazor.DialogTitle>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <AtomBlazor.DialogDescription>
+                            这是一个原生 <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;dialog&gt;</code> 元素，
+                            通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">showModal()</code> 显示。按 Escape 或点击遮罩即可关闭。
+                        </AtomBlazor.DialogDescription>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <AtomBlazor.DialogDescription>
+                            This dialog is a native <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;dialog&gt;</code> element
+                            shown with <code class="text-xs bg-muted px-1 py-0.5 rounded">showModal()</code>. Press Escape or click the
+                            backdrop to dismiss.
+                        </AtomBlazor.DialogDescription>
+                                        </text>
+}
+                </DialogHeader>
+                <DialogFooter>
+                    <AtomBlazor.DialogClose AsChild="false" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                        @L.T("关闭", "Close")
+                    </AtomBlazor.DialogClose>
+                </DialogFooter>
+            </AtomBlazor.DialogContent>
+        </Dialog>
+
+        <CodeBlock Source="Components/Dialog/native.txt" />
+    </div>
+
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("通过 DialogService 打开原生对话框", "Native Dialog via DialogService")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                同一个对话框改用 <code class="text-xs bg-muted px-1 py-0.5 rounded">DialogService.OpenAsync&lt;T&gt;()</code>
+                以编程方式打开。内容由对话框提供器渲染一个自包含组件。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Open the same dialog programmatically with
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">DialogService.OpenAsync&lt;T&gt;()</code>. The content is a
+                self-contained component rendered by the dialog provider.
+            </p>
+                </text>
+}
+        <div class="p-4 border-l-4 border-amber-500 bg-amber-500/5 rounded-r-lg">
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <strong>注意：</strong>编程式对话框不能用 <code class="text-xs bg-muted px-1 py-0.5 rounded">DialogClose</code> 关闭——
+                    它驱动的是 <code class="text-xs bg-muted px-1 py-0.5 rounded">DialogContext</code>，而
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">OpenAsync</code> 这条路径并不提供它。要在内容里关闭编程式对话框，
+                    得像下面这个自定义组件那样，调用级联下发的
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">IDialogReference.CloseAsync(...)</code>。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <strong>Note:</strong> <code class="text-xs bg-muted px-1 py-0.5 rounded">DialogClose</code> does not close a
+                    programmatic dialog — it drives a <code class="text-xs bg-muted px-1 py-0.5 rounded">DialogContext</code>, which the
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">OpenAsync</code> path does not provide. Close a programmatic dialog
+                    from its content by calling the cascaded
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">IDialogReference.CloseAsync(...)</code> instead, exactly as the
+                    custom component below does.
+                </p>
+                        </text>
+}
+        </div>
+
+        <div class="flex items-center gap-4">
+            <Button OnClick="HandleOpenNativeService">@L.T("通过 DialogService 打开", "Open via DialogService")</Button>
+            <span class="text-sm text-muted-foreground">@nativeServiceResult</span>
+        </div>
+
+        <CodeBlock Source="Components/Dialog/native-service.txt" />
+    </div>
+
+    <!-- 受控对话框：按全式补齐（原生按钮 Cancel/Save 页脚） -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("受控对话框", "Controlled Dialog")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                改用 @@bind-Open 以编程方式控制对话框状态。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Control the dialog state programmatically using @@bind-Open.
+            </p>
+                </text>
+}
+
+        <div class="flex gap-2">
+            <button @onclick="() => isDialogOpen = true"
+                    class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                @L.T("打开对话框", "Open Dialog")
+            </button>
+        </div>
+
+        <Dialog @bind-Open="isDialogOpen">
+            <AtomBlazor.DialogContent>
+                <DialogHeader>
+                    <AtomBlazor.DialogTitle>@L.T("受控对话框", "Controlled Dialog")</AtomBlazor.DialogTitle>
+                    <AtomBlazor.DialogDescription>
+                        @L.T("该对话框的打开状态由父组件控制，可以编程式地打开与关闭它。", "This dialog's open state is controlled from the parent component. You can programmatically open and close it.")
+                    </AtomBlazor.DialogDescription>
+                </DialogHeader>
+
+                <div class="py-4">
+                    <p class="text-sm">
+                        @L.T("对话框打开状态：", "Dialog is open:") <strong>@isDialogOpen</strong>
+                    </p>
+                </div>
+
+                <DialogFooter>
+                    <button @onclick="() => isDialogOpen = false"
+                            class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                        @L.T("取消", "Cancel")
+                    </button>
+                    <button @onclick="HandleSave"
+                            class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                        @L.T("保存", "Save")
+                    </button>
+                </DialogFooter>
+            </AtomBlazor.DialogContent>
+        </Dialog>
+
+        <CodeBlock Source="Components/Dialog/controlled.txt" />
+    </div>
+
+        <!-- Header + Footer + Form -->
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("页眉、页脚与表单", "Header, Footer and Form")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        把表单放进对话框正文；<code>DialogClose</code> 会渲染一个用于关闭它的按钮。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        Slot a form into the dialog body; <code>DialogClose</code> renders a button that dismisses it.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <Dialog>
+                    <AtomBlazor.DialogTrigger>
+                        <Button>@L.T("编辑资料", "Edit profile")</Button>
+                    </AtomBlazor.DialogTrigger>
+                    <AtomBlazor.DialogContent>
+                        <DialogHeader>
+                            <AtomBlazor.DialogTitle>@L.T("编辑资料", "Edit profile")</AtomBlazor.DialogTitle>
+                            <AtomBlazor.DialogDescription>@L.T("在这里修改你的资料。", "Make changes to your profile here.")</AtomBlazor.DialogDescription>
+                        </DialogHeader>
+                        <div class="space-y-4 py-4">
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium">@L.T("姓名", "Name")</label>
+                                <Input @bind-Value="name" Placeholder="@(L.T("你的名字", "Your name"))" />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <AtomBlazor.DialogClose>
+                                <Button Variant="ButtonVariant.Outline">@L.T("取消", "Cancel")</Button>
+                            </AtomBlazor.DialogClose>
+                            <Button>@L.T("保存更改", "Save changes")</Button>
+                        </DialogFooter>
+                    </AtomBlazor.DialogContent>
+                </Dialog>
+            </div>
+
+            <CodeBlock Source="Components/Dialog/with-header-footer.txt" />
+        </section>
+
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("自定义宽度", "Custom Width")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("通过 Class 参数自定义对话框宽度。", "Customize the dialog width using the Class parameter.")
+        </p>
+
+        <Dialog>
+            <AtomBlazor.DialogTrigger AsChild="false" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                @L.T("打开宽对话框", "Open Wide Dialog")
+            </AtomBlazor.DialogTrigger>
+
+            <AtomBlazor.DialogContent Class="max-w-3xl">
+                <DialogHeader>
+                    <AtomBlazor.DialogTitle>@L.T("宽对话框", "Wide Dialog")</AtomBlazor.DialogTitle>
+                    <AtomBlazor.DialogDescription>
+                        @L.T("该对话框使用自定义的 max-width 类，比默认宽度更宽。", "This dialog uses a custom max-width class to be wider than the default.")
+                    </AtomBlazor.DialogDescription>
+                </DialogHeader>
+
+                <div class="py-4">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <p class="text-sm">
+                            你可以向 DialogContent 组件传入额外的类来自定义对话框宽度。
+                            这个例子用的是 <code class="bg-muted px-1 py-0.5 rounded">max-w-3xl</code>，而不是默认的 <code class="bg-muted px-1 py-0.5 rounded">max-w-lg</code>。
+                        </p>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <p class="text-sm">
+                            You can customize the dialog width by passing additional classes to the DialogContent component.
+                            This example uses <code class="bg-muted px-1 py-0.5 rounded">max-w-3xl</code> instead of the default <code class="bg-muted px-1 py-0.5 rounded">max-w-lg</code>.
+                        </p>
+                                        </text>
+}
+                </div>
+            </AtomBlazor.DialogContent>
+        </Dialog>
+
+        <CodeBlock Source="Components/Dialog/custom-width.txt" />
+    </div>
+
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("不带关闭按钮", "Without Close Button")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                用 ShowClose="false" 隐藏默认的关闭按钮。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Hide the default close button using ShowClose="false".
+            </p>
+                </text>
+}
+
+        <Dialog>
+            <AtomBlazor.DialogTrigger AsChild="false" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                @L.T("打开对话框", "Open Dialog")
+            </AtomBlazor.DialogTrigger>
+
+            <AtomBlazor.DialogContent ShowClose="false">
+                <DialogHeader>
+                    <AtomBlazor.DialogTitle>@L.T("确认操作", "Confirm Action")</AtomBlazor.DialogTitle>
+                    <AtomBlazor.DialogDescription>
+                        @L.T("这个对话框右上角没有关闭按钮。你必须使用操作按钮之一或按 Escape 键关闭。", "This dialog doesn't have a close button in the top-right corner. You must use one of the action buttons or press Escape to close.")
+                    </AtomBlazor.DialogDescription>
+                </DialogHeader>
+
+                <DialogFooter Class="mt-4">
+                    <AtomBlazor.Primitives.DialogClose class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                        @L.T("取消", "Cancel")
+                    </AtomBlazor.Primitives.DialogClose>
+                    <AtomBlazor.Primitives.DialogClose class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                        @L.T("确认", "Confirm")
+                    </AtomBlazor.Primitives.DialogClose>
+                </DialogFooter>
+            </AtomBlazor.DialogContent>
+        </Dialog>
+
+        <CodeBlock Source="Components/Dialog/without-close.txt" />
+    </div>
+
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("AsChild 模式", "AsChild Pattern")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("用 AsChild 把触发器与你自己带样式的 Button 组件组合起来，而不必写内联样式。", "Use AsChild to compose triggers with your own styled Button components instead of inline styles.")
+        </p>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- Without AsChild -->
+            <div class="space-y-3 p-4 border rounded-lg">
+                <h3 class="text-lg font-medium">@L.T("不使用 AsChild", "Without AsChild")</h3>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("DialogTrigger 会渲染自己的按钮元素并带上内联类。", "DialogTrigger renders its own button element with inline classes.")
+                </p>
+                <Dialog>
+                    <AtomBlazor.DialogTrigger AsChild="false" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                        @L.T("打开对话框", "Open Dialog")
+                    </AtomBlazor.DialogTrigger>
+                    <AtomBlazor.DialogContent>
+                        <DialogHeader>
+                            <AtomBlazor.DialogTitle>@L.T("不使用 AsChild", "Without AsChild")</AtomBlazor.DialogTitle>
+                            <AtomBlazor.DialogDescription>
+                                @L.T("该对话框在触发器上使用了内联 CSS 类。", "This dialog uses inline CSS classes on the trigger.")
+                            </AtomBlazor.DialogDescription>
+                        </DialogHeader>
+                    </AtomBlazor.DialogContent>
+                </Dialog>
+            </div>
+
+            <!-- With AsChild -->
+            <div class="space-y-3 p-4 border rounded-lg">
+                <h3 class="text-lg font-medium">@L.T("使用 AsChild", "With AsChild")</h3>
+                <p class="text-sm text-muted-foreground">
+                    @L.T("Button 组件通过 TriggerContext 获得触发器行为。", "Button component receives trigger behavior via TriggerContext.")
+                </p>
+                <Dialog>
+                    <AtomBlazor.DialogTrigger>
+                        <Button Variant="ButtonVariant.Destructive">
+                            <LucideIcon Name="trash-2" Size="16" />
+                            @L.T("删除账户", "Delete Account")
+                        </Button>
+                    </AtomBlazor.DialogTrigger>
+                    <AtomBlazor.DialogContent>
+                        <DialogHeader>
+                            <AtomBlazor.DialogTitle>@L.T("删除账户", "Delete Account")</AtomBlazor.DialogTitle>
+                            <AtomBlazor.DialogDescription>
+                                @L.T("此操作无法撤销。这将永久删除你的账户。", "This action cannot be undone. This will permanently delete your account.")
+                            </AtomBlazor.DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <AtomBlazor.DialogClose>
+                                <Button Variant="ButtonVariant.Outline">@L.T("取消", "Cancel")</Button>
+                            </AtomBlazor.DialogClose>
+                            <Button Variant="ButtonVariant.Destructive">@L.T("删除", "Delete")</Button>
+                        </DialogFooter>
+                    </AtomBlazor.DialogContent>
+                </Dialog>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Dialog/as-child.txt" />
+
+    </div>
+
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("对话框中的下拉控件", "Dropdown Controls in Dialog")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("包含 Select、Combobox 与 MultiSelect 控件的对话框，用于测试嵌套 portal 行为：每个下拉控件都把浮动内容渲染在对话框覆盖层之上。", "Dialog containing Select, Combobox, and MultiSelect controls. Tests nested portal behavior where each dropdown renders its floating content above the dialog overlay.")
+        </p>
+
+        <Dialog>
+            <AtomBlazor.DialogTrigger AsChild="false" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                @L.T("打开带下拉控件的对话框", "Open Dialog with Dropdowns")
+            </AtomBlazor.DialogTrigger>
+
+            <AtomBlazor.DialogContent>
+                <DialogHeader>
+                    <AtomBlazor.DialogTitle>@L.T("嵌套下拉控件", "Nested Dropdown Controls")</AtomBlazor.DialogTitle>
+                    <AtomBlazor.DialogDescription>
+                        @L.T("Select、Combobox 与 MultiSelect 都借助嵌套 portal 渲染在对话框之上。", "Select, Combobox, and MultiSelect all use nested portals to render above the dialog.")
+                    </AtomBlazor.DialogDescription>
+                </DialogHeader>
+
+                <div class="grid gap-4 py-4">
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium">Select</label>
+                        <Select @bind-Value="selectedDialogFruit" TValue="string" Class="w-full">
+                            <AtomBlazor.SelectTrigger>
+                                <AtomBlazor.SelectValue Placeholder="@(L.T("选择一种水果...", "Select a fruit..."))" />
+                            </AtomBlazor.SelectTrigger>
+                            <AtomBlazor.SelectContent>
+                                <AtomBlazor.SelectItem Value="@("apple")" Text="Apple" TValue="string">Apple</AtomBlazor.SelectItem>
+                                <AtomBlazor.SelectItem Value="@("banana")" Text="Banana" TValue="string">Banana</AtomBlazor.SelectItem>
+                                <AtomBlazor.SelectItem Value="@("blueberry")" Text="Blueberry" TValue="string">Blueberry</AtomBlazor.SelectItem>
+                                <AtomBlazor.SelectItem Value="@("grapes")" Text="Grapes" TValue="string">Grapes</AtomBlazor.SelectItem>
+                                <AtomBlazor.SelectItem Value="@("pineapple")" Text="Pineapple" TValue="string">Pineapple</AtomBlazor.SelectItem>
+                            </AtomBlazor.SelectContent>
+                        </Select>
+                        <p class="text-xs text-muted-foreground">@L.T("值：", "Value: ")@(selectedDialogFruit ?? "none")</p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium">Combobox</label>
+                        <Combobox TValue="string"
+                                  Options="comboboxFrameworks"
+                                  @bind-Value="selectedComboboxFramework"
+                                  Placeholder="@(L.T("选择框架...", "Select framework..."))"
+                                  SearchPlaceholder="@(L.T("搜索框架...", "Search framework..."))"
+                                  EmptyMessage="@(L.T("未找到匹配的框架。", "No framework found."))"
+                                  MatchTriggerWidth="true" />
+                        <p class="text-xs text-muted-foreground">@L.T("值：", "Value: ")@(selectedComboboxFramework ?? "none")</p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium">MultiSelect</label>
+                        <MultiSelect TValue="string"
+                                     Options="multiSelectTechnologies"
+                                     @bind-Values="selectedTechnologies"
+                                     Placeholder="@(L.T("选择技术...", "Select technologies..."))"
+                                     SearchPlaceholder="@(L.T("搜索技术...", "Search technologies..."))"
+                                     EmptyMessage="@(L.T("未找到匹配的技术。", "No technologies found."))"
+                                     MatchTriggerWidth="true" />
+                        <p class="text-xs text-muted-foreground">@L.T("已选值：", "Values: ")@(selectedTechnologies?.Any() == true ? string.Join(", ", selectedTechnologies) : "none")</p>
+                    </div>
+                </div>
+
+                <DialogFooter>
+                    <AtomBlazor.Primitives.DialogClose class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                        @L.T("取消", "Cancel")
+                    </AtomBlazor.Primitives.DialogClose>
+                    <button class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                        @L.T("确认", "Confirm")
+                    </button>
+                </DialogFooter>
+            </AtomBlazor.DialogContent>
+        </Dialog>
+
+        <CodeBlock Source="Components/Dialog/dropdown-controls.txt" />
+    </div>
+
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("对话框中的 DatePicker", "DatePicker in Dialog")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("放在 Dialog 里的 DatePicker。日历浮层通过固定定位与更高的 z-index 渲染在对话框覆盖层之上。", "DatePicker inside a Dialog. The calendar popover renders above the dialog overlay using fixed positioning and elevated z-index.")
+        </p>
+
+        <Dialog>
+            <AtomBlazor.DialogTrigger AsChild="false" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                @L.T("打开带 DatePicker 的对话框", "Open Dialog with DatePicker")
+            </AtomBlazor.DialogTrigger>
+
+            <AtomBlazor.DialogContent>
+                <DialogHeader>
+                    <AtomBlazor.DialogTitle>@L.T("安排活动", "Schedule Event")</AtomBlazor.DialogTitle>
+                    <AtomBlazor.DialogDescription>
+                        @L.T("用下方的 DatePicker 为活动挑选日期。", "Pick a date for the event using the DatePicker below.")
+                    </AtomBlazor.DialogDescription>
+                </DialogHeader>
+
+                <div class="grid gap-4 py-4">
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium">@L.T("活动日期", "Event Date")</label>
+                        <DatePicker @bind-Value="dialogDatePickerValue" Class="w-full" />
+                    </div>
+                </div>
+
+                <DialogFooter>
+                    <AtomBlazor.Primitives.DialogClose class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                        @L.T("取消", "Cancel")
+                    </AtomBlazor.Primitives.DialogClose>
+                    <button class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                        @L.T("确认", "Confirm")
+                    </button>
+                </DialogFooter>
+            </AtomBlazor.DialogContent>
+        </Dialog>
+
+        <CodeBlock Source="Components/Dialog/datepicker.txt" />
+    </div>
+
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("确认服务", "Confirm Service") <span class="text-xs font-normal text-primary bg-primary/10 px-1.5 py-0.5 rounded">@L.T("新增", "New")</span></h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                一行式编程确认对话框请用 <code>DialogService.Confirm()</code>。
+                不需要标记，也不需要状态变量——只是一次返回 <code>true</code> 或 <code>false</code> 的异步调用。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Use <code>DialogService.Confirm()</code> for one-line programmatic confirm dialogs.
+                No markup, no state variables — just an async call that returns <code>true</code> or <code>false</code>.
+            </p>
+                </text>
+}
+
+        <div class="flex items-center gap-4">
+            <Button OnClick="HandleConfirmDelete">@L.T("删除条目", "Delete Item")</Button>
+            <Button Variant="ButtonVariant.Destructive" OnClick="HandleDestructiveDelete">@L.T("危险删除", "Destructive Delete")</Button>
+            <span class="text-sm text-muted-foreground">@L.T("结果：", "Result: ")@confirmResult</span>
+        </div>
+
+        <CodeBlock Source="Components/Dialog/confirm-service.txt" />
+    </div>
+
+    <div class="mt-10 space-y-4">
+        <h2 class="text-2xl font-semibold">
+            @L.T("提示服务", "Alert Service")
+            <span class="bg-primary/10 text-primary rounded px-1.5 py-0.5 text-xs font-normal">
+                @L.T("新增", "New")
+            </span>
+        </h2>
+
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-muted-foreground text-sm">
+                简单签收类对话框请用 <code>DialogService.Alert()</code>。
+                它返回一个 <code>Task</code>，在用户点击 OK 时完成。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-muted-foreground text-sm">
+                Use <code>DialogService.Alert()</code> for simple acknowledgment dialogs.
+                Returns a <code>Task</code> that completes when the user clicks OK.
+            </p>
+                </text>
+}
+
+        <div class="flex items-center gap-4">
+            <Button OnClick="HandleAlert">
+                @L.T("显示提示", "Show Alert")
+            </Button>
+
+            <span class="text-muted-foreground text-sm">
+                @L.T("状态：", "Status: ")@alertStatus
+            </span>
+        </div>
+
+        <CodeBlock Source="Components/Dialog/alert-service.txt" />
+    </div>
+
+    <div class="mt-10 space-y-4">
+        <h2 class="text-2xl font-semibold">
+            @L.T("输入框服务", "Prompt Service")
+            <span class="bg-primary/10 text-primary rounded px-1.5 py-0.5 text-xs font-normal">
+                @L.T("新增", "New")
+            </span>
+        </h2>
+
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-muted-foreground text-sm">
+                要异步收集文本输入请用 <code>DialogService.Prompt()</code>。
+                返回 <code>string?</code>。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-muted-foreground text-sm">
+                Use <code>DialogService.Prompt()</code> to collect text input asynchronously.
+                Returns <code>string?</code>.
+            </p>
+                </text>
+}
+
+        <div class="flex items-center gap-4">
+            <Button OnClick="HandlePrompt">
+                @L.T("重命名文件", "Rename File")
+            </Button>
+
+            <span class="text-muted-foreground text-sm">
+                @L.T("结果：", "Result: ")@promptResult
+            </span>
+        </div>
+
+        <CodeBlock Source="Components/Dialog/prompt-service.txt" />
+    </div>
+
+    <div class="mt-10 space-y-4">
+        <h2 class="text-2xl font-semibold">
+            @L.T("自定义组件对话框", "Custom Component Dialog")
+            <span class="bg-primary/10 text-primary rounded px-1.5 py-0.5 text-xs font-normal">
+                @L.T("新增", "New")
+            </span>
+        </h2>
+
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-muted-foreground text-sm">
+                要渲染完全自定义的对话框组件请用 <code>DialogService.Open&lt;TComponent&gt;()</code>。
+                返回一个 <code>DialogResult</code>。默认会显示关闭（&times;）按钮；在 <code>DialogOpenOptions</code> 里设
+                <code>ShowClose = false</code> 即可隐藏它。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-muted-foreground text-sm">
+                Use <code>DialogService.Open&lt;TComponent&gt;()</code> to render a fully custom dialog component.
+                Returns a <code>DialogResult</code>. A close (&times;) button is shown by default; set
+                <code>ShowClose = false</code> in <code>DialogOpenOptions</code> to hide it.
+            </p>
+                </text>
+}
+
+        <div class="flex items-center gap-4">
+            <Button OnClick="HandleCustomDialog">
+                @L.T("编辑用户", "Edit User")
+            </Button>
+
+            <span class="text-muted-foreground text-sm">
+                @L.T("结果：", "Result: ")@customResult
+            </span>
+        </div>
+
+        <CodeBlock Source="Components/Dialog/custom-service.txt" />
+    </div>
+
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("对话框里的表单", "Form in Dialog")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("带绑定输入字段的对话框。输入应当即时响应、没有闪烁——键盘事件在 JavaScript 里处理，只有 Escape 会触发一次 C# interop 调用。", "Dialog with bound input fields. Typing should feel instant with no flicker — keyboard events are handled in JavaScript, and only Escape triggers a C# interop call.")
+        </p>
+
+        <Dialog>
+            <AtomBlazor.DialogTrigger>
+                <Button>@L.T("打开表单对话框", "Open Form Dialog")</Button>
+            </AtomBlazor.DialogTrigger>
+
+            <AtomBlazor.DialogContent>
+                <DialogHeader>
+                    <AtomBlazor.DialogTitle>@L.T("创建账户", "Create Account")</AtomBlazor.DialogTitle>
+                    <AtomBlazor.DialogDescription>
+                        @L.T("填写下面的信息即可创建新账户。", "Fill in the details below to create a new account.")
+                    </AtomBlazor.DialogDescription>
+                </DialogHeader>
+
+                <div class="grid gap-4 py-4">
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium">@L.T("名字", "First Name")</label>
+                        <Input @bind-Value="formFirstName" Placeholder="@(L.T("请输入名字...", "Enter first name..."))" />
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium">@L.T("姓氏", "Last Name")</label>
+                        <Input @bind-Value="formLastName" Placeholder="@(L.T("请输入姓氏...", "Enter last name..."))" />
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium">@L.T("电子邮箱", "Email")</label>
+                        <Input @bind-Value="formEmail" Type="InputType.Email" Placeholder="you@example.com" />
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium">@L.T("简介", "Bio")</label>
+                        <Textarea @bind-Value="formBio" Placeholder="@(L.T("介绍一下你自己...", "Tell us about yourself..."))" />
+                    </div>
+                </div>
+
+                <DialogFooter>
+                    <AtomBlazor.DialogClose>
+                        <Button Variant="ButtonVariant.Outline">@L.T("取消", "Cancel")</Button>
+                    </AtomBlazor.DialogClose>
+                    <Button OnClick="HandleCreateAccount">@L.T("创建账户", "Create Account")</Button>
+                </DialogFooter>
+            </AtomBlazor.DialogContent>
+        </Dialog>
+
+        <CodeBlock Source="Components/Dialog/form-in-dialog.txt" />
+    </div>
+
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("嵌套对话框", "Nested Dialog")</h2>
+        <p class="text-sm text-muted-foreground">
+            @L.T("一个会打开另一个对话框的对话框。按 Escape 只应关闭最内层对话框。再按一次 Escape 才关闭外层对话框。", "A dialog that opens another dialog. Pressing Escape should close only the innermost dialog. Press Escape again to close the outer dialog.")
+        </p>
+
+        <Dialog @bind-Open="outerDialogOpen">
+            <AtomBlazor.DialogTrigger>
+                <Button Variant="ButtonVariant.Outline">@L.T("打开外层对话框", "Open Outer Dialog")</Button>
+            </AtomBlazor.DialogTrigger>
+
+            <AtomBlazor.DialogContent>
+                <DialogHeader>
+                    <AtomBlazor.DialogTitle>@L.T("外层对话框", "Outer Dialog")</AtomBlazor.DialogTitle>
+                    <AtomBlazor.DialogDescription>
+                        @L.T("这是外层对话框。点击下面的按钮在里面打开一个嵌套对话框。", "This is the outer dialog. Click the button below to open a nested dialog inside.")
+                    </AtomBlazor.DialogDescription>
+                </DialogHeader>
+
+                <div class="py-4 space-y-4">
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium">@L.T("外层输入框", "Outer Input")</label>
+                        <Input @bind-Value="outerDialogInput" Placeholder="@(L.T("在这里输入...", "Type here..."))" />
+                    </div>
+
+                    <Dialog @bind-Open="innerDialogOpen">
+                        <AtomBlazor.DialogTrigger>
+                            <Button Variant="ButtonVariant.Secondary">@L.T("打开内层对话框", "Open Inner Dialog")</Button>
+                        </AtomBlazor.DialogTrigger>
+
+                        <AtomBlazor.DialogContent>
+                            <DialogHeader>
+                                <AtomBlazor.DialogTitle>@L.T("内层对话框", "Inner Dialog")</AtomBlazor.DialogTitle>
+                                <AtomBlazor.DialogDescription>
+                                    @L.T("这是嵌套的内层对话框。按 Escape——应当只关闭这个对话框。", "This is the nested inner dialog. Press Escape — only this dialog should close.")
+                                </AtomBlazor.DialogDescription>
+                            </DialogHeader>
+
+                            <div class="py-4 space-y-2">
+                                <label class="text-sm font-medium">@L.T("内层输入框", "Inner Input")</label>
+                                <Input @bind-Value="innerDialogInput" Placeholder="@(L.T("在内层对话框里输入...", "Type in the inner dialog..."))" />
+                            </div>
+
+                            <DialogFooter>
+                                <AtomBlazor.DialogClose>
+                                    <Button Variant="ButtonVariant.Outline">@L.T("关闭内层", "Close Inner")</Button>
+                                </AtomBlazor.DialogClose>
+                            </DialogFooter>
+                        </AtomBlazor.DialogContent>
+                    </Dialog>
+                </div>
+
+                <DialogFooter>
+                    <AtomBlazor.DialogClose>
+                        <Button Variant="ButtonVariant.Outline">@L.T("关闭外层", "Close Outer")</Button>
+                    </AtomBlazor.DialogClose>
+                </DialogFooter>
+            </AtomBlazor.DialogContent>
+        </Dialog>
+
+        <CodeBlock Source="Components/Dialog/nested-dialog.txt" />
+    </div>
+
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("不可点遮罩关闭", "Non-Dismissible Overlay")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                设 <code class="bg-muted px-1 py-0.5 rounded">CloseOnOverlayClick="false"</code> 可让对话框在点击遮罩时不关闭。
+                用户必须使用明确的操作按钮或按 Escape 才能关闭。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Set <code class="bg-muted px-1 py-0.5 rounded">CloseOnOverlayClick="false"</code> to prevent the dialog from closing when the backdrop is clicked.
+                The user must use an explicit action button or press Escape to close.
+            </p>
+                </text>
+}
+
+        <Dialog>
+            <AtomBlazor.DialogTrigger>
+                <Button Variant="ButtonVariant.Outline">@L.T("打开对话框", "Open Dialog")</Button>
+            </AtomBlazor.DialogTrigger>
+
+            <AtomBlazor.DialogContent CloseOnOverlayClick="false">
+                <DialogHeader>
+                    <AtomBlazor.DialogTitle>@L.T("不可点遮罩关闭", "Non-Dismissible")</AtomBlazor.DialogTitle>
+                    <AtomBlazor.DialogDescription>
+                        @L.T("点击遮罩不会关闭这个对话框。请用下面的按钮或按 Escape。", "Clicking the backdrop will not close this dialog. Use the button below or press Escape.")
+                    </AtomBlazor.DialogDescription>
+                </DialogHeader>
+                <DialogFooter Class="mt-4">
+                    <AtomBlazor.DialogClose>
+                        <Button>@L.T("知道了", "Got it")</Button>
+                    </AtomBlazor.DialogClose>
+                </DialogFooter>
+            </AtomBlazor.DialogContent>
+        </Dialog>
+
+        <CodeBlock Source="Components/Dialog/non-dismissible.txt" />
+    </div>
+
+    <!-- Initial Focus -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("初始焦点", "Initial Focus") <span class="text-xs font-normal text-primary bg-primary/10 px-1.5 py-0.5 rounded">@L.T("新增", "New")</span></h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                默认情况下，焦点捕获会把焦点放到对话框内第一个可 Tab 聚焦的元素上。若该元素在获得焦点时会做别的事
+                &mdash; 打开下拉、发起搜索 &mdash; 副作用就会在对话框打开的那一刻触发。想改为聚焦对话框本身，请设
+                <code class="bg-muted px-1 py-0.5 rounded">InitialFocus="FocusTrapInitialFocus.Container"</code>；
+                或者把 <code class="bg-muted px-1 py-0.5 rounded">data-autofocus</code> 放到你想要聚焦的元素上。
+                带 <code class="bg-muted px-1 py-0.5 rounded">data-autofocus</code> 的元素优先于
+                <code class="bg-muted px-1 py-0.5 rounded">InitialFocus</code>。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                By default the focus trap focuses the first tabbable element inside the dialog. When that
+                element does something on focus &mdash; opening a dropdown, running a search &mdash; the side
+                effect fires as soon as the dialog opens. Set
+                <code class="bg-muted px-1 py-0.5 rounded">InitialFocus="FocusTrapInitialFocus.Container"</code>
+                to focus the dialog itself instead, or put
+                <code class="bg-muted px-1 py-0.5 rounded">data-autofocus</code> on the element you want.
+                An element carrying <code class="bg-muted px-1 py-0.5 rounded">data-autofocus</code> wins over
+                <code class="bg-muted px-1 py-0.5 rounded">InitialFocus</code>.
+            </p>
+                </text>
+}
+
+        <div class="flex flex-wrap gap-2">
+            <Dialog>
+                <AtomBlazor.DialogTrigger>
+                    <Button Variant="ButtonVariant.Outline">@L.T("默认（第一个字段）", "Default (first field)")</Button>
+                </AtomBlazor.DialogTrigger>
+                <AtomBlazor.DialogContent>
+                    <DialogHeader>
+                        <AtomBlazor.DialogTitle>@L.T("默认", "Default")</AtomBlazor.DialogTitle>
+                        <AtomBlazor.DialogDescription>@L.T("下方搜索框已经获得焦点。", "The search field below has focus already.")</AtomBlazor.DialogDescription>
+                    </DialogHeader>
+                    <Input @bind-Value="initialFocusQuery" Placeholder="@(L.T("输入以搜索...", "Type to search..."))" />
+                </AtomBlazor.DialogContent>
+            </Dialog>
+
+            <Dialog>
+                <AtomBlazor.DialogTrigger>
+                    <Button Variant="ButtonVariant.Outline">@L.T("聚焦容器", "Focus the container")</Button>
+                </AtomBlazor.DialogTrigger>
+                <AtomBlazor.DialogContent InitialFocus="FocusTrapInitialFocus.Container">
+                    <DialogHeader>
+                        <AtomBlazor.DialogTitle>@L.T("容器", "Container")</AtomBlazor.DialogTitle>
+                        <AtomBlazor.DialogDescription>@L.T("对话框内没有任何元素获得焦点。按 Tab 可移到输入框。", "Nothing inside has focus. Tab moves to the field.")</AtomBlazor.DialogDescription>
+                    </DialogHeader>
+                    <Input @bind-Value="initialFocusQuery" Placeholder="@(L.T("输入以搜索...", "Type to search..."))" />
+                </AtomBlazor.DialogContent>
+            </Dialog>
+
+            <Dialog>
+                <AtomBlazor.DialogTrigger>
+                    <Button Variant="ButtonVariant.Outline">data-autofocus</Button>
+                </AtomBlazor.DialogTrigger>
+                <AtomBlazor.DialogContent>
+                    <DialogHeader>
+                        <AtomBlazor.DialogTitle>@L.T("指定目标", "Named target")</AtomBlazor.DialogTitle>
+                        <AtomBlazor.DialogDescription>@L.T("获得焦点的是「确认」按钮，不是上面的输入框。", "The Confirm button has focus, not the field above it.")</AtomBlazor.DialogDescription>
+                    </DialogHeader>
+                    <Input @bind-Value="initialFocusNote" Placeholder="@(L.T("可选备注", "Optional note"))" />
+                    <DialogFooter Class="mt-4">
+                        <AtomBlazor.DialogClose>
+                            <Button data-autofocus>@L.T("确认", "Confirm")</Button>
+                        </AtomBlazor.DialogClose>
+                    </DialogFooter>
+                </AtomBlazor.DialogContent>
+            </Dialog>
+        </div>
+
+        <CodeBlock Source="Components/Dialog/initial-focus.txt" />
+    </div>
+
+    <!-- DialogService API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("DialogService 编程接口", "DialogService API")</h2>
+            <p class="text-muted-foreground">@L.T("通过依赖注入提供的编程式对话框方法。", "Programmatic dialog methods available via dependency injection.")</p>
+        </div>
+        <div class="space-y-4">
+
+        </div>
+    </section>
+
+        <AccessibilityList>
+            <AriaAttributes>
+                <AccessibilityItem>@L.T("对话框内会自动捕获焦点", "Focus is automatically trapped within the dialog")</AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <AccessibilityItem>包含 role="dialog" 与 aria-modal 属性</AccessibilityItem>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <AccessibilityItem>Includes role="dialog" and aria-modal attributes</AccessibilityItem>
+                                </text>
+}
+                <AccessibilityItem>@L.T("对话框打开时会锁定页面滚动", "Scroll lock on body when dialog is open")</AccessibilityItem>
+                <AccessibilityItem>@L.T("动画遵循 prefers-reduced-motion 设置", "Respects prefers-reduced-motion for animations")</AccessibilityItem>
+            </AriaAttributes>
+            <KeyboardNavigation>
+                <KeyboardShortcutItem Description="@(L.T("关闭对话框", "Close the dialog"))">
+                    <Kbd>Escape</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("把焦点移到下一个元素", "Move focus to next element"))">
+                    <Kbd>Tab</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("把焦点移到上一个元素", "Move focus to previous element"))">
+                    <Kbd>Shift+Tab</Kbd>
+                </KeyboardShortcutItem>
+            </KeyboardNavigation>
+        </AccessibilityList>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+                <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+            </div>
+            <div class="space-y-4">
+                <ApiReference ComponentName="Dialog">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="Open" Type="bool?" Default="null">
+                            控制对话框是否打开（受控模式）。为 null 时对话框自行管理状态（非受控模式）。支持 <code>@@bind-Open</code> 双向绑定。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="Open" Type="bool?" Default="null">
+                            Controls whether the dialog is open (controlled mode). When null, the dialog manages its own state (uncontrolled mode). Supports two-way binding with <code>@@bind-Open</code>.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="OpenChanged" Type="EventCallback&lt;bool&gt;">
+                        @L.T("打开状态发生变化时调用的事件回调。", "Event callback invoked when the open state changes.")
+                    </ApiParameter>
+                    <ApiParameter Name="DefaultOpen" Type="bool" Default="false">
+                        @L.T("非受控模式下的默认打开状态。", "Default open state when in uncontrolled mode.")
+                    </ApiParameter>
+                    <ApiParameter Name="OnOpenChange" Type="EventCallback&lt;bool&gt;">
+                        @L.T("对话框打开状态发生变化时调用的事件回调。", "Event callback invoked when the dialog open state changes.")
+                    </ApiParameter>
+                    <ApiParameter Name="Modal" Type="bool" Default="true">
+                        @L.T("对话框是否可以通过点击外部或按 Escape 键关闭。", "Whether the dialog can be dismissed by clicking outside or pressing Escape.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="RenderingStrategy" Type="OverlayRenderingStrategy?" Default="null">
+                            覆盖浮层渲染策略。<code>Native</code> 使用浏览器 &lt;dialog&gt; 元素，不需要 portal host。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="RenderingStrategy" Type="OverlayRenderingStrategy?" Default="null">
+                            Override the overlay rendering strategy. <code>Native</code> uses the browser &lt;dialog&gt; element and needs no portal host.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("子内容，通常是一个 DialogTrigger 与一个 DialogContent。", "The child content, typically a DialogTrigger and DialogContent.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到根元素上的额外 HTML 属性。", "Additional HTML attributes applied to the root element.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="DialogTrigger">
+                    <ApiParameter Name="AsChild" Type="bool" Default="false">
+                        @L.T("为 true 时不渲染自己的按钮，而是把 TriggerContext 级联给子组件（例如 Button）。", "When true, does not render its own button; cascades TriggerContext to a child (e.g. Button).")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在触发器内部显示的内容。", "The content to display inside the trigger.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到触发器元素上的额外 HTML 属性。", "Additional HTML attributes applied to the trigger element.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="DialogContent">
+                    <ApiParameter Name="Class" Type="string?">
+                        @L.T("内容容器的额外 CSS 类。", "Additional CSS classes for the content container.")
+                    </ApiParameter>
+
+                <ApiParameter Name="ShowClose" Type="bool" Default="true">
+                    @L.T("是否显示关闭按钮（X 图标）。", "Whether to show the close button (X icon).")
+                </ApiParameter>
+                <ApiParameter Name="CloseOnOverlayClick" Type="bool" Default="true">
+                    @L.T("点击遮罩层时是否关闭对话框。", "Whether clicking the backdrop overlay should close the dialog.")
+                </ApiParameter>
+                <ApiParameter Name="CloseOnEscape" Type="bool" Default="true">
+                    @L.T("按 Escape 键时是否关闭对话框。", "Whether pressing Escape should close the dialog.")
+                </ApiParameter>
+                <ApiParameter Name="TrapFocus" Type="bool" Default="true">
+                    @L.T("是否在对话框内捕获焦点。", "Whether to trap focus within the dialog.")
+                </ApiParameter>
+                <ApiParameter Name="LockScroll" Type="bool" Default="true">
+                    @L.T("对话框打开时是否锁定页面滚动。", "Whether to lock body scroll when dialog is open.")
+                </ApiParameter>
+                <ApiParameter Name="Container" Type="string?">
+                    @L.T("改为渲染在指定容器内，而不是 portal 到 document body。", "Render inline within a named container instead of portaling to the document body.")
+                </ApiParameter>
+                <ApiParameter Name="OnEscapeKeyDown" Type="EventCallback&lt;KeyboardEventArgs&gt;">
+                    @L.T("在对话框内按下 Escape 键时调用的事件回调。", "Event callback invoked when the Escape key is pressed inside the dialog.")
+                </ApiParameter>
+
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="InitialFocus" Type="FocusTrapInitialFocus" Default="FocusTrapInitialFocus.FirstFocusable">
+                        焦点捕获在打开时聚焦的目标。<code>FirstFocusable</code> 聚焦第一个可 Tab 聚焦的后代，<code>Container</code> 聚焦对话框本身，<code>None</code> 不做移动。带 <code>data-autofocus</code> 的元素优先于这一项。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="InitialFocus" Type="FocusTrapInitialFocus" Default="FocusTrapInitialFocus.FirstFocusable">
+                        What the focus trap focuses on open. <code>FirstFocusable</code> focuses the first tabbable descendant, <code>Container</code> focuses the dialog itself, <code>None</code> moves nothing. An element carrying <code>data-autofocus</code> wins over this.
+                    </ApiParameter>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="InitialFocusElement" Type="ElementReference?">
+                        打开时聚焦的指定元素，优先级高于 <code>InitialFocus</code> 与 <code>data-autofocus</code>。若该元素不在对话框内则忽略。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="InitialFocusElement" Type="ElementReference?">
+                        An explicit element to focus on open, beating both <code>InitialFocus</code> and <code>data-autofocus</code>. Ignored when it is not inside the dialog.
+                    </ApiParameter>
+                                </text>
+}
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("对话框正文内容。", "The dialog body content.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到内容容器上的额外 HTML 属性。", "Additional HTML attributes applied to the content container.")
+                    </ApiParameter>
+                </ApiReference>
+
+            <ApiReference ComponentName="DialogClose">
+                <ApiParameter Name="AsChild" Type="bool" Default="true">
+                    @L.T("为 true 时把关闭行为交给子组件，而不是自己渲染一个按钮。", "When true, passes close behavior to child components instead of rendering its own button.")
+                </ApiParameter>
+                <ApiParameter Name="OnClick" Type="EventCallback&lt;MouseEventArgs&gt;">
+                    @L.T("对话框关闭之后调用的自定义点击处理。", "Custom click handler invoked after the dialog is closed.")
+                </ApiParameter>
+                <ApiParameter Name="PreventClose" Type="bool" Default="false">
+                    @L.T("为 true 时阻止默认关闭行为，适合在关闭前做校验。", "When true, prevents the default close behavior. Useful for validation before closing.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="DialogHeader">
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("页眉容器的额外 CSS 类。", "Additional CSS classes for the header container.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="DialogFooter">
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("页脚容器的额外 CSS 类。", "Additional CSS classes for the footer container.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="DialogTitle">
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("标题元素的额外 CSS 类。", "Additional CSS classes for the title element.")
+                </ApiParameter>
+                <ApiParameter Name="As" Type="string" Default="&quot;h2&quot;">
+                    @L.T("标题渲染所使用的 HTML 元素标签。", "The HTML element tag to render for the title.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="DialogDescription">
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("描述元素的额外 CSS 类。", "Additional CSS classes for the description element.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+<ApiReference ComponentName="DialogService">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="ConfirmAsync()" Type="Task&lt;ConfirmDialogResult&gt;">
+                        显示确认对话框。返回的结果带有 <code>Confirmed</code>（<code>bool</code>）属性。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="ConfirmAsync()" Type="Task&lt;ConfirmDialogResult&gt;">
+                        Shows a confirm dialog. Returns a result with <code>Confirmed</code> (<code>bool</code>) property.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="AlertAsync()" Type="Task&lt;DialogResult&gt;">
+                    @L.T("显示只有一个签收按钮的提示对话框。无法通过遮罩或 Escape 关闭。", "Shows an alert dialog with a single acknowledgment button. Cannot be dismissed via backdrop or Escape.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="PromptAsync()" Type="Task&lt;PromptDialogResult&gt;">
+                        显示用于收集文本输入的输入框对话框。返回的结果带有 <code>Value</code>（<code>string?</code>）属性。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="PromptAsync()" Type="Task&lt;PromptDialogResult&gt;">
+                        Shows a prompt dialog that collects text input. Returns a result with <code>Value</code> (<code>string?</code>) property.
+                    </ApiParameter>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="OpenAsync&lt;T&gt;()" Type="Task&lt;DialogResult&gt;">
+                        在对话框里打开一个自定义组件。该组件会以级联参数收到 <code>IDialogReference</code>。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="OpenAsync&lt;T&gt;()" Type="Task&lt;DialogResult&gt;">
+                        Opens a custom component inside a dialog. The component receives <code>IDialogReference</code> as a cascading parameter.
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+<ApiReference ComponentName="ConfirmDialogOptions">
+                <ApiParameter Name="ConfirmText" Type="string" Default="&quot;Continue&quot;">
+                    @L.T("确认按钮的文案。", "The label for the confirm button.")
+                </ApiParameter>
+                <ApiParameter Name="CancelText" Type="string" Default="&quot;Cancel&quot;">
+                    @L.T("取消按钮的文案。", "The label for the cancel button.")
+                </ApiParameter>
+                <ApiParameter Name="Destructive" Type="bool" Default="false">
+                    @L.T("确认按钮是否使用 destructive 变体。", "Whether the confirm button should use the destructive variant.")
+                </ApiParameter>
+            </ApiReference>
+
+<ApiReference ComponentName="AlertDialogOptions">
+                <ApiParameter Name="ButtonText" Type="string" Default="&quot;OK&quot;">
+                    @L.T("签收按钮的文案。", "The label for the acknowledgment button.")
+                </ApiParameter>
+            </ApiReference>
+
+<ApiReference ComponentName="PromptDialogOptions">
+                <ApiParameter Name="ConfirmText" Type="string" Default="&quot;OK&quot;">
+                    @L.T("确认按钮的文案。", "The label for the confirm button.")
+                </ApiParameter>
+                <ApiParameter Name="CancelText" Type="string" Default="&quot;Cancel&quot;">
+                    @L.T("取消按钮的文案。", "The label for the cancel button.")
+                </ApiParameter>
+                <ApiParameter Name="DefaultValue" Type="string?">
+                    @L.T("输入框的初始值。", "The initial value of the input field.")
+                </ApiParameter>
+                <ApiParameter Name="Placeholder" Type="string?">
+                    @L.T("输入框里显示的占位文案。", "Placeholder text displayed in the input field.")
+                </ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">
+                    @L.T("输入框是否为必填。为空时确认按钮会被禁用。", "Whether the input field is required. Disables the confirm button when empty.")
+                </ApiParameter>
+                <ApiParameter Name="MaxLength" Type="int?">
+                    @L.T("允许输入的值的最大长度。", "Maximum allowed length of the input value.")
+                </ApiParameter>
+            </ApiReference>
+
+<ApiReference ComponentName="DialogOpenOptions">
+                <ApiParameter Name="Title" Type="string?">
+                    @L.T("可选的对话框标题。为 null 时组件可以自行渲染页眉。", "Optional dialog title. If null, the component may render its own header.")
+                </ApiParameter>
+                <ApiParameter Name="ShowClose" Type="bool" Default="true">
+                    @L.T("是否显示关闭（X）按钮。", "Whether the close (X) button should be displayed.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Size" Type="DialogSize" Default="DialogSize.Default">
+                        控制对话框的宽度预设。可选项：<code>Small</code>、<code>Default</code>、<code>Large</code>、<code>ExtraLarge</code>、<code>Full</code>。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Size" Type="DialogSize" Default="DialogSize.Default">
+                        Controls the dialog width preset. Options: <code>Small</code>, <code>Default</code>, <code>Large</code>, <code>ExtraLarge</code>, <code>Full</code>.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="PreventClose" Type="bool" Default="false">
+                    @L.T("禁止通过 Escape 键或点击遮罩关闭。", "Prevents closing via Escape key or backdrop click.")
+                </ApiParameter>
+            </ApiReference>
+
+<ApiReference ComponentName="IDialogReference">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="CloseAsync()" Type="Task">
+                        以指定的 <code>DialogResult</code> 关闭对话框。用 <code>DialogResult.Ok(data)</code> 返回数据。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="CloseAsync()" Type="Task">
+                        Closes the dialog with a specified <code>DialogResult</code>. Use <code>DialogResult.Ok(data)</code> to return data.
+                    </ApiParameter>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="CancelAsync()" Type="Task">
+                        取消对话框。等价于用 <code>DialogResult.Cancel()</code> 关闭。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="CancelAsync()" Type="Task">
+                        Cancels the dialog. Equivalent to closing with <code>DialogResult.Cancel()</code>.
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+            </div>
+        </section>
+    </div>
+
+<LocalizationSection
+        Description="@(L.T("对话框关闭按钮的 aria 标签文案可以配置。", "The dialog close button aria label is configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("Close", "Close", L.T("关闭按钮的 aria 标签。", "Aria label for the close button")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""Dialog.Close"", ""Schließen"");
+});")" />
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string name = "Ada Lovelace";
+
+    private string initialFocusQuery = string.Empty;
+    private string initialFocusNote = string.Empty;
+
+    private bool isDialogOpen = false;
+    private DateTime? dialogDatePickerValue;
+    private string? selectedComboboxFramework;
+    private string? selectedDialogFruit;
+    private IEnumerable<string>? selectedTechnologies = new List<string>();
+
+    private string confirmResult = "None";
+    private string alertStatus = "Idle";
+    private string promptResult = "-";
+    private string customResult = "-";
+    private string nativeServiceResult = "-";
+
+    // 对话框内表单
+    private string? formFirstName;
+    private string? formLastName;
+    private string? formEmail;
+    private string? formBio;
+
+    // 嵌套对话框
+    private bool outerDialogOpen;
+    private bool innerDialogOpen;
+    private string? outerDialogInput;
+    private string? innerDialogInput;
+
+    private readonly SelectOption<string>[] multiSelectTechnologies =
+    [
+        new("Blazor", "Blazor"),
+        new("React", "React"),
+        new("Vue", "Vue"),
+        new("Angular", "Angular"),
+        new("Svelte", "Svelte"),
+        new("Next.js", "Next.js"),
+        new("Nuxt", "Nuxt"),
+        new("SolidJS", "SolidJS"),
+        new("Astro", "Astro"),
+        new("Remix", "Remix")
+    ];
+
+    private readonly SelectOption<string>[] comboboxFrameworks =
+    [
+        new("blazor", "Blazor"),
+        new("react", "React"),
+        new("vue", "Vue"),
+        new("angular", "Angular"),
+        new("svelte", "Svelte"),
+        new("nextjs", "Next.js"),
+        new("nuxt", "Nuxt")
+    ];
+
+    /// <summary>字段初始化时级联语言尚未到达，这里把初始占位值按当前显示语言归位。</summary>
+    protected override void OnParametersSet()
+    {
+        if (confirmResult is "None" or "无")
+        {
+            confirmResult = L.T("无", "None");
+        }
+
+        if (alertStatus is "Idle" or "空闲")
+        {
+            alertStatus = L.T("空闲", "Idle");
+        }
+    }
+
+    private void HandleSave()
+    {
+        // 处理保存逻辑
+        isDialogOpen = false;
+    }
+
+    private void HandleCreateAccount()
+    {
+        // 账户创建逻辑
+    }
+
+    private string GetComboboxFrameworkLabel(string? value) =>
+        comboboxFrameworks.FirstOrDefault(f => f.Value == value)?.Text ?? value ?? "";
+
+    private async Task HandleConfirmDelete()
+    {
+        var result = await DialogService.ConfirmAsync(
+            L.IsChinese ? "删除该条目？" : "Delete item?",
+            L.IsChinese ? "此操作无法撤销。该条目将被永久移除。" : "This action cannot be undone. The item will be permanently removed.");
+
+        confirmResult = result.Confirmed
+            ? (L.IsChinese ? "已确认" : "Confirmed")
+            : (L.IsChinese ? "已取消" : "Cancelled");
+    }
+
+    private async Task HandleDestructiveDelete()
+    {
+        var data = await DialogService.ConfirmAsync(
+            L.IsChinese ? "删除该条目？" : "Delete item?",
+            L.IsChinese ? "此操作无法撤销。" : "This action cannot be undone.",
+            new ConfirmDialogOptions
+            {
+                ConfirmText = L.IsChinese ? "是的，删除" : "Yes, delete",
+                CancelText = L.IsChinese ? "保留" : "Keep it",
+                Destructive = true
+            });
+
+        confirmResult = data.Confirmed
+            ? (L.IsChinese ? "已删除！" : "Deleted!")
+            : (L.IsChinese ? "已保留" : "Kept");
+    }
+
+    private async Task HandleAlert()
+    {
+        alertStatus = L.IsChinese ? "等待中..." : "Waiting...";
+        await DialogService.AlertAsync(
+            L.IsChinese ? "会话已过期" : "Session Expired",
+            L.IsChinese ? "请重新登录。" : "Please log in again.");
+
+        alertStatus = L.IsChinese ? "已签收" : "Acknowledged";
+    }
+
+    private async Task HandlePrompt()
+    {
+        var name = await DialogService.PromptAsync(
+            L.IsChinese ? "重命名文件" : "Rename File",
+            L.IsChinese ? "请输入新的文件名：" : "Enter a new file name:",
+            new PromptDialogOptions
+            {
+                DefaultValue = "document.txt",
+                Placeholder = "file-name.txt",
+                Required = true,
+                MaxLength = 50
+            });
+
+        promptResult = name.Value ?? (L.IsChinese ? "已取消" : "Cancelled");
+    }
+
+    private async Task HandleCustomDialog()
+    {
+        var result = await DialogService.OpenAsync<EditUserDemoComponent>(
+            new Dictionary<string, object?>
+            {
+                ["UserId"] = 42
+            },
+            new DialogOpenOptions
+            {
+                Title = L.IsChinese ? "编辑用户" : "Edit User",
+                Size = DialogSize.Large
+            });
+
+        if (!result.Cancelled)
+        {
+            var data = result.GetData<UserDto>();
+            customResult = L.IsChinese ? $"已保存：{data}" : $"Saved: {data}";
+        }
+        else
+        {
+            customResult = L.IsChinese ? "已取消" : "Cancelled";
+        }
+    }
+
+    private async Task HandleOpenNativeService()
+    {
+        var result = await DialogService.OpenAsync<NativeDialogBodyComponent>(
+            new Dictionary<string, object?>
+            {
+                ["Message"] = L.IsChinese
+                    ? "这个对话框由 DialogService.OpenAsync<T>() 打开。它的关闭按钮会调用 IDialogReference.CloseAsync()——编程式路径里用不了 DialogClose。"
+                    : "This dialog was opened with DialogService.OpenAsync<T>(). Its Close button calls IDialogReference.CloseAsync() — DialogClose is not usable in the programmatic path."
+            },
+            new DialogOpenOptions
+            {
+                Title = L.IsChinese ? "原生风格对话框" : "Native-Style Dialog",
+                Size = DialogSize.Default
+            });
+
+        nativeServiceResult = result.Cancelled
+            ? (L.IsChinese ? "已取消" : "Cancelled")
+            : (L.IsChinese ? "已关闭" : "Closed");
+    }
+
+    public sealed class NativeDialogBodyComponent : ComponentBase
+    {
+        /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+        [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+        [Parameter] public string Message { get; set; } = "";
+
+        [CascadingParameter]
+        public IDialogReference DialogRef { get; set; } = default!;
+
+        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+        {
+            <div class="space-y-4">
+                <p class="text-sm text-muted-foreground">@Message</p>
+                <div class="flex justify-end gap-2">
+                    <Button Variant="ButtonVariant.Outline" OnClick="Close">@L.T("关闭", "Close")</Button>
+                </div>
+            </div>
+        }
+
+        private Task Close() => DialogRef.CloseAsync(DialogResult.Ok());
+    }
+
+    public sealed class EditUserDemoComponent : ComponentBase
+    {
+        /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+        [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+        [Parameter] public int UserId { get; set; }
+
+        [CascadingParameter]
+        public IDialogReference DialogRef { get; set; } = default!;
+
+        private string? userName;
+        private string? userEmail;
+
+        protected override void OnInitialized()
+        {
+            // 模拟加载用户数据
+            userName = $"User {UserId}";
+            userEmail = "example@company.com";
+        }
+
+        private Task Save()
+        {
+            var dto = new UserDto(
+                UserId,
+                userName ?? string.Empty,
+                userEmail ?? string.Empty);
+
+            return DialogRef.CloseAsync(DialogResult.Ok(dto));
+        }
+
+        private Task Cancel()
+            => DialogRef.CancelAsync();
+
+        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+        {
+            <div class="space-y-4">
+                <div>@L.T("正在编辑用户", "Editing User") @UserId</div>
+                <Input @bind-Value="userName" Placeholder="@(L.T("姓名", "Name"))" />
+                <Input @bind-Value="userEmail" Placeholder="@(L.T("电子邮箱", "Email"))" Type="InputType.Email" />
+                <div class="flex justify-end gap-2">
+                    <Button Variant="ButtonVariant.Outline" OnClick="Cancel">@L.T("取消", "Cancel")</Button>
+                    <Button OnClick="Save">@L.T("保存", "Save")</Button>
+                </div>
+            </div>
+        }
+    }
+
+    public sealed record UserDto(int Id, string Name, string Email);
+}

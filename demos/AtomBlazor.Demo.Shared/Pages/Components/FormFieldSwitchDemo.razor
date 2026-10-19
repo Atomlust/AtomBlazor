@@ -1,0 +1,250 @@
+@page "/components/form-field-switch"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("FormFieldSwitch 开关表单域 - Atom BlazorUI", "FormFieldSwitch Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">FormFieldSwitch</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("为 Switch 提供表单域包装，自带标签、辅助文字与错误提示。", "A form field wrapper for Switch with built-in label, helper text, and error messages.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Which form component? -->
+    <div class="rounded-lg border border-dashed bg-muted/30 p-6 space-y-3">
+        <h2 class="text-lg font-semibold">@L.T("该用哪个表单组件？", "Which form component?")</h2>
+        <div class="space-y-2 text-sm text-muted-foreground">
+            <p><strong>@L.T("文本输入", "Text input")</strong> @L.T("（string、int、date 等）？", "(string, int, date, etc.)?") &rarr; <a href="/components/form-field-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldInput&lt;T&gt;</a></p>
+            <p><strong>@L.T("多行文本", "Textarea")</strong>@L.T("？", "?") &rarr; <a href="/components/form-field-textarea" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTextarea</a></p>
+            <p><strong>@L.T("数字输入", "Numeric input")</strong>@L.T("？", "?") &rarr; <a href="/components/form-field-numeric-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldNumericInput</a></p>
+            <p><strong>@L.T("货币输入", "Currency input")</strong>@L.T("？", "?") &rarr; <a href="/components/form-field-currency-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCurrencyInput</a></p>
+            <p><strong>@L.T("掩码输入", "Masked input")</strong> @L.T("（phone、SSN 等）？", "(phone, SSN, etc.)?") &rarr; <a href="/components/form-field-masked-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldMaskedInput</a></p>
+            <p><strong>@L.T("OTP / 验证码", "OTP / verification code")</strong>@L.T("？", "?") &rarr; <a href="/components/form-field-input-otp" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldInputOTP</a></p>
+            <p><strong>@L.T("日期选择器", "Date picker")</strong>@L.T("？", "?") &rarr; <a href="/components/form-field-date-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldDatePicker</a></p>
+            <p><strong>@L.T("日期区间选择器", "Date range picker")</strong>@L.T("？", "?") &rarr; <a href="/components/form-field-date-range-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldDateRangePicker</a></p>
+            <p><strong>@L.T("时间选择器", "Time picker")</strong>@L.T("？", "?") &rarr; <a href="/components/form-field-time-picker" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTimePicker</a></p>
+            <p><strong>@L.T("复选框", "Checkbox")</strong>@L.T("？", "?") &rarr; <a href="/components/form-field-checkbox" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCheckbox</a></p>
+            <p><strong>@L.T("复选框组", "Checkbox group")</strong>@L.T("？", "?") &rarr; <a href="/components/form-field-checkbox-group" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCheckboxGroup</a></p>
+            <p><strong>@L.T("开关", "Switch")</strong>@L.T("？", "?") &rarr; <strong>FormFieldSwitch</strong> @L.T("（当前页）", "(this page)")</p>
+            <p><strong>@L.T("单选组", "Radio group")</strong>@L.T("？", "?") &rarr; <a href="/components/form-field-radio-group" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldRadioGroup</a></p>
+            <p><strong>@L.T("下拉选择", "Select dropdown")</strong>@L.T("？", "?") &rarr; <a href="/components/form-field-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldSelect</a></p>
+            <p><strong>@L.T("原生下拉框", "Native select")</strong>@L.T("？", "?") &rarr; <a href="/components/form-field-native-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldNativeSelect</a></p>
+            <p><strong>@L.T("可搜索下拉", "Searchable select")</strong>@L.T("？", "?") &rarr; <a href="/components/form-field-combobox" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldCombobox</a></p>
+            <p><strong>@L.T("多选", "Multi-select")</strong>@L.T("？", "?") &rarr; <a href="/components/form-field-multi-select" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldMultiSelect</a></p>
+            <p><strong>@L.T("标签输入", "Tag input")</strong>@L.T("？", "?") &rarr; <a href="/components/form-field-tag-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldTagInput</a></p>
+            <p><strong>@L.T("文件上传", "File upload")</strong>@L.T("？", "?") &rarr; <a href="/components/form-field-file-upload" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldFileUpload</a></p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带自动关联标签与辅助文字的开关。", "A switch with an auto-associated label and helper text.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldSwitch @bind-Checked="_darkMode"
+                             Label="@(L.T("深色模式", "Dark mode"))"
+                             HelperText="@(L.T("切换应用主题。", "Toggle the application theme."))" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("已勾选：", "Checked:")</p>
+            <p class="text-sm font-mono">@_darkMode</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldSwitch/basic.txt" />
+    </div>
+
+    <!-- Horizontal Layout -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("水平布局", "Horizontal Layout")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("水平朝向时，标签会显示在开关旁边。", "The label sits beside the switch in horizontal orientation.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldSwitch @bind-Checked="_notifications"
+                             Label="@(L.T("启用通知", "Enable notifications"))"
+                             HelperText="@(L.T("接收推送通知。", "Receive push notifications."))"
+                             Orientation="FieldOrientation.Horizontal" />
+        </div>
+        <CodeBlock Source="Components/FormFieldSwitch/horizontal.txt" />
+    </div>
+
+    <!-- Size Variants -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("尺寸变体", "Size Variants")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    传入 <code class="text-xs bg-muted px-1 py-0.5 rounded">Size</code> 参数即可控制开关的尺寸。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Pass the <code class="text-xs bg-muted px-1 py-0.5 rounded">Size</code> parameter to control the switch size.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md space-y-4">
+            <FormFieldSwitch @bind-Checked="_small" Label="@(L.T("小", "Small"))" Size="SwitchSize.Small" />
+            <FormFieldSwitch @bind-Checked="_medium" Label="@(L.T("中（默认）", "Medium (default)"))" Size="SwitchSize.Medium" />
+            <FormFieldSwitch @bind-Checked="_large" Label="@(L.T("大", "Large"))" Size="SwitchSize.Large" />
+        </div>
+        <CodeBlock Source="Components/FormFieldSwitch/sizes.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用状态", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个被禁用的开关表单域。", "A disabled switch form field.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldSwitch Checked="true"
+                             Label="@(L.T("飞行模式", "Airplane mode"))"
+                             HelperText="@(L.T("由管理员统一管理。", "Managed by your administrator."))"
+                             Disabled="true" />
+        </div>
+        <CodeBlock Source="Components/FormFieldSwitch/disabled.txt" />
+    </div>
+
+    <!-- EditForm Integration -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("与 EditForm 集成", "EditForm Integration")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("在 EditForm 内部，校验错误会自动显示。", "Validation errors display automatically inside an EditForm.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <EditForm Model="_formModel" OnValidSubmit="HandleFormSubmit">
+                <DataAnnotationsValidator />
+                <div class="space-y-4">
+                    <FormFieldSwitch @bind-Checked="_formModel.AcceptMarketing"
+                                     Label="@(L.T("接受营销邮件", "Accept marketing emails"))" />
+                    <FormFieldSwitch @bind-Checked="_formModel.AcceptPrivacy"
+                                     Label="@(L.T("接受隐私政策", "Accept privacy policy"))" />
+                    <Button Type="ButtonType.Submit">@L.T("提交", "Submit")</Button>
+                </div>
+            </EditForm>
+            @if (_formSubmitted)
+            {
+                <div class="mt-4 rounded-lg border border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800 p-4">
+                    <p class="text-sm font-medium text-green-800 dark:text-green-200">@L.T("表单提交成功！", "Form submitted successfully!")</p>
+                </div>
+            }
+        </div>
+        <CodeBlock Source="Components/FormFieldSwitch/editform.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("通过自动生成的 ID 把标签与输入框关联起来。", "Automatically associates label with input via generated ID")</AccessibilityItem>
+            <AccessibilityItem>@L.T("描述文字通过 aria-describedby 关联。", "Description linked via aria-describedby")</AccessibilityItem>
+            <AccessibilityItem>@L.T("校验错误会带上 aria-invalid 显示。", "Validation errors displayed with aria-invalid")</AccessibilityItem>
+        </AriaAttributes>
+            <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可用的表单控件之间移动", "Move between enabled form controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("切换聚焦控件", "Toggle the focused control"))"><Kbd>Space</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="FormFieldSwitch">
+                <ApiParameter Name="Label" Type="string?" Default="null">
+                    @L.T("显示在开关旁边或上方的标签文本。", "The label text displayed beside or above the switch.")
+                </ApiParameter>
+                <ApiParameter Name="HelperText" Type="string?" Default="null">
+                    @L.T("显示在开关下方的辅助文字。出错时会被隐藏。", "Helper text displayed below the switch. Hidden during error state.")
+                </ApiParameter>
+                <ApiParameter Name="ErrorText" Type="string?" Default="null">
+                    @L.T("手动覆盖的错误提示。当字段无效且设置了这一项时，会替换自动生成的提示。", "Manual error text override. When the field is invalid and this is set, replaces auto-generated messages.")
+                </ApiParameter>
+                <ApiParameter Name="Orientation" Type="FieldOrientation" Default="Vertical">
+                    @L.T("字段的布局朝向。", "Layout orientation of the field.")
+                </ApiParameter>
+                <ApiParameter Name="Checked" Type="bool" Default="false">
+                    @L.T("开关是否处于打开状态。请使用 @@bind-Checked 实现双向绑定。", "Whether the switch is checked (on). Use @bind-Checked for two-way binding.")
+                </ApiParameter>
+                <ApiParameter Name="CheckedChanged" Type="EventCallback&lt;bool&gt;">
+                    @L.T("开关状态发生变化时调用的回调。", "Callback invoked when the checked state changes.")
+                </ApiParameter>
+                <ApiParameter Name="Size" Type="SwitchSize" Default="Medium">
+                    @L.T("开关的尺寸变体（Small、Medium、Large）。", "The size variant of the switch (Small, Medium, Large).")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("开关是否被禁用。", "Whether the switch is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="InputClass" Type="string?" Default="null">
+                    @L.T("应用到内层 Switch 元素上的额外 CSS 类。", "Additional CSS classes applied to the inner Switch element.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到外层 Field 容器上的额外 CSS 类。", "Additional CSS classes applied to the outer Field container.")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                    @L.T("该控件的 ARIA 标签。", "ARIA label for the control.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到底层组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private bool _darkMode;
+    private bool _notifications;
+    private bool _small;
+    private bool _medium;
+    private bool _large;
+    private bool _formSubmitted;
+    private SwitchFormModel _formModel = new();
+
+    private void HandleFormSubmit()
+    {
+        _formSubmitted = true;
+    }
+
+    private class SwitchFormModel
+    {
+        public bool AcceptMarketing { get; set; }
+
+        [Range(typeof(bool), "true", "true", ErrorMessage = "You must accept the privacy policy.")]
+        public bool AcceptPrivacy { get; set; }
+    }
+}

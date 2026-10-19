@@ -1,0 +1,64 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@inject ILocalizer Localizer
+
+<div data-slot="form-section" class="@SectionCssClass" @attributes="AdditionalAttributes">
+    @if (ShowSeparator)
+    {
+        <Separator />
+    }
+
+    @if (Collapsible)
+    {
+        <Collapsible Open="@isExpanded" OpenChanged="@(v => isExpanded = v)">
+            <div class="atom:flex atom:items-center atom:justify-between">
+                @if (Title is not null || Description is not null)
+                {
+                    <div class="atom:space-y-1">
+                        @if (Title is not null)
+                        {
+                            <h3 class="atom:text-base atom:font-medium">@Title</h3>
+                        }
+                        @if (Description is not null)
+                        {
+                            <p class="atom:text-sm atom:text-muted-foreground">@Description</p>
+                        }
+                    </div>
+                }
+                <CollapsibleTrigger>
+                    <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Small" AriaLabel="@(isExpanded ? Localizer["FormSection.CollapseSection"] : Localizer["FormSection.ExpandSection"])">
+                        @if (isExpanded)
+                        {
+                            <LucideIcon Name="chevron-up" Size="16" aria-hidden="true" />
+                        }
+                        else
+                        {
+                            <LucideIcon Name="chevron-down" Size="16" aria-hidden="true" />
+                        }
+                    </Button>
+                </CollapsibleTrigger>
+            </div>
+            <CollapsibleContent>
+                @ChildContent
+            </CollapsibleContent>
+        </Collapsible>
+    }
+    else
+    {
+        @if (Title is not null || Description is not null)
+        {
+            <div class="atom:space-y-1">
+                @if (Title is not null)
+                {
+                    <h3 class="atom:text-base atom:font-medium">@Title</h3>
+                }
+                @if (Description is not null)
+                {
+                    <p class="atom:text-sm atom:text-muted-foreground">@Description</p>
+                }
+            </div>
+        }
+
+        @ChildContent
+    }
+</div>

@@ -1,0 +1,51 @@
+@namespace AtomBlazor
+
+@*
+    Navigation Menu Viewport——带边框与阴影的下拉内容容器。
+    用于为所有下拉面板提供一致的样式。
+*@
+
+<div class="@OuterCssClass" @attributes="AdditionalAttributes">
+    <div class="@InnerCssClass">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// 要在视口内渲染的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 要应用到外层容器的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 获取外层容器计算出的 CSS 类串。
+    /// </summary>
+    private string OuterCssClass => ClassNames.cn(
+        "atom:absolute atom:start-0 atom:top-full atom:flex atom:justify-center",
+        Class
+    );
+
+    /// <summary>
+    /// 获取内层容器计算出的 CSS 类串。
+    /// </summary>
+    private string InnerCssClass => ClassNames.cn(
+        "origin-top-center atom:relative atom:mt-1.5 atom:h-[var(--radix-navigation-menu-viewport-height)] atom:w-full",
+        "atom:overflow-hidden atom:rounded-md atom:border atom:bg-popover atom:text-popover-foreground atom:shadow-lg",
+        "atom:data-[state=open]:animate-in atom:data-[state=closed]:animate-out",
+        "atom:data-[state=closed]:zoom-out-95 atom:data-[state=open]:zoom-in-90",
+        "atom:md:w-[var(--radix-navigation-menu-viewport-width)]"
+    );
+}

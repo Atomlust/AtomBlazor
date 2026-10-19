@@ -1,0 +1,247 @@
+@namespace AtomBlazor.Primitives
+@using System.ComponentModel
+@using System.Globalization
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+@* Slider 基元——带键盘导航与指针拖拽的无头（headless）范围输入。 提供 role="slider"、ARIA 属性与用于样式化的 data 属性。
+*@
+
+<CascadingValue Value="this" IsFixed="false">
+    <div @ref="trackRef"
+         data-min="@Min.ToString(CultureInfo.InvariantCulture)"
+         data-max="@Max.ToString(CultureInfo.InvariantCulture)"
+         data-step="@Step.ToString(CultureInfo.InvariantCulture)"
+         data-orientation="@Orientation.ToString().ToLower()"
+         data-disabled="@(Disabled ? "true" : null)"
+         @onkeydown="HandleKeyDown"
+         @attributes="AdditionalAttributes">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    /// <summary>书写方向，当 DirectionProvider 提供时生效。</summary>
+    [CascadingParameter] private DirectionContext? Direction { get; set; }
+
+    private bool IsRtl => DirectionContext.Resolve(Direction);
+
+    private ElementReference trackRef;
+    private double internalValue;
+    private IJSObjectReference? jsModule;
+    private DotNetObjectReference<SliderPrimitive>? dotNetRef;
+    private readonly string sliderId = Guid.NewGuid().ToString("N");
+    private bool jsInitialized;
+    private bool disposed;
+
+    /// <summary>
+    /// 获取或设置当前值（受控模式）。
+    /// </summary>
+    [Parameter]
+    public double? Value { get; set; }
+
+    /// <summary>
+    /// 获取或设置值变化时调用的回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<double> ValueChanged { get; set; }
+
+    /// <summary>
+    /// 获取或设置默认值（非受控模式）。
+    /// </summary>
+    [Parameter]
+    public double DefaultValue { get; set; }
+
+    /// <summary>
+    /// 获取或设置最小值。默认为 0。
+    /// </summary>
+    [Parameter]
+    public double Min { get; set; } = 0;
+
+    /// <summary>
+    /// 获取或设置最大值。默认为 100。
+    /// </summary>
+    [Parameter]
+    public double Max { get; set; } = 100;
+
+    /// <summary>
+    /// 获取或设置步长增量。默认为 1。
+    /// </summary>
+    [Parameter]
+    public double Step { get; set; } = 1;
+
+    /// <summary>
+    /// 获取或设置滑块是否禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 获取或设置方向。
+    /// </summary>
+    [Parameter]
+    public SliderOrientation Orientation { get; set; } = SliderOrientation.Horizontal;
+
+    /// <summary>
+    /// 获取或设置子内容（Track、Range、Thumb 子组件）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private bool IsControlled => ValueChanged.HasDelegate;
+
+    /// <summary>
+    /// 获取当前值。
+    /// </summary>
+    public double CurrentValue => IsControlled ? (Value ?? DefaultValue) : internalValue;
+
+    /// <summary>
+    /// 获取当前值的百分比（0 到 100）。
+    /// </summary>
+    public double Percentage => Max > Min ? ((CurrentValue - Min) / (Max - Min)) * 100 : 0;
+
+    protected override void OnInitialized()
+    {
+        internalValue = DefaultValue;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!jsInitialized && !disposed && !Disabled)
+        {
+            await InitializeJsAsync();
+        }
+    }
+
+    private async Task InitializeJsAsync()
+    {
+        if (jsInitialized)
+        {
+            return;
+        }
+
+        try
+        {
+            jsModule = await PrimitiveModules.GetAsync(JSRuntime);
+            dotNetRef = DotNetObjectReference.Create(this);
+            await jsModule.InvokeVoidAsync("slider.initialize", trackRef, dotNetRef, sliderId,
+                new { orientation = Orientation.ToString().ToLower() });
+            jsInitialized = true;
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+        {
+            // 电路断开期间属预期情况
+        }
+        catch (InvalidOperationException)
+        {
+            // 预渲染期间 JS interop 不可用
+        }
+    }
+
+    [JSInvokable]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public async Task JsUpdateValueFromPercentage(double percentage)
+    {
+        if (disposed || Disabled)
+        {
+            return;
+        }
+
+        if (double.IsNaN(percentage) || double.IsInfinity(percentage))
+        {
+            return;
+        }
+
+        percentage = Math.Max(0, Math.Min(1, percentage));
+        var newValue = Min + (percentage * (Max - Min));
+        await SetValueAsync(newValue);
+    }
+
+    internal async Task SetValueAsync(double value)
+    {
+        value = Math.Round(value / Step) * Step;
+        value = Math.Max(Min, Math.Min(Max, value));
+
+        if (value == CurrentValue)
+        {
+            return;
+        }
+
+        if (IsControlled)
+        {
+            await ValueChanged.InvokeAsync(value);
+        }
+        else
+        {
+            internalValue = value;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (Disabled)
+        {
+            return;
+        }
+
+        var stepSize = Step;
+        var largeStep = (Max - Min) / 10;
+
+        switch (e.Key)
+        {
+            case "ArrowUp":
+                await SetValueAsync(CurrentValue + stepSize);
+                break;
+            case "ArrowDown":
+                await SetValueAsync(CurrentValue - stepSize);
+                break;
+            // 水平方向键沿轨道绘制方向移动，所以在从右到左的滑块里会互换。
+            // Up 与 Down 无论方向如何都保持原义。
+            case "ArrowRight":
+                await SetValueAsync(CurrentValue + (IsRtl ? -stepSize : stepSize));
+                break;
+            case "ArrowLeft":
+                await SetValueAsync(CurrentValue + (IsRtl ? stepSize : -stepSize));
+                break;
+            case "PageUp":
+                await SetValueAsync(CurrentValue + largeStep);
+                break;
+            case "PageDown":
+                await SetValueAsync(CurrentValue - largeStep);
+                break;
+            case "Home":
+                await SetValueAsync(Min);
+                break;
+            case "End":
+                await SetValueAsync(Max);
+                break;
+            default:
+                break;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        GC.SuppressFinalize(this);
+        disposed = true;
+        if (jsModule != null && jsInitialized)
+        {
+            try
+            {
+                await jsModule.InvokeVoidAsync("slider.dispose", sliderId);
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            {
+                // 电路断开期间属预期情况
+            }
+        }
+        dotNetRef?.Dispose();
+    }
+}

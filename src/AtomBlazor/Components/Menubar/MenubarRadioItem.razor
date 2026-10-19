@@ -1,0 +1,30 @@
+@namespace AtomBlazor
+@typeparam TValue
+
+<AtomBlazor.Primitives.MenuRadioItem TValue="TValue" Value="@Value" Disabled="@Disabled"
+                                                CloseOnSelect="@CloseOnSelect" class="@CssClass" @attributes="AdditionalAttributes">
+    <span aria-hidden="true" class="atom:absolute atom:start-2 atom:flex atom:h-3.5 atom:w-3.5 atom:items-center atom:justify-center">
+        <span class="atom:invisible atom:size-2 atom:rounded-full atom:bg-current atom:group-data-[state=checked]/menu-radio:visible"></span>
+    </span>
+    @ChildContent
+</AtomBlazor.Primitives.MenuRadioItem>
+
+@code {
+    /// <summary>此项所代表的值。</summary>
+    [Parameter, EditorRequired] public TValue Value { get; set; } = default!;
+    /// <summary>禁用该项。</summary>
+    [Parameter] public bool Disabled { get; set; }
+    /// <summary>选中时关闭整个菜单。默认值为 true。</summary>
+    [Parameter] public bool CloseOnSelect { get; set; } = true;
+    /// <summary>该项的标签内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>额外的 CSS 类。</summary>
+    [Parameter] public string? Class { get; set; }
+    /// <summary>额外的 HTML 特性。</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string CssClass => ClassNames.cn(
+        "atom:group/menu-radio atom:relative atom:flex atom:cursor-default atom:select-none atom:items-center atom:rounded-sm atom:py-1.5 atom:ps-8 atom:pe-2 atom:text-sm atom:outline-none",
+        "atom:focus:bg-(--atom-menu-accent) atom:focus:text-(--atom-menu-accent-foreground) atom:hover:bg-(--atom-menu-accent) atom:hover:text-(--atom-menu-accent-foreground)",
+        "atom:data-[disabled=true]:pointer-events-none atom:data-[disabled=true]:opacity-50", Class);
+}

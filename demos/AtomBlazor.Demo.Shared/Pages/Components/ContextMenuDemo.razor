@@ -1,0 +1,370 @@
+@page "/components/context-menu"
+@using AtomBlazor.Icons.Lucide
+<PageTitle>@L.T("Context Menu 右键菜单 - Atom BlazorUI", "Context Menu Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Context Menu 右键菜单", "Context Menu Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("通过右键点击触发的菜单。", "Displays a menu triggered by right-click.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本示例", "Basic Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("在下述区域上点击右键，打开右键菜单。", "Right-click the area below to open the context menu.")
+            </p>
+        </div>
+        <ContextMenu>
+            <AtomBlazor.ContextMenuTrigger>
+                <div class="flex h-[150px] w-[300px] items-center justify-center rounded-md border border-dashed text-sm">
+                    @L.T("在此点击右键", "Right click here")
+                </div>
+            </AtomBlazor.ContextMenuTrigger>
+            <AtomBlazor.ContextMenuContent>
+                <AtomBlazor.ContextMenuItem OnClick="@(() => HandleAction("Back"))">
+                    @L.T("后退", "Back")
+                    <ContextMenuShortcut>Ctrl+[</ContextMenuShortcut>
+                </AtomBlazor.ContextMenuItem>
+                <AtomBlazor.ContextMenuItem OnClick="@(() => HandleAction("Forward"))" Disabled="true">
+                    @L.T("前进", "Forward")
+                    <ContextMenuShortcut>Ctrl+]</ContextMenuShortcut>
+                </AtomBlazor.ContextMenuItem>
+                <AtomBlazor.ContextMenuItem OnClick="@(() => HandleAction("Reload"))">
+                    @L.T("重新加载", "Reload")
+                    <ContextMenuShortcut>Ctrl+R</ContextMenuShortcut>
+                </AtomBlazor.ContextMenuItem>
+                <AtomBlazor.ContextMenuSeparator />
+                <AtomBlazor.ContextMenuItem OnClick="@(() => HandleAction("Save Page As..."))">
+                    @L.T("页面另存为……", "Save Page As...")
+                    <ContextMenuShortcut>Ctrl+S</ContextMenuShortcut>
+                </AtomBlazor.ContextMenuItem>
+                <AtomBlazor.ContextMenuItem OnClick="@(() => HandleAction("Print"))">
+                    @L.T("打印……", "Print...")
+                    <ContextMenuShortcut>Ctrl+P</ContextMenuShortcut>
+                </AtomBlazor.ContextMenuItem>
+            </AtomBlazor.ContextMenuContent>
+        </ContextMenu>
+        @if (!string.IsNullOrEmpty(_lastAction))
+        {
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">最近一次操作：@_lastAction</p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">Last action: @_lastAction</p>
+                        </text>
+}
+        }
+
+        <CodeBlock Source="Components/ContextMenu/basic.txt" />
+    </div>
+
+    <!-- With Labels -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带分组标签的菜单", "With Labels and Groups")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带分组标签的右键菜单。", "Context menu with labeled sections.")
+            </p>
+        </div>
+        <ContextMenu>
+            <AtomBlazor.ContextMenuTrigger>
+                <div class="flex h-[150px] w-[300px] items-center justify-center rounded-md border border-dashed text-sm">
+                    @L.T("在此点击右键", "Right click here")
+                </div>
+            </AtomBlazor.ContextMenuTrigger>
+            <AtomBlazor.ContextMenuContent>
+                <AtomBlazor.ContextMenuLabel>@L.T("编辑", "Edit")</AtomBlazor.ContextMenuLabel>
+                <AtomBlazor.ContextMenuItem>@L.T("剪切", "Cut")</AtomBlazor.ContextMenuItem>
+                <AtomBlazor.ContextMenuItem>@L.T("复制", "Copy")</AtomBlazor.ContextMenuItem>
+                <AtomBlazor.ContextMenuItem>@L.T("粘贴", "Paste")</AtomBlazor.ContextMenuItem>
+                <AtomBlazor.ContextMenuSeparator />
+                <AtomBlazor.ContextMenuLabel>@L.T("视图", "View")</AtomBlazor.ContextMenuLabel>
+                <AtomBlazor.ContextMenuItem>@L.T("放大", "Zoom In")</AtomBlazor.ContextMenuItem>
+                <AtomBlazor.ContextMenuItem>@L.T("缩小", "Zoom Out")</AtomBlazor.ContextMenuItem>
+                <AtomBlazor.ContextMenuItem>@L.T("恢复缩放", "Reset Zoom")</AtomBlazor.ContextMenuItem>
+            </AtomBlazor.ContextMenuContent>
+        </ContextMenu>
+
+        <CodeBlock Source="Components/ContextMenu/labels-and-groups.txt" />
+    </div>
+
+    <!-- Icon Shorthand -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("图标简写", "Icon Shorthand")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="bg-muted px-1 py-0.5 rounded">Icon</code> 参数即可简洁地为菜单项加上图标。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use the <code class="bg-muted px-1 py-0.5 rounded">Icon</code> parameter to add icons to menu items cleanly.
+                </p>
+                        </text>
+}
+        </div>
+        <ContextMenu>
+            <AtomBlazor.ContextMenuTrigger>
+                <div class="flex h-[150px] w-[300px] items-center justify-center rounded-md border border-dashed text-sm">
+                    @L.T("在此点击右键", "Right click here")
+                </div>
+            </AtomBlazor.ContextMenuTrigger>
+            <AtomBlazor.ContextMenuContent>
+                <AtomBlazor.ContextMenuItem>
+                    <Icon><LucideIcon Name="scissors" Size="16" /></Icon>
+                    <ChildContent>@L.T("剪切", "Cut")</ChildContent>
+                </AtomBlazor.ContextMenuItem>
+                <AtomBlazor.ContextMenuItem>
+                    <Icon><LucideIcon Name="copy" Size="16" /></Icon>
+                    <ChildContent>@L.T("复制", "Copy")</ChildContent>
+                </AtomBlazor.ContextMenuItem>
+                <AtomBlazor.ContextMenuItem>
+                    <Icon><LucideIcon Name="clipboard" Size="16" /></Icon>
+                    <ChildContent>@L.T("粘贴", "Paste")</ChildContent>
+                </AtomBlazor.ContextMenuItem>
+            </AtomBlazor.ContextMenuContent>
+        </ContextMenu>
+
+        <CodeBlock Source="Components/ContextMenu/icon-shorthand.txt" />
+    </div>
+
+    <!-- Accessibility Notes -->
+
+    <!-- API Reference -->
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("单选子项与嵌套子菜单", "Radio choices and nested submenus")</h2>
+        <p class="text-sm text-muted-foreground">@L.T("用方向键在条目间移动，用前进方向键进入子菜单，用 Escape 或后退方向键返回其触发项。前进与后退的方向随文字方向翻转。这里的单选项在选中后不会关闭菜单。", "Use arrows to move through items, the forward arrow to enter a submenu, and Escape or the back arrow to return to its trigger. Forward and back follow text direction. Radio choices here keep the menu open.")</p>
+<ContextMenu>
+    <AtomBlazor.ContextMenuTrigger><div class="rounded-md border border-dashed p-8">@L.T("点击右键获取显示与分享选项", "Right-click for display and sharing options")</div></AtomBlazor.ContextMenuTrigger>
+    <AtomBlazor.ContextMenuContent>
+<AtomBlazor.ContextMenuCheckboxItem @bind-Checked="menuShowDetails">@L.T("显示详情", "Show details")</AtomBlazor.ContextMenuCheckboxItem>
+<ContextMenuRadioGroup TValue="string" @bind-Value="menuDensity" aria-label="@(L.T("密度", "Density"))">
+    <ContextMenuRadioItem Value='@("Comfortable")' CloseOnSelect="false">@L.T("宽松", "Comfortable")</ContextMenuRadioItem>
+    <ContextMenuRadioItem Value='@("Compact")' CloseOnSelect="false">@L.T("紧凑", "Compact")</ContextMenuRadioItem>
+    <ContextMenuRadioItem Value='@("Unavailable")' Disabled="true">@L.T("不可用", "Unavailable")</ContextMenuRadioItem>
+</ContextMenuRadioGroup>
+<AtomBlazor.ContextMenuSeparator />
+<ContextMenuSub>
+    <ContextMenuSubTrigger>@L.T("分享", "Share")</ContextMenuSubTrigger>
+    <ContextMenuSubContent>
+        <AtomBlazor.ContextMenuItem OnClick='@(() => menuResult = "Link copied")'>@L.T("复制链接", "Copy link")</AtomBlazor.ContextMenuItem>
+        <ContextMenuSub>
+            <ContextMenuSubTrigger>@L.T("导出", "Export")</ContextMenuSubTrigger>
+            <ContextMenuSubContent>
+                <AtomBlazor.ContextMenuItem OnClick='@(() => menuResult = "Exported CSV")'>CSV</AtomBlazor.ContextMenuItem>
+                <AtomBlazor.ContextMenuItem OnClick='@(() => menuResult = "Exported JSON")'>JSON</AtomBlazor.ContextMenuItem>
+            </ContextMenuSubContent>
+        </ContextMenuSub>
+    </ContextMenuSubContent>
+</ContextMenuSub>
+    </AtomBlazor.ContextMenuContent>
+</ContextMenu>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm">密度：@menuDensity。@menuResult</p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm">Density: @menuDensity. @menuResult</p>
+                </text>
+}
+        <CodeBlock Source="Components/ContextMenu/composition.txt" />
+    </section>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    菜单内容使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menu"</code>，并带 <code class="text-xs bg-muted px-1 py-0.5 rounded">tabindex="-1"</code>
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    每个菜单项都有 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menuitem"</code>
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    分隔线使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="separator"</code>
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    禁用项通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled</code> 排除在键盘导航之外
+                </AccessibilityItem>
+                <AccessibilityItem>单选项使用 role="menuitemradio" 与 aria-checked；复选项使用 role="menuitemcheckbox"。子菜单触发项会播报自身的展开状态。</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Menu content uses <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menu"</code> with <code class="text-xs bg-muted px-1 py-0.5 rounded">tabindex="-1"</code>
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    Each menu item has <code class="text-xs bg-muted px-1 py-0.5 rounded">role="menuitem"</code>
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    Separators use <code class="text-xs bg-muted px-1 py-0.5 rounded">role="separator"</code>
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    Disabled items are excluded from keyboard navigation via <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled</code>
+                </AccessibilityItem>
+                        <AccessibilityItem>Radio items use role="menuitemradio" and aria-checked; checkbox items use role="menuitemcheckbox". Submenu triggers announce their expanded state.</AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在菜单项之间移动", "Navigate menu items"))">
+                <Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("跳到首项/末项", "Jump to first/last item"))">
+                <Kbd>Home</Kbd> / <Kbd>End</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("激活获得焦点的条目", "Activate the focused item"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭右键菜单", "Close the context menu"))">
+                <Kbd>Escape</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("打开子菜单或返回上级菜单（RTL 时方向相反）", "Open a submenu or return to its parent (directions reverse in RTL)"))"><Kbd>ArrowRight</Kbd> / <Kbd>ArrowLeft</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数说明。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="ContextMenuItem">
+                <ApiParameter Name="OnClick" Type="EventCallback">
+                    @L.T("点击处理程序。", "Click handler.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool">
+                    @L.T("禁用该菜单项。", "Disables the item.")
+                </ApiParameter>
+                <ApiParameter Name="Inset" Type="bool">
+                    @L.T("增加左侧内边距。", "Adds left padding.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+
+        <span id="context-menu-radio-group" class="block scroll-mt-20" aria-hidden="true"></span>
+        <ApiReference Since="v4" ComponentName="ContextMenuRadioGroup&lt;TValue&gt;">
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="Value / ValueChanged" Type="TValue / EventCallback&lt;TValue&gt;">选中值；支持 @@bind-Value。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="Value / ValueChanged" Type="TValue / EventCallback&lt;TValue&gt;">Selected value; supports @@bind-Value.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("禁用该组内的全部单选项。", "Disables every radio item in the group.")</ApiParameter>
+            <ApiParameter Name="ChildContent / AdditionalAttributes" Type="RenderFragment / Dictionary&lt;string, object&gt;">@L.T("单选项集合与分组的 HTML 特性；用 aria-label 或 aria-labelledby 为分组命名。", "Radio items and group HTML attributes; use aria-label or aria-labelledby to label the group.")</ApiParameter>
+        </ApiReference>
+
+        <span id="context-menu-radio-item" class="block scroll-mt-20" aria-hidden="true"></span>
+        <ApiReference Since="v4" ComponentName="ContextMenuRadioItem&lt;TValue&gt;">
+            <ApiParameter Name="Value" Type="TValue">@L.T("该条目所代表的必填值。", "Required value represented by this item.")</ApiParameter>
+            <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("禁止选中。", "Disables selection.")</ApiParameter>
+            <ApiParameter Name="CloseOnSelect" Type="bool" Default="true">@L.T("选中后关闭整个菜单。", "Closes the entire menu after selection.")</ApiParameter>
+            <ApiParameter Name="ChildContent / Class / AdditionalAttributes" Type="RenderFragment / string / Dictionary&lt;string, object&gt;">@L.T("标签、CSS 类与 HTML 特性。", "Label, CSS classes and HTML attributes.")</ApiParameter>
+        </ApiReference>
+
+        <span id="context-menu-submenu" class="block scroll-mt-20" aria-hidden="true"></span>
+        <ApiReference Since="v4" ComponentName="ContextMenuSub">
+            <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("禁止打开该子菜单。", "Disables opening this submenu.")</ApiParameter>
+            <ApiParameter Name="ChildContent" Type="RenderFragment">@L.T("一个 SubTrigger 后接 SubContent。子菜单可以嵌套。", "A SubTrigger followed by SubContent. Submenus may be nested.")</ApiParameter>
+        </ApiReference>
+
+        <span id="context-menu-submenu-trigger" class="block scroll-mt-20" aria-hidden="true"></span>
+        <ApiReference Since="v4" ComponentName="ContextMenuSubTrigger">
+            <ApiParameter Name="OpenOnHover" Type="bool" Default="true">@L.T("悬停即打开，且不转移键盘焦点。点击或前进方向键会打开子菜单并聚焦首项。", "Opens on hover without moving keyboard focus. Click or the forward arrow opens and focuses the first item.")</ApiParameter>
+            <ApiParameter Name="Inset" Type="bool" Default="false">@L.T("让标签与带图标的条目对齐。", "Aligns the label with items that contain icons.")</ApiParameter>
+            <ApiParameter Name="ChildContent / Class / AdditionalAttributes" Type="RenderFragment / string / Dictionary&lt;string, object&gt;">@L.T("标签、CSS 类与 HTML 特性。", "Label, CSS classes and HTML attributes.")</ApiParameter>
+        </ApiReference>
+
+        <span id="context-menu-submenu-content" class="block scroll-mt-20" aria-hidden="true"></span>
+        <ApiReference Since="v4" ComponentName="ContextMenuSubContent">
+            <ApiParameter Name="Side" Type="PopoverSide" Default="Right">@L.T("首选弹出方位；从右到左的布局请改用 Left。靠近视口边缘时会自动翻转位置。", "Preferred placement; use Left in right-to-left layouts. Positioning flips near the viewport edge.")</ApiParameter>
+            <ApiParameter Name="Offset / ZIndex" Type="int / int" Default="2 / 60">@L.T("与触发项的距离及堆叠层级。", "Trigger distance and stacking order.")</ApiParameter>
+            <ApiParameter Name="Loop" Type="bool" Default="true">@L.T("方向键导航在首项与末项之间循环。", "Wraps arrow navigation at the first and last item.")</ApiParameter>
+            <ApiParameter Name="ChildContent / Class / AdditionalAttributes" Type="RenderFragment / string / Dictionary&lt;string, object&gt;">@L.T("条目集合、CSS 类与 HTML 特性。", "Items, CSS classes and HTML attributes.")</ApiParameter>
+        </ApiReference>
+
+    <span id="context-menu-checkbox-item" class="block scroll-mt-20" aria-hidden="true"></span>
+        <ApiReference Since="v4" ComponentName="ContextMenuCheckboxItem">
+        @if (L.IsChinese)
+        {
+                <text>
+                    <ApiParameter Name="Checked / CheckedChanged" Type="bool / EventCallback&lt;bool&gt;">选中状态；支持 @@bind-Checked。</ApiParameter>
+                </text>
+}
+        else
+        {
+                <text>
+                    <ApiParameter Name="Checked / CheckedChanged" Type="bool / EventCallback&lt;bool&gt;">Checked state; supports @@bind-Checked.</ApiParameter>
+                </text>
+}
+        <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("禁止切换勾选状态。", "Disables toggling.")</ApiParameter>
+        <ApiParameter Name="CloseOnSelect" Type="bool" Default="false">@L.T("切换时关闭整个菜单。", "Closes the entire menu when toggled.")</ApiParameter>
+        <ApiParameter Name="ChildContent / Class / AdditionalAttributes" Type="RenderFragment / string / Dictionary&lt;string, object&gt;">@L.T("标签、CSS 类与 HTML 特性。", "Label, CSS classes and HTML attributes.")</ApiParameter>
+    </ApiReference>
+    </section>
+
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string menuDensity = "Comfortable";
+    private string menuResult = "";
+    private bool menuShowDetails = true;
+
+    private string? _lastAction;
+
+    private void HandleAction(string action)
+    {
+        _lastAction = action;
+    }
+}

@@ -1,0 +1,403 @@
+@page "/components/markdown-editor"
+<PageTitle>@L.T("Markdown 编辑器 - Atom BlazorUI", "Markdown Editor - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-10 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Markdown 编辑器", "Markdown Editor")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("支持 Markdown、工具栏格式化与实时预览的富文本编辑器。", "A rich text editor with markdown support, toolbar formatting, and live preview.")
+        </p>
+    </div>
+
+    @* Basic Example *@
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            <p class="text-muted-foreground">
+                @L.T("一个简单的 Markdown 编辑器，带双向数据绑定。点击 Preview 标签即可查看渲染结果。", "A simple markdown editor with two-way data binding. Click the Preview tab to see rendered output.")
+            </p>
+        </div>
+
+        <div class="space-y-4">
+            <MarkdownEditor @bind-Value="basicValue" Placeholder="@(L.T("写点出色的内容……", "Write something amazing..."))" />
+
+            @if (!string.IsNullOrEmpty(basicValue))
+            {
+                <Card>
+                    <CardHeader>
+                        <CardTitle Class="text-sm">@L.T("原始 Markdown", "Raw Markdown")</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <pre class="text-xs bg-muted p-3 rounded-md overflow-auto">@basicValue</pre>
+                    </CardContent>
+                </Card>
+            }
+        </div>
+
+        <CodeBlock Source="Components/MarkdownEditor/basic.txt" />
+    </section>
+
+    @* With Label *@
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带标签", "With Label")</h2>
+            <p class="text-muted-foreground">
+                @L.T("把标签与编辑器关联起来，可以获得更好的无障碍效果。", "Associate a label with the editor for better accessibility.")
+            </p>
+        </div>
+
+        <div class="space-y-2">
+            @* 偏差：本仓 _Imports 同时引入 Microsoft.AspNetCore.Components.Forms（其 Label<TValue> 带 For 参数）， 裸 <AtomBlazor.Label For=...> 触发 RZ10012 泛型/非泛型歧义，照 FileUploadDemo 先例改全限定标签，渲染行为零变化（下同）。 *@
+            <AtomBlazor.Label For="description-editor">@L.T("描述", "Description")</AtomBlazor.Label>
+            <MarkdownEditor @bind-Value="labeledValue"
+                            Id="description-editor"
+                            Placeholder="@(L.T("请输入描述……", "Enter a description..."))" />
+        </div>
+
+        <CodeBlock Source="Components/MarkdownEditor/with-label.txt" />
+    </section>
+
+    @* Toolbar Features Demo *@
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("工具栏功能", "Toolbar Features")</h2>
+            <p class="text-muted-foreground">
+                @L.T("工具栏提供了常用格式化选项的快速入口，你也可以使用键盘快捷键。", "The toolbar provides quick access to formatting options. You can also use keyboard shortcuts.")
+            </p>
+        </div>
+
+        <div class="rounded-lg border p-6 space-y-4">
+            <div class="space-y-3">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <h3 class="font-semibold">可用的格式化</h3>
+                    <ul class="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+                        <li><strong>加粗</strong> - 选中文字后点击 B，或按 <Kbd>Ctrl+B</Kbd></li>
+                        <li><em>斜体</em> - 选中文字后点击 I，或按 <Kbd>Ctrl+I</Kbd></li>
+                        <li><u>下划线</u> - 选中文字后点击 U，或按 <Kbd>Ctrl+U</Kbd></li>
+                        <li>标题 - 用标题下拉框设置为 H1、H2、H3 或正文</li>
+                        <li>无序列表 - 点击无序列表图标添加列表项</li>
+                        <li>有序列表 - 点击有序列表图标添加带编号的列表</li>
+                    </ul>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <h3 class="font-semibold">Available Formatting</h3>
+                    <ul class="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+                        <li><strong>Bold</strong> - Select text and click B or press <Kbd>Ctrl+B</Kbd></li>
+                        <li><em>Italic</em> - Select text and click I or press <Kbd>Ctrl+I</Kbd></li>
+                        <li><u>Underline</u> - Select text and click U or press <Kbd>Ctrl+U</Kbd></li>
+                        <li>Headings - Use the heading dropdown to set H1, H2, H3, or normal text</li>
+                        <li>Bullet List - Click the bullet list icon to add list items</li>
+                        <li>Numbered List - Click the numbered list icon for ordered lists</li>
+                    </ul>
+                                </text>
+}
+            </div>
+        </div>
+
+        <MarkdownEditor @bind-Value="toolbarDemoValue"
+                        Placeholder="@(L.T("试试工具栏里的这些功能……", "Try out the toolbar features..."))" />
+
+        <CodeBlock Source="Components/MarkdownEditor/toolbar.txt" />
+    </section>
+
+    @* Pre-populated Content *@
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("预置内容", "Pre-populated Content")</h2>
+            <p class="text-muted-foreground">
+                @L.T("编辑器可以用已有的 Markdown 内容初始化。", "The editor can be initialized with existing markdown content.")
+            </p>
+        </div>
+
+        <MarkdownEditor @bind-Value="prePopulatedValue" />
+
+        <CodeBlock Source="Components/MarkdownEditor/pre-populated.txt" />
+    </section>
+
+    @* Custom Min Height *@
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <div class="flex items-center gap-2">
+                <h2 class="text-2xl font-semibold">@L.T("自定义最小高度", "Custom Min Height")</h2>
+                <span class="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20">v3</span>
+            </div>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">MinHeight</code> 参数设置文本域与预览区的最小高度，
+                    不必再靠 CSS 类名变通。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    Use the <code class="text-xs bg-muted px-1 py-0.5 rounded">MinHeight</code> parameter to set the minimum height of the textarea and preview areas instead of using CSS class hacks.
+                </p>
+                        </text>
+}
+        </div>
+
+        <div class="space-y-4">
+            <div class="space-y-2">
+                <AtomBlazor.Label>@L.T("紧凑（100px）", "Compact (100px)")</AtomBlazor.Label>
+                <MarkdownEditor @bind-Value="_compactValue" MinHeight="100px" Placeholder="@(L.T("一个紧凑的编辑器……", "A compact editor..."))" />
+            </div>
+            <div class="space-y-2">
+                <AtomBlazor.Label>@L.T("较高（300px）", "Tall (300px)")</AtomBlazor.Label>
+                <MarkdownEditor @bind-Value="_tallValue" MinHeight="300px" Placeholder="@(L.T("一个更高的编辑器……", "A taller editor..."))" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/MarkdownEditor/min-height.txt" />
+    </section>
+
+    @* Disabled State *@
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用状态", "Disabled State")</h2>
+            <p class="text-muted-foreground">
+                @L.T("编辑器可以设为禁用，避免用户输入。", "The editor can be disabled to prevent user input.")
+            </p>
+        </div>
+
+        <MarkdownEditor Value="@(L.T("这个编辑器已禁用，无法编辑。", "This editor is disabled and cannot be edited."))"
+                        Disabled="true" />
+
+        <CodeBlock Source="Components/MarkdownEditor/disabled.txt" />
+    </section>
+
+    @* Form Integration *@
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表单集成", "Form Integration")</h2>
+            <p class="text-muted-foreground">
+                @L.T("把编辑器放进表单里提交内容。", "Use the editor within forms for content submission.")
+            </p>
+        </div>
+
+        <Card>
+            <CardHeader>
+                <CardTitle>@L.T("提交反馈", "Submit Feedback")</CardTitle>
+                <CardDescription>@L.T("用 Markdown 排版，把想法分享给我们。", "Share your thoughts with us using markdown formatting.")</CardDescription>
+            </CardHeader>
+            <CardContent Class="space-y-4">
+                <div class="space-y-2">
+                    <AtomBlazor.Label For="feedback-editor">@L.T("你的反馈", "Your Feedback")</AtomBlazor.Label>
+                    <MarkdownEditor @bind-Value="feedbackValue"
+                                    Id="feedback-editor"
+                                    Placeholder="@(L.T("你在想些什么？", "What's on your mind?"))" />
+                </div>
+            </CardContent>
+            <CardFooter>
+                <Button OnClick="HandleSubmit" Disabled="@string.IsNullOrWhiteSpace(feedbackValue)">
+                    @L.T("提交反馈", "Submit Feedback")
+                </Button>
+            </CardFooter>
+        </Card>
+
+        @if (submitted)
+        {
+            <div class="p-4 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 rounded-md">
+                @L.T("反馈提交成功！", "Feedback submitted successfully!")
+            </div>
+        }
+
+        <CodeBlock Source="Components/MarkdownEditor/form-integration.txt" />
+    </section>
+
+    <LocalizationSection
+        Description="@(L.T("工具栏按钮的 aria-label 可以通过 ILocalizer 用 MarkdownEditor.* 键配置。", "Toolbar button aria-labels are configurable via ILocalizer with MarkdownEditor.* keys."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("SelectHeadingLevel", "Select heading level", L.T("标题下拉按钮的 aria 标签", "Aria label for the heading dropdown button")),
+            new("Bold", "Bold (Ctrl+B)", L.T("加粗按钮的 aria 标签", "Aria label for the bold button")),
+            new("Italic", "Italic (Ctrl+I)", L.T("斜体按钮的 aria 标签", "Aria label for the italic button")),
+            new("Underline", "Underline (Ctrl+U)", L.T("下划线按钮的 aria 标签", "Aria label for the underline button")),
+            new("BulletList", "Bullet list", L.T("无序列表按钮的 aria 标签", "Aria label for the bullet list button")),
+            new("NumberedList", "Numbered list", L.T("有序列表按钮的 aria 标签", "Aria label for the numbered list button")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""MarkdownEditor.Bold"", ""Fett (Strg+B)"");
+    localizer.Set(""MarkdownEditor.Italic"", ""Kursiv (Strg+I)"");
+    localizer.Set(""MarkdownEditor.BulletList"", ""Aufzählung"");
+});")" />
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("支持用 AriaLabel 为文本域命名", "Supports AriaLabel for labeling the textarea")</AccessibilityItem>
+            <AccessibilityItem>@L.T("支持用 AriaDescribedBy 关联描述文本", "Supports AriaDescribedBy to link description text")</AccessibilityItem>
+            <AccessibilityItem>@L.T("支持用 AriaInvalid 应用错误状态样式", "Supports AriaInvalid for error state styling")</AccessibilityItem>
+            <AccessibilityItem>@L.T("通过 Id 参数与 Label 组件关联", "Associate with Label component using the Id parameter")</AccessibilityItem>
+            <AccessibilityItem>@L.T("禁用状态会阻止交互并给出视觉提示", "Disabled state prevents interaction and applies visual cues")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem><Kbd>Ctrl+B</Kbd> 给选中的文本加上加粗格式</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem><Kbd>Ctrl+B</Kbd> applies bold formatting to selected text</AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem><Kbd>Ctrl+I</Kbd> 给选中的文本加上斜体格式</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem><Kbd>Ctrl+I</Kbd> applies italic formatting to selected text</AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem><Kbd>Ctrl+U</Kbd> 给选中的文本加上下划线格式</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem><Kbd>Ctrl+U</Kbd> applies underline formatting to selected text</AccessibilityItem>
+                        </text>
+}
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="MarkdownEditor">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Value" Type="string?" Default="null">
+                        Markdown 内容值。支持用 @@bind-Value 双向绑定。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Value" Type="string?" Default="null">
+                        The markdown content value. Supports two-way binding with @@bind-Value.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="ValueChanged" Type="EventCallback&lt;string?&gt;" Default="default">
+                    @L.T("值发生变化时调用的回调。", "Callback invoked when the value changes.")
+                </ApiParameter>
+                <ApiParameter Name="Placeholder" Type="string?" Default="null">
+                    @L.T("编辑器为空时显示的占位文本。", "Placeholder text displayed when the editor is empty.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("编辑器是否禁用，禁用后不接受用户输入。", "Whether the editor is disabled, preventing user input.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="MinHeight" Type="string?" Default="null">
+                        文本域与预览区的最小高度（例如 "200px"、"10rem"）。未设置时由 CSS 取默认的 150px。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="MinHeight" Type="string?" Default="null">
+                        Minimum height for the textarea and preview areas (e.g., "200px", "10rem"). Defaults to 150px via CSS when not set.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="Id" Type="string?" Default="null">
+                    @L.T("文本域元素的 HTML id 属性。用来与 Label 组件建立关联。", "HTML id attribute for the textarea element. Use to associate with a Label component.")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                    @L.T("文本域元素的 ARIA 标签。", "ARIA label for the textarea element.")
+                </ApiParameter>
+                <ApiParameter Name="AriaDescribedBy" Type="string?" Default="null">
+                    @L.T("描述该文本域的元素 ID。", "ID of the element that describes the textarea.")
+                </ApiParameter>
+                <ApiParameter Name="AriaInvalid" Type="bool?" Default="null">
+                    @L.T("文本域的值是否无效。为 true 时应用销毁色边框样式。", "Whether the textarea value is invalid. Applies destructive border styling when true.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到编辑器容器上的额外 CSS 类。", "Additional CSS classes to apply to the editor container.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string? basicValue;
+    private string? labeledValue;
+    private string? toolbarDemoValue;
+    private string? feedbackValue;
+    private string? _compactValue;
+    private string? _tallValue;
+    private bool submitted;
+
+    private string prePopulatedValue = @"# Welcome to the Markdown Editor
+
+This is a **bold** statement and this is *italic* text.
+
+## Features
+
+- Write markdown with toolbar assistance
+- Preview rendered output instantly
+- Use keyboard shortcuts for quick formatting
+
+### Code Example
+
+Here's how you might use this component:
+
+1. Add the component to your page
+2. Bind to a string property
+3. Use the toolbar or keyboard shortcuts
+
+Enjoy writing!";
+
+    private void HandleSubmit()
+    {
+        submitted = true;
+        // BL0012（.NET 11）：事件处理器触发的重渲染由框架自动完成，此处的显式 StateHasChanged 无需保留。
+    }
+}

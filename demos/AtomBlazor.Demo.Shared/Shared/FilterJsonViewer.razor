@@ -1,0 +1,21 @@
+@* 文档辅助组件：展示当前 FilterDefinition 的 JSON。
+   外壳以 Collapsible 承载展开/收起，与 Shared/CodeBlock.razor 的写法一致。 *@
+<Collapsible>
+    <AtomBlazor.CollapsibleTrigger AsChild="false"
+        Class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-2">
+        <LucideIcon Name="braces" Size="14" />
+        <span>@L.T("查看筛选", "View Filter")</span>
+        <LucideIcon Name="chevron-down" Size="14"
+            Class="transition-transform duration-200 group-data-[state=open]:rotate-180" />
+    </AtomBlazor.CollapsibleTrigger>
+    <AtomBlazor.CollapsibleContent>
+        <pre class="rounded-lg border bg-muted p-4 text-xs leading-relaxed overflow-x-auto"><code>@(Filter.IsEmpty ? "{ }" : Filter.ToJson())</code></pre>
+    </AtomBlazor.CollapsibleContent>
+</Collapsible>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    [Parameter, EditorRequired] public FilterDefinition Filter { get; set; } = default!;
+}

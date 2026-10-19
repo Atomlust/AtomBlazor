@@ -1,0 +1,75 @@
+@using AtomBlazor.Primitives.DataView
+@using AtomBlazor.Primitives.Table
+
+<DataView TItem="Person" ItemsProvider="@LoadPeopleAsync" InitialPageSize="5">
+    <ListTemplate Context="person">
+        <Card Class="flex items-center gap-4 p-4 shadow-none hover:bg-accent/50 transition-colors">
+            <Avatar>
+                <AvatarFallback>@GetInitials(person.Name)</AvatarFallback>
+            </Avatar>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold truncate">@person.Name</p>
+                <TypographyMuted Class="truncate">@person.Email</TypographyMuted>
+                <TypographyMuted Class="text-xs">@person.Department · @person.Role</TypographyMuted>
+            </div>
+            <Badge Variant="@(person.Status == "Active" ? BadgeVariant.Default : BadgeVariant.Outline)">
+                @person.Status
+            </Badge>
+        </Card>
+    </ListTemplate>
+    <Fields>
+        <DataViewColumn TItem="Person" TValue="string" Property="@(p => p.Name)"       Header="Name"       Sortable Filterable />
+        <DataViewColumn TItem="Person" TValue="string" Property="@(p => p.Email)"      Header="Email"      Filterable />
+        <DataViewColumn TItem="Person" TValue="string" Property="@(p => p.Department)" Header="Department" Sortable Filterable />
+        <DataViewColumn TItem="Person" TValue="string" Property="@(p => p.Role)"       Header="Role"       Sortable Filterable />
+    </Fields>
+</DataView>
+
+@code {
+    private List<Person> asyncPeople = MockDataService.GeneratePersons(200);
+
+    private async ValueTask<DataViewResult<Person>> LoadPeopleAsync(DataViewRequest request)
+    {
+        // Simulate latency from a real server
+        await Task.Delay(300, request.CancellationToken);
+
+        IEnumerable<Person> query = asyncPeople;
+
+        // Apply search
+        if (!string.IsNullOrWhiteSpace(request.SearchText))
+        {
+            var search = request.SearchText;
+            query = query.Where(p =>
+                p.Name.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                p.Email.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                p.Department.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                p.Role.Contains(search, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Apply sorting
+        if (!string.IsNullOrEmpty(request.SortField) && request.SortDirection != SortDirection.None)
+        {
+            var asc = request.SortDirection == SortDirection.Ascending;
+            query = request.SortField switch
+            {
+                "name"       => asc ? query.OrderBy(p => p.Name)       : query.OrderByDescending(p => p.Name),
+                "department" => asc ? query.OrderBy(p => p.Department) : query.OrderByDescending(p => p.Department),
+                "role"       => asc ? query.OrderBy(p => p.Role)       : query.OrderByDescending(p => p.Role),
+                _ => query
+            };
+        }
+
+        // Apply paging after filtering/sorting so TotalItemCount reflects the filtered set
+        var materialized = query.ToList();
+        var items = materialized
+            .Skip(request.StartIndex)
+            .Take(request.Count ?? materialized.Count)
+            .ToList();
+
+        return new DataViewResult<Person>
+        {
+            Items = items,
+            TotalItemCount = materialized.Count
+        };
+    }
+}

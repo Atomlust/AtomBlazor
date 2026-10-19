@@ -1,0 +1,346 @@
+@page "/icons/heroicons"
+@using AtomBlazor.Icons.Heroicons
+@using AtomBlazor.Icons.Heroicons.Data
+
+<PageTitle>@L.T("Heroicons 图标 - Atom BlazorUI", "Heroicons - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <div class="flex items-center gap-3">
+                <a href="/icons" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                </a>
+                <h1 class="text-4xl font-bold tracking-tight">Heroicons</h1>
+            </div>
+            <p class="text-xl text-muted-foreground">
+                @L.F("浏览并搜索来自 Tailwind Labs 的 Heroicons 图标库中 {0} 个图标，共 4 种变体。", "Browse and search through {0} icons from Heroicons by Tailwind Labs, available in 4 variants.", TotalIconCount)
+            </p>
+        </div>
+    </div>
+
+    <!-- Variant Selector Tabs -->
+    <div class="flex gap-2 border-b border-border">
+        <button
+            class="px-4 py-2 font-medium transition-colors @(selectedVariant == HeroIconVariant.Outline ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground")"
+            @onclick="() => SelectVariant(HeroIconVariant.Outline)">
+            Outline (@HeroIconData.OutlineIconCount)
+        </button>
+        <button
+            class="px-4 py-2 font-medium transition-colors @(selectedVariant == HeroIconVariant.Solid ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground")"
+            @onclick="() => SelectVariant(HeroIconVariant.Solid)">
+            Solid (@HeroIconData.SolidIconCount)
+        </button>
+        <button
+            class="px-4 py-2 font-medium transition-colors @(selectedVariant == HeroIconVariant.Mini ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground")"
+            @onclick="() => SelectVariant(HeroIconVariant.Mini)">
+            Mini (@HeroIconData.MiniIconCount)
+        </button>
+        <button
+            class="px-4 py-2 font-medium transition-colors @(selectedVariant == HeroIconVariant.Micro ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground")"
+            @onclick="() => SelectVariant(HeroIconVariant.Micro)">
+            Micro (@HeroIconData.MicroIconCount)
+        </button>
+    </div>
+
+    <!-- Variant Description -->
+    <div class="p-4 bg-muted rounded-lg">
+        <div class="flex items-start gap-3">
+            <div class="flex-shrink-0 mt-1">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+            </div>
+            <div>
+                @switch (selectedVariant)
+                {
+                    case HeroIconVariant.Outline:
+                        <p class="text-sm">
+                            <strong>Outline (24x24):</strong> @L.T("描边风格图标，线宽 1.5px。适用于通用 UI、导航和按钮。", "Stroke-based icons with 1.5px strokes. Perfect for general UI, navigation, and buttons.")
+                        </p>
+                        break;
+                    case HeroIconVariant.Solid:
+                        <p class="text-sm">
+                            <strong>Solid (24x24):</strong> @L.T("填充式图标，适合当前激活状态、强调与装饰元素。", "Filled icons perfect for active states, emphasis, and decorative elements.")
+                        </p>
+                        break;
+                    case HeroIconVariant.Mini:
+                        <p class="text-sm">
+                            <strong>Mini (20x20):</strong> @L.T("紧凑的填充图标，适合与文字并排、徽标和密集布局。", "Compact filled icons ideal for inline with text, badges, and dense layouts.")
+                        </p>
+                        break;
+                    case HeroIconVariant.Micro:
+                        <p class="text-sm">
+                            <strong>Micro (16x16):</strong> @L.T("最小的变体，细节经过简化，非常适合极小的 UI 元素。", "Smallest variant with simplified details, perfect for very small UI elements.")
+                        </p>
+                        break;
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Stats -->
+    <div class="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+        <div class="w-full md:w-96">
+            <div class="relative">
+                <HeroIcon Name="magnifying-glass" Variant="@selectedVariant" Size="20" Class="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+                <input
+                    type="text"
+                    placeholder="@(L.T("搜索图标...", "Search icons..."))"
+                    class="w-full pl-10 pr-4 py-2 border border-input bg-background rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                    @bind="searchQuery"
+                    @bind:event="oninput" />
+            </div>
+        </div>
+
+        <div class="text-sm text-muted-foreground">
+            @if (L.IsChinese)
+            {
+                <text>显示 <span class="font-semibold text-foreground">@FilteredIcons.Count()</span> / @CurrentVariantCount 个图标</text>
+            }
+            else
+            {
+                <text>Showing <span class="font-semibold text-foreground">@FilteredIcons.Count()</span> of @CurrentVariantCount icons</text>
+            }
+        </div>
+    </div>
+
+    <!-- Icon Grid -->
+    @if (FilteredIcons.Any())
+    {
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+            @foreach (var iconName in FilteredIcons)
+            {
+                <div class="flex flex-col items-center justify-center p-4 border border-border rounded-lg hover:bg-accent hover:border-accent-foreground/20 transition-colors cursor-pointer group"
+                     title="@iconName">
+                    <div class="mb-2 text-foreground group-hover:scale-110 transition-transform">
+                        <HeroIcon Name="@iconName" Variant="@selectedVariant" Size="32" />
+                    </div>
+                    <span class="text-xs text-center text-muted-foreground group-hover:text-foreground font-mono break-all">
+                        @iconName
+                    </span>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="flex flex-col items-center justify-center py-16 text-center">
+            <HeroIcon Name="magnifying-glass-minus" Variant="@selectedVariant" Size="48" Class="text-muted-foreground mb-4" />
+            <h3 class="text-lg font-semibold mb-2">@L.T("未找到图标", "No icons found")</h3>
+            <p class="text-muted-foreground">
+                @L.T("请调整搜索关键词", "Try adjusting your search query")
+            </p>
+        </div>
+    }
+
+    <!-- Usage Examples -->
+    <div class="mt-12 space-y-6">
+        <h2 class="text-2xl font-bold">@L.T("用法示例", "Usage Examples")</h2>
+
+        <!-- Basic Usage with Variants -->
+        <div class="space-y-4">
+            <h3 class="text-xl font-semibold">@L.T("基本用法 - 全部变体", "Basic Usage - All Variants")</h3>
+            <div class="p-6 border border-border rounded-lg bg-card space-y-4">
+                <div class="space-y-4">
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm text-muted-foreground w-24">Outline:</span>
+                        <HeroIcon Name="home" Variant="HeroIconVariant.Outline" />
+                        <HeroIcon Name="heart" Variant="HeroIconVariant.Outline" />
+                        <HeroIcon Name="star" Variant="HeroIconVariant.Outline" />
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm text-muted-foreground w-24">Solid:</span>
+                        <HeroIcon Name="home" Variant="HeroIconVariant.Solid" />
+                        <HeroIcon Name="heart" Variant="HeroIconVariant.Solid" />
+                        <HeroIcon Name="star" Variant="HeroIconVariant.Solid" />
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm text-muted-foreground w-24">Mini:</span>
+                        <HeroIcon Name="home" Variant="HeroIconVariant.Mini" />
+                        <HeroIcon Name="heart" Variant="HeroIconVariant.Mini" />
+                        <HeroIcon Name="star" Variant="HeroIconVariant.Mini" />
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm text-muted-foreground w-24">Micro:</span>
+                        <HeroIcon Name="home" Variant="HeroIconVariant.Micro" />
+                        <HeroIcon Name="heart" Variant="HeroIconVariant.Micro" />
+                        <HeroIcon Name="star" Variant="HeroIconVariant.Micro" />
+                    </div>
+                </div>
+                <pre class="bg-muted p-4 rounded text-sm overflow-x-auto"><code>@@using AtomBlazor.Icons.Heroicons
+
+&lt;HeroIcon Name="home" Variant="HeroIconVariant.Outline" /&gt;
+&lt;HeroIcon Name="heart" Variant="HeroIconVariant.Solid" /&gt;
+&lt;HeroIcon Name="star" Variant="HeroIconVariant.Mini" /&gt;</code></pre>
+            </div>
+        </div>
+
+        <!-- Different Sizes -->
+        <div class="space-y-4">
+            <h3 class="text-xl font-semibold">@L.T("自定义尺寸", "Custom Sizes")</h3>
+            <div class="p-6 border border-border rounded-lg bg-card space-y-4">
+                <div class="flex items-center gap-6">
+                    <HeroIcon Name="camera" Variant="@selectedVariant" Size="16" />
+                    <HeroIcon Name="camera" Variant="@selectedVariant" Size="24" />
+                    <HeroIcon Name="camera" Variant="@selectedVariant" Size="32" />
+                    <HeroIcon Name="camera" Variant="@selectedVariant" Size="48" />
+                    <HeroIcon Name="camera" Variant="@selectedVariant" Size="64" />
+                </div>
+                <pre class="bg-muted p-4 rounded text-sm overflow-x-auto"><code>&lt;HeroIcon Name="camera" Variant="HeroIconVariant.Outline" Size="16" /&gt;
+&lt;HeroIcon Name="camera" Variant="HeroIconVariant.Solid" Size="24" /&gt;
+&lt;HeroIcon Name="camera" Variant="HeroIconVariant.Mini" Size="32" /&gt;</code></pre>
+            </div>
+        </div>
+
+        <!-- Custom Colors -->
+        <div class="space-y-4">
+            <h3 class="text-xl font-semibold">@L.T("自定义颜色", "Custom Colors")</h3>
+            <div class="p-6 border border-border rounded-lg bg-card space-y-4">
+                <div class="flex items-center gap-6">
+                    <HeroIcon Name="heart" Variant="HeroIconVariant.Solid" Size="32" Color="red" />
+                    <HeroIcon Name="star" Variant="HeroIconVariant.Solid" Size="32" Color="gold" />
+                    <HeroIcon Name="check-circle" Variant="HeroIconVariant.Solid" Size="32" Color="green" />
+                    <HeroIcon Name="exclamation-circle" Variant="HeroIconVariant.Solid" Size="32" Color="orange" />
+                    <HeroIcon Name="x-circle" Variant="HeroIconVariant.Solid" Size="32" Color="#ef4444" />
+                </div>
+                <pre class="bg-muted p-4 rounded text-sm overflow-x-auto"><code>&lt;HeroIcon Name="heart" Variant="HeroIconVariant.Solid" Size="32" Color="red" /&gt;
+&lt;HeroIcon Name="star" Variant="HeroIconVariant.Solid" Size="32" Color="gold" /&gt;</code></pre>
+            </div>
+        </div>
+
+        <!-- With Buttons -->
+        <div class="space-y-4">
+            <h3 class="text-xl font-semibold">@L.T("与 Button 组件集成", "Integration with Button Component")</h3>
+            <div class="p-6 border border-border rounded-lg bg-card space-y-4">
+                <div class="flex flex-wrap items-center gap-3">
+                    <Button>
+                        <Icon>
+                            <HeroIcon Name="arrow-down-tray" Variant="HeroIconVariant.Outline" Size="20" />
+                        </Icon>
+                        <ChildContent>@L.T("下载", "Download")</ChildContent>
+                    </Button>
+
+                    <Button Variant="ButtonVariant.Outline">
+                        <Icon>
+                            <HeroIcon Name="trash" Variant="HeroIconVariant.Outline" Size="20" />
+                        </Icon>
+                        <ChildContent>@L.T("删除", "Delete")</ChildContent>
+                    </Button>
+
+                    <Button Variant="ButtonVariant.Secondary">
+                        <Icon>
+                            <HeroIcon Name="cog-6-tooth" Variant="HeroIconVariant.Solid" Size="20" />
+                        </Icon>
+                        <ChildContent>@L.T("设置", "Settings")</ChildContent>
+                    </Button>
+
+                    <Button Variant="ButtonVariant.Destructive">
+                        <Icon>
+                            <HeroIcon Name="exclamation-triangle" Variant="HeroIconVariant.Solid" Size="20" />
+                        </Icon>
+                        <ChildContent>@L.T("警告", "Warning")</ChildContent>
+                    </Button>
+                </div>
+                <pre class="bg-muted p-4 rounded text-sm overflow-x-auto"><code>&lt;Button&gt;
+    &lt;Icon&gt;
+        &lt;HeroIcon Name="arrow-down-tray" Variant="HeroIconVariant.Outline" Size="20" /&gt;
+    &lt;/Icon&gt;
+    Download
+&lt;/Button&gt;</code></pre>
+            </div>
+        </div>
+
+        <!-- Variant Use Cases -->
+        <div class="space-y-4">
+            <h3 class="text-xl font-semibold">@L.T("各变体的适用场景", "When to Use Each Variant")</h3>
+            <div class="p-6 border border-border rounded-lg bg-card space-y-4">
+                <div class="grid gap-4">
+                    <div class="flex items-start gap-3">
+                        <HeroIcon Name="squares-2x2" Variant="HeroIconVariant.Outline" Size="24" Class="flex-shrink-0" />
+                        <div>
+                            <p class="font-medium">Outline (24x24)</p>
+                            <p class="text-sm text-muted-foreground">@L.T("通用 UI、导航、按钮", "General UI, navigation, buttons")</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <HeroIcon Name="squares-2x2" Variant="HeroIconVariant.Solid" Size="24" Class="flex-shrink-0" />
+                        <div>
+                            <p class="font-medium">Solid (24x24)</p>
+                            <p class="text-sm text-muted-foreground">@L.T("激活状态、强调、装饰元素", "Active states, emphasis, decorative elements")</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <HeroIcon Name="squares-2x2" Variant="HeroIconVariant.Mini" Size="20" Class="flex-shrink-0" />
+                        <div>
+                            <p class="font-medium">Mini (20x20)</p>
+                            <p class="text-sm text-muted-foreground">@L.T("与文字并排、徽标、紧凑 UI", "Inline with text, badges, compact UI")</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <HeroIcon Name="squares-2x2" Variant="HeroIconVariant.Micro" Size="16" Class="flex-shrink-0" />
+                        <div>
+                            <p class="font-medium">Micro (16x16)</p>
+                            <p class="text-sm text-muted-foreground">@L.T("极小的 UI 元素、密集布局、时间戳", "Very small UI elements, dense layouts, timestamps")</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string searchQuery = string.Empty;
+    private HeroIconVariant selectedVariant = HeroIconVariant.Outline;
+    private IEnumerable<string> allIcons = Enumerable.Empty<string>();
+
+    private int TotalIconCount => HeroIconData.TotalIconCount;
+
+    private int CurrentVariantCount => selectedVariant switch
+    {
+        HeroIconVariant.Outline => HeroIconData.OutlineIconCount,
+        HeroIconVariant.Solid => HeroIconData.SolidIconCount,
+        HeroIconVariant.Mini => HeroIconData.MiniIconCount,
+        HeroIconVariant.Micro => HeroIconData.MicroIconCount,
+        _ => 0
+    };
+
+    private IEnumerable<string> FilteredIcons
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(searchQuery))
+            {
+                return allIcons;
+            }
+
+            return allIcons.Where(icon =>
+                icon.Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        LoadIconsForVariant();
+    }
+
+    private void SelectVariant(HeroIconVariant variant)
+    {
+        selectedVariant = variant;
+        searchQuery = string.Empty; // Reset search when switching variants
+        LoadIconsForVariant();
+    }
+
+    private void LoadIconsForVariant()
+    {
+        allIcons = HeroIconData.GetAvailableIcons(selectedVariant).OrderBy(x => x).ToList();
+    }
+}

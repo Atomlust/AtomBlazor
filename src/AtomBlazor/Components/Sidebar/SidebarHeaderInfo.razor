@@ -1,0 +1,39 @@
+@namespace AtomBlazor
+
+@*
+    SidebarHeaderInfo 组件：图标模式下隐藏的页眉文本。
+    依侧边栏状态自动处理可见性。
+*@
+
+<div class="@GetClasses()" @attributes="AdditionalAttributes">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// 要渲染的文本内容（通常是标题与副标题 span）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string GetClasses()
+    {
+        return ClassNames.cn(
+            "atom:grid atom:flex-1 atom:text-start atom:text-sm atom:leading-tight",
+            "atom:group-data-[collapsible=icon]:hidden",
+            Class
+        );
+    }
+}

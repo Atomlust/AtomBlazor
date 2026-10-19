@@ -1,0 +1,389 @@
+@page "/components/native-select"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("Native Select 原生下拉选择 - Atom BlazorUI", "Native Select Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Native Select 原生下拉选择组件", "Native Select Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("对浏览器原生 select 元素做样式化封装的包装组件。",
+                     "A styled wrapper around the browser's native select element.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个带选项的简单原生下拉选择框。",
+                     "A simple native select with options.")
+            </p>
+        </div>
+        <div class="w-[280px]">
+            <NativeSelect AriaLabel="@(L.T("选择一个选项", "Choose an option"))" TValue="string" @bind-Value="_selectedFruit" Placeholder="@(L.T("选择一个水果", "Select a fruit"))">
+                <option value="apple">Apple</option>
+                <option value="banana">Banana</option>
+                <option value="orange">Orange</option>
+                <option value="grape">Grape</option>
+            </NativeSelect>
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("已选择：", "Selected:") @(_selectedFruit ?? L.T("无", "none"))</p>
+        <CodeBlock Source="Components/NativeSelect/basic.txt" />
+    </div>
+
+    <!-- With Placeholder -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带占位项", "With Placeholder")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带占位选项的下拉选择框。",
+                     "Select with a placeholder option.")
+            </p>
+        </div>
+        <div class="w-[280px]">
+            <NativeSelect TValue="string" @bind-Value="_selectedCountry" Placeholder="@(L.T("选择你的国家", "Choose your country"))">
+                <option value="us">United States</option>
+                <option value="uk">United Kingdom</option>
+                <option value="ca">Canada</option>
+                <option value="au">Australia</option>
+                <option value="de">Germany</option>
+                <option value="fr">France</option>
+            </NativeSelect>
+        </div>
+        <CodeBlock Source="Components/NativeSelect/with-placeholder.txt" />
+    </div>
+
+    <!-- Sizes -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("尺寸", "Sizes")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("原生下拉选择框提供 small、默认与 large 三种尺寸。",
+                     "Native select comes in small, default, and large sizes.")
+            </p>
+        </div>
+        <div class="flex flex-col gap-4 w-[280px]">
+            <NativeSelect TValue="string" Size="NativeSelectSize.Small" Placeholder="@(L.T("小", "Small"))">
+                <option value="1">Option 1</option>
+                <option value="2">Option 2</option>
+            </NativeSelect>
+            <NativeSelect TValue="string" Size="NativeSelectSize.Default" Placeholder="@(L.T("默认", "Default"))">
+                <option value="1">Option 1</option>
+                <option value="2">Option 2</option>
+            </NativeSelect>
+            <NativeSelect TValue="string" Size="NativeSelectSize.Large" Placeholder="@(L.T("大", "Large"))">
+                <option value="1">Option 1</option>
+                <option value="2">Option 2</option>
+            </NativeSelect>
+        </div>
+        <CodeBlock Source="Components/NativeSelect/sizes.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个被禁用的原生下拉选择框。",
+                     "A disabled native select.")
+            </p>
+        </div>
+        <div class="w-[280px]">
+            <NativeSelect TValue="string" Disabled="true" Placeholder="@(L.T("已禁用的下拉选择", "Disabled select"))">
+                <option value="1">Option 1</option>
+                <option value="2">Option 2</option>
+            </NativeSelect>
+        </div>
+        <CodeBlock Source="Components/NativeSelect/disabled.txt" />
+    </div>
+
+    <!-- With Option Groups -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("选项分组", "With Option Groups")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("原生下拉选择框支持选项分组。",
+                     "Native select supports option groups.")
+            </p>
+        </div>
+        <div class="w-[280px]">
+            <NativeSelect TValue="string" @bind-Value="_selectedCar" Placeholder="@(L.T("选择一辆汽车", "Select a car"))">
+                <optgroup label="Swedish Cars">
+                    <option value="volvo">Volvo</option>
+                    <option value="saab">Saab</option>
+                </optgroup>
+                <optgroup label="German Cars">
+                    <option value="mercedes">Mercedes</option>
+                    <option value="audi">Audi</option>
+                    <option value="bmw">BMW</option>
+                </optgroup>
+                <optgroup label="Japanese Cars">
+                    <option value="toyota">Toyota</option>
+                    <option value="honda">Honda</option>
+                </optgroup>
+            </NativeSelect>
+        </div>
+        <CodeBlock Source="Components/NativeSelect/option-groups.txt" />
+    </div>
+
+    <!-- Numeric Values -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("数值类型值", "Numeric Values")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("使用数值类型作为选项值的原生下拉选择框。",
+                     "Native select with numeric values.")
+            </p>
+        </div>
+        <div class="w-[280px]">
+            <NativeSelect TValue="int" @bind-Value="_selectedNumber" Placeholder="@(L.T("选择一个数字", "Select a number"))">
+                <option value="1">One</option>
+                <option value="2">Two</option>
+                <option value="3">Three</option>
+                <option value="4">Four</option>
+                <option value="5">Five</option>
+            </NativeSelect>
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("已选择数字：", "Selected number:") @_selectedNumber</p>
+        <CodeBlock Source="Components/NativeSelect/numeric-values.txt" />
+    </div>
+
+    <!-- Form Validation with EditForm -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表单校验", "Form Validation")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    NativeSelect 与 Blazor 的 EditForm、EditContext 集成，用于模型校验。
+                    在 EditForm 内使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code>，
+                    校验错误会自动通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> 应用错误样式。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    NativeSelect integrates with Blazor's EditForm and EditContext for model validation.
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code> within an EditForm and
+                    validation errors will automatically apply error styling via <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <EditForm Model="nativeSelectFormModel" OnValidSubmit="HandleNativeSelectFormSubmit" class="max-w-md space-y-4">
+            <DataAnnotationsValidator />
+
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("国家", "Country")</label>
+                <NativeSelect TValue="string" @bind-Value="nativeSelectFormModel.Country" Placeholder="@(L.T("选择一个国家", "Select a country"))">
+                    <option value="us">United States</option>
+                    <option value="uk">United Kingdom</option>
+                    <option value="ca">Canada</option>
+                    <option value="au">Australia</option>
+                    <option value="de">Germany</option>
+                    <option value="fr">France</option>
+                </NativeSelect>
+                <ValidationMessage For="@(() => nativeSelectFormModel.Country)" class="text-sm text-destructive" />
+            </div>
+
+            <div class="flex gap-4">
+                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Default">@L.T("提交", "Submit")</Button>
+                <Button Type="ButtonType.Button" Variant="ButtonVariant.Outline" OnClick="ResetNativeSelectForm">@L.T("重置", "Reset")</Button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(nativeSelectFormMessage))
+            {
+                <div class="p-4 bg-card rounded-lg border">
+                    <p class="text-sm">@nativeSelectFormMessage</p>
+                </div>
+            }
+        </EditForm>
+        <CodeBlock Source="Components/NativeSelect/form-validation.txt" />
+    </div>
+
+    <!-- Accessibility -->
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    渲染原生 <code>&lt;select&gt;</code> 元素，继承浏览器内建的可访问性能力。
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    disabled 特性直接作用在原生 select 上，既阻止交互，也向辅助技术传达禁用状态。
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    在 EditForm 内使用时，校验错误会自动应用 <code>aria-invalid</code> 样式以标示无效状态。
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    占位选项借助 <code>disabled</code> 与 <code>selected</code> 特性显示提示文本，但不作为有效选项被选中。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Renders a native <code>&lt;select&gt;</code> element, inheriting built-in browser accessibility features.
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    The disabled attribute is applied directly to the native select, preventing interaction and signaling the disabled state to assistive technologies.
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    When used inside an EditForm, validation errors automatically apply <code>aria-invalid</code> styling to indicate invalid state.
+                </AccessibilityItem>
+                <AccessibilityItem>
+                    The placeholder option uses <code>disabled</code> and <code>selected</code> attributes to display prompt text without allowing it as a valid selection.
+                </AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("打开下拉选择框", "Open the select dropdown"))">
+                <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在选项间移动", "Navigate between options"))">
+                <Kbd>Arrow Keys</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("选中选项并关闭", "Select an option and close"))">
+                <Kbd>Enter</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("不选中即关闭", "Close without selecting"))">
+                <Kbd>Escape</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="NativeSelect&lt;TValue&gt;">
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">@L.T("转发给交互控件或分组的可访问名称。", "Accessible name forwarded to the interactive control or group.")</ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="TValue" Type="type parameter">
+                        所选值的类型（例如 string、int）。
+                    </ApiParameter>
+                    <ApiParameter Name="Value" Type="TValue?">
+                        当前选中的值。
+                    </ApiParameter>
+                    <ApiParameter Name="ValueChanged" Type="EventCallback&lt;TValue?&gt;">
+                        选中值发生变化时调用的事件回调。
+                    </ApiParameter>
+                    <ApiParameter Name="ValueExpression" Type="Expression&lt;Func&lt;TValue?&gt;&gt;?">
+                        用于标识绑定值的表达式，供与 EditContext 的表单校验集成使用。
+                    </ApiParameter>
+                    <ApiParameter Name="Name" Type="string?">
+                        select 元素的 HTML name 特性。位于 EditForm 内且未显式设置时，会自动从 ValueExpression 推导。
+                    </ApiParameter>
+                    <ApiParameter Name="Placeholder" Type="string?">
+                        未选中任何值时，以禁用选项形式显示的占位文本。
+                    </ApiParameter>
+                    <ApiParameter Name="Disabled" Type="bool" Default="false">
+                        是否禁用该下拉选择框。
+                    </ApiParameter>
+                    <ApiParameter Name="Required" Type="bool" Default="false">
+                        是否为必填项。
+                    </ApiParameter>
+                    <ApiParameter Name="Size" Type="NativeSelectSize" Default="Default">
+                        下拉选择框的尺寸变体。可选值：Small、Default、Large。
+                    </ApiParameter>
+                    <ApiParameter Name="Class" Type="string?">
+                        应用到 select 元素上的额外 CSS 类。
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        显示在 select 内部的 option 与 optgroup 元素。
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;select&gt;</code> 元素上的额外 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="TValue" Type="type parameter">
+                        The type of the selected value (e.g., string, int).
+                    </ApiParameter>
+                    <ApiParameter Name="Value" Type="TValue?">
+                        The currently selected value.
+                    </ApiParameter>
+                    <ApiParameter Name="ValueChanged" Type="EventCallback&lt;TValue?&gt;">
+                        Event callback invoked when the selected value changes.
+                    </ApiParameter>
+                    <ApiParameter Name="ValueExpression" Type="Expression&lt;Func&lt;TValue?&gt;&gt;?">
+                        An expression that identifies the bound value. Used for form validation integration with EditContext.
+                    </ApiParameter>
+                    <ApiParameter Name="Name" Type="string?">
+                        The HTML name attribute for the select element. When inside an EditForm and not explicitly set, derived automatically from the ValueExpression.
+                    </ApiParameter>
+                    <ApiParameter Name="Placeholder" Type="string?">
+                        Placeholder text shown as a disabled option when no value is selected.
+                    </ApiParameter>
+                    <ApiParameter Name="Disabled" Type="bool" Default="false">
+                        Whether the select is disabled.
+                    </ApiParameter>
+                    <ApiParameter Name="Required" Type="bool" Default="false">
+                        Whether the select is required.
+                    </ApiParameter>
+                    <ApiParameter Name="Size" Type="NativeSelectSize" Default="Default">
+                        Size variant for the select. Options: Small, Default, Large.
+                    </ApiParameter>
+                    <ApiParameter Name="Class" Type="string?">
+                        Additional CSS classes to apply to the select element.
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        The option and optgroup elements to display inside the select.
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;select&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string? _selectedFruit;
+    private string? _selectedCountry;
+    private string? _selectedCar;
+    private int _selectedNumber;
+    private NativeSelectFormModel nativeSelectFormModel = new();
+    private string? nativeSelectFormMessage;
+
+    private void HandleNativeSelectFormSubmit()
+    {
+        nativeSelectFormMessage = L.IsChinese
+            ? $"表单已提交！国家：{nativeSelectFormModel.Country}"
+            : $"Form submitted! Country: {nativeSelectFormModel.Country}";
+    }
+
+    private void ResetNativeSelectForm()
+    {
+        nativeSelectFormModel = new();
+        nativeSelectFormMessage = null;
+    }
+
+    private class NativeSelectFormModel
+    {
+        [Required(ErrorMessage = "Please select a country.")]
+        public string? Country { get; set; }
+    }
+}

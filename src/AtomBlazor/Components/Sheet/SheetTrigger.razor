@@ -1,0 +1,36 @@
+@namespace AtomBlazor
+
+@*
+    带样式的面板触发器组件封装。
+    渲染用于打开面板的触发器按钮。
+*@
+
+@* 在 AsChild 模式下，基元不会渲染任何元素，因此触发器自身的样式无处附着。
+   只会向下传递页面所设置的内容，因此开发警告只提及这一点，仅此而已。 *@
+<AtomBlazor.Primitives.SheetTrigger AsChild="@AsChild"
+    class="@(AsChild ? null : "atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2")"
+    @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.SheetTrigger>
+
+@code {
+    /// <summary>
+    /// 在触发器按钮内显示的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 为 true 时，触发器不会渲染自身的按钮元素。
+    /// 取而代之的是，它通过 TriggerContext 将触发器行为传递给子组件。
+    /// 当你希望自定义组件（例如 Button）充当触发器时使用。
+    /// </summary>
+    [Parameter]
+    public bool AsChild { get; set; } = true;
+
+    /// <summary>
+    /// 应用到触发器按钮的额外属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}

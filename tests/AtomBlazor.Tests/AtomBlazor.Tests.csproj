@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- BL0016（.NET 11 新分析器）：要求 JS interop 调用有 try/catch 守卫。 测试替身 NoopJavaScript 的 no-op 实现无需守卫；库工程仍保持该分析器开启 -->
+    <NoWarn>$(NoWarn);BL0016</NoWarn>
+    <!-- BL0005：禁止在组件类外部直接给 [Parameter] 赋值。单元测试中我们直接对 DataGrid 列组件的 SortBy/FilterBy/Property 等参数赋值以驱动 GetSortExpression 等纯逻辑方法， 属非渲染场景；库工程仍保持该分析器开启 -->
+    <NoWarn>$(NoWarn);BL0005</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+ <!-- 测试栈与源项目一致：xUnit + Verify 快照（不使用 bUnit；渲染快照由自研轻量渲染器承担） -->
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="Verify.Xunit" Version="26.6.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AtomBlazor\AtomBlazor.csproj" />
+    <ProjectReference Include="..\..\src\AtomBlazor.Primitives\AtomBlazor.Primitives.csproj" />
+    <ProjectReference Include="..\..\src\AtomBlazor.Icons.Lucide\AtomBlazor.Icons.Lucide.csproj" />
+    <ProjectReference Include="..\..\src\AtomBlazor.Icons.Feather\AtomBlazor.Icons.Feather.csproj" />
+    <ProjectReference Include="..\..\src\AtomBlazor.Icons.Heroicons\AtomBlazor.Icons.Heroicons.csproj" />
+    <ProjectReference Include="..\..\src\AtomBlazor.Icons.FontAwesome\AtomBlazor.Icons.FontAwesome.csproj" />
+  </ItemGroup>
+
+</Project>

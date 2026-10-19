@@ -1,0 +1,97 @@
+@inject IJSRuntime JSRuntime
+@using AtomBlazor.Primitives.Services
+@namespace AtomBlazor.Primitives
+@using Microsoft.AspNetCore.Components.Routing
+@inject NavigationManager NavigationManager
+@implements IDisposable
+@implements IAsyncDisposable
+
+<nav @ref="root" @attributes="AdditionalAttributes">
+    <CascadingValue Value="context" IsFixed="true">
+        @ChildContent
+    </CascadingValue>
+</nav>
+
+@code {
+
+    private ElementReference root;
+    private IJSObjectReference? keyboardModule;
+    private bool disposed;
+    private DotNetObjectReference<NavigationMenuPrimitive>? selfRef;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            keyboardModule ??= await JsModules.GetAsync(JSRuntime, "./_content/AtomBlazor.Primitives/js/menu-triggers.js");
+            selfRef ??= DotNetObjectReference.Create(this);
+            await keyboardModule.InvokeVoidAsync("initialize", root, true, EnableKeyboardNavigation, selfRef);
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or JSException or InvalidOperationException or TaskCanceledException or ObjectDisposedException) { }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (disposed) return;
+        disposed = true;
+        Dispose();
+        selfRef?.Dispose();
+        if (keyboardModule is not null)
+        {
+            try { await keyboardModule.InvokeVoidAsync("dispose", root); }
+            catch (Exception ex) when (ex is JSDisconnectedException or JSException or TaskCanceledException or ObjectDisposedException) { }
+        }
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>在键盘或点击外部关闭之后收起已打开的面板。</summary>
+    [JSInvokable]
+    public void JsCloseMenus()
+    {
+        if (!disposed && context.ActiveItem is not null) context.SetActiveItem(null);
+    }
+
+    private NavigationMenuContext context = null!;
+
+    /// <summary>
+    /// 子内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 启用下拉菜单内的键盘导航。默认为 <c>false</c>。
+    /// </summary>
+    [Parameter]
+    public bool EnableKeyboardNavigation { get; set; }
+
+    /// <summary>
+    /// 应用于根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 导航菜单上下文，向 Components 层公开。
+    /// </summary>
+    public NavigationMenuContext Context => context;
+
+    protected override void OnInitialized()
+    {
+        context = new NavigationMenuContext(StateHasChanged, EnableKeyboardNavigation);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        if (context.ActiveItem != null)
+        {
+            context.SetActiveItem(null);
+        }
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+        context.Dispose();
+    }
+}

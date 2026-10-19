@@ -1,0 +1,233 @@
+@page "/components/form-field-masked-input"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("FormFieldMaskedInput 掩码输入表单字段 - Atom BlazorUI", "FormFieldMaskedInput Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">FormFieldMaskedInput</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("MaskedInput 的表单字段封装，内置标签、辅助文本与错误提示。",
+                     "A form field wrapper for MaskedInput with built-in label, helper text, and error messages.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example with Preset -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("电话号码（预设）", "Phone Number (Preset)")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    对常见的掩码模式直接使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">Preset</code>。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">Preset</code> for common mask patterns.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldMaskedInput @bind-Value="_phone"
+                                   Label="@(L.T("电话号码", "Phone number"))"
+                                   Preset="MaskPreset.Phone"
+                                   HelperText="@(L.T("美国电话格式：(999) 999-9999", "US phone format: (999) 999-9999"))" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("原始值：", "Raw value:")</p>
+            <p class="text-sm font-mono">@(string.IsNullOrEmpty(_phone) ? L.T("（空）", "(empty)") : _phone)</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldMaskedInput/phone.txt" />
+    </div>
+
+    <!-- Custom Mask -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义掩码", "Custom Mask")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    自定义掩码的写法：<code class="text-xs bg-muted px-1 py-0.5 rounded">9</code>=数字，
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">A</code>=字母，
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">*</code>=数字或字母。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Define a custom mask: <code class="text-xs bg-muted px-1 py-0.5 rounded">9</code>=digit,
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">A</code>=letter,
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">*</code>=alphanumeric.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldMaskedInput @bind-Value="_productCode"
+                                   Label="@(L.T("产品编码", "Product code"))"
+                                   Mask="AA-9999-***"
+                                   HelperText="@(L.T("格式：AA-0000-XXX", "Format: AA-0000-XXX"))" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("原始值：", "Raw value:")</p>
+            <p class="text-sm font-mono">@(string.IsNullOrEmpty(_productCode) ? L.T("（空）", "(empty)") : _productCode)</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldMaskedInput/custom.txt" />
+    </div>
+
+    <!-- More Presets -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("更多预设", "More Presets")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("内置的常用格式预设。", "Built-in presets for common formats.")
+            </p>
+        </div>
+        <div class="max-w-md space-y-4">
+            <FormFieldMaskedInput @bind-Value="_creditCard"
+                                   Label="@(L.T("信用卡号", "Credit card"))"
+                                   Preset="MaskPreset.CreditCard" />
+            <FormFieldMaskedInput @bind-Value="_ssn"
+                                   Label="@(L.T("社保号（SSN）", "SSN"))"
+                                   Preset="MaskPreset.SSN"
+                                   HelperText="@(L.T("社会安全号码", "Social Security Number"))" />
+            <FormFieldMaskedInput @bind-Value="_zipCode"
+                                   Label="@(L.T("邮政编码", "ZIP code"))"
+                                   Preset="MaskPreset.ZipCode" />
+        </div>
+        <CodeBlock Source="Components/FormFieldMaskedInput/presets.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("一个处于禁用状态的掩码输入表单字段。", "A disabled masked input form field.")</p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldMaskedInput Value="5551234567"
+                                   Label="@(L.T("电话（已锁定）", "Phone (locked)"))"
+                                   Preset="MaskPreset.Phone"
+                                   Disabled="true" />
+        </div>
+        <CodeBlock Source="Components/FormFieldMaskedInput/disabled.txt" />
+    </div>
+
+    <!-- EditForm Integration -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("EditForm 集成", "EditForm Integration")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("在 EditForm 中，校验错误会自动显示。", "Validation errors display automatically inside an EditForm.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <EditForm Model="_formModel" OnValidSubmit="HandleFormSubmit">
+                <DataAnnotationsValidator />
+                <div class="space-y-4">
+                    <FormFieldMaskedInput @bind-Value="_formModel.PhoneNumber"
+                                           Label="@(L.T("电话号码", "Phone number"))"
+                                           Preset="MaskPreset.Phone"
+                                           HelperText="@(L.T("账户核验必填。", "Required for account verification."))" />
+                    <Button Type="ButtonType.Submit">@L.T("提交", "Submit")</Button>
+                </div>
+            </EditForm>
+            @if (_formSubmitted)
+            {
+                <div class="mt-4 rounded-lg border border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800 p-4">
+                    <p class="text-sm font-medium text-green-800 dark:text-green-200">@L.T("已提交：", "Submitted:") @_formModel.PhoneNumber</p>
+                </div>
+            }
+        </div>
+        <CodeBlock Source="Components/FormFieldMaskedInput/editform.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("通过生成的 ID 自动把标签与输入框关联", "Automatically associates label with input via generated ID")</AccessibilityItem>
+            <AccessibilityItem>@L.T("描述文本通过 aria-describedby 关联", "Description linked via aria-describedby")</AccessibilityItem>
+            <AccessibilityItem>@L.T("校验错误通过 aria-invalid 展示", "Validation errors displayed with aria-invalid")</AccessibilityItem>
+        </AriaAttributes>
+            <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可用的表单控件之间移动", "Move between enabled form controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("移动文本光标", "Move the text cursor"))"><Kbd>ArrowLeft</Kbd> / <Kbd>ArrowRight</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("删除文本", "Delete text"))"><Kbd>Backspace</Kbd> / <Kbd>Delete</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="FormFieldMaskedInput">
+                <ApiParameter Name="Label" Type="string?" Default="null">@L.T("标签文本。", "The label text.")</ApiParameter>
+                <ApiParameter Name="HelperText" Type="string?" Default="null">@L.T("输入框下方的辅助文本。", "Helper text below the input.")</ApiParameter>
+                <ApiParameter Name="ErrorText" Type="string?" Default="null">@L.T("手动指定的错误文本。", "Manual error text override.")</ApiParameter>
+                <ApiParameter Name="Value" Type="string" Default="&quot;&quot;">@L.T("未经掩码处理的原始值。使用 @bind-Value。", "The unmasked (raw) value. Use @bind-Value.")</ApiParameter>
+                <ApiParameter Name="ValueChanged" Type="EventCallback&lt;string&gt;">@L.T("值发生变化时调用的回调。", "Callback when value changes.")</ApiParameter>
+                <ApiParameter Name="Preset" Type="MaskPreset" Default="Custom">@L.T("预定义的掩码（Phone、SSN、CreditCard 等）。", "Predefined mask (Phone, SSN, CreditCard, etc.).")</ApiParameter>
+                <ApiParameter Name="Mask" Type="string?" Default="null">@L.T("自定义掩码模式（9=数字，A=字母，*=数字或字母）。", "Custom mask pattern (9=digit, A=letter, *=alphanumeric).")</ApiParameter>
+                <ApiParameter Name="PlaceholderChar" Type="char" Default="'_'">@L.T("尚未填写的位置所使用的占位字符。", "Placeholder character for unfilled positions.")</ApiParameter>
+                <ApiParameter Name="ShowMask" Type="bool" Default="true">@L.T("是否连同占位符一起显示掩码。", "Show mask with placeholders.")</ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("输入框是否被禁用。", "Whether the input is disabled.")</ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">@L.T("输入框是否为必填。", "Whether the input is required.")</ApiParameter>
+                <ApiParameter Name="InputClass" Type="string?" Default="null">@L.T("应用到内部输入框上的 CSS 类。", "CSS classes for the inner input.")</ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string _phone = string.Empty;
+    private string _productCode = string.Empty;
+    private string _creditCard = string.Empty;
+    private string _ssn = string.Empty;
+    private string _zipCode = string.Empty;
+    private bool _formSubmitted;
+    private MaskedInputFormModel _formModel = new();
+
+    private void HandleFormSubmit()
+    {
+        _formSubmitted = true;
+    }
+
+    private class MaskedInputFormModel
+    {
+        [Required(ErrorMessage = "Phone number is required.")]
+        [MinLength(10, ErrorMessage = "Please enter a complete phone number.")]
+        public string PhoneNumber { get; set; } = string.Empty;
+    }
+}

@@ -1,0 +1,53 @@
+@namespace AtomBlazor
+@inject ILocalizer Localizer
+
+@*
+    Barcode —— 以 SVG 绘制的线性条形码，纯 C# 编码，无需 JavaScript、无第三方依赖。
+
+    条是 SVG 且可自由拉伸，因为条形码的宽度来自其数据、
+    高度可任意。人读文本行用 HTML 而非 SVG 文本：无论条最终
+    呈何宽高比它都必须保持可读，而且作为 HTML 还可被选中——
+    这正是扫码失败、只能手动键入号码时人们会做的。
+*@
+
+<div class="@RootClass" data-slot="barcode" @attributes="AdditionalAttributes">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <Label Class="atom:mb-2 atom:block">@Label</Label>
+    }
+
+    @if (encodeError is not null)
+    {
+        <p role="alert" class="atom:text-sm atom:text-destructive">@encodeError</p>
+    }
+    else if (symbol is not null && svg is not null)
+    {
+        <div class="atom:inline-block atom:max-w-full"
+             style="width: @SymbolWidthStyle; background: @Background; color: @Foreground">
+
+            @if (AboveGroup is { } above)
+            {
+                <div class="atom:text-center atom:font-mono atom:leading-tight"
+                     style="font-size: @TextSizeStyle; padding-bottom: 0.2em">
+                    @above.Text
+                </div>
+            }
+
+            @((MarkupString)svg)
+
+            @if (BelowGroups.Count > 0)
+            {
+                <div class="atom:relative atom:font-mono atom:leading-tight"
+                     style="font-size: @TextSizeStyle; height: 1.2em; margin-top: 0.2em">
+                    @foreach (var group in BelowGroups)
+                    {
+                        <span class="atom:absolute atom:top-0 atom:text-center atom:whitespace-nowrap"
+                              style="left: @Percent(group.Start); width: @Percent(group.End - group.Start, span: true)">
+                            @group.Text
+                        </span>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>

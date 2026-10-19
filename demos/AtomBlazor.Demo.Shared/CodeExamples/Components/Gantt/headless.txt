@@ -1,0 +1,39 @@
+@using AtomBlazor.Primitives.Gantt
+
+@code {
+    // GanttBuilder is the whole of a Gantt except the drawing: the tree, the roll-up, the
+    // timeline and the resolved arrows, with no markup at all.
+    private string Draw()
+    {
+        var chart = GanttBuilder.Build(new GanttSource<PlanTask>
+        {
+            Items = plan,
+            Id = t => t.Id,
+            ParentId = t => t.Parent,
+            Text = t => t.Name,
+            Start = t => t.Start,
+            End = t => t.End,
+            Progress = t => t.Progress,
+            Zoom = GanttZoom.Week,
+        });
+
+        var builder = new StringBuilder();
+        const int Track = 48;
+        var scale = (double)Track / chart.Axis.SlotCount;
+
+        foreach (var row in chart.Rows)
+        {
+            // OffsetSlots and LengthSlots are measured in minor slots, not in days, so one
+            // multiplication by whatever a slot is worth places the bar.
+            var from = (int)Math.Round(row.OffsetSlots * scale);
+            var length = Math.Max(1, (int)Math.Round(row.LengthSlots * scale));
+
+            builder.Append($"{new string(' ', row.Depth * 2) + row.Text,-26}");
+            builder.Append(new string('.', from));
+            builder.Append(new string(row.IsSummary ? '=' : '#', length));
+            builder.Append('\n');
+        }
+
+        return builder.ToString();
+    }
+}

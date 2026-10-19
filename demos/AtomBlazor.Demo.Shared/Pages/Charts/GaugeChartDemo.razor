@@ -1,0 +1,276 @@
+@page "/charts/gauge"
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("仪表盘 - Atom BlazorUI", "Gauge Chart - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-6xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("仪表盘", "Gauge Chart")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("时速表样式可视化，适合看 KPI、进度指示和指标看板。", "Speedometer-style visualizations for KPI display, progress indicators, and metric dashboards.")
+            </p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("仪表盘", "Gauge Chart")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("默认时速表", "Default speedometer")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <GaugeChart Data="@_gaugeData" Height="250px">
+                        <Gauge DataKey="value" Name="@(L.T("车速", "Speed"))" />
+                    </GaugeChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("带指针的默认仪表盘", "Default gauge with pointer")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("刻度范围 0 到 100", "Scale from 0 to 100")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/GaugeChart/default.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("带进度弧", "With Progress")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("进度弧指示", "Progress arc indicator")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <GaugeChart Data="@_gaugeData" Height="250px">
+                        <Gauge DataKey="value" Name="@(L.T("进度", "Progress"))" Color="var(--chart-1)"
+                                 ShowProgress="true" ProgressWidth="14" />
+                    </GaugeChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("ShowProgress 配彩色弧", "ShowProgress with colored arc")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("进度弧宽度设为 14px", "Progress width set to 14px")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/GaugeChart/progress.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("不带指针", "No Pointer")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("只显示进度", "Progress-only display")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <GaugeChart Data="@_gaugeData" Height="250px">
+                        <Gauge DataKey="value" Name="@(L.T("得分", "Score"))" Color="var(--chart-2)"
+                                 ShowProgress="true" ProgressWidth="18"
+                                 ShowPointer="false" AxisLineWidth="18" />
+                    </GaugeChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("只有进度弧、没有指针", "Progress arc without pointer")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("简洁的进度指示样式", "Clean progress indicator style")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/GaugeChart/no-pointer.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("自定义量程", "Custom Range")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("0-200 刻度", "0-200 scale")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <GaugeChart Data="@_speedData" Height="250px">
+                        <Gauge DataKey="value" Name="km/h" Color="var(--chart-3)"
+                                 Min="0" Max="200" SplitNumber="5" />
+                    </GaugeChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("自定义 Min/Max 量程", "Custom Min/Max range")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("0 到 200 的刻度，分 5 段", "Scale from 0 to 200 with 5 splits")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/GaugeChart/custom-range.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("自定义格式化", "Custom Formatter")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("以百分比显示", "Percentage display")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <GaugeChart Data="@_gaugeData" Height="250px">
+                        <Gauge DataKey="value" Name="@(L.T("完成度", "Completion"))" Color="var(--chart-4)"
+                                 ShowProgress="true" ProgressWidth="12"
+                                 DetailFormatter="{value}%" DetailFontSize="30" />
+                    </GaugeChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("DetailFormatter 带 % 后缀", "DetailFormatter with % suffix")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("自定义格式与字号", "Custom format and font size")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/GaugeChart/formatter.txt" />
+        </div>
+
+        <div>
+            <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col space-y-1.5 p-6">
+                    <h3 class="font-semibold leading-none tracking-tight">@L.T("极简", "Minimal")</h3>
+                    <p class="text-sm text-muted-foreground">@L.T("简洁的极简仪表盘", "Clean minimal gauge")</p>
+                </div>
+                <div class="p-6 pt-0">
+                    <GaugeChart Data="@_gaugeData" Height="250px">
+                        <Gauge DataKey="value" Name="@(L.T("健康度", "Health"))" Color="var(--chart-5)"
+                                 ShowProgress="true" ProgressWidth="20"
+                                 ShowPointer="false" ShowAxisLine="true" AxisLineWidth="20"
+                                 ShowTitle="false" DetailFontSize="32" />
+                    </GaugeChart>
+                </div>
+                <div class="flex flex-col gap-2 p-6 pt-0">
+                    <div class="flex gap-2 items-center font-medium leading-none">
+                        @L.T("无指针、无标题", "No pointer, no title")
+                    </div>
+                    <div class="text-sm text-muted-foreground leading-none">
+                        @L.T("粗进度环样式", "Thick progress ring style")
+                    </div>
+                </div>
+            </div>
+            <CodeBlock Source="Charts/GaugeChart/minimal.txt" />
+        </div>
+    </div>
+
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+        </div>
+        <div class="border rounded-lg p-6 space-y-4">
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Gauge.Min / Max</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">double</code>（默认值：<code class="text-xs bg-muted px-1 py-0.5 rounded">0</code> / <code class="text-xs bg-muted px-1 py-0.5 rounded">100</code>）
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">double</code> (defaults: <code class="text-xs bg-muted px-1 py-0.5 rounded">0</code> / <code class="text-xs bg-muted px-1 py-0.5 rounded">100</code>)
+                    </p>
+                                </text>
+}
+                <p class="text-sm text-muted-foreground">
+                    @L.T("仪表盘刻度的取值范围。", "Range of the gauge scale.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Gauge.ShowProgress</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code>（默认值：<code class="text-xs bg-muted px-1 py-0.5 rounded">false</code>）
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code> (default: <code class="text-xs bg-muted px-1 py-0.5 rounded">false</code>)
+                    </p>
+                                </text>
+}
+                <p class="text-sm text-muted-foreground">
+                    @L.T("是否显示从最小值填到当前值的彩色进度弧。", "Whether to show a colored progress arc filling from min to the current value.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Gauge.ShowPointer</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code>（默认值：<code class="text-xs bg-muted px-1 py-0.5 rounded">true</code>）
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">bool</code> (default: <code class="text-xs bg-muted px-1 py-0.5 rounded">true</code>)
+                    </p>
+                                </text>
+}
+                <p class="text-sm text-muted-foreground">
+                    @L.T("是否显示指针。只想要进度式仪表盘时把它设为 false。", "Whether to show the pointer needle. Set to false for progress-only gauge styles.")
+                </p>
+            </div>
+            <Separator />
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">Gauge.DetailFormatter</h3>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        类型：<code class="text-xs bg-muted px-1 py-0.5 rounded">string</code>（默认值：<code class="text-xs bg-muted px-1 py-0.5 rounded">{value}</code>）
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground mb-2">
+                        Type: <code class="text-xs bg-muted px-1 py-0.5 rounded">string</code> (default: <code class="text-xs bg-muted px-1 py-0.5 rounded">{value}</code>)
+                    </p>
+                                </text>
+}
+                <p class="text-sm text-muted-foreground">
+                    @L.T("显示数值的 ECharts 格式化串，用 {value} 作占位符。", "ECharts formatter for the displayed value. Use {value} as the placeholder.")
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    public class GaugeData
+    {
+        public double Value { get; set; }
+    }
+
+    private readonly List<GaugeData> _gaugeData = [new() { Value = 72 }];
+    private readonly List<GaugeData> _speedData = [new() { Value = 135 }];
+}

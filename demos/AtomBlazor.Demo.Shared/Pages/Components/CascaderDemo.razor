@@ -1,0 +1,113 @@
+@page "/components/cascader"
+
+<PageTitle>@L.T("级联选择组件 - Atom BlazorUI", "Cascader Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("级联选择组件", "Cascader Component")</h1>
+        <p class="text-xl text-muted-foreground">@L.T("逐层浏览嵌套选项，也可以按完整路径搜索。", "Browse nested options one level at a time, or search their full paths.")</p>
+    </div>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本示例", "Basic Example")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("沿着路径逐级选择团队，也可以跨所有层级搜索。展开已选路径或某个分支时，最新一级会自动滚动进入视野。", "Choose a team by following its path, or search across every level. Opening a selected path and expanding branches scrolls the newest level into view.")</p>
+        </div>
+        <div class="rounded-lg border p-6 space-y-4">
+            <div class="max-w-sm">
+                <Cascader TItem="Category" Items="categories" ValueField="@(c => c.Id)" TextField="@(c => c.Name)" ChildrenProperty="@(c => c.Children)" @bind-Value="selected" AriaLabel="@(L.T("团队", "Team"))" />
+            </div>
+            <p class="text-sm text-muted-foreground" role="status">@L.T("已选择：", "Selected:") @(selected ?? L.T("未选择", "None"))</p>
+        </div>
+        <CodeBlock Source="Components/Cascader/basic.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("可选择分支", "Select Branches")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("设置 ChangeOnSelect 后，分支和叶子都能被选中；选中分支时其子级列保持展开。", "ChangeOnSelect accepts branches as well as leaves. Selecting a branch keeps its child column open.")</p>
+        </div>
+        <div class="rounded-lg border p-6 space-y-4">
+            <div class="max-w-sm">
+                <Cascader TItem="Category" Items="categories" ValueField="@(c => c.Id)" TextField="@(c => c.Name)" ChildrenProperty="@(c => c.Children)" ChangeOnSelect="true" @bind-Value="branch" AriaLabel="@(L.T("团队或部门", "Team or department"))" />
+            </div>
+            <p class="text-sm text-muted-foreground" role="status">@L.T("已选择：", "Selected:") @(branch ?? L.T("未选择", "None"))</p>
+        </div>
+        <CodeBlock Source="Components/Cascader/branches.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("关闭搜索", "Without Search")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("层级较浅时可以隐藏搜索框。焦点从当前选中项开始，用方向键即可在各层级之间移动。", "Hide search for a short hierarchy. Focus starts on the current selection; use arrow keys to navigate levels.")</p>
+        </div>
+        <div class="rounded-lg border p-6 space-y-4">
+            <div class="max-w-sm">
+                <Cascader TItem="Category" Items="categories" ValueField="@(c => c.Id)" TextField="@(c => c.Name)" ChildrenProperty="@(c => c.Children)" ShowSearch="false" @bind-Value="browseOnly" AriaLabel="@(L.T("浏览团队", "Browse teams"))" />
+            </div>
+            <p class="text-sm text-muted-foreground" role="status">@L.T("已选择：", "Selected:") @(browseOnly ?? L.T("未选择", "None"))</p>
+        </div>
+        <CodeBlock Source="Components/Cascader/without-search.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用状态", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("在禁止修改的同时保持已选路径可见。", "Keep a selected path visible while preventing edits.")</p>
+        </div>
+        <div class="rounded-lg border p-6 space-y-4">
+            <div class="max-w-sm">
+                <Cascader TItem="Category" Items="categories" ValueField="@(c => c.Id)" TextField="@(c => c.Name)" ChildrenProperty="@(c => c.Children)" Value="runtime" Disabled="true" AriaLabel="@(L.T("已禁用的团队选择", "Disabled team"))" />
+            </div>
+
+        </div>
+        <CodeBlock Source="Components/Cascader/disabled.txt" />
+    </section>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("触发器会播报自身的展开状态，并标明弹出的面板。", "The trigger announces its expanded state and identifies the popup.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("每一列都有层级标签；分支会播报展开情况，已选项会说明当前状态。", "Each column has a level label. Branches announce expansion and the chosen item exposes its current state.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("显示搜索时搜索框会获得焦点。被禁用的选择器无法打开也无法清空。", "Search receives focus when shown. Disabled pickers cannot be opened or cleared.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("打开选择器，或在同一层级的项目间移动", "Open the picker or move between items in a level"))"><Kbd>ArrowDown</Kbd> / <Kbd>ArrowUp</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("进入分支或返回其上级（从右到左布局下方向相反）", "Enter a branch or return to its parent (reversed in RTL)"))"><Kbd>ArrowRight</Kbd> / <Kbd>ArrowLeft</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("跳到当前层级的第一项或最后一项", "Move to the first or last item in a level"))"><Kbd>Home</Kbd> / <Kbd>End</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("展开分支或选中叶子节点", "Open a branch or select a leaf"))"><Kbd>Enter</Kbd> / <Kbd>Space</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭面板并把焦点交回触发器", "Close the popup and return focus to the trigger"))"><Kbd>Escape</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <ApiReference Since="v4" ComponentName="Cascader">
+            <ApiParameter Name="Items" Type="IEnumerable&lt;TItem&gt;">@L.T("嵌套层级的根节点。重复的键与循环引用会被拒绝。", "Root nodes in a nested hierarchy. Duplicate keys and cycles are rejected.")</ApiParameter>
+            <ApiParameter Name="ValueField / TextField / ChildrenProperty" Type="accessor delegates">@L.T("必需的取值键、显示文本与子级选择器。键在整个层级中必须唯一。", "Required key, display label and children selectors. Keys must be unique across the entire hierarchy.")</ApiParameter>
+            <ApiParameter Name="Value / ValueChanged / ValueExpression" Type="string? / callback / expression">@L.T("单个已选键的双向绑定与 EditContext 校验。对预选值，标题会立即解析出来。", "Two-way binding and EditContext validation for a single selected key. The caption resolves immediately for preselected values.")</ApiParameter>
+            <ApiParameter Name="ChangeOnSelect" Type="bool" Default="false">@L.T("允许在打开下一级时选中分支。默认只允许选中叶子。", "Allow selection of a branch while its next level opens. The default selects only leaves.")</ApiParameter>
+            <ApiParameter Name="ShowSearch / Clearable" Type="bool" Default="true">@L.T("在层级中搜索，并显示独立的清空按钮。打开时搜索框获得焦点；上/下键可移入搜索结果。关闭搜索时，焦点落在已选项或第一个根节点上。", "Search the hierarchy and show a separate clear button. Search receives focus on opening; Up/Down moves into the results. Without search, the selected item or first root receives focus.")</ApiParameter>
+            <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("禁用打开、清空与选择操作。", "Disables opening, clearing and selection.")</ApiParameter>
+            <ApiParameter Name="Placeholder / AriaLabel / Id / Name" Type="string?">@L.T("空标题文本、无障碍标签、触发器 ID 与表单字段名。隐藏输入会把已选键一并提交到表单。", "Empty caption, accessible label, trigger ID and form field name. Hidden inputs include selected keys in form submissions.")</ApiParameter>
+            <ApiParameter Name="Class / AdditionalAttributes" Type="presentation parameters">@L.T("容器样式，以及转发给触发器的属性。", "Container styling and attributes forwarded to the trigger.")</ApiParameter>
+        </ApiReference>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string? selected = "runtime";
+    private string? branch = "engineering";
+    private string? browseOnly;
+    private readonly List<Category> categories =
+    [
+        new("engineering", "Engineering", [new("platform", "Platform", [new("runtime", "Runtime", []), new("tools", "Tools", [])]), new("web", "Web", [])]),
+        new("design", "Design", [new("product", "Product", []), new("brand", "Brand", [])])
+    ];
+    private sealed record Category(string Id, string Name, List<Category> Children);
+}

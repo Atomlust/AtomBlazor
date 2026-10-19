@@ -1,0 +1,39 @@
+@namespace AtomBlazor
+@using PrimitiveOrientation = AtomBlazor.Primitives.ScrollAreaOrientation
+
+<AtomBlazor.Primitives.ScrollAreaScrollbar
+    Orientation="@MappedOrientation"
+    class="@CssClass"
+    @attributes="AdditionalAttributes">
+    <AtomBlazor.Primitives.ScrollAreaThumb class="@ThumbClass" />
+</AtomBlazor.Primitives.ScrollAreaScrollbar>
+
+@code {
+    [Parameter]
+    public ScrollAreaOrientation Orientation { get; set; } = ScrollAreaOrientation.Vertical;
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private PrimitiveOrientation MappedOrientation => Orientation switch
+    {
+        ScrollAreaOrientation.Horizontal => PrimitiveOrientation.Horizontal,
+        _ => PrimitiveOrientation.Vertical
+    };
+
+    private string CssClass => ClassNames.cn(
+        "atom:flex atom:touch-none atom:select-none atom:transition-colors",
+        Orientation == ScrollAreaOrientation.Vertical
+            ? "atom:h-full atom:w-2.5 atom:border-s atom:border-s-transparent atom:p-[1px]"
+            : "atom:h-2.5 atom:flex-col atom:border-t atom:border-t-transparent atom:p-[1px]",
+        Class
+    );
+
+    private string ThumbClass => "atom:relative atom:rounded-full atom:bg-border atom:flex-1";
+}

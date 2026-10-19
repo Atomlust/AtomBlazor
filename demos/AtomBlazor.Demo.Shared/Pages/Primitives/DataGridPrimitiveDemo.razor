@@ -1,0 +1,1529 @@
+@page "/primitives/datagrid"
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("DataGrid 基础件 - Atom BlazorUI", "DataGrid Primitive - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-7xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("DataGrid 基础件", "DataGrid Primitive")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("无头、无样式的数据网格基础件，支持多列排序、分页与选择。面向企业场景设计，支持 IQueryable、IEnumerable 与异步 ItemsProvider。", "Headless, unstyled data grid primitive with multi-column sorting, pagination, and selection. Designed for enterprise scenarios with IQueryable, IEnumerable, and async ItemsProvider support.")
+        </p>
+    </div>
+
+    <div class="space-y-6">
+
+    @* Basic DataGrid *@
+    <section class="space-y-4">
+        <div>
+            <h2 class="text-2xl font-semibold">@L.T("基础 DataGrid", "Basic DataGrid")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("不带排序、分页或选择的简单数据网格。使用无头基础件配合内联样式。", "Simple data grid with no sorting, pagination, or selection. Uses headless primitives with inline styling.")</p>
+        </div>
+
+        <div class="rounded-md border">
+            <AtomBlazor.Primitives.DataGridPrimitive TData="Person" Items="@people" ManualPagination="true" AriaLabel="@(L.T("基础人员表格", "Basic people grid"))" Class="w-full caption-bottom text-sm">
+                <DataGridHeader Class="[&_tr]:border-b">
+                    <tr class="border-b transition-colors hover:bg-muted/50">
+                        <DataGridHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("姓名", "Name")</DataGridHeaderCell>
+                        <DataGridHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("邮箱", "Email")</DataGridHeaderCell>
+                        <DataGridHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("年龄", "Age")</DataGridHeaderCell>
+                        <DataGridHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("部门", "Department")</DataGridHeaderCell>
+                    </tr>
+                </DataGridHeader>
+                <DataGridBody Class="[&_tr:last-child]:border-0">
+                    @foreach (var person in people)
+                    {
+                        <DataGridRow TData="Person" Class="border-b transition-colors hover:bg-muted/50">
+                            <DataGridCell Class="p-4 align-middle">@person.Name</DataGridCell>
+                            <DataGridCell Class="p-4 align-middle">@person.Email</DataGridCell>
+                            <DataGridCell Class="p-4 align-middle">@person.Age</DataGridCell>
+                            <DataGridCell Class="p-4 align-middle">@person.Department</DataGridCell>
+                        </DataGridRow>
+                    }
+                </DataGridBody>
+            </AtomBlazor.Primitives.DataGridPrimitive>
+        </div>
+        <CodeBlock Source="Primitives/DataGrid/basic.txt" />
+    </section>
+
+    @* Sortable DataGrid (Multi-Sort) *@
+    <section class="space-y-4">
+        <div>
+            <h2 class="text-2xl font-semibold">@L.T("可排序 DataGrid（多列排序）", "Sortable DataGrid (Multi-Sort)")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        点击列头即可排序。三态循环：无 → 升序 → 降序 → 无。
+                        按住 <kbd class="px-1.5 py-0.5 text-xs border rounded bg-muted">Ctrl</kbd> 并点击可追加多列排序。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Click column headers to sort. Three-state cycle: None → Ascending → Descending → None.
+                        Hold <kbd class="px-1.5 py-0.5 text-xs border rounded bg-muted">Ctrl</kbd> and click to add multi-column sorting.
+                    </p>
+                </text>
+            }
+        </div>
+
+        <div class="rounded-md border">
+            <AtomBlazor.Primitives.DataGridPrimitive TData="Person" Items="@GetSortedPeople()" @bind-State="@sortableGridState" ManualPagination="true"
+                        OnSortChange="@HandleSortChanged" AriaLabel="@(L.T("可排序人员表格", "Sortable people grid"))" Class="w-full caption-bottom text-sm">
+                <DataGridHeader Class="[&_tr]:border-b">
+                    <tr class="border-b transition-colors hover:bg-muted/50">
+                        <DataGridHeaderCell TData="Person" ColumnId="name" Sortable="true"
+                                              Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground cursor-pointer select-none hover:bg-accent">
+                            <div class="flex items-center gap-2">
+                                <span>@L.T("姓名", "Name")</span>
+                                @{ var nameDir = sortableGridState.Sorting.GetDirection("name"); }
+                                @if (nameDir == SortDirection.Ascending)
+                                {
+                                    <span class="text-xs">↑</span>
+                                }
+                                else if (nameDir == SortDirection.Descending)
+                                {
+                                    <span class="text-xs">↓</span>
+                                }
+                                @{ var namePri = sortableGridState.Sorting.GetPriority("name"); }
+                                @if (namePri > 0 && sortableGridState.Sorting.Definitions.Count > 1)
+                                {
+                                    <span class="text-[10px] bg-primary text-primary-foreground rounded-full w-4 h-4 inline-flex items-center justify-center">@namePri</span>
+                                }
+                            </div>
+                        </DataGridHeaderCell>
+                        <DataGridHeaderCell TData="Person" ColumnId="email" Sortable="true"
+                                              Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground cursor-pointer select-none hover:bg-accent">
+                            <div class="flex items-center gap-2">
+                                <span>@L.T("邮箱", "Email")</span>
+                                @{ var emailDir = sortableGridState.Sorting.GetDirection("email"); }
+                                @if (emailDir == SortDirection.Ascending)
+                                {
+                                    <span class="text-xs">↑</span>
+                                }
+                                else if (emailDir == SortDirection.Descending)
+                                {
+                                    <span class="text-xs">↓</span>
+                                }
+                                @{ var emailPri = sortableGridState.Sorting.GetPriority("email"); }
+                                @if (emailPri > 0 && sortableGridState.Sorting.Definitions.Count > 1)
+                                {
+                                    <span class="text-[10px] bg-primary text-primary-foreground rounded-full w-4 h-4 inline-flex items-center justify-center">@emailPri</span>
+                                }
+                            </div>
+                        </DataGridHeaderCell>
+                        <DataGridHeaderCell TData="Person" ColumnId="age" Sortable="true"
+                                              Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground cursor-pointer select-none hover:bg-accent">
+                            <div class="flex items-center gap-2">
+                                <span>@L.T("年龄", "Age")</span>
+                                @{ var ageDir = sortableGridState.Sorting.GetDirection("age"); }
+                                @if (ageDir == SortDirection.Ascending)
+                                {
+                                    <span class="text-xs">↑</span>
+                                }
+                                else if (ageDir == SortDirection.Descending)
+                                {
+                                    <span class="text-xs">↓</span>
+                                }
+                                @{ var agePri = sortableGridState.Sorting.GetPriority("age"); }
+                                @if (agePri > 0 && sortableGridState.Sorting.Definitions.Count > 1)
+                                {
+                                    <span class="text-[10px] bg-primary text-primary-foreground rounded-full w-4 h-4 inline-flex items-center justify-center">@agePri</span>
+                                }
+                            </div>
+                        </DataGridHeaderCell>
+                        <DataGridHeaderCell TData="Person" ColumnId="department" Sortable="true"
+                                              Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground cursor-pointer select-none hover:bg-accent">
+                            <div class="flex items-center gap-2">
+                                <span>@L.T("部门", "Department")</span>
+                                @{ var deptDir = sortableGridState.Sorting.GetDirection("department"); }
+                                @if (deptDir == SortDirection.Ascending)
+                                {
+                                    <span class="text-xs">↑</span>
+                                }
+                                else if (deptDir == SortDirection.Descending)
+                                {
+                                    <span class="text-xs">↓</span>
+                                }
+                                @{ var deptPri = sortableGridState.Sorting.GetPriority("department"); }
+                                @if (deptPri > 0 && sortableGridState.Sorting.Definitions.Count > 1)
+                                {
+                                    <span class="text-[10px] bg-primary text-primary-foreground rounded-full w-4 h-4 inline-flex items-center justify-center">@deptPri</span>
+                                }
+                            </div>
+                        </DataGridHeaderCell>
+                    </tr>
+                </DataGridHeader>
+                <DataGridBody Class="[&_tr:last-child]:border-0">
+                    @foreach (var person in GetSortedPeople())
+                    {
+                        <DataGridRow TData="Person" Class="border-b transition-colors hover:bg-muted/50">
+                            <DataGridCell Class="p-4 align-middle">@person.Name</DataGridCell>
+                            <DataGridCell Class="p-4 align-middle">@person.Email</DataGridCell>
+                            <DataGridCell Class="p-4 align-middle">@person.Age</DataGridCell>
+                            <DataGridCell Class="p-4 align-middle">@person.Department</DataGridCell>
+                        </DataGridRow>
+                    }
+                </DataGridBody>
+            </AtomBlazor.Primitives.DataGridPrimitive>
+        </div>
+
+        <div class="rounded-lg border bg-card p-4">
+            <h3 class="font-semibold mb-2">@L.T("当前排序状态", "Current Sort State")</h3>
+            <div class="text-sm space-y-1">
+                @if (sortableGridState.Sorting.Definitions.Count == 0)
+                {
+                    @if (L.IsChinese)
+                    {
+                        <text><p><span class="font-medium">排序：</span> 无</p></text>
+                    }
+                    else
+                    {
+                        <text><p><span class="font-medium">Sorting:</span> None</p></text>
+                    }
+                }
+                else
+                {
+                    @foreach (var def in sortableGridState.Sorting.Definitions)
+                    {
+                        @if (L.IsChinese)
+                        {
+                            <text>
+                                <p>
+                                    <span class="font-medium">@def.ColumnId：</span> @def.Direction
+                                    <span class="text-muted-foreground">（优先级 @sortableGridState.Sorting.GetPriority(def.ColumnId)）</span>
+                                </p>
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                <p>
+                                    <span class="font-medium">@def.ColumnId:</span> @def.Direction
+                                    <span class="text-muted-foreground">(priority @sortableGridState.Sorting.GetPriority(def.ColumnId))</span>
+                                </p>
+                            </text>
+                        }
+                    }
+                }
+            </div>
+        </div>
+        <CodeBlock Source="Primitives/DataGrid/sortable.txt" />
+    </section>
+
+    @* Paginated DataGrid *@
+    <section class="space-y-4">
+        <div>
+            <h2 class="text-2xl font-semibold">@L.T("分页 DataGrid", "Paginated DataGrid")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("带有手动分页控件、可配置每页条数的数据网格", "Data grid with manual pagination controls and configurable page size")</p>
+        </div>
+
+        <div class="space-y-4">
+            <div class="rounded-md border">
+                <AtomBlazor.Primitives.DataGridPrimitive TData="Person" Items="@GetPaginatedData()" @bind-State="@paginatedGridState" ManualPagination="true"
+                            AriaLabel="@(L.T("分页人员表格", "Paginated people grid"))" Class="w-full caption-bottom text-sm">
+                    <DataGridHeader Class="[&_tr]:border-b">
+                        <tr class="border-b transition-colors hover:bg-muted/50">
+                            <DataGridHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("姓名", "Name")</DataGridHeaderCell>
+                            <DataGridHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("邮箱", "Email")</DataGridHeaderCell>
+                            <DataGridHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("年龄", "Age")</DataGridHeaderCell>
+                            <DataGridHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("部门", "Department")</DataGridHeaderCell>
+                        </tr>
+                    </DataGridHeader>
+                    <DataGridBody Class="[&_tr:last-child]:border-0">
+                        @foreach (var person in GetPaginatedData())
+                        {
+                            <DataGridRow TData="Person" Class="border-b transition-colors hover:bg-muted/50">
+                                <DataGridCell Class="p-4 align-middle">@person.Name</DataGridCell>
+                                <DataGridCell Class="p-4 align-middle">@person.Email</DataGridCell>
+                                <DataGridCell Class="p-4 align-middle">@person.Age</DataGridCell>
+                                <DataGridCell Class="p-4 align-middle">@person.Department</DataGridCell>
+                            </DataGridRow>
+                        }
+                    </DataGridBody>
+                </AtomBlazor.Primitives.DataGridPrimitive>
+            </div>
+
+            <div class="flex items-center justify-between px-2">
+                <div class="flex-1 text-sm text-muted-foreground">
+                    @if (L.IsChinese)
+                    {
+                        <text>显示 @paginatedGridState.Pagination.FirstItemIndex-@paginatedGridState.Pagination.LastItemIndex 条，共 @paginatedGridState.Pagination.TotalItems 条</text>
+                    }
+                    else
+                    {
+                        <text>Showing @paginatedGridState.Pagination.FirstItemIndex-@paginatedGridState.Pagination.LastItemIndex of @paginatedGridState.Pagination.TotalItems</text>
+                    }
+                </div>
+                <div class="flex items-center space-x-6 lg:space-x-8">
+                    <div class="flex items-center space-x-2">
+                        <p class="text-sm font-medium">@L.T("每页行数", "Rows per page")</p>
+                        <select @onchange="@HandlePaginatedPageSizeChange"
+                                class="h-8 w-[70px] rounded-md border border-input bg-background px-2 py-1 text-sm">
+                            @foreach (var size in new[] { 5, 10, 20 })
+                            {
+                                <option value="@size" selected="@(paginatedGridState.Pagination.PageSize == size)">@size</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="flex w-[100px] items-center justify-center text-sm font-medium">
+                        @L.F("第 {0} 页，共 {1} 页", "Page {0} of {1}", paginatedGridState.Pagination.CurrentPage, paginatedGridState.Pagination.TotalPages)
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Icon"
+                                  OnClick="@(() => { paginatedGridState.Pagination.FirstPage(); StateHasChanged(); })"
+                                  Disabled="@(!paginatedGridState.Pagination.CanGoPrevious)" AriaLabel="@(L.T("跳转到第一页", "Go to first page"))">
+                            <LucideIcon Name="chevrons-left" Size="16" />
+                        </Button>
+                        <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Icon"
+                                  OnClick="@(() => { paginatedGridState.Pagination.PreviousPage(); StateHasChanged(); })"
+                                  Disabled="@(!paginatedGridState.Pagination.CanGoPrevious)" AriaLabel="@(L.T("跳转到上一页", "Go to previous page"))">
+                            <LucideIcon Name="chevron-left" Size="16" />
+                        </Button>
+                        <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Icon"
+                                  OnClick="@(() => { paginatedGridState.Pagination.NextPage(); StateHasChanged(); })"
+                                  Disabled="@(!paginatedGridState.Pagination.CanGoNext)" AriaLabel="@(L.T("跳转到下一页", "Go to next page"))">
+                            <LucideIcon Name="chevron-right" Size="16" />
+                        </Button>
+                        <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Icon"
+                                  OnClick="@(() => { paginatedGridState.Pagination.LastPage(); StateHasChanged(); })"
+                                  Disabled="@(!paginatedGridState.Pagination.CanGoNext)" AriaLabel="@(L.T("跳转到最后一页", "Go to last page"))">
+                            <LucideIcon Name="chevrons-right" Size="16" />
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <CodeBlock Source="Primitives/DataGrid/paginated.txt" />
+    </section>
+
+    @* Selectable DataGrid (Multi-Select) *@
+    <section class="space-y-4">
+        <div>
+            <h2 class="text-2xl font-semibold">@L.T("可选择 DataGrid（多选）", "Selectable DataGrid (Multi-Select)")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("点击行或复选框进行选择。点击表头复选框可全选或取消全选。使用方向键移动焦点，按 Enter/Space 选择。", "Click rows or checkboxes to select. Click header checkbox to select/deselect all. Use arrow keys to navigate and Enter/Space to select.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <div class="rounded-md border">
+                <AtomBlazor.Primitives.DataGridPrimitive TData="Person" Items="@people" @bind-State="@selectableGridState" ManualPagination="true"
+                            SelectionMode="SelectionMode.Multiple" EnableKeyboardNavigation="true"
+                            OnSelectionChange="@HandleSelectionChange" AriaLabel="@(L.T("可选择人员表格", "Selectable people grid"))" Class="w-full caption-bottom text-sm">
+                    <DataGridHeader Class="[&_tr]:border-b">
+                        <tr class="border-b transition-colors hover:bg-muted/50">
+                            @* AriaLabel names a header cell whose content carries no text of its own *@
+                            <DataGridHeaderCell TData="Person" AriaLabel="@(L.T("选择", "Select"))" Class="h-12 w-12 px-4">
+                                <input type="checkbox"
+                                       checked="@selectAllChecked"
+                                       @onchange="@HandleSelectAllChanged"
+                                       @onclick:stopPropagation="true"
+                                       class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary"
+                                       aria-label="@(L.T("全选", "Select all"))" />
+                            </DataGridHeaderCell>
+                            <DataGridHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("姓名", "Name")</DataGridHeaderCell>
+                            <DataGridHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("邮箱", "Email")</DataGridHeaderCell>
+                            <DataGridHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("年龄", "Age")</DataGridHeaderCell>
+                            <DataGridHeaderCell TData="Person" Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">@L.T("部门", "Department")</DataGridHeaderCell>
+                        </tr>
+                    </DataGridHeader>
+                    <DataGridBody Class="[&_tr:last-child]:border-0">
+                        @foreach (var person in people)
+                        {
+                            var isSelected = selectableGridState.Selection.IsSelected(person);
+                            <DataGridRow TData="Person" Item="@person" Class="@($"border-b transition-colors hover:bg-muted/50 cursor-pointer {(isSelected ? "bg-muted" : "")}")">
+                                <DataGridCell Class="w-12 px-4">
+                                    <input type="checkbox"
+                                           checked="@isSelected"
+                                           @onchange="@(() => ToggleRowSelection(person))"
+                                           @onclick:stopPropagation="true"
+                                           @onkeydown:stopPropagation="true"
+                                           tabindex="-1"
+                                           class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary"
+                                           aria-label="@(L.IsChinese ? $"选择 {person.Name}" : $"Select {person.Name}")" />
+                                </DataGridCell>
+                                <DataGridCell Class="p-4 align-middle">@person.Name</DataGridCell>
+                                <DataGridCell Class="p-4 align-middle">@person.Email</DataGridCell>
+                                <DataGridCell Class="p-4 align-middle">@person.Age</DataGridCell>
+                                <DataGridCell Class="p-4 align-middle">@person.Department</DataGridCell>
+                            </DataGridRow>
+                        }
+                    </DataGridBody>
+                </AtomBlazor.Primitives.DataGridPrimitive>
+            </div>
+
+            <div class="rounded-lg border bg-card p-4">
+                <h3 class="font-semibold mb-2">@L.T("选择状态", "Selection State")</h3>
+                <div class="text-sm space-y-1">
+                    @if (L.IsChinese)
+                    {
+                        <text><p><span class="font-medium">已选择：</span> @selectableGridState.Selection.SelectedCount 行</p></text>
+                    }
+                    else
+                    {
+                        <text><p><span class="font-medium">Selected:</span> @selectableGridState.Selection.SelectedCount rows</p></text>
+                    }
+                    @if (selectableGridState.Selection.SelectedCount > 0)
+                    {
+                        <div class="mt-2">
+                            <button @onclick="@(() => { selectableGridState.Selection.Clear(); selectAllChecked = false; StateHasChanged(); })"
+                                    class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-4">
+                                @L.T("清除选择", "Clear Selection")
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <CodeBlock Source="Primitives/DataGrid/selectable.txt" />
+    </section>
+
+    @* Column Visibility *@
+    <section class="space-y-4">
+        <div>
+            <h2 class="text-2xl font-semibold">@L.T("列可见性", "Column Visibility")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        使用 <code class="bg-muted px-1 py-0.5 rounded">DataGridColumnState</code> 以编程方式切换列的
+                        可见性。可见性变化时触发 <code class="bg-muted px-1 py-0.5 rounded">OnColumnVisibilityChange</code>
+                        回调。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Use <code class="bg-muted px-1 py-0.5 rounded">DataGridColumnState</code> to toggle column
+                        visibility programmatically. The <code class="bg-muted px-1 py-0.5 rounded">OnColumnVisibilityChange</code>
+                        callback fires when visibility changes.
+                    </p>
+                </text>
+            }
+        </div>
+
+        <div class="space-y-4">
+            <div class="flex items-center gap-2 flex-wrap">
+                @foreach (var colId in visibilityColumnIds)
+                {
+                    var isVisible = visibilityGridState.Columns.IsVisible(colId);
+                    <button @onclick="@(() => ToggleColumnVisibility(colId))"
+                            class="@($"inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors h-8 px-3 border {(isVisible ? "bg-primary text-primary-foreground border-primary" : "bg-background text-foreground border-input hover:bg-accent")}")">
+                        @colId
+                    </button>
+                }
+            </div>
+
+            <div class="rounded-md border">
+                <AtomBlazor.Primitives.DataGridPrimitive TData="Person" Items="@people" @bind-State="@visibilityGridState" ManualPagination="true"
+                            OnColumnVisibilityChange="@HandleVisibilityChange" AriaLabel="@(L.T("列可见性表格", "Column visibility grid"))" Class="w-full caption-bottom text-sm">
+                    <DataGridHeader Class="[&_tr]:border-b">
+                        <tr class="border-b transition-colors hover:bg-muted/50">
+                            @foreach (var colId in visibilityColumnIds)
+                            {
+                                @if (visibilityGridState.Columns.IsVisible(colId))
+                                {
+                                    <DataGridHeaderCell TData="Person" ColumnId="@colId"
+                                                          Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                                        @GetColumnTitle(colId)
+                                    </DataGridHeaderCell>
+                                }
+                            }
+                        </tr>
+                    </DataGridHeader>
+                    <DataGridBody Class="[&_tr:last-child]:border-0">
+                        @foreach (var person in people)
+                        {
+                            <DataGridRow TData="Person" Class="border-b transition-colors hover:bg-muted/50">
+                                @if (visibilityGridState.Columns.IsVisible("name"))
+                                {
+                                    <DataGridCell Class="p-4 align-middle">@person.Name</DataGridCell>
+                                }
+                                @if (visibilityGridState.Columns.IsVisible("email"))
+                                {
+                                    <DataGridCell Class="p-4 align-middle">@person.Email</DataGridCell>
+                                }
+                                @if (visibilityGridState.Columns.IsVisible("age"))
+                                {
+                                    <DataGridCell Class="p-4 align-middle">@person.Age</DataGridCell>
+                                }
+                                @if (visibilityGridState.Columns.IsVisible("department"))
+                                {
+                                    <DataGridCell Class="p-4 align-middle">@person.Department</DataGridCell>
+                                }
+                            </DataGridRow>
+                        }
+                    </DataGridBody>
+                </AtomBlazor.Primitives.DataGridPrimitive>
+            </div>
+
+            <div class="rounded-lg border bg-card p-4">
+                <h3 class="font-semibold mb-2">@L.T("可见性状态", "Visibility State")</h3>
+                <div class="text-sm space-y-1">
+                    @foreach (var colId in visibilityColumnIds)
+                    {
+                        <p>
+                            <span class="font-medium">@colId:</span>
+                            @(visibilityGridState.Columns.IsVisible(colId) ? L.T("可见", "Visible") : L.T("已隐藏", "Hidden"))
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
+        <CodeBlock Source="Primitives/DataGrid/column-visibility.txt" />
+    </section>
+
+    @* Reorderable Headers *@
+    <section class="space-y-4">
+        <div>
+            <h2 class="text-2xl font-semibold">@L.T("可重排表头", "Reorderable Headers")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        在 <code class="bg-muted px-1 py-0.5 rounded">DataGridHeaderCell</code> 上设置
+                        <code class="bg-muted px-1 py-0.5 rounded">Reorderable="true"</code> 即可渲染
+                        <code class="bg-muted px-1 py-0.5 rounded">draggable="true"</code> 与
+                        <code class="bg-muted px-1 py-0.5 rounded">data-column-id</code> 属性。
+                        使用 <code class="bg-muted px-1 py-0.5 rounded">OnColumnReorder</code> 处理重排事件。
+                        本示例用按钮通过 <code class="bg-muted px-1 py-0.5 rounded">DataGridColumnState.ReorderColumn()</code> 以编程方式重排。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Set <code class="bg-muted px-1 py-0.5 rounded">Reorderable="true"</code> on
+                        <code class="bg-muted px-1 py-0.5 rounded">DataGridHeaderCell</code> to render
+                        <code class="bg-muted px-1 py-0.5 rounded">draggable="true"</code> and
+                        <code class="bg-muted px-1 py-0.5 rounded">data-column-id</code> attributes.
+                        Use <code class="bg-muted px-1 py-0.5 rounded">OnColumnReorder</code> to handle reorder events.
+                        This example uses buttons to reorder programmatically via <code class="bg-muted px-1 py-0.5 rounded">DataGridColumnState.ReorderColumn()</code>.
+                    </p>
+                </text>
+            }
+        </div>
+
+        <div class="space-y-4">
+            <div class="flex items-center gap-2 flex-wrap">
+                @foreach (var colId in GetReorderableVisibleColumns())
+                {
+                    var order = reorderGridState.Columns.Entries.FirstOrDefault(e => e.ColumnId == colId)?.Order ?? 0;
+                    <div class="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-sm">
+                        <button @onclick="@(() => MoveColumnLeft(colId))" disabled="@(order == 0)"
+                                class="h-5 w-5 inline-flex items-center justify-center rounded hover:bg-accent disabled:opacity-30"
+                                aria-label="@(L.IsChinese ? $"将 {colId} 左移" : $"Move {colId} left")">
+                            <LucideIcon Name="chevron-left" Size="14" />
+                        </button>
+                        <span class="font-medium px-1">@GetColumnTitle(colId)</span>
+                        <button @onclick="@(() => MoveColumnRight(colId))" disabled="@(order >= reorderColumnIds.Length - 1)"
+                                class="h-5 w-5 inline-flex items-center justify-center rounded hover:bg-accent disabled:opacity-30"
+                                aria-label="@(L.IsChinese ? $"将 {colId} 右移" : $"Move {colId} right")">
+                            <LucideIcon Name="chevron-right" Size="14" />
+                        </button>
+                    </div>
+                }
+            </div>
+
+            <div class="rounded-md border">
+                <AtomBlazor.Primitives.DataGridPrimitive TData="Person" Items="@people" @bind-State="@reorderGridState" ManualPagination="true"
+                            OnColumnReorder="@HandleReorder" AriaLabel="@(L.T("可重排表头表格", "Reorderable headers grid"))" Class="w-full caption-bottom text-sm">
+                    <DataGridHeader Class="[&_tr]:border-b">
+                        <tr class="border-b transition-colors hover:bg-muted/50">
+                            @foreach (var colId in GetReorderableVisibleColumns())
+                            {
+                                <DataGridHeaderCell TData="Person" ColumnId="@colId" Reorderable="true"
+                                                      Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                                    @GetColumnTitle(colId)
+                                </DataGridHeaderCell>
+                            }
+                        </tr>
+                    </DataGridHeader>
+                    <DataGridBody Class="[&_tr:last-child]:border-0">
+                        @foreach (var person in people)
+                        {
+                            <DataGridRow TData="Person" Class="border-b transition-colors hover:bg-muted/50">
+                                @foreach (var colId in GetReorderableVisibleColumns())
+                                {
+                                    <DataGridCell Class="p-4 align-middle">
+                                        @GetCellValue(person, colId)
+                                    </DataGridCell>
+                                }
+                            </DataGridRow>
+                        }
+                    </DataGridBody>
+                </AtomBlazor.Primitives.DataGridPrimitive>
+            </div>
+
+            <div class="rounded-lg border bg-card p-4">
+                <h3 class="font-semibold mb-2">@L.T("列顺序", "Column Order")</h3>
+                <div class="text-sm">
+                    @string.Join(" → ", GetReorderableVisibleColumns().Select(c => GetColumnTitle(c)))
+                </div>
+            </div>
+        </div>
+        <CodeBlock Source="Primitives/DataGrid/reorderable.txt" />
+    </section>
+
+    @* Column Resize *@
+    <section class="space-y-4">
+        <div>
+            <h2 class="text-2xl font-semibold">@L.T("列缩放", "Column Resize")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        使用 <code class="bg-muted px-1 py-0.5 rounded">DataGridColumnState.SetWidth()</code> 与
+                        <code class="bg-muted px-1 py-0.5 rounded">GetWidth()</code> 以编程方式控制列宽。
+                        列宽变化时触发 <code class="bg-muted px-1 py-0.5 rounded">OnColumnResize</code> 回调。
+                        基础件负责状态管理；可拖拽的缩放交互位于 Component 层。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Use <code class="bg-muted px-1 py-0.5 rounded">DataGridColumnState.SetWidth()</code> and
+                        <code class="bg-muted px-1 py-0.5 rounded">GetWidth()</code> to control column widths programmatically.
+                        The <code class="bg-muted px-1 py-0.5 rounded">OnColumnResize</code> callback fires when column widths change.
+                        The primitive provides the state management; interactive drag resize lives in the Component layer.
+                    </p>
+                </text>
+            }
+        </div>
+
+        <div class="space-y-4">
+            <div class="flex items-center gap-2 flex-wrap">
+                @foreach (var colId in resizeColumnIds)
+                {
+                    var currentWidth = resizeGridState.Columns.GetWidth(colId);
+                    <div class="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-sm">
+                        <span class="font-medium">@GetColumnTitle(colId):</span>
+                        <button @onclick="@(() => SetColumnWidth(colId, "100px"))"
+                                class="@($"h-6 px-2 rounded text-xs {(currentWidth == "100px" ? "bg-primary text-primary-foreground" : "hover:bg-accent")}")">
+                            100px
+                        </button>
+                        <button @onclick="@(() => SetColumnWidth(colId, "200px"))"
+                                class="@($"h-6 px-2 rounded text-xs {(currentWidth == "200px" ? "bg-primary text-primary-foreground" : "hover:bg-accent")}")">
+                            200px
+                        </button>
+                        <button @onclick="@(() => SetColumnWidth(colId, null))"
+                                class="@($"h-6 px-2 rounded text-xs {(currentWidth == null ? "bg-primary text-primary-foreground" : "hover:bg-accent")}")">
+                            @L.T("自动", "Auto")
+                        </button>
+                    </div>
+                }
+            </div>
+
+            <div class="rounded-md border">
+                <AtomBlazor.Primitives.DataGridPrimitive TData="Person" Items="@people" @bind-State="@resizeGridState" ManualPagination="true"
+                            OnColumnResize="@HandleResize" AriaLabel="@(L.T("可缩放列表格", "Resizable columns grid"))" Class="w-full caption-bottom text-sm"
+                            style="table-layout: fixed;">
+                    <DataGridHeader Class="[&_tr]:border-b">
+                        <tr class="border-b transition-colors hover:bg-muted/50">
+                            @foreach (var colId in resizeColumnIds)
+                            {
+                                var width = resizeGridState.Columns.GetWidth(colId);
+                                <DataGridHeaderCell TData="Person" ColumnId="@colId"
+                                                      Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap"
+                                                      style="@(width != null ? $"width: {width}" : null)">
+                                    @GetColumnTitle(colId)
+                                </DataGridHeaderCell>
+                            }
+                        </tr>
+                    </DataGridHeader>
+                    <DataGridBody Class="[&_tr:last-child]:border-0">
+                        @foreach (var person in people)
+                        {
+                            <DataGridRow TData="Person" Class="border-b transition-colors hover:bg-muted/50">
+                                @foreach (var colId in resizeColumnIds)
+                                {
+                                    <DataGridCell Class="p-4 align-middle overflow-hidden text-ellipsis whitespace-nowrap">
+                                        @GetCellValue(person, colId)
+                                    </DataGridCell>
+                                }
+                            </DataGridRow>
+                        }
+                    </DataGridBody>
+                </AtomBlazor.Primitives.DataGridPrimitive>
+            </div>
+
+            <div class="rounded-lg border bg-card p-4">
+                <h3 class="font-semibold mb-2">@L.T("列宽", "Column Widths")</h3>
+                <div class="text-sm space-y-1">
+                    @foreach (var colId in resizeColumnIds)
+                    {
+                        <p>
+                            <span class="font-medium">@GetColumnTitle(colId):</span>
+                            @(resizeGridState.Columns.GetWidth(colId) ?? L.T("自动", "auto"))
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
+        <CodeBlock Source="Primitives/DataGrid/column-resize.txt" />
+    </section>
+
+    @* Pinned Columns *@
+    <section class="space-y-4">
+        <div>
+            <h2 class="text-2xl font-semibold">@L.T("固定列", "Pinned Columns")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        使用 CSS <code class="text-xs bg-muted px-1 py-0.5 rounded">position: sticky</code> 与计算出的像素偏移，
+                        把列固定到左侧或右侧边缘。固定列在中间内容水平滚动时保持可见。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Pin columns to the left or right edge using CSS <code class="text-xs bg-muted px-1 py-0.5 rounded">position: sticky</code>
+                        with computed pixel offsets. Pinned columns remain visible while the middle content scrolls horizontally.
+                    </p>
+                </text>
+            }
+        </div>
+        <div class="space-y-4">
+            <div class="max-w-[700px] overflow-x-auto rounded-md border">
+                <AtomBlazor.Primitives.DataGridPrimitive TData="Person" Items="@people"
+                        AriaLabel="@(L.T("固定列表格", "Pinned columns grid"))" Class="w-full caption-bottom text-sm table-fixed" style="min-width: 1000px;">
+                    <colgroup>
+                        <col style="width: 120px" />
+                        <col style="width: 200px" />
+                        <col style="width: 200px" />
+                        <col style="width: 100px" />
+                        <col style="width: 180px" />
+                        <col style="width: 120px" />
+                    </colgroup>
+                    <DataGridHeader Class="[&_tr]:border-b">
+                        <tr class="border-b transition-colors hover:bg-muted/50">
+                            @* Left-pinned: Name *@
+                            <DataGridHeaderCell TData="Person" ColumnId="name"
+                                                  Class="h-12 px-4 text-left align-middle font-medium bg-background border-r border-border"
+                                                  style="position: sticky; left: 0; z-index: 2;">
+                                @L.T("姓名", "Name")
+                            </DataGridHeaderCell>
+                            @* Scrollable middle columns *@
+                            <DataGridHeaderCell TData="Person" ColumnId="email"
+                                                  Class="h-12 px-4 text-left align-middle font-medium">
+                                @L.T("邮箱", "Email")
+                            </DataGridHeaderCell>
+                            <DataGridHeaderCell TData="Person" ColumnId="department"
+                                                  Class="h-12 px-4 text-left align-middle font-medium">
+                                @L.T("部门", "Department")
+                            </DataGridHeaderCell>
+                            <DataGridHeaderCell TData="Person" ColumnId="age"
+                                                  Class="h-12 px-4 text-left align-middle font-medium">
+                                @L.T("年龄", "Age")
+                            </DataGridHeaderCell>
+                            <DataGridHeaderCell TData="Person" ColumnId="id"
+                                                  Class="h-12 px-4 text-left align-middle font-medium">
+                                ID
+                            </DataGridHeaderCell>
+                            @* Right-pinned: Actions *@
+                            <DataGridHeaderCell TData="Person" ColumnId="actions"
+                                                  Class="h-12 px-4 text-left align-middle font-medium bg-background border-l border-border"
+                                                  style="position: sticky; right: 0; z-index: 2;">
+                                @L.T("操作", "Actions")
+                            </DataGridHeaderCell>
+                        </tr>
+                    </DataGridHeader>
+                    <DataGridBody>
+                        @foreach (var person in people)
+                        {
+                            <DataGridRow TData="Person">
+                                @* Left-pinned cell *@
+                                <DataGridCell Class="p-4 align-middle bg-background border-r border-border"
+                                                style="position: sticky; left: 0; z-index: 1;">
+                                    @person.Name
+                                </DataGridCell>
+                                @* Scrollable cells *@
+                                <DataGridCell Class="p-4 align-middle overflow-hidden text-ellipsis whitespace-nowrap">
+                                    @person.Email
+                                </DataGridCell>
+                                <DataGridCell Class="p-4 align-middle">
+                                    @person.Department
+                                </DataGridCell>
+                                <DataGridCell Class="p-4 align-middle">
+                                    @person.Age
+                                </DataGridCell>
+                                <DataGridCell Class="p-4 align-middle">
+                                    @person.Id
+                                </DataGridCell>
+                                @* Right-pinned cell *@
+                                <DataGridCell Class="p-4 align-middle bg-background border-l border-border"
+                                                style="position: sticky; right: 0; z-index: 1;">
+                                    <button class="text-sm text-primary hover:underline">@L.T("编辑", "Edit")</button>
+                                </DataGridCell>
+                            </DataGridRow>
+                        }
+                    </DataGridBody>
+                </AtomBlazor.Primitives.DataGridPrimitive>
+            </div>
+        </div>
+        <CodeBlock Source="Primitives/DataGrid/pinned-columns.txt" />
+    </section>
+
+    @* All Features Combined *@
+    <section class="space-y-4">
+        <div>
+            <h2 class="text-2xl font-semibold">@L.T("全部特性组合", "All Features Combined")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("多列排序、分页、行选择、列可见性、列重排与列缩放全部协同工作。它演示完整的 DataGrid 基础件 API。", "Multi-column sorting, pagination, row selection, column visibility, column reorder, and column resize all working together. This demonstrates the full DataGrid primitive API.")
+            </p>
+        </div>
+
+        <div class="space-y-4">
+            @* Column visibility toggles *@
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-sm font-medium text-muted-foreground">@L.T("列：", "Columns:")</span>
+                @foreach (var colId in combinedColumnIds)
+                {
+                    var isVisible = combinedGridState.Columns.IsVisible(colId);
+                    <button @onclick="@(() => ToggleCombinedColumnVisibility(colId))"
+                            class="@($"inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors h-7 px-2 border {(isVisible ? "bg-primary text-primary-foreground border-primary" : "bg-background text-foreground border-input hover:bg-accent")}")">
+                        @GetColumnTitle(colId)
+                    </button>
+                }
+            </div>
+
+            @* Reorder controls *@
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-sm font-medium text-muted-foreground">@L.T("顺序：", "Order:")</span>
+                @foreach (var colId in GetCombinedVisibleColumns())
+                {
+                    var entry = combinedGridState.Columns.Entries.FirstOrDefault(e => e.ColumnId == colId);
+                    var order = entry?.Order ?? 0;
+                    <div class="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-sm">
+                        <button @onclick="@(() => MoveCombinedColumnLeft(colId))" disabled="@(order == 0)"
+                                class="h-5 w-5 inline-flex items-center justify-center rounded hover:bg-accent disabled:opacity-30"
+                                aria-label="@(L.IsChinese ? $"将 {colId} 左移" : $"Move {colId} left")">
+                            <LucideIcon Name="chevron-left" Size="14" />
+                        </button>
+                        <span class="font-medium px-1">@GetColumnTitle(colId)</span>
+                        <button @onclick="@(() => MoveCombinedColumnRight(colId))" disabled="@(order >= combinedColumnIds.Length - 1)"
+                                class="h-5 w-5 inline-flex items-center justify-center rounded hover:bg-accent disabled:opacity-30"
+                                aria-label="@(L.IsChinese ? $"将 {colId} 右移" : $"Move {colId} right")">
+                            <LucideIcon Name="chevron-right" Size="14" />
+                        </button>
+                    </div>
+                }
+            </div>
+
+            @* Width controls *@
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-sm font-medium text-muted-foreground">@L.T("列宽：", "Widths:")</span>
+                @foreach (var colId in GetCombinedVisibleColumns())
+                {
+                    var currentWidth = combinedGridState.Columns.GetWidth(colId);
+                    <div class="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs">
+                        <span class="font-medium">@GetColumnTitle(colId)</span>
+                        <button @onclick="@(() => SetCombinedColumnWidth(colId, "120px"))"
+                                class="@($"h-5 px-1 rounded {(currentWidth == "120px" ? "bg-primary text-primary-foreground" : "hover:bg-accent")}")">
+                            120
+                        </button>
+                        <button @onclick="@(() => SetCombinedColumnWidth(colId, null))"
+                                class="@($"h-5 px-1 rounded {(currentWidth == null ? "bg-primary text-primary-foreground" : "hover:bg-accent")}")">
+                            @L.T("自动", "Auto")
+                        </button>
+                    </div>
+                }
+            </div>
+
+            @* Grid with all features *@
+            <div class="rounded-md border">
+                <AtomBlazor.Primitives.DataGridPrimitive TData="Person" Items="@GetCombinedPageData()"
+                            @bind-State="@combinedGridState" ManualPagination="true"
+                            SelectionMode="SelectionMode.Multiple"
+                            OnSortChange="@HandleCombinedSortChanged"
+                            OnSelectionChange="@HandleCombinedSelectionChange"
+                            OnColumnVisibilityChange="@HandleCombinedVisibilityChange"
+                            OnColumnReorder="@HandleCombinedReorder"
+                            OnColumnResize="@HandleCombinedResize"
+                            AriaLabel="@(L.T("组合特性表格", "Combined features grid"))" Class="w-full caption-bottom text-sm"
+                            style="table-layout: fixed;">
+                    <DataGridHeader Class="[&_tr]:border-b">
+                        <tr class="border-b transition-colors hover:bg-muted/50">
+                            <DataGridHeaderCell TData="Person" Class="h-12 w-12 px-4 text-center align-middle" style="width: 48px">
+                                <input type="checkbox" checked="@CombinedIsAllOnPageSelected()"
+                                       @onchange="@HandleCombinedSelectAllChanged"
+                                       @onclick:stopPropagation="true"
+                                       class="rounded border-input"
+                                       aria-label="@(L.T("全选本页所有行", "Select all rows on page"))" />
+                            </DataGridHeaderCell>
+                            @foreach (var colId in GetCombinedVisibleColumns())
+                            {
+                                var sortDirection = combinedGridState.Sorting.GetDirection(colId);
+                                var width = combinedGridState.Columns.GetWidth(colId);
+                                <DataGridHeaderCell TData="Person" ColumnId="@colId" Sortable="true" Reorderable="true"
+                                                      Class="h-12 px-4 text-left align-middle font-medium text-muted-foreground cursor-pointer select-none overflow-hidden"
+                                                      style="@(width != null ? $"width: {width}" : null)">
+                                    <div class="flex items-center gap-2">
+                                        <span>@GetColumnTitle(colId)</span>
+                                        @if (sortDirection != SortDirection.None)
+                                        {
+                                            @if (sortDirection == SortDirection.Ascending)
+                                            {
+                                                <LucideIcon Name="arrow-up" Size="16" />
+                                            }
+                                            else
+                                            {
+                                                <LucideIcon Name="arrow-down" Size="16" />
+                                            }
+                                        }
+                                    </div>
+                                </DataGridHeaderCell>
+                            }
+                        </tr>
+                    </DataGridHeader>
+                    <DataGridBody Class="[&_tr:last-child]:border-0">
+                        @foreach (var person in GetCombinedPageData())
+                        {
+                            var isSelected = combinedGridState.Selection.IsSelected(person);
+                            <DataGridRow TData="Person" Item="@person" Class="@($"border-b transition-colors hover:bg-muted/50 {(isSelected ? "bg-muted" : "")}")">
+                                <DataGridCell Class="p-4 w-12 text-center align-middle" style="width: 48px">
+                                    <input type="checkbox" checked="@isSelected"
+                                           @onchange="@(() => ToggleCombinedRowSelection(person))"
+                                           @onclick:stopPropagation="true"
+                                           class="rounded border-input" />
+                                </DataGridCell>
+                                @foreach (var colId in GetCombinedVisibleColumns())
+                                {
+                                    <DataGridCell Class="p-4 align-middle overflow-hidden text-ellipsis whitespace-nowrap">
+                                        @GetCellValue(person, colId)
+                                    </DataGridCell>
+                                }
+                            </DataGridRow>
+                        }
+                    </DataGridBody>
+                </AtomBlazor.Primitives.DataGridPrimitive>
+            </div>
+
+            @* Pagination controls *@
+            <div class="flex items-center justify-between">
+                <div class="text-sm text-muted-foreground">
+                    @L.F("已选择 {0} 项，共 {1} 项。", "{0} of {1} row(s) selected", combinedGridState.Selection.SelectedCount, combinedGridState.Pagination.TotalItems)
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm">@L.T("每页行数：", "Rows per page:")</span>
+                        <select value="@combinedGridState.Pagination.PageSize"
+                                @onchange="@HandleCombinedPageSizeChange"
+                                class="h-8 rounded-md border bg-background px-2 text-sm">
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                        </select>
+                    </div>
+                    <span class="text-sm">
+                        @L.F("第 {0} 页，共 {1} 页", "Page {0} of {1}", combinedGridState.Pagination.CurrentPage, combinedGridState.Pagination.TotalPages)
+                    </span>
+                    <div class="flex items-center gap-1">
+                        <button disabled="@(!combinedGridState.Pagination.CanGoPrevious)"
+                                @onclick="@(() => combinedGridState.Pagination.FirstPage())"
+                                class="h-8 w-8 inline-flex items-center justify-center rounded-md border hover:bg-accent disabled:opacity-50"
+                                aria-label="@(L.T("第一页", "First page"))">
+                            <LucideIcon Name="chevrons-left" Size="16" />
+                        </button>
+                        <button disabled="@(!combinedGridState.Pagination.CanGoPrevious)"
+                                @onclick="@(() => combinedGridState.Pagination.PreviousPage())"
+                                class="h-8 w-8 inline-flex items-center justify-center rounded-md border hover:bg-accent disabled:opacity-50"
+                                aria-label="@(L.T("上一页", "Previous page"))">
+                            <LucideIcon Name="chevron-left" Size="16" />
+                        </button>
+                        <button disabled="@(!combinedGridState.Pagination.CanGoNext)"
+                                @onclick="@(() => combinedGridState.Pagination.NextPage())"
+                                class="h-8 w-8 inline-flex items-center justify-center rounded-md border hover:bg-accent disabled:opacity-50"
+                                aria-label="@(L.T("下一页", "Next page"))">
+                            <LucideIcon Name="chevron-right" Size="16" />
+                        </button>
+                        <button disabled="@(!combinedGridState.Pagination.CanGoNext)"
+                                @onclick="@(() => combinedGridState.Pagination.LastPage())"
+                                class="h-8 w-8 inline-flex items-center justify-center rounded-md border hover:bg-accent disabled:opacity-50"
+                                aria-label="@(L.T("最后一页", "Last page"))">
+                            <LucideIcon Name="chevrons-right" Size="16" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <CodeBlock Source="Primitives/DataGrid/combined.txt" />
+    </section>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">role="grid"</code> @L.T("用于根表格元素", "on the root table element")
+            </AccessibilityItem>
+            <AccessibilityItem>
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">role="row"</code> @L.T("用于数据行", "on data rows")
+            </AccessibilityItem>
+            <AccessibilityItem>
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">role="columnheader"</code> @L.T("用于表头单元格", "on header cells")
+            </AccessibilityItem>
+            <AccessibilityItem>
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">role="gridcell"</code> @L.T("用于数据单元格", "on data cells")
+            </AccessibilityItem>
+            <AccessibilityItem>
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-sort</code> @L.T("指示列的排序方向（ascending、descending、none）", "indicates column sort direction (ascending, descending, none)")
+            </AccessibilityItem>
+            <AccessibilityItem>
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-selected</code> @L.T("指示行的选中状态", "indicates row selection state")
+            </AccessibilityItem>
+            <AccessibilityItem>
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-rowcount</code> @L.T("用于包含表头在内的总行数", "for total row count including header")
+            </AccessibilityItem>
+            <AccessibilityItem>
+                <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> @L.T("用于表格元素", "on the grid element")
+            </AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("移动到下一行", "Navigate to next row"))">
+                <Kbd>ArrowDown</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("移动到上一行", "Navigate to previous row"))">
+                <Kbd>ArrowUp</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("切换该行的选中状态", "Toggle row selection"))">
+                <Kbd>Enter / Space</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("切换列排序", "Toggle column sort"))">
+                <Kbd>Enter / Space</Kbd> @L.T("（在表头单元格上）", "on header cell")
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="DataGrid&lt;TData&gt;">
+                <ApiParameter Name="Items" Type="IEnumerable&lt;TData&gt;?">
+                    @L.T("网格的数据源。支持 IQueryable 与 IEnumerable。与 ItemsProvider 互斥。", "The data source for the grid. Supports IQueryable and IEnumerable. Mutually exclusive with ItemsProvider.")
+                </ApiParameter>
+                <ApiParameter Name="ItemsProvider" Type="DataGridItemsProvider&lt;TData&gt;?">
+                    @L.T("用于服务端取数的异步数据提供委托。与 Items 互斥。", "Async data provider delegate for server-side data fetching. Mutually exclusive with Items.")
+                </ApiParameter>
+                <ApiParameter Name="State" Type="DataGridState&lt;TData&gt;?">
+                    @L.T("用于受控模式的网格状态。配合 ", "The grid state for controlled mode. Use with ")<code>@@bind-State</code>@L.T(" 使用即可双向绑定。", " for two-way binding.")
+                </ApiParameter>
+                <ApiParameter Name="SelectionMode" Type="SelectionMode" Default="None">
+                    @L.T("选择模式：None、Single 或 Multiple。", "The selection mode: None, Single, or Multiple.")
+                </ApiParameter>
+                <ApiParameter Name="EnableKeyboardNavigation" Type="bool" Default="true">
+                    @L.T("为网格行启用键盘导航（方向键移动，Enter/Space 选择）。", "Enables keyboard navigation for grid rows (arrow keys to navigate, Enter/Space to select).")
+                </ApiParameter>
+                <ApiParameter Name="ManualPagination" Type="bool" Default="false">
+                    @L.T("为 true 时，网格不会自动排序或分页数据。当由父组件处理数据时使用。", "When true, the grid will not automatically sort or paginate data. Use when the parent handles data processing.")
+                </ApiParameter>
+                <ApiParameter Name="OnSortChange" Type="EventCallback&lt;IReadOnlyList&lt;SortDefinition&gt;&gt;">
+                    @L.T("排序发生变化时调用的回调。", "Callback invoked when sorting changes.")
+                </ApiParameter>
+                <ApiParameter Name="OnSelectionChange" Type="EventCallback&lt;IReadOnlyCollection&lt;TData&gt;&gt;">
+                    @L.T("选择内容发生变化时调用的回调。", "Callback invoked when the selection changes.")
+                </ApiParameter>
+                <ApiParameter Name="OnPageChange" Type="EventCallback&lt;int&gt;">
+                    @L.T("当前页发生变化时调用的回调。", "Callback invoked when the current page changes.")
+                </ApiParameter>
+                <ApiParameter Name="OnPageSizeChange" Type="EventCallback&lt;int&gt;">
+                    @L.T("每页条数发生变化时调用的回调。", "Callback invoked when the page size changes.")
+                </ApiParameter>
+                <ApiParameter Name="OnColumnVisibilityChange" Type="EventCallback&lt;(string ColumnId, bool Visible)&gt;">
+                    @L.T("某列的可见性发生变化时调用的回调。", "Callback invoked when a column's visibility changes.")
+                </ApiParameter>
+                <ApiParameter Name="OnColumnReorder" Type="EventCallback&lt;(string ColumnId, int NewIndex)&gt;">
+                    @L.T("某列被重排时调用的回调。", "Callback invoked when a column is reordered.")
+                </ApiParameter>
+                <ApiParameter Name="OnColumnResize" Type="EventCallback&lt;(string ColumnId, string? Width)&gt;">
+                    @L.T("某列被缩放时调用的回调。", "Callback invoked when a column is resized.")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?">
+                    @L.T("网格元素的 ARIA 标签。", "ARIA label for the grid element.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("应用于表格元素的额外 CSS 类。", "Additional CSS classes for the table element.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("网格内容（DataGridHeader、DataGridBody）。", "The grid content (DataGridHeader, DataGridBody).")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @L.T("应用于根 ", "Additional HTML attributes applied to the root ")<code>&lt;table&gt;</code>@L.T(" 元素的额外 HTML 属性（例如 ", " element (e.g. ")<code>data-testid</code>@L.T("、", ", ")<code>aria-label</code>@L.T("）。", ").")
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="DataGridHeaderCell&lt;TData&gt;">
+                <ApiParameter Name="ColumnId" Type="string?">
+                    @L.T("用于排序的列标识符。当 Sortable 为 true 时必需。", "The column identifier used for sorting. Required when Sortable is true.")
+                </ApiParameter>
+                <ApiParameter Name="Sortable" Type="bool" Default="false">
+                    @L.T("该列是否支持排序。为 true 时，点击表头即可切换排序。", "Whether this column supports sorting. When true, clicking the header toggles sort.")
+                </ApiParameter>
+                <ApiParameter Name="Reorderable" Type="bool" Default="false">
+                    @L.T("该列是否可以重排。为 true 时会在表头单元格上渲染 ", "Whether this column can be reordered. When true, renders ")<code>draggable="true"</code>@L.T(" 与 ", " and ")<code>data-column-id</code>@L.T(" 属性。", " on the header cell.")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                    @L.T("表头单元格的显式无障碍名称，会渲染为 ", "Explicit accessible name for the header cell, rendered as ")<code>aria-label</code>@L.T("，加在 ", " on the ")<code>&lt;th&gt;</code>@L.T(" 上。当单元格自身的内容已经能读作文本时请留空——没有标签时单元格就由该内容来命名，这正是普通文本表头想要的。对于自身不带文本的表头，例如只有图标的表头，否则该列会没有名称，请在这种情形设置它。因为 ", ". Leave null whenever the cell's own content already reads as text — with no label the cell is named from that content, which is what an ordinary text header wants. Set it for a header that carries no text of its own, such as an icon-only header, which would otherwise leave the column unnamed. Because ")<code>aria-label</code>@L.T(" 是替换内容而不是补充内容，这里设置了值就会屏蔽该单元格实际渲染的任何文本。", " replaces content rather than adding to it, a value set here silences any text the cell does render.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("应用于表头单元格的额外 CSS 类。", "Additional CSS classes for the header cell.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("表头单元格内容。", "The header cell content.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @L.T("应用于根 ", "Additional HTML attributes applied to the root ")<code>&lt;th&gt;</code>@L.T(" 元素的额外 HTML 属性（例如 ", " element (e.g. ")<code>data-testid</code>@L.T("、", ", ")<code>aria-label</code>@L.T("）。", ").")
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="DataGridRow&lt;TData&gt;">
+                <ApiParameter Name="Item" Type="TData?">
+                    @L.T("该行的数据项。选择功能需要它。", "The data item for this row. Required for selection to work.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("应用于该行的额外 CSS 类。", "Additional CSS classes for the row.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("行内容（DataGridCell 元素）。", "The row content (DataGridCell elements).")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @L.T("应用于根 ", "Additional HTML attributes applied to the root ")<code>&lt;tr&gt;</code>@L.T(" 元素的额外 HTML 属性（例如 ", " element (e.g. ")<code>data-testid</code>@L.T("、", ", ")<code>aria-label</code>@L.T("）。", ").")
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="DataGridCell">
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("应用于单元格的额外 CSS 类。", "Additional CSS classes for the cell.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("单元格内容。", "The cell content.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @L.T("应用于根 ", "Additional HTML attributes applied to the root ")<code>&lt;td&gt;</code>@L.T(" 元素的额外 HTML 属性（例如 ", " element (e.g. ")<code>data-testid</code>@L.T("、", ", ")<code>aria-label</code>@L.T("）。", ").")
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+
+    </div>
+</div>
+
+@code {
+#pragma warning disable BL0012 // （.NET 11 Razor 分析器）照语句本体保留显式 StateHasChanged（本块报点 14 处：网格/表格回调亦可经 JS interop 等非事件路径触发，分析器仅见事件处理器静态形态而判冗余）；禁止为消诊断删本体，采文件级定点抑制
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private List<Person> people = new();
+    private List<Person> largePeopleDataset = new();
+
+    private DataGridState<Person> sortableGridState = new();
+    private DataGridState<Person> paginatedGridState = new() { Pagination = { PageSize = 5 } };
+    private DataGridState<Person> selectableGridState = new();
+    private DataGridState<Person> combinedGridState = new() { Pagination = { PageSize = 5 } };
+
+    private bool selectAllChecked;
+    private bool combinedSelectAllChecked;
+
+    // Column visibility state
+    private DataGridState<Person> visibilityGridState = new();
+    private readonly string[] visibilityColumnIds = { "name", "email", "age", "department" };
+
+    // Reorder state
+    private DataGridState<Person> reorderGridState = new();
+    private readonly string[] reorderColumnIds = { "name", "email", "age", "department" };
+
+    // Resize state
+    private DataGridState<Person> resizeGridState = new();
+    private readonly string[] resizeColumnIds = { "name", "email", "age", "department" };
+
+    // Combined column IDs
+    private readonly string[] combinedColumnIds = { "name", "email", "age", "department" };
+
+    protected override void OnInitialized()
+    {
+        selectableGridState.Selection.Mode = SelectionMode.Multiple;
+        combinedGridState.Selection.Mode = SelectionMode.Multiple;
+
+        // Initialize column state for visibility, reorder, resize, and combined demos
+        visibilityGridState.Columns.Initialize(visibilityColumnIds.Select(id => (id, true)));
+        reorderGridState.Columns.Initialize(reorderColumnIds.Select(id => (id, true)));
+        resizeGridState.Columns.Initialize(resizeColumnIds.Select(id => (id, true)));
+        combinedGridState.Columns.Initialize(combinedColumnIds.Select(id => (id, true)));
+
+        people = new List<Person>
+        {
+            new() { Id = 1, Name = "John Doe", Email = "john@example.com", Age = 32, Department = "Engineering" },
+            new() { Id = 2, Name = "Jane Smith", Email = "jane@example.com", Age = 28, Department = "Design" },
+            new() { Id = 3, Name = "Bob Johnson", Email = "bob@example.com", Age = 45, Department = "Sales" },
+            new() { Id = 4, Name = "Alice Williams", Email = "alice@example.com", Age = 35, Department = "Engineering" },
+            new() { Id = 5, Name = "Charlie Brown", Email = "charlie@example.com", Age = 29, Department = "Marketing" },
+            new() { Id = 6, Name = "Diana Prince", Email = "diana@example.com", Age = 31, Department = "Design" },
+            new() { Id = 7, Name = "Eve Davis", Email = "eve@example.com", Age = 27, Department = "Sales" },
+            new() { Id = 8, Name = "Frank Miller", Email = "frank@example.com", Age = 38, Department = "Engineering" },
+        };
+
+        var firstNames = new[] { "Mathew", "John", "Jane", "Bob", "Alice", "Charlie", "Diana", "Eve", "Frank", "Grace", "Henry", "Ivy", "Jack", "Kate", "Leo", "Mary", "Nathan", "Olivia", "Paul", "Quinn", "Rachel", "Samuel", "Tina", "Uma", "Victor", "Wendy", "Xavier", "Yolanda", "Zachary", "Aria", "Blake", "Noah", "Liam", "Sophia", "Emma", "Mason", "Lucas", "Chloe", "Lily", "Owen" };
+        var lastNames = new[] { "Taylor", "Doe", "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Moore", "Jackson", "Martin", "Lee", "Perez", "Thompson", "White", "Harris", "Sanchez", "Clark", "Ramirez", "Lewis", "Robinson", "Bennett", "Graham", "Foster", "Coleman", "Hughes", "Cruz", "Reed", "Cook", "Morgan" };
+        var departments = new[] { "Engineering", "Design", "Sales", "Marketing", "HR", "Finance", "Operations", "Support" };
+
+        largePeopleDataset = new List<Person>();
+        for (var i = 0; i < 200; i++)
+        {
+            var firstName = firstNames[i % firstNames.Length];
+            var lastName = lastNames[(i / firstNames.Length + i) % lastNames.Length];
+            largePeopleDataset.Add(new Person
+            {
+                Id = i + 1,
+                Name = $"{firstName} {lastName}",
+                Email = $"{firstName.ToLower()}.{lastName.ToLower()}@example.com",
+                Age = 22 + (i % 40),
+                Department = departments[i % departments.Length]
+            });
+        }
+
+        paginatedGridState.Pagination.TotalItems = largePeopleDataset.Count;
+        combinedGridState.Pagination.TotalItems = largePeopleDataset.Count;
+    }
+
+    // --- Sorting helpers ---
+
+    private void HandleSortChanged(IReadOnlyList<SortDefinition> definitions)
+    {
+        StateHasChanged();
+    }
+
+    private IEnumerable<Person> GetSortedPeople()
+    {
+        return ApplyMultiSort(people, sortableGridState.Sorting.Definitions);
+    }
+
+    // --- Pagination helpers ---
+
+    private IEnumerable<Person> GetPaginatedData()
+    {
+        var pagination = paginatedGridState.Pagination;
+        var skip = (pagination.CurrentPage - 1) * pagination.PageSize;
+        return largePeopleDataset.Skip(skip).Take(pagination.PageSize);
+    }
+
+    private void HandlePaginatedPageSizeChange(ChangeEventArgs e)
+    {
+        paginatedGridState.Pagination.PageSize = int.Parse(e.Value?.ToString() ?? "10");
+        StateHasChanged();
+    }
+
+    // --- Selection helpers ---
+
+    private void HandleSelectionChange(IReadOnlyCollection<Person> selectedItems)
+    {
+        selectAllChecked = people.All(p => selectableGridState.Selection.IsSelected(p));
+        StateHasChanged();
+    }
+
+    private void ToggleRowSelection(Person person)
+    {
+        selectableGridState.Selection.Toggle(person);
+        selectAllChecked = people.All(p => selectableGridState.Selection.IsSelected(p));
+        StateHasChanged();
+    }
+
+    private void HandleSelectAllChanged(ChangeEventArgs e)
+    {
+        selectAllChecked = (bool)(e.Value ?? false);
+        if (selectAllChecked)
+        {
+            selectableGridState.Selection.SelectAll(people);
+        }
+        else
+        {
+            selectableGridState.Selection.Clear();
+        }
+        StateHasChanged();
+    }
+
+    // --- Combined helpers ---
+
+    private void HandleCombinedSortChanged(IReadOnlyList<SortDefinition> definitions)
+    {
+        combinedGridState.Pagination.Reset();
+        StateHasChanged();
+    }
+
+    private void HandleCombinedSelectionChange(IReadOnlyCollection<Person> selectedItems)
+    {
+        var pageData = GetCombinedPageData().ToList();
+        combinedSelectAllChecked = pageData.All(p => combinedGridState.Selection.IsSelected(p)) && pageData.Any();
+        StateHasChanged();
+    }
+
+    private bool CombinedIsAllOnPageSelected()
+    {
+        var pageData = GetCombinedPageData().ToList();
+        return pageData.Any() && pageData.All(p => combinedGridState.Selection.IsSelected(p));
+    }
+
+    private void HandleCombinedSelectAllChanged(ChangeEventArgs e)
+    {
+        combinedSelectAllChecked = (bool)(e.Value ?? false);
+        var pageData = GetCombinedPageData().ToList();
+        if (combinedSelectAllChecked)
+        {
+            combinedGridState.Selection.SelectAll(pageData);
+        }
+        else
+        {
+            combinedGridState.Selection.DeselectAll(pageData);
+        }
+        StateHasChanged();
+    }
+
+    private void HandleCombinedSelectAllOnPage()
+    {
+        var pageData = GetCombinedPageData().ToList();
+        foreach (var item in pageData)
+        {
+            combinedGridState.Selection.Select(item);
+        }
+
+        combinedSelectAllChecked = true;
+        StateHasChanged();
+    }
+
+    private void HandleCombinedSelectAllItems()
+    {
+        foreach (var item in largePeopleDataset)
+        {
+            combinedGridState.Selection.Select(item);
+        }
+
+        combinedSelectAllChecked = true;
+        StateHasChanged();
+    }
+
+    private void HandleCombinedClearSelection()
+    {
+        combinedGridState.Selection.Clear();
+
+        combinedSelectAllChecked = false;
+        StateHasChanged();
+    }
+
+    private void ToggleCombinedRowSelection(Person person)
+    {
+        combinedGridState.Selection.Toggle(person);
+        var pageData = GetCombinedPageData().ToList();
+        combinedSelectAllChecked = pageData.All(p => combinedGridState.Selection.IsSelected(p)) && pageData.Any();
+        StateHasChanged();
+    }
+
+    private void HandleCombinedPageSizeChange(ChangeEventArgs e)
+    {
+        combinedGridState.Pagination.PageSize = int.Parse(e.Value?.ToString() ?? "10");
+        StateHasChanged();
+    }
+
+    private IEnumerable<Person> GetCombinedPageData()
+    {
+        var sorted = ApplyMultiSort(largePeopleDataset, combinedGridState.Sorting.Definitions).ToList();
+        var pagination = combinedGridState.Pagination;
+        pagination.TotalItems = sorted.Count;
+
+        var skip = (pagination.CurrentPage - 1) * pagination.PageSize;
+        return sorted.Skip(skip).Take(pagination.PageSize);
+    }
+
+    // --- Multi-sort utility ---
+
+    private static IEnumerable<Person> ApplyMultiSort(IEnumerable<Person> data, IReadOnlyList<SortDefinition> definitions)
+    {
+        if (definitions.Count == 0)
+        {
+            return data;
+        }
+
+        IOrderedEnumerable<Person>? ordered = null;
+        foreach (var def in definitions)
+        {
+            if (ordered == null)
+            {
+                ordered = def.ColumnId switch
+                {
+                    "name" => def.Direction == SortDirection.Ascending ? data.OrderBy(p => p.Name) : data.OrderByDescending(p => p.Name),
+                    "email" => def.Direction == SortDirection.Ascending ? data.OrderBy(p => p.Email) : data.OrderByDescending(p => p.Email),
+                    "age" => def.Direction == SortDirection.Ascending ? data.OrderBy(p => p.Age) : data.OrderByDescending(p => p.Age),
+                    "department" => def.Direction == SortDirection.Ascending ? data.OrderBy(p => p.Department) : data.OrderByDescending(p => p.Department),
+                    _ => data.OrderBy(p => p.Id)
+                };
+            }
+            else
+            {
+                ordered = def.ColumnId switch
+                {
+                    "name" => def.Direction == SortDirection.Ascending ? ordered.ThenBy(p => p.Name) : ordered.ThenByDescending(p => p.Name),
+                    "email" => def.Direction == SortDirection.Ascending ? ordered.ThenBy(p => p.Email) : ordered.ThenByDescending(p => p.Email),
+                    "age" => def.Direction == SortDirection.Ascending ? ordered.ThenBy(p => p.Age) : ordered.ThenByDescending(p => p.Age),
+                    "department" => def.Direction == SortDirection.Ascending ? ordered.ThenBy(p => p.Department) : ordered.ThenByDescending(p => p.Department),
+                    _ => ordered.ThenBy(p => p.Id)
+                };
+            }
+        }
+
+        return ordered ?? data;
+    }
+
+    // --- Column visibility helpers ---
+
+    private void ToggleColumnVisibility(string columnId)
+    {
+        var isVisible = visibilityGridState.Columns.IsVisible(columnId);
+        visibilityGridState.Columns.SetVisibility(columnId, !isVisible);
+        StateHasChanged();
+    }
+
+    private void HandleVisibilityChange((string ColumnId, bool Visible) change)
+    {
+        StateHasChanged();
+    }
+
+    // --- Reorder helpers ---
+
+    private IReadOnlyList<string> GetReorderableVisibleColumns()
+    {
+        return reorderGridState.Columns.GetVisibleColumnIds();
+    }
+
+    private void MoveColumnLeft(string columnId)
+    {
+        var entry = reorderGridState.Columns.Entries.FirstOrDefault(e => e.ColumnId == columnId);
+        if (entry != null && entry.Order > 0)
+        {
+            reorderGridState.Columns.ReorderColumn(columnId, entry.Order - 1);
+            StateHasChanged();
+        }
+    }
+
+    private void MoveColumnRight(string columnId)
+    {
+        var entry = reorderGridState.Columns.Entries.FirstOrDefault(e => e.ColumnId == columnId);
+        if (entry != null && entry.Order < reorderColumnIds.Length - 1)
+        {
+            reorderGridState.Columns.ReorderColumn(columnId, entry.Order + 1);
+            StateHasChanged();
+        }
+    }
+
+    private void HandleReorder((string ColumnId, int NewIndex) reorder)
+    {
+        StateHasChanged();
+    }
+
+    // --- Resize helpers ---
+
+    private void SetColumnWidth(string columnId, string? width)
+    {
+        resizeGridState.Columns.SetWidth(columnId, width);
+        StateHasChanged();
+    }
+
+    private void HandleResize((string ColumnId, string? Width) resize)
+    {
+        StateHasChanged();
+    }
+
+    // --- Combined column helpers ---
+
+    private IReadOnlyList<string> GetCombinedVisibleColumns()
+    {
+        return combinedGridState.Columns.GetVisibleColumnIds();
+    }
+
+    private void ToggleCombinedColumnVisibility(string columnId)
+    {
+        var isVisible = combinedGridState.Columns.IsVisible(columnId);
+        combinedGridState.Columns.SetVisibility(columnId, !isVisible);
+        StateHasChanged();
+    }
+
+    private void HandleCombinedVisibilityChange((string ColumnId, bool Visible) change)
+    {
+        StateHasChanged();
+    }
+
+    private void MoveCombinedColumnLeft(string columnId)
+    {
+        var entry = combinedGridState.Columns.Entries.FirstOrDefault(e => e.ColumnId == columnId);
+        if (entry != null && entry.Order > 0)
+        {
+            combinedGridState.Columns.ReorderColumn(columnId, entry.Order - 1);
+            StateHasChanged();
+        }
+    }
+
+    private void MoveCombinedColumnRight(string columnId)
+    {
+        var entry = combinedGridState.Columns.Entries.FirstOrDefault(e => e.ColumnId == columnId);
+        if (entry != null && entry.Order < combinedColumnIds.Length - 1)
+        {
+            combinedGridState.Columns.ReorderColumn(columnId, entry.Order + 1);
+            StateHasChanged();
+        }
+    }
+
+    private void HandleCombinedReorder((string ColumnId, int NewIndex) reorder)
+    {
+        StateHasChanged();
+    }
+
+    private void SetCombinedColumnWidth(string columnId, string? width)
+    {
+        combinedGridState.Columns.SetWidth(columnId, width);
+        StateHasChanged();
+    }
+
+    private void HandleCombinedResize((string ColumnId, string? Width) resize)
+    {
+        StateHasChanged();
+    }
+
+    // --- Shared column helpers ---
+
+    private static string GetColumnTitle(string columnId) => columnId switch
+    {
+        "name" => "Name",
+        "email" => "Email",
+        "age" => "Age",
+        "department" => "Department",
+        _ => columnId
+    };
+
+    private static string GetCellValue(Person person, string columnId) => columnId switch
+    {
+        "name" => person.Name,
+        "email" => person.Email,
+        "age" => person.Age.ToString(),
+        "department" => person.Department,
+        _ => ""
+    };
+
+    public class Person
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public int Age { get; set; }
+        public string Department { get; set; } = string.Empty;
+    }
+#pragma warning restore BL0012
+}

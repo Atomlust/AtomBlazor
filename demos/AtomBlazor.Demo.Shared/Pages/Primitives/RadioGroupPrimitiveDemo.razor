@@ -1,0 +1,335 @@
+@page "/primitives/radio-group"
+<PageTitle>@L.T("RadioGroup 单选组原语 - Atom BlazorUI", "RadioGroup Primitive - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("RadioGroup 单选组原语", "RadioGroup Primitive")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("无头、无样式的单选组原语，支持键盘操作与 ARIA 属性。", "Headless, unstyled radio group primitive with keyboard support and ARIA attributes.")
+        </p>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基础无头原语", "Basic Headless Primitive")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("原语提供行为、无障碍支持与方向键导航。", "The primitive provides behavior, accessibility, and arrow key navigation.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 max-w-md">
+                <AtomBlazor.Primitives.RadioGroupPrimitive @bind-Value="basicValue" AriaLabel="@(L.T("基础单选组", "Basic radio group"))"
+                    ItemClass="h-4 w-4 rounded-full border-2 border-input cursor-pointer data-[state=checked]:border-primary data-[state=checked]:bg-primary flex items-center justify-center">
+                    @foreach (var option in new[] { "Option 1", "Option 2", "Option 3" })
+                    {
+                        <div class="flex items-center gap-3 mb-2">
+                            <AtomBlazor.Primitives.RadioGroupItem Value="@option" Id="@($"basic-{option}")">
+                                <span class="h-2 w-2 rounded-full bg-background data-[state=unchecked]:scale-0 transition-transform" data-state="@(basicValue == option ? "checked" : "unchecked")"></span>
+                            </AtomBlazor.Primitives.RadioGroupItem>
+                            <label for="@($"basic-{option}")" class="cursor-pointer">@option</label>
+                        </div>
+                    }
+                </AtomBlazor.Primitives.RadioGroupPrimitive>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mt-3">已选择：@(basicValue ?? "无")</p>
+                        <p class="text-xs text-muted-foreground mt-1">试试用方向键导航！</p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-sm text-muted-foreground mt-3">Selected: @(basicValue ?? "None")</p>
+                        <p class="text-xs text-muted-foreground mt-1">Try using arrow keys to navigate!</p>
+                    </text>
+                }
+            </div>
+
+            <CodeBlock Source="Primitives/RadioGroup/basic.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("受控状态", "Controlled State")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("通过按钮从外部控制原语状态。", "Control the primitive state externally with buttons.")
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex gap-2">
+                    <button @onclick='@(() => controlledValue = "Small")' class="px-3 py-2 border rounded text-sm">
+                        @L.T("选择 Small", "Select Small")
+                    </button>
+                    <button @onclick='@(() => controlledValue = "Medium")' class="px-3 py-2 border rounded text-sm">
+                        @L.T("选择 Medium", "Select Medium")
+                    </button>
+                    <button @onclick='@(() => controlledValue = "Large")' class="px-3 py-2 border rounded text-sm">
+                        @L.T("选择 Large", "Select Large")
+                    </button>
+                </div>
+
+                <div class="rounded-lg border bg-card p-6 max-w-md">
+                    <AtomBlazor.Primitives.RadioGroupPrimitive @bind-Value="controlledValue" AriaLabel="@(L.T("尺寸选择", "Size selection"))"
+                        ItemClass="h-4 w-4 rounded-full border-2 border-input cursor-pointer data-[state=checked]:border-primary data-[state=checked]:bg-primary flex items-center justify-center">
+                        @foreach (var size in new[] { "Small", "Medium", "Large" })
+                        {
+                            <div class="flex items-center gap-3 mb-2">
+                                <AtomBlazor.Primitives.RadioGroupItem Value="@size" Id="@($"size-{size}")">
+                                    <span class="h-2 w-2 rounded-full bg-background data-[state=unchecked]:scale-0 transition-transform" data-state="@(controlledValue == size ? "checked" : "unchecked")"></span>
+                                </AtomBlazor.Primitives.RadioGroupItem>
+                                <label for="@($"size-{size}")" class="cursor-pointer">@size</label>
+                            </div>
+                        }
+                    </AtomBlazor.Primitives.RadioGroupPrimitive>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <p class="text-sm text-muted-foreground mt-3">已选择尺寸：@(controlledValue ?? "无")</p>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <p class="text-sm text-muted-foreground mt-3">Selected size: @(controlledValue ?? "None")</p>
+                        </text>
+                    }
+                </div>
+
+                <CodeBlock Source="Primitives/RadioGroup/controlled.txt" />
+            </div>
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("禁用状态", "Disabled State")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("禁用整个组或单个选项。", "Disable the entire group or individual items.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 max-w-md space-y-4">
+                <div>
+                    <h3 class="text-sm font-semibold mb-2">@L.T("禁用整组：", "Disabled Group:")</h3>
+                    <AtomBlazor.Primitives.RadioGroupPrimitive Value="@disabledValue" Disabled="true" AriaLabel="@(L.T("禁用的组", "Disabled group"))" class="space-y-2 opacity-50"
+                        ItemClass="h-4 w-4 rounded-full border-2 border-input flex items-center justify-center cursor-not-allowed">
+                        @foreach (var opt in new[] { "Option A", "Option B" })
+                        {
+                            <div class="flex items-center gap-3">
+                                <AtomBlazor.Primitives.RadioGroupItem Value="@opt" Id="@($"disabled-{opt}")">
+                                    <span class="h-2 w-2 rounded-full bg-muted"></span>
+                                </AtomBlazor.Primitives.RadioGroupItem>
+                                <label for="@($"disabled-{opt}")" class="cursor-not-allowed">@opt</label>
+                            </div>
+                        }
+                    </AtomBlazor.Primitives.RadioGroupPrimitive>
+                </div>
+            </div>
+
+            <CodeBlock Source="Primitives/RadioGroup/disabled.txt" />
+        </section>
+
+        <AccessibilityList>
+            <AriaAttributes>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            容器上使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="radiogroup"</code>，选项上使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="radio"</code>
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">role="radiogroup"</code> on container and <code class="text-xs bg-muted px-1 py-0.5 rounded">role="radio"</code> on items
+                </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-checked</code> 在每个选项上反映选中状态
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-checked</code> reflects selected state on each item
+                </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled</code> 应用到整组与单个选项
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled</code> applied to group and individual items
+                </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> 为辅助技术提供整组与选项的上下文
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> for assistive technology context on group and items
+                </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">data-state</code> 属性用于 CSS 样式钩子（checked/unchecked）
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">data-state</code> attribute for CSS styling hooks (checked/unchecked)
+                </AccessibilityItem>
+                    </text>
+                }
+                <AccessibilityItem>
+                    @L.T("用于焦点管理的移动焦点索引（roving tab index）模式", "Roving tab index pattern for focus management")
+                </AccessibilityItem>
+            </AriaAttributes>
+            <KeyboardNavigation>
+                <KeyboardShortcutItem Description="@(L.T("在选项之间导航", "Navigate between options"))">
+                    <Kbd>Arrow Keys</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("选中选项", "Select option"))">
+                    <Kbd>Space / Enter</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("导航到组", "Navigate to group"))">
+                    <Kbd>Tab</Kbd>
+                </KeyboardShortcutItem>
+            </KeyboardNavigation>
+        </AccessibilityList>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+                <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+            </div>
+
+            <div class="space-y-4">
+                <ApiReference ComponentName="RadioGroup&lt;TValue&gt;">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="Value" Type="TValue?" Default="default">
+                                当前选中的值。支持使用 <code>@@bind-Value</code> 进行双向绑定。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="Value" Type="TValue?" Default="default">
+                        The currently selected value. Supports two-way binding with <code>@@bind-Value</code>.
+                    </ApiParameter>
+                        </text>
+                    }
+                    <ApiParameter Name="ValueChanged" Type="EventCallback&lt;TValue&gt;">
+                        @L.T("选中值发生变化时调用的回调。", "Callback invoked when the selected value changes.")
+                    </ApiParameter>
+                    <ApiParameter Name="Disabled" Type="bool" Default="false">
+                        @L.T("为 true 时禁用整个单选组。", "Disables the entire radio group when true.")
+                    </ApiParameter>
+                    <ApiParameter Name="AriaLabel" Type="string?">
+                        @L.T("供屏幕阅读器使用的无障碍标签。", "Accessible label for screen readers.")
+                    </ApiParameter>
+                    <ApiParameter Name="ItemClass" Type="string?">
+                        @L.T("应用到所有 RadioGroupItem 子项的默认 CSS 类。子项会把它与自己的 class 属性合并。", "Default CSS classes applied to all RadioGroupItem children. Items merge this with their own class attribute.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在单选组内渲染的内容。应当包含 RadioGroupItem 组件。", "Content rendered inside the radio group. Should contain RadioGroupItem components.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                应用到容器 div 元素上的附加 HTML 属性（例如 <code>class</code>、<code>style</code>）。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the container div element (e.g. <code>class</code>, <code>style</code>).
+                    </ApiParameter>
+                        </text>
+                    }
+                </ApiReference>
+
+                <ApiReference ComponentName="RadioGroupItem&lt;TValue&gt;">
+                    <ApiParameter Name="Value" Type="TValue?">
+                        @L.T("该单选项的值。必填。", "The value of this radio item. Required.")
+                    </ApiParameter>
+                    <ApiParameter Name="Disabled" Type="bool" Default="false">
+                        @L.T("为 true 时禁用该单个单选项。", "Disables this individual radio item when true.")
+                    </ApiParameter>
+                    <ApiParameter Name="Id" Type="string?">
+                        @L.T("单选项元素的唯一标识符。未提供时自动生成。用于与 label 关联。", "Unique identifier for the radio item element. Auto-generated if not provided. Used for label association.")
+                    </ApiParameter>
+                    <ApiParameter Name="AriaLabel" Type="string?">
+                        @L.T("当没有可见 label 关联时供屏幕阅读器使用的无障碍标签。", "Accessible label for screen readers when no visible label is associated.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在单选项按钮元素内渲染的内容。", "Content rendered inside the radio item button element.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                应用到按钮元素上的附加 HTML 属性。自动应用的属性：<code>data-state</code>、<code>aria-checked</code>、<code>disabled</code>、<code>tabindex</code>。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the button element. Auto-applied attributes: <code>data-state</code>, <code>aria-checked</code>, <code>disabled</code>, <code>tabindex</code>.
+                    </ApiParameter>
+                        </text>
+                    }
+                </ApiReference>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string? basicValue = "Option 1";
+    private string? controlledValue = "Medium";
+    private string? disabledValue = "Option A";
+}

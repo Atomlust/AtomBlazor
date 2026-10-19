@@ -1,0 +1,851 @@
+@page "/components/input-field"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("InputField 输入字段 - Atom BlazorUI", "InputField Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("InputField 输入字段组件", "InputField Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("带自动类型转换、格式化与校验的泛型强类型输入框。", "A generic typed input with automatic type conversion, formatting, and validation.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Which input component? -->
+    <div class="rounded-lg border border-dashed bg-muted/30 p-6 space-y-3">
+        <h2 class="text-lg font-semibold">@L.T("该用哪个输入组件？", "Which input component?")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <div class="space-y-2 text-sm text-muted-foreground">
+                <p><strong>非文本控件</strong>（复选框、单选框、开关、下拉选择）？ &rarr; <a href="/components/field" class="text-primary underline underline-offset-4 hover:text-primary/80">Field</a></p>
+                <p><strong>简单字符串输入</strong>，配合 EditForm 使用？ &rarr; <a href="/components/input" class="text-primary underline underline-offset-4 hover:text-primary/80">Input</a></p>
+                <p><strong>强类型值</strong>，需要自定义错误界面或 EditForm？ &rarr; <strong>InputField&lt;T&gt;</strong>（当前页面）</p>
+                <p><strong>强类型值</strong>，希望开箱即用？ &rarr; <a href="/components/form-field-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldInput&lt;T&gt;</a>（同样支持 EditForm）</p>
+            </div>
+                </text>
+}
+        else
+        {
+                <text>
+                    <div class="space-y-2 text-sm text-muted-foreground">
+                <p><strong>Non-text control</strong> (checkbox, radio, switch, select)? &rarr; <a href="/components/field" class="text-primary underline underline-offset-4 hover:text-primary/80">Field</a></p>
+                <p><strong>Simple string input</strong> with EditForm? &rarr; <a href="/components/input" class="text-primary underline underline-offset-4 hover:text-primary/80">Input</a></p>
+                <p><strong>Typed value</strong> with custom error UI or EditForm? &rarr; <strong>InputField&lt;T&gt;</strong> (this page)</p>
+                <p><strong>Typed value</strong> and you want it to work out of the box? &rarr; <a href="/components/form-field-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldInput&lt;T&gt;</a> (also supports EditForm)</p>
+            </div>
+                </text>
+}
+    </div>
+
+    <!-- Basic Integer -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本整数", "Basic Integer")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    与 <code class="text-xs bg-muted px-1 py-0.5 rounded">int</code> 值双向绑定，并自动解析输入。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Two-way binding to an <code class="text-xs bg-muted px-1 py-0.5 rounded">int</code> value with automatic parsing.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <InputField TValue="int" @bind-Value="_intValue" Placeholder="@(L.T("请输入数字", "Enter a number"))" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Current value:")</p>
+            <p class="text-sm font-mono">@_intValue</p>
+        </div>
+        <CodeBlock Source="Components/InputField/basic-integer.txt" />
+    </div>
+
+    <!-- Nullable DateTime with Format -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("可空 DateTime 与格式", "Nullable DateTime with Format")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    绑定到 <code class="text-xs bg-muted px-1 py-0.5 rounded">DateTime?</code> 并指定显示格式。
+                    失去焦点时显示格式化后的值，获得焦点时显示原始值。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Binding to a <code class="text-xs bg-muted px-1 py-0.5 rounded">DateTime?</code> with a display format.
+                    The formatted value is shown when blurred; the raw value is shown when focused.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <InputField TValue="DateTime?" @bind-Value="_dateValue" Format="yyyy-MM-dd" Type="InputType.Date" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Current value:")</p>
+            <p class="text-sm font-mono">@(_dateValue?.ToString("yyyy-MM-dd") ?? L.T("（无）", "(null)"))</p>
+        </div>
+        <CodeBlock Source="Components/InputField/nullable-datetime.txt" />
+    </div>
+
+    <!-- Decimal -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("Decimal 与格式", "Decimal with Format")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    绑定到 <code class="text-xs bg-muted px-1 py-0.5 rounded">decimal</code>，并使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">N2</code> 显示格式。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Binding to <code class="text-xs bg-muted px-1 py-0.5 rounded">decimal</code> with a <code class="text-xs bg-muted px-1 py-0.5 rounded">N2</code> display format.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <InputField TValue="decimal" @bind-Value="_decimalValue" Format="N2" Placeholder="0.00" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Current value:")</p>
+            <p class="text-sm font-mono">@_decimalValue</p>
+        </div>
+        <CodeBlock Source="Components/InputField/decimal-format.txt" />
+    </div>
+
+    <!-- Guid -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">Guid</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    绑定到 <code class="text-xs bg-muted px-1 py-0.5 rounded">Guid</code>。试试输入一个非法 GUID 来看错误处理效果。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Binding to <code class="text-xs bg-muted px-1 py-0.5 rounded">Guid</code>. Try entering an invalid GUID to see error handling.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <InputField @ref="_guidInput" TValue="Guid" @bind-Value="_guidValue" OnParseError="HandleGuidError" Placeholder="00000000-0000-0000-0000-000000000000" />
+            @if (_guidInput?.HasParseError == true)
+            {
+                <p class="text-sm text-destructive mt-2">@L.T("GUID 格式无效。", "Invalid GUID format.")</p>
+            }
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Current value:")</p>
+            <p class="text-sm font-mono">@_guidValue</p>
+        </div>
+        <CodeBlock Source="Components/InputField/guid.txt" />
+    </div>
+
+    <!-- Error Kind Discrimination (NEW) -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("错误类型区分", "Error Kind Discrimination")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">InputParseException.ErrorKind</code> 属性可以区分解析错误、
+                    正则校验错误与取值校验错误。试试输入一个非数字值（解析错误），或者 1-100 之外的数字（校验错误）。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    The <code class="text-xs bg-muted px-1 py-0.5 rounded">InputParseException.ErrorKind</code> property
+                    lets you distinguish between parse errors, pattern validation errors, and value validation errors.
+                    Try entering a non-numeric value (parse error) or a number outside 1-100 (validation error).
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <InputField @ref="_errorKindInput"
+                        TValue="int"
+                        @bind-Value="_errorKindValue"
+                        Validation="v => v >= 1 && v <= 100"
+                        OnParseError="HandleErrorKind"
+                        OnErrorCleared="HandleErrorKindCleared"
+                        Placeholder="@(L.T("请输入 1-100", "Enter 1-100"))" />
+            @if (_errorKindInput?.HasParseError == true)
+            {
+                <div class="mt-2 space-y-1">
+                    <p class="text-sm text-destructive">@_errorKindMessage</p>
+                    <p class="text-xs text-muted-foreground">
+                        @L.T("错误类型：", "Error kind:") <code class="bg-muted px-1 py-0.5 rounded">@_errorKindInput.CurrentErrorKind</code>
+                    </p>
+                </div>
+            }
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Current value:")</p>
+            <p class="text-sm font-mono">@_errorKindValue</p>
+        </div>
+        <CodeBlock Source="Components/InputField/error-kind.txt" />
+    </div>
+
+    <!-- Parse Error Handling with Text Preservation -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("错误文本保留", "Error Text Preservation")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    无效文本在失去焦点时会保留下来，用户可以看到自己输错了什么。输入一个非数字值并离开该字段 ——
+                    输入框会保留你的文本而不会静默回退。当你把输入改正后，
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">OnErrorCleared</code> 回调会被触发。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Invalid text is now preserved on blur so the user can see what they typed wrong.
+                    Type a non-numeric value and leave the field — the input retains your text instead of
+                    reverting silently. The <code class="text-xs bg-muted px-1 py-0.5 rounded">OnErrorCleared</code>
+                    callback fires when you correct the input.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <InputField @ref="_errorInput"
+                        TValue="int"
+                        @bind-Value="_errorDemoValue"
+                        OnParseError="HandleParseError"
+                        OnErrorCleared="HandleParseErrorCleared"
+                        Placeholder="@(L.T("输入 abc 后移开焦点", "Type 'abc' then blur"))" />
+            @if (_errorInput?.HasParseError == true)
+            {
+                <p class="text-sm text-destructive mt-2">@_parseErrorMessage</p>
+            }
+            @if (_errorCleared)
+            {
+                <p class="text-sm text-green-600 mt-2">@L.T("错误已清除！输入再次有效。", "Error cleared! Input is valid again.")</p>
+            }
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Current value:")</p>
+            <p class="text-sm font-mono">@_errorDemoValue</p>
+        </div>
+        <CodeBlock Source="Components/InputField/error-preservation.txt" />
+    </div>
+
+    <!-- Nullable Types -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("可空类型", "Nullable Types")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    输入框为空时，可空值类型会解析为 <code class="text-xs bg-muted px-1 py-0.5 rounded">null</code>；
+                    非可空类型则解析为 <code class="text-xs bg-muted px-1 py-0.5 rounded">default(TValue)</code>。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Nullable value types resolve to <code class="text-xs bg-muted px-1 py-0.5 rounded">null</code> when the input is empty,
+                    while non-nullable types resolve to <code class="text-xs bg-muted px-1 py-0.5 rounded">default(TValue)</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md space-y-4">
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("可空 int（int?）", "Nullable int (int?)")</label>
+                <InputField TValue="int?" @bind-Value="_nullableIntValue" Placeholder="@(L.T("清空后取值为 null", "Clear to get null"))" />
+                <p class="text-sm text-muted-foreground">@L.T("值：", "Value:") @(_nullableIntValue?.ToString() ?? L.T("无", "null"))</p>
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("非可空 int", "Non-nullable int")</label>
+                <InputField TValue="int" @bind-Value="_nonNullableIntValue" Placeholder="@(L.T("清空后取值为 0", "Clear to get 0"))" />
+                <p class="text-sm text-muted-foreground">@L.T("值：", "Value:") @_nonNullableIntValue</p>
+            </div>
+        </div>
+        <CodeBlock Source="Components/InputField/nullable-types.txt" />
+    </div>
+
+    <!-- String Binding -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("字符串绑定", "String Binding")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    当你需要在字符串类型上使用转换器基础设施时，它可以作为
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Input</code> 的直接替代。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Works as a drop-in replacement for <code class="text-xs bg-muted px-1 py-0.5 rounded">Input</code> when you need
+                    the converter infrastructure with a string type.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <InputField TValue="string" @bind-Value="_stringValue" Placeholder="@(L.T("请输入任意内容", "Type anything..."))" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Current value:")</p>
+            <p class="text-sm font-mono">@(string.IsNullOrEmpty(_stringValue) ? L.T("（空）", "(empty)") : _stringValue)</p>
+        </div>
+        <CodeBlock Source="Components/InputField/string-binding.txt" />
+    </div>
+
+    <!-- Custom Converter -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义转换器", "Custom Converter")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    提供一个自定义的 <code class="text-xs bg-muted px-1 py-0.5 rounded">InputConverter&lt;TValue&gt;</code> 实例，
+                    即可覆盖解析与格式化行为。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Provide a custom <code class="text-xs bg-muted px-1 py-0.5 rounded">InputConverter&lt;TValue&gt;</code> instance
+                    to override parsing and formatting behavior.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <InputField TValue="double" @bind-Value="_customConverterValue" Converter="_percentConverter" Placeholder="@(L.T("请输入百分比，例如 50", "Enter percentage (e.g. 50)"))" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("存储值（以小数表示）：", "Stored value (as decimal fraction):")</p>
+            <p class="text-sm font-mono">@_customConverterValue</p>
+        </div>
+        <CodeBlock Source="Components/InputField/custom-converter.txt" />
+    </div>
+
+    <!-- Disabled State -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个被禁用的 InputField。", "A disabled InputField.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <InputField TValue="int" Value="42" Disabled="true" />
+        </div>
+        <CodeBlock Source="Components/InputField/disabled.txt" />
+    </div>
+
+    <!-- Update Timing -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("更新时机", "Update Timing")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">UpdateTiming</code> 参数控制
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">ValueChanged</code> 的触发时机。强类型值同样适用。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Control when <code class="text-xs bg-muted px-1 py-0.5 rounded">ValueChanged</code> fires using the
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">UpdateTiming</code> parameter. Works with typed values too.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="grid gap-6 md:grid-cols-3 max-w-4xl">
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("即时（默认）", "Immediate (default)")</label>
+                <InputField TValue="int"
+                            UpdateTiming="UpdateTiming.Immediate"
+                            @bind-Value="_immediateIntValue"
+                            Placeholder="@(L.T("每次按键都会触发", "Fires on every keystroke"))" />
+                <div class="rounded-lg border p-3 bg-muted/50">
+                    <p class="text-xs text-muted-foreground mb-1">@L.T("值：", "Value:")</p>
+                    <p class="text-sm font-mono">@_immediateIntValue</p>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("OnChange（失去焦点）", "OnChange (blur)")</label>
+                <InputField TValue="int"
+                            UpdateTiming="UpdateTiming.OnChange"
+                            @bind-Value="_onChangeIntValue"
+                            Placeholder="@(L.T("失去焦点时触发", "Fires on blur"))" />
+                <div class="rounded-lg border p-3 bg-muted/50">
+                    <p class="text-xs text-muted-foreground mb-1">@L.T("值：", "Value:")</p>
+                    <p class="text-sm font-mono">@_onChangeIntValue</p>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("防抖（500ms）", "Debounced (500ms)")</label>
+                <InputField TValue="int"
+                            UpdateTiming="UpdateTiming.Debounced"
+                            DebounceInterval="500"
+                            @bind-Value="_debouncedIntValue"
+                            Placeholder="@(L.T("停止输入后触发", "Fires after typing pauses"))" />
+                <div class="rounded-lg border p-3 bg-muted/50">
+                    <p class="text-xs text-muted-foreground mb-1">@L.T("值：", "Value:")</p>
+                    <p class="text-sm font-mono">@_debouncedIntValue</p>
+                </div>
+            </div>
+        </div>
+        <CodeBlock Source="Components/InputField/update-timing.txt" />
+    </div>
+
+    <!-- Async Validation -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("异步校验", "Async Validation")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    模拟向后端接口查询用户名是否可用。该输入框采用防抖更新时机，因此只有用户停止输入后才会发起检查。
+                    试试 <code class="text-xs bg-muted px-1 py-0.5 rounded">admin</code>、
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">test</code> 或
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">user</code>，或者
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">mathew</code>（已被占用），其它名字都可用。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Simulate checking username availability against a backend API. The input uses debounced
+                    update timing so the check only fires after the user stops typing. Try
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">admin</code>,
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">test</code>, or
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">user</code>, or
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">mathew</code> (taken) versus anything else (available).
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <InputField TValue="string"
+                        @bind-Value="_asyncUsername"
+                        @bind-Value:after="CheckUsernameAvailability"
+                        UpdateTiming="UpdateTiming.Debounced"
+                        DebounceInterval="300"
+                        Placeholder="@(L.T("请选择一个用户名", "Choose a username"))" />
+            @if (_asyncChecking)
+            {
+                <p class="text-sm text-muted-foreground mt-2">@L.T("正在查询可用性……", "Checking availability...")</p>
+            }
+            else if (_asyncUsername is { Length: > 0 } && _asyncResult is not null)
+            {
+                @if (_asyncResult.Value)
+                {
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <p class="text-sm text-green-600 mt-2">用户名 "@_asyncUsername" 可以使用！</p>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <p class="text-sm text-green-600 mt-2">Username "@_asyncUsername" is available!</p>
+                                        </text>
+}
+                }
+                else
+                {
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <p class="text-sm text-destructive mt-2">用户名 "@_asyncUsername" 已被占用。</p>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <p class="text-sm text-destructive mt-2">Username "@_asyncUsername" is already taken.</p>
+                                        </text>
+}
+                }
+            }
+        </div>
+        <CodeBlock Source="Components/InputField/async-validation.txt" />
+    </div>
+
+    <!-- EditForm Integration -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("EditForm 集成", "EditForm Integration")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    InputField 可以放在 Blazor 的 <code class="text-xs bg-muted px-1 py-0.5 rounded">EditForm</code> 里，
+                    配合 <code class="text-xs bg-muted px-1 py-0.5 rounded">DataAnnotationsValidator</code> 使用。字段变化时它会通知
+                    EditContext，并通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> 反映校验状态。
+                    InputField 自身的解析校验与 DataAnnotations 校验可以同时生效。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    InputField works inside Blazor's <code class="text-xs bg-muted px-1 py-0.5 rounded">EditForm</code>
+                    with <code class="text-xs bg-muted px-1 py-0.5 rounded">DataAnnotationsValidator</code>. It notifies
+                    the EditContext of field changes and reflects validation state via
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code>. Both InputField's own
+                    parse validation and DataAnnotations validation work together.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <EditForm Model="_editFormModel" OnValidSubmit="HandleEditFormSubmit" class="space-y-4">
+                <DataAnnotationsValidator />
+                <div class="space-y-2">
+                    <label class="text-sm font-medium">@L.T("姓名（必填）", "Name (required)")</label>
+                    <InputField TValue="string" @bind-Value="_editFormModel.Name" Placeholder="Jane Smith" />
+                    <ValidationMessage For="@(() => _editFormModel.Name)" />
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-medium">@L.T("年龄（1-120）", "Age (1-120)")</label>
+                    <InputField TValue="int" @bind-Value="_editFormModel.Age" Placeholder="25" />
+                    <ValidationMessage For="@(() => _editFormModel.Age)" />
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-medium">@L.T("分数（0.0-100.0）", "Score (0.0-100.0)")</label>
+                    <InputField TValue="decimal" @bind-Value="_editFormModel.Score" Format="N1" Placeholder="0.0" />
+                    <ValidationMessage For="@(() => _editFormModel.Score)" />
+                </div>
+                <div class="flex gap-2">
+                    <Button Type="ButtonType.Submit">@L.T("提交", "Submit")</Button>
+                    <Button Type="ButtonType.Button" Variant="ButtonVariant.Outline" OnClick="ResetEditForm">@L.T("重置", "Reset")</Button>
+                </div>
+            </EditForm>
+        </div>
+        @if (_editFormSubmitted)
+        {
+            <div class="rounded-lg border p-4 bg-muted/50">
+                <p class="text-sm font-medium mb-1">@L.T("已提交的值：", "Submitted values:")</p>
+                <div class="space-y-1 text-sm font-mono">
+                    <p>@L.T("姓名：", "Name:") @_editFormModel.Name</p>
+                    <p>@L.T("年龄：", "Age:") @_editFormModel.Age</p>
+                    <p>@L.T("分数：", "Score:") @_editFormModel.Score</p>
+                </div>
+            </div>
+        }
+        <CodeBlock Source="Components/InputField/editform.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("发生解析或校验错误时会自动把 aria-invalid 设为 true", "Sets aria-invalid=\"true\" automatically when a parse or validation error occurs")</AccessibilityItem>
+            <AccessibilityItem>@L.T("AriaInvalid 参数会与 HasParseError 合并判断，任一条件成立即应用错误样式", "AriaInvalid parameter is combined with HasParseError so either condition triggers error styling")</AccessibilityItem>
+            <AccessibilityItem>@L.T("通过 AriaLabel 参数支持 aria-label", "Supports aria-label via the AriaLabel parameter")</AccessibilityItem>
+            <AccessibilityItem>@L.T("通过 AriaDescribedBy 参数支持 aria-describedby，可关联到描述元素", "Supports aria-describedby via the AriaDescribedBy parameter for linking to description elements")</AccessibilityItem>
+            <AccessibilityItem>@L.T("Disabled 为 true 时会设置 disabled 属性，阻止交互", "Sets the disabled attribute when Disabled is true, preventing interaction")</AccessibilityItem>
+            <AccessibilityItem>@L.T("Required 为 true 时会设置 required 属性", "Sets the required attribute when Required is true")</AccessibilityItem>
+            <AccessibilityItem>@L.T("与 EditForm 的校验状态集成，DataAnnotations 出错时同样反映 aria-invalid", "Integrates with EditForm validation state to reflect aria-invalid from DataAnnotations errors")</AccessibilityItem>
+        </AriaAttributes>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="InputField&lt;TValue&gt;">
+                <ApiParameter Name="TValue" Type="type parameter">
+                    @L.T("要绑定的值类型。没有约束 —— 值类型、引用类型与可空类型都支持。", "The value type to bind to. No constraint — works with value types, reference types, and nullables.")
+                </ApiParameter>
+                <ApiParameter Name="Value" Type="TValue?" Default="null">
+                    @L.T("当前的强类型值。使用 @bind-Value 进行双向绑定。", "The current typed value. Use @bind-Value for two-way binding.")
+                </ApiParameter>
+                <ApiParameter Name="ValueChanged" Type="EventCallback&lt;TValue?&gt;">
+                    @L.T("强类型值发生变化时调用的回调。", "Callback invoked when the typed value changes.")
+                </ApiParameter>
+                <ApiParameter Name="Converter" Type="InputConverter&lt;TValue&gt;?" Default="null">
+                    @L.T("可选的自定义转换器，用于值的解析与格式化。在转换器解析链中优先级最高。", "Optional custom converter for value parsing and formatting. Takes highest priority in the converter resolution chain.")
+                </ApiParameter>
+                <ApiParameter Name="Format" Type="string?" Default="null">
+                    @L.T("显示用的格式字符串（例如 “yyyy-MM-dd”、“N2”）。只影响显示，解析仍由转换器负责。", "Display format string (e.g., \"yyyy-MM-dd\", \"N2\"). Affects display only; parsing uses the converter.")
+                </ApiParameter>
+                <ApiParameter Name="Type" Type="InputType" Default="Text">
+                    @L.T("HTML 输入类型（Text、Email、Password、Number、Date 等）。", "The HTML input type (Text, Email, Password, Number, Date, etc.).")
+                </ApiParameter>
+                <ApiParameter Name="Placeholder" Type="string?" Default="null">
+                    @L.T("输入框为空时显示的占位文本。", "Placeholder text displayed when the input is empty.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("输入框是否被禁用。", "Whether the input is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">
+                    @L.T("输入框是否为必填（会设置 HTML 的 required 属性）。", "Whether the input is required (sets the HTML required attribute).")
+                </ApiParameter>
+                <ApiParameter Name="Validation" Type="Func&lt;TValue, bool&gt;?" Default="null">
+                    @L.T("解析之后的校验函数。值有效时返回 true，无效时返回 false 以拒绝该值。", "Post-parse validation function. Return true if the value is valid, false to reject it.")
+                </ApiParameter>
+                <ApiParameter Name="ValidationPattern" Type="string?" Default="null">
+                    @L.T("用于解析之前校验原始输入字符串的正则表达式。", "Regex pattern for pre-parse validation on the raw input string.")
+                </ApiParameter>
+                <ApiParameter Name="UpdateTiming" Type="UpdateTiming" Default="Immediate">
+                    @L.T("ValueChanged 的触发时机：Immediate（每次按键）、OnChange（失去焦点时）或 Debounced（停止输入后）。", "When ValueChanged fires: Immediate (every keystroke), OnChange (on blur), or Debounced (after typing pauses).")
+                </ApiParameter>
+                <ApiParameter Name="DebounceInterval" Type="int" Default="500">
+                    @L.T("UpdateTiming 为 Debounced 时的防抖延迟（毫秒）。", "Debounce delay in milliseconds when UpdateTiming is Debounced.")
+                </ApiParameter>
+                <ApiParameter Name="OnParseError" Type="EventCallback&lt;InputParseException&gt;">
+                    @L.T("失去焦点时解析或校验失败会调用的回调。ErrorKind 属性表明失败类型。", "Callback invoked on blur when parsing or validation fails. The ErrorKind property indicates the failure type.")
+                </ApiParameter>
+                <ApiParameter Name="OnErrorCleared" Type="EventCallback">
+                    @L.T("错误状态恢复为有效时调用的回调。", "Callback invoked when the error state transitions back to valid.")
+                </ApiParameter>
+                <ApiParameter Name="ValueExpression" Type="Expression&lt;Func&lt;TValue?&gt;&gt;?" Default="null">
+                    @L.T("用于 EditForm 集成的绑定表达式。由 @bind-Value 自动提供。", "Binding expression for EditForm integration. Automatically provided by @bind-Value.")
+                </ApiParameter>
+                <ApiParameter Name="Name" Type="string?" Default="null">
+                    @L.T("HTML name 属性。位于 EditForm 内时会自动从 ValueExpression 推导。", "HTML name attribute. Auto-derived from ValueExpression when inside an EditForm.")
+                </ApiParameter>
+                <ApiParameter Name="Id" Type="string?" Default="null">
+                    @L.T("输入元素的 HTML id 属性。", "HTML id attribute for the input element.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到输入元素上的额外 CSS 类。", "Additional CSS classes applied to the input element.")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                    @L.T("输入框的 ARIA 标签。", "ARIA label for the input.")
+                </ApiParameter>
+                <ApiParameter Name="AriaDescribedBy" Type="string?" Default="null">
+                    @L.T("描述该输入框的元素 ID。", "ID of the element that describes the input.")
+                </ApiParameter>
+                <ApiParameter Name="AriaInvalid" Type="bool?" Default="null">
+                    @L.T("强制在输入框上设置 aria-invalid。会与 HasParseError 合并判断，任一条件成立即应用错误样式。", "Forces aria-invalid on the input. Combined with HasParseError so either condition triggers error styling.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到根 <code>&lt;input&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the root <code>&lt;input&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private int _intValue;
+    private DateTime? _dateValue = DateTime.Today;
+    private decimal _decimalValue = 1234.56m;
+    private Guid _guidValue = Guid.Empty;
+    private int _errorDemoValue;
+    private int? _nullableIntValue = 42;
+    private int _nonNullableIntValue = 42;
+    private string? _stringValue = "";
+    private double _customConverterValue = 0.5;
+    private int _immediateIntValue;
+    private int _onChangeIntValue;
+    private int _debouncedIntValue;
+    private int _errorKindValue;
+
+    private InputField<Guid>? _guidInput;
+    private InputField<int>? _errorInput;
+    private InputField<int>? _errorKindInput;
+    private string _parseErrorMessage = "";
+    private bool _errorCleared;
+    private string _errorKindMessage = "";
+
+    // 自定义转换器：存储为小数（0.5），显示为百分比（50）。
+    private readonly InputConverter<double> _percentConverter = new()
+    {
+        GetFunc = input => double.Parse(input, System.Globalization.CultureInfo.InvariantCulture) / 100.0,
+        SetFunc = value => (value * 100.0).ToString(System.Globalization.CultureInfo.InvariantCulture)
+    };
+
+    private void HandleGuidError(InputParseException ex)
+    {
+        // 错误状态经由 HasParseError 呈现，此处无需额外处理。
+    }
+
+    private void HandleParseError(InputParseException ex)
+    {
+        _parseErrorMessage = L.IsChinese
+            ? $"无法解析 '{ex.RawInput}'，目标类型为 {ex.TargetType.Name}。（错误类型：{ex.ErrorKind}）"
+            : $"Could not parse '{ex.RawInput}' as {ex.TargetType.Name}. (ErrorKind: {ex.ErrorKind})";
+        _errorCleared = false;
+    }
+
+    private void HandleParseErrorCleared()
+    {
+        _errorCleared = true;
+    }
+
+    private void HandleErrorKind(InputParseException ex)
+    {
+        _errorKindMessage = ex.ErrorKind switch
+        {
+            InputFieldErrorKind.Parse => L.IsChinese
+                ? $"'{ex.RawInput}' 不是有效的数字。"
+                : $"'{ex.RawInput}' is not a valid number.",
+            InputFieldErrorKind.ValueValidation => L.IsChinese
+                ? "取值必须在 1 到 100 之间。"
+                : $"Value must be between 1 and 100.",
+            InputFieldErrorKind.PatternValidation => L.IsChinese
+                ? $"'{ex.RawInput}' 不符合要求的格式。"
+                : $"'{ex.RawInput}' does not match the required pattern.",
+            _ => L.IsChinese ? "输入无效。" : "Invalid input."
+        };
+    }
+
+    private void HandleErrorKindCleared()
+    {
+        _errorKindMessage = "";
+    }
+
+    // EditForm 集成
+    private EditFormModel _editFormModel = new();
+    private bool _editFormSubmitted;
+
+    private void HandleEditFormSubmit()
+    {
+        _editFormSubmitted = true;
+    }
+
+    private void ResetEditForm()
+    {
+        _editFormModel = new();
+        _editFormSubmitted = false;
+    }
+
+    private sealed class EditFormModel
+    {
+        [Required(ErrorMessage = "Name is required.")]
+        [StringLength(50, ErrorMessage = "Name must be 50 characters or fewer.")]
+        public string? Name { get; set; }
+
+        [Range(1, 120, ErrorMessage = "Age must be between 1 and 120.")]
+        public int Age { get; set; }
+
+        [Range(0, 100, ErrorMessage = "Score must be between 0 and 100.")]
+        public decimal Score { get; set; }
+    }
+
+    // 异步校验
+    private string? _asyncUsername;
+    private bool _asyncChecking;
+    private bool? _asyncResult;
+    private CancellationTokenSource? _asyncCts;
+
+    private static readonly HashSet<string> takenUsernames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "admin", "test", "user", "mathew"
+    };
+
+    private async Task CheckUsernameAvailability()
+    {
+        _asyncCts?.Cancel();
+        _asyncCts?.Dispose();
+
+        if (string.IsNullOrWhiteSpace(_asyncUsername))
+        {
+            _asyncResult = null;
+            _asyncChecking = false;
+            _asyncCts = null;
+            return;
+        }
+
+        _asyncChecking = true;
+        _asyncResult = null;
+
+        var cts = new CancellationTokenSource();
+        _asyncCts = cts;
+
+        try
+        {
+            // 模拟后端 API 调用。
+            await Task.Delay(2000, cts.Token);
+
+            _asyncResult = !takenUsernames.Contains(_asyncUsername);
+        }
+        catch (TaskCanceledException)
+        {
+            // 更新的检查已取代本次检查。
+        }
+        finally
+        {
+            _asyncChecking = false;
+            cts.Dispose();
+            if (_asyncCts == cts)
+            {
+                _asyncCts = null;
+            }
+        }
+    }
+}

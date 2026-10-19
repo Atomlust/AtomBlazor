@@ -1,0 +1,48 @@
+@namespace AtomBlazor
+
+<AtomBlazor.Primitives.MenubarContent Loop="@Loop" class="@CssClass" @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.MenubarContent>
+
+@code {
+    [CascadingParameter]
+    public MenubarMenu? Menu { get; set; }
+
+    [CascadingParameter]
+    public Menubar? Context { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用于根元素的额外 HTML 特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public MenubarContentAlign Align { get; set; } = MenubarContentAlign.Start;
+
+    [Parameter]
+    public bool Loop { get; set; } = true;
+
+    private string AlignClass => Align switch
+    {
+        MenubarContentAlign.Start => "atom:start-0",
+        MenubarContentAlign.Center => "atom:left-1/2 atom:-translate-x-1/2",
+        MenubarContentAlign.End => "atom:end-0",
+        _ => "atom:start-0"
+    };
+
+    private string CssClass => ClassNames.cn(
+        "atom:absolute atom:top-full atom:mt-1 atom:z-50 atom:min-w-[12rem] atom:overflow-hidden atom:rounded-md atom:border atom:bg-(--atom-menu-surface) atom:p-1 atom:text-(--atom-menu-foreground) atom:shadow-(--atom-menu-shadow) atom:backdrop-blur-(--atom-menu-blur) atom:outline-none",
+        "atom:data-[state=open]:animate-in atom:data-[state=closed]:animate-out",
+        "atom:data-[state=closed]:fade-out-0 atom:data-[state=open]:fade-in-0",
+        "atom:data-[state=closed]:zoom-out-95 atom:data-[state=open]:zoom-in-95",
+        AlignClass,
+        Class
+    );
+}

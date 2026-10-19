@@ -1,0 +1,591 @@
+@page "/components/list-box"
+@using AtomBlazor.Primitives
+<PageTitle>@L.T("列表框 - Atom BlazorUI", "List Box - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("列表框", "List Box")</h1>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-xl text-muted-foreground">
+                    一列始终可见的选项，没有触发器，也没有弹出层。整个列表只是一个 Tab 停靠点，
+                    用方向键移动活动选项。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-xl text-muted-foreground">
+                    An always-visible list of options, with no trigger and no popover. The list is a
+                    single tab stop and moves an active option with the arrow keys.
+                </p>
+                        </text>
+}
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("单选", "Single Selection")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        这是默认行为。用方向键移动时会边移动边选中，与原生列表一致。
+                        点一下列表，再试试方向键、<strong>Home</strong>、<strong>End</strong>，
+                        或者直接键入选项的首字母。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        The default. Moving with the arrow keys selects as it goes, which is how a native
+                        list behaves. Click the list and try the arrows, <strong>Home</strong>,
+                        <strong>End</strong>, or typing the first letters of an option.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <ListBox TValue="string"
+                           Label="@(L.T("配送方式", "Delivery method"))"
+                           Options="@deliveryOptions"
+                           @bind-Value="deliveryChoice" />
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        已选择：<span class="font-mono text-foreground">@(deliveryChoice ?? "未选择")</span>
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        Chosen: <span class="font-mono text-foreground">@(deliveryChoice ?? "none")</span>
+                    </p>
+                                </text>
+}
+            </div>
+
+            <CodeBlock Source="Components/ListBox/single.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("多选", "Multiple Selection")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        方向键只移动而不选中。<strong>Space</strong> 切换活动选项的选中状态，
+                        <strong>Shift</strong> 配合方向键或点击，可以从上一次触碰的选项开始扩展一段范围，
+                        <strong>Ctrl+A</strong> 则全部选中。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        The arrow keys move without selecting. <strong>Space</strong> toggles the active
+                        option, <strong>Shift</strong> with an arrow or a click extends a range from the
+                        last one you touched, and <strong>Ctrl+A</strong> takes everything.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <ListBox TValue="string"
+                           Label="@(L.T("所属区域", "Regions"))"
+                           SelectionMode="ListBoxSelectionMode.Multiple"
+                           Options="@regionOptions"
+                           @bind-Values="regionChoices" />
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        已选择：<span class="font-mono text-foreground">@DescribeRegions</span>
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        Chosen: <span class="font-mono text-foreground">@DescribeRegions</span>
+                    </p>
+                                </text>
+}
+            </div>
+
+            <CodeBlock Source="Components/ListBox/multiple.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("搜索", "Search")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        搜索框本身是一个独立的 Tab 停靠点。在其中按 <strong>Down</strong>
+                        就能把方向键交给列表。全选只覆盖搜索过滤后仍然可见的项，
+                        而不是被隐藏的那些 —— 一个会悄悄选中你看不到的行的快捷方式，
+                        比没有这个快捷方式更糟。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        The search box is its own tab stop. Press <strong>Down</strong> in it to hand the
+                        arrow keys to the list. Select all covers what the search has left visible, not
+                        the hidden rest — a box that quietly selected rows you could not see would be
+                        worse than no shortcut at all.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <ListBox TValue="string"
+                           SelectionMode="ListBoxSelectionMode.Multiple"
+                           ShowSearch="true"
+                           Height="12rem"
+                           Options="@countryOptions"
+                           @bind-Values="countryChoices" />
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        已选择：<span class="font-mono text-foreground">@(countryChoices?.Count() ?? 0) / @countryOptions.Length</span>
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        Chosen: <span class="font-mono text-foreground">@(countryChoices?.Count() ?? 0) of @countryOptions.Length</span>
+                    </p>
+                                </text>
+}
+            </div>
+
+            <CodeBlock Source="Components/ListBox/search.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("不可用选项", "Unavailable Options")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">OptionDisabled</code> 收到的是整个选项，
+                        所以规则既可以读值也可以读文本。方向键会跨过被禁用的行，而不是停在它上面。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">OptionDisabled</code> takes the
+                        whole option, so the rule can read the value or the text. The arrow keys step over
+                        a disabled row rather than stopping dead on it.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <ListBox TValue="string"
+                           Label="@(L.T("配送方式", "Delivery method"))"
+                           Options="@deliveryOptions"
+                           OptionDisabled="@(o => o.Value == "express")"
+                           @bind-Value="disabledDemoChoice" />
+            </div>
+
+            <CodeBlock Source="Components/ListBox/disabled-options.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("选项模板", "Item Template")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("选中指示器两种情况下都会绘制，模板只负责这一行的其余部分。", "The selected indicator is drawn either way. The template owns the rest of the row.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <ListBox TValue="string" Options="@deliveryOptions" @bind-Value="templateChoice">
+                    <ItemTemplate Context="option">
+                        <span class="flex-1">@option.Text</span>
+                        <span class="text-xs text-muted-foreground font-mono">@option.Value</span>
+                    </ItemTemplate>
+                </ListBox>
+            </div>
+
+            <CodeBlock Source="Components/ListBox/template.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("禁用状态", "Disabled")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("整个列表都退出 Tab 顺序，并且不响应键盘与鼠标。", "The whole list is out of the tab order and ignores the keyboard and the mouse.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <ListBox TValue="string" Label="@(L.T("配送方式", "Delivery method"))" Options="@deliveryOptions" Disabled="true" Value="@("express")" />
+            </div>
+        </section>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    列表是 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="listbox"</code>，子项是
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">role="option"</code>；允许多选时还会带上
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-multiselectable</code>。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    The list is <code class="text-xs bg-muted px-1 py-0.5 rounded">role="listbox"</code> with
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">role="option"</code> children, and
+                    carries <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-multiselectable</code> when
+                    more than one can be chosen.
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    整列只有一个 Tab 停靠点，而不是每个选项一个。活动选项通过
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-activedescendant</code> 上报，
+                    移动时会被滚动到可见区域。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    One tab stop, not one per option. The active option is reported through
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-activedescendant</code> and scrolled
+                    into view as it moves.
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    每个选项都带 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-selected</code>，
+                    不可用的那一个还带
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled</code>。指示用的方框是
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-hidden</code>：它只是
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-selected</code> 已经携带的那个状态的图形表达，
+                    换成真正的复选框会在每一行里多出第二个 Tab 停靠点。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Each option carries <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-selected</code>,
+                    and an unavailable one carries
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-disabled</code>. The indicator box is
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-hidden</code>: it is a picture of the
+                    state that <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-selected</code> already
+                    carries, and a real checkbox there would be a second tab stop inside every row.
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    全选放在列表上方而不是列表内部，所以它不会被当成一个选项朗读，
+                    也不占方向键顺序的位置。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Select-all sits above the list rather than inside it, so it is not announced as one of the
+                    choices and does not take a place in the arrow-key order.
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Label</code> 通过
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">for</code> 与列表绑定。没有 Label 时，
+                    请给列表一个 <code class="text-xs bg-muted px-1 py-0.5 rounded">AriaLabel</code>。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Label</code> is tied to the list with
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">for</code>. Without one, give the list an
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">AriaLabel</code>.
+                </AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("移动活动选项；单选模式下同时选中它", "Move the active option. In single selection this also selects it"))">
+                <Kbd>&uarr;</Kbd> / <Kbd>&darr;</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("移到第一个或最后一个选项", "Move to the first or last option"))">
+                <Kbd>Home</Kbd> / <Kbd>End</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("一次移动十个选项", "Move ten options at a time"))">
+                <Kbd>PgUp</Kbd> / <Kbd>PgDn</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("选中；允许多选时切换选中状态", "Select, or toggle when more than one can be chosen"))">
+                <Kbd>Space</Kbd> / <Kbd>Enter</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("从上一次触碰的选项开始扩展选区", "Extend the selection from the last option you touched"))">
+                <Kbd>Shift</Kbd> + <Kbd>&uarr;</Kbd> / <Kbd>&darr;</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("选中当前可见的全部选项", "Select everything currently visible"))">
+                <Kbd>Ctrl</Kbd> + <Kbd>A</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("跳到下一个以所键入字母开头的选项", "Jump to the next option starting with what you type"))">
+                <Kbd>A</Kbd>&hellip;<Kbd>Z</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("从搜索框移到列表里", "Move from the search box into the list"))">
+                <Kbd>&darr;</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="ListBox">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Options" Type="IEnumerable&lt;SelectOption&lt;TValue&gt;&gt;?">
+                        可供选择的选项。与 <code class="text-xs bg-muted px-1 py-0.5 rounded">Select</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">MultiSelect</code> 用的是同一种 <code class="text-xs bg-muted px-1 py-0.5 rounded">SelectOption&lt;TValue&gt;</code>。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Options" Type="IEnumerable&lt;SelectOption&lt;TValue&gt;&gt;?">
+                        The options to choose from. The same <code class="text-xs bg-muted px-1 py-0.5 rounded">SelectOption&lt;TValue&gt;</code> that <code class="text-xs bg-muted px-1 py-0.5 rounded">Select</code> and <code class="text-xs bg-muted px-1 py-0.5 rounded">MultiSelect</code> take.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="SelectionMode" Type="ListBoxSelectionMode" Default="Single">
+                    @L.T("是只能选一个还是可以选多个。", "Whether one option can be chosen or many.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Value" Type="TValue?">
+                        单选模式下选中的值。与 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code> 一起使用。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Value" Type="TValue?">
+                        The chosen value in single selection. Use with <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code>.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="ValueChanged" Type="EventCallback&lt;TValue?&gt;">
+                    @L.T("选中的值发生变化时调用。", "Invoked when the chosen value changes.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Values" Type="IEnumerable&lt;TValue&gt;?">
+                        多选模式下选中的值。与 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Values</code> 一起使用。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Values" Type="IEnumerable&lt;TValue&gt;?">
+                        The chosen values in multiple selection. Use with <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Values</code>.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="ValuesChanged" Type="EventCallback&lt;IEnumerable&lt;TValue&gt;?&gt;">
+                    @L.T("选中的值发生变化时调用。", "Invoked when the chosen values change.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Label" Type="string?">
+                        显示在列表上方的标签，通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">for</code> 与列表绑定。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Label" Type="string?">
+                        The label shown above the list, tied to it with <code class="text-xs bg-muted px-1 py-0.5 rounded">for</code>.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="ShowSearch" Type="bool" Default="false">
+                    @L.T("是否在列表上方显示搜索框。", "Whether a search box is shown above the list.")
+                </ApiParameter>
+                <ApiParameter Name="SearchPlaceholder" Type="string?">
+                    @L.T("搜索框的占位文案。", "The placeholder for the search box.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="SearchText" Type="string?">
+                        搜索框里的内容。当父组件需要知道屏幕上还剩哪些选项时，与 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-SearchText</code> 一起使用 —— <a href="/components/pick-list" class="underline">Pick List</a> 就是这样只处理搜索后仍然可见的项的。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="SearchText" Type="string?">
+                        What the search box contains. Use with <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-SearchText</code> when a parent needs to know which options are on screen — which is how <a href="/components/pick-list" class="underline">Pick List</a> moves only what a search has left visible.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="SearchTextChanged" Type="EventCallback&lt;string?&gt;">
+                    @L.T("搜索框内容发生变化时调用。", "Invoked when the search box changes.")
+                </ApiParameter>
+                <ApiParameter Name="ShowSelectAll" Type="bool" Default="true">
+                    @L.T("是否显示全选复选框。仅在多选模式有效，覆盖的是搜索后仍然可见的项。", "Whether a select-all checkbox is shown. Multiple selection only. It covers what the search has left visible.")
+                </ApiParameter>
+                <ApiParameter Name="SelectAllLabel" Type="string?">
+                    @L.T("全选复选框的标签。", "The label for the select-all checkbox.")
+                </ApiParameter>
+                <ApiParameter Name="OptionDisabled" Type="Func&lt;SelectOption&lt;TValue&gt;, bool&gt;?">
+                    @L.T("把个别选项标记为不可用的谓词。方向键会跳过它们。", "A predicate marking individual options as unavailable. The arrow keys step over them.")
+                </ApiParameter>
+                <ApiParameter Name="ItemTemplate" Type="RenderFragment&lt;SelectOption&lt;TValue&gt;&gt;?">
+                    @L.T("选项内容的模板。两种情况下都会绘制选中指示器。", "A template for an option's content. The selected indicator is drawn either way.")
+                </ApiParameter>
+                <ApiParameter Name="EmptyMessage" Type="string?">
+                    @L.T("没有可选项时显示的信息。", "The message shown when there is nothing to choose from.")
+                </ApiParameter>
+                <ApiParameter Name="Height" Type="string" Default="16rem">
+                    @L.T("滚动区域的高度，以 CSS 长度值表示。", "The height of the scrolling area, as a CSS length.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("整个列表是否被禁用。", "Whether the whole list is disabled.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AriaLabel" Type="string?">
+                        列表的无障碍名称，用于没有 <code class="text-xs bg-muted px-1 py-0.5 rounded">Label</code> 的时候。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AriaLabel" Type="string?">
+                        An accessible name for the list, for when there is no <code class="text-xs bg-muted px-1 py-0.5 rounded">Label</code>.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("应用到根元素上的额外 CSS 类。", "Additional CSS classes for the root element.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @L.T("应用到组件根元素上的额外 HTML 属性。", "Additional HTML attributes applied to the root element.")
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string? deliveryChoice = "standard";
+    private string? disabledDemoChoice;
+    private string? templateChoice;
+    private IEnumerable<string>? regionChoices;
+    private IEnumerable<string>? countryChoices;
+
+    private readonly SelectOption<string>[] deliveryOptions =
+    [
+        new("standard", "Standard"),
+        new("express", "Express"),
+        new("courier", "Courier"),
+        new("collection", "Collect in store"),
+    ];
+
+    private readonly SelectOption<string>[] regionOptions =
+    [
+        new("na", "North America"),
+        new("sa", "South America"),
+        new("eu", "Europe"),
+        new("me", "Middle East"),
+        new("af", "Africa"),
+        new("ap", "Asia Pacific"),
+    ];
+
+    private readonly SelectOption<string>[] countryOptions =
+    [
+        new("au", "Australia"), new("br", "Brazil"), new("ca", "Canada"),
+        new("cn", "China"), new("de", "Germany"), new("es", "Spain"),
+        new("fr", "France"), new("id", "Indonesia"), new("in", "India"),
+        new("it", "Italy"), new("jp", "Japan"), new("ke", "Kenya"),
+        new("mx", "Mexico"), new("ng", "Nigeria"), new("nz", "New Zealand"),
+        new("pt", "Portugal"), new("se", "Sweden"), new("sg", "Singapore"),
+        new("uk", "United Kingdom"), new("us", "United States"),
+    ];
+
+    private string DescribeRegions => regionChoices is null || !regionChoices.Any()
+        ? L.T("未选择", "none")
+        : string.Join(", ", regionOptions.GetTexts(regionChoices));
+}

@@ -1,0 +1,194 @@
+@namespace AtomBlazor.Primitives
+@implements IAsyncDisposable
+@inject IPortalService PortalService
+@inject IJSRuntime JSRuntime
+
+@* 在文档 body 层级渲染特定类别的门户。
+   只在本类别的门户发生变化时重新渲染。 *@
+@{
+    // 开启本轮渲染周期。_isRendering 置位期间，RefreshPortal 通知不会被立即执行
+    // （见 HandleCategoryChanged）——我们内容中的嵌套 FloatingPortal（例如 Dialog 或
+    // Popover 里的 Select）会在它自己的 OnParametersSet 期间、
+    // 也即本次渲染之中触发 RefreshPortal，若应声重渲染就会成环。该守卫一直保持到
+    // OnAfterRenderAsync，由其回收此间被推迟的通知（包括落在 Blazor Server ACK 等待窗口内的
+    // 纯内容更新）。
+    _isRendering = true;
+    // 记录本轮渲染了哪些门户
+    _renderedThisCycle.Clear();
+}
+@foreach (var portal in PortalService.GetPortals(Category))
+{
+    _renderedThisCycle.Add(portal.Key);
+    <div @key="portal.Key" data-portal-id="@portal.Key" data-portal-category="@Category" class="atom-portal" style="display: contents;">
+        @portal.Value
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// 本宿主渲染的门户类别。
+    /// </summary>
+    [Parameter]
+    public PortalCategory Category { get; set; }
+
+    private HashSet<string> _renderedThisCycle = new();
+    private IJSObjectReference? _portalModule;
+    private bool _isRendering;
+    private bool _pendingRerender;
+    private bool _isFlushing;
+    private bool _flushScheduled;
+    private bool _disposed;
+
+    protected override void OnInitialized()
+    {
+        // 每个类别宿主都注册，由服务计数。旧的"只有第一个注册"规则会把一次注册与
+        // 一次可能属于另一个宿主的释放配对：PortalHost 本身就是两个类别宿主，
+        // 布局切换时，新页面的宿主先初始化、旧布局的宿主后释放，两者重叠。谁先释放，
+        // 谁就把仍在渲染的宿主的标志清掉，后者于是自称缺失（#545）。
+        PortalService.RegisterHost();
+
+        PortalService.OnPortalsCategoryChanged += HandleCategoryChanged;
+    }
+
+    /// <summary>
+    /// 处理限定到特定类别的门户变更。
+    /// 忽略其他类别的通知，以及自身渲染周期内的通知。
+    /// </summary>
+    private void HandleCategoryChanged(PortalCategory category)
+    {
+        if (category != Category)
+        {
+            return;
+        }
+
+        if (_isRendering)
+        {
+            // 通知到达时我们的渲染周期仍未闭合。周期从 BuildRenderTree 起、到
+            // OnAfterRenderAsync 止；在 Blazor Server 上，这段区间还包括等待客户端
+            // 确认渲染批次——一个完整的网络往返。落进这个窗口的是两类截然不同的通知：
+            //
+            //   1. 嵌套门户的 OnParametersSet 在我们渲染其内容期间同步发出的可重入
+            //      RefreshPortal 调用（例如 Dialog 或 Popover 里的 Select）。这类是冗余的
+            //      ——我们正在画的就是最新内容。
+            //   2. 来自宿主页组件、其快速异步处理在 ACK 等待窗口内就完成了的真内容更新
+            //      （issue #418）。这类必须重渲染，否则门户化的 DOM 会冻结在过期内容上。
+            //
+            // 我们不能立即渲染（会重入当前渲染），所以标记一次延迟重渲染，
+            // 交给 OnAfterRenderAsync 回收，从而兜住第 2 类。为防第 1 类成环，
+            // 冲刷（flush）重渲染进行中时不武装该标志：同类型的嵌套门户每次渲染都会
+            // 再触发 RefreshPortal，由冲刷引出的通知不得再排下一次冲刷。
+            if (!_isFlushing)
+            {
+                _pendingRerender = true;
+            }
+            return;
+        }
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // 渲染周期已完成，解除渲染守卫。
+        _isRendering = false;
+
+        if (firstRender)
+        {
+            // 经由 bundle 加载 portal.js，初始化自动聚焦观察者。
+            // 确保带 data-autofocus 的元素在渲染出来时自动获得焦点。
+            try
+            {
+                _portalModule = await PrimitiveModules.GetAsync(JSRuntime);
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            {
+            // Blazor Server 电路断开时属预期
+            }
+            catch (InvalidOperationException)
+            {
+                // 预渲染期间 JS interop 不可用——可安全忽略
+            }
+        }
+
+        // 先通知本轮渲染过的所有门户，再检查结构变化。
+        // 这向内容组件表明其 ElementRef 现已有效。
+        // 必须先做，因为嵌套的 FloatingPortal 组件要等这个通知
+        //（带 500ms 超时）之后才建立定位。
+        foreach (var portalId in _renderedThisCycle)
+        {
+            PortalService.NotifyPortalRendered(portalId);
+        }
+
+        // 检测渲染周期中发生的结构变化（注册/注销）。
+        // 嵌套的 FloatingPortal 组件在自己的 OnAfterRenderAsync 里调用
+        // RegisterPortal（深度优先，它们先于我们运行），所以此刻门户集合已反映
+        // 所有新增/移除。
+        var currentPortalKeys = PortalService.GetPortals(Category)
+            .Select(kvp => kvp.Key)
+            .ToHashSet();
+
+        // 结构变化（注册/注销）在此同步冲刷，与之前的行为完全一致——门户集合收敛很快，
+        // 该路径是有界的。
+        if (!_renderedThisCycle.SetEquals(currentPortalKeys))
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+
+        // 针对 Server ACK 等待丢更新（issue #418）的内容级恢复，经由一次延迟、
+        // 单飞（single-flight）的重渲染来冲刷——绝不同步重渲染。在 WebAssembly 上，
+        // OnAfterRender 在渲染末尾内联执行，若在这里同步重渲染，只要有嵌套门户
+        //（例如 Popover 里的 Select）每次渲染都再触发 RefreshPortal，就会递归到栈溢出。
+        // 先让出调度权即可斩断这条链。
+        if (_pendingRerender)
+        {
+            _pendingRerender = false;
+            ScheduleContentFlush();
+        }
+    }
+
+    /// <summary>
+    /// 排入一次延迟重渲染，以拾取在渲染周期中被丢掉的内容级门户更新
+    ///（见 <see cref="HandleCategoryChanged"/>）。经 <see cref="_flushScheduled"/>
+    /// 合并并发通知，收敛为一次重渲染；并由 <see cref="_isFlushing"/> 把关，
+    /// 使这次重渲染自身可重入的 RefreshPortal 调用不会再排新冲刷。
+    /// </summary>
+    private void ScheduleContentFlush()
+    {
+        if (_flushScheduled)
+        {
+            return;
+        }
+
+        _flushScheduled = true;
+        _ = InvokeAsync(async () =>
+        {
+            // 作为全新的 dispatcher 工作项运行，而不是嵌在排入它的那次渲染里。
+            await Task.Yield();
+            if (_disposed)
+            {
+                return;
+            }
+
+            _isFlushing = true;
+            try
+            {
+                StateHasChanged();
+            }
+            finally
+            {
+                _isFlushing = false;
+                _flushScheduled = false;
+            }
+        });
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        _disposed = true;
+
+        PortalService.UnregisterHost();
+
+        PortalService.OnPortalsCategoryChanged -= HandleCategoryChanged;
+        return ValueTask.CompletedTask;
+    }
+}

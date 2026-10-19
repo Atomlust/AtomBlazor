@@ -1,0 +1,732 @@
+@page "/components/sortable"
+
+<PageTitle>@L.T("Sortable 可排序组件 - Atom BlazorUI", "Sortable Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Sortable 可排序组件", "Sortable Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("由 Sortable.js 驱动的拖拽排序列表与网格。支持单列表、互联多列表、网格布局和看板。", "Drag-and-drop sortable lists and grids powered by Sortable.js. Supports single lists, connected multi-lists, grid layouts, and Kanban boards.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic List -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基础列表", "Basic List")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        拖动任意条目即可重新排序。
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">OnUpdate</code> 回调会提供旧索引与新索引，便于你更新数据模型。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Drag any item to reorder it. The
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">OnUpdate</code> callback provides
+                        the old and new index so you can update your data model.
+                    </p>
+                </text>
+            }
+        </div>
+
+        <Sortable TItem="string"
+                    Items="@_basicItems"
+                    AriaLabel="@(L.T("可排序任务列表", "Sortable task list"))"
+                    OnUpdate="@((args) => MoveWithin(_basicItems, args))">
+            <ItemTemplate Context="item">
+                <div
+                     class="flex items-center gap-3 rounded-md border bg-card px-4 py-3 text-sm shadow-sm cursor-grab active:cursor-grabbing">
+                    <LucideIcon Name="grip-vertical" Size="16" Class="text-muted-foreground shrink-0" />
+                    <span>@item</span>
+                </div>
+            </ItemTemplate>
+        </Sortable>
+
+        <CodeBlock Source="Components/Sortable/basic.txt" />
+    </div>
+
+    <!-- Handle -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("使用拖拽手柄", "With Drag Handle")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">Handle</code> 参数可以把拖拽限制到特定的子元素。只有该元素会发起拖拽；条目的其余部分仍可正常交互。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Use the <code class="text-xs bg-muted px-1 py-0.5 rounded">Handle</code> parameter to
+                        restrict dragging to a specific child element. Only that element initiates the drag;
+                        the rest of the item remains interactive.
+                    </p>
+                </text>
+            }
+        </div>
+
+        <Sortable TItem="string"
+                    Items="@_handleItems"
+                    Handle=".drag-handle"
+                    AriaLabel="@(L.T("带拖拽手柄的可排序列表", "Sortable list with drag handle"))"
+                    OnUpdate="@((args) => MoveWithin(_handleItems, args))">
+            <ItemTemplate Context="item">
+                <div
+                     class="flex items-center gap-3 rounded-md border bg-card px-4 py-3 text-sm shadow-sm">
+                    <span class="drag-handle cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground">
+                        <LucideIcon Name="grip-vertical" Size="16" />
+                    </span>
+                    <span class="flex-1">@item</span>
+                </div>
+            </ItemTemplate>
+        </Sortable>
+
+        <CodeBlock Source="Components/Sortable/handle.txt" />
+    </div>
+
+    <!-- Multiple Connected Lists -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("多个互联列表", "Multiple Connected Lists")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        让多个 <code class="text-xs bg-muted px-1 py-0.5 rounded">Sortable</code>
+                        实例使用同一个 <code class="text-xs bg-muted px-1 py-0.5 rounded">Group</code> 名称，条目即可在它们之间移动。
+                        两列表之间的转移只需要 <code class="text-xs bg-muted px-1 py-0.5 rounded">OnRemove</code>
+                        一个回调就够了——它会提供条目在目标列表中的落点索引，可直接插入另一个列表。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Give multiple <code class="text-xs bg-muted px-1 py-0.5 rounded">Sortable</code>
+                        instances the same <code class="text-xs bg-muted px-1 py-0.5 rounded">Group</code> name to allow items to move between them.
+                        For two-list transfers, <code class="text-xs bg-muted px-1 py-0.5 rounded">OnRemove</code>
+                        alone is sufficient — the callback provides the landing index in the target so you can
+                        insert straight into the other list.
+                    </p>
+                </text>
+            }
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-2">
+                <p class="text-sm font-medium">@L.T("待选", "Available")</p>
+                <Sortable TItem="string"
+                            Items="@_available"
+                            Group="@_transferGroup"
+                            AriaLabel="@(L.T("待选条目", "Available items"))"
+                            CanDrop="@(drop => _selected.Count < 3)"
+                            OnUpdate="@((args) => MoveWithin(_available, args))"
+                            OnRemove="@((args) => MoveAcross(_available, _selected, args))"
+                            Class="min-h-20 rounded-md border border-dashed p-2">
+                    <ItemTemplate Context="item">
+                        <div
+                             class="flex items-center gap-2 rounded-md border bg-card px-3 py-2 text-sm shadow-sm cursor-grab active:cursor-grabbing">
+                            <LucideIcon Name="grip-vertical" Size="14" Class="text-muted-foreground shrink-0" />
+                            <span>@item</span>
+                        </div>
+                    </ItemTemplate>
+                </Sortable>
+            </div>
+
+            <div class="space-y-2">
+                <p class="text-sm font-medium">@L.T("已选", "Selected")</p>
+                <Sortable TItem="string"
+                            Items="@_selected"
+                            Group="@_transferGroup"
+                            AriaLabel="@(L.T("已选条目", "Selected items"))"
+                            OnUpdate="@((args) => MoveWithin(_selected, args))"
+                            OnRemove="@((args) => MoveAcross(_selected, _available, args))"
+                            Class="min-h-20 rounded-md border border-dashed p-2">
+                    <ItemTemplate Context="item">
+                        <div
+                             class="flex items-center gap-2 rounded-md border bg-card px-3 py-2 text-sm shadow-sm cursor-grab active:cursor-grabbing">
+                            <LucideIcon Name="grip-vertical" Size="14" Class="text-muted-foreground shrink-0" />
+                            <span>@item</span>
+                        </div>
+                    </ItemTemplate>
+                </Sortable>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Sortable/multiple-lists.txt" />
+    </div>
+
+    <!-- Grid Layout -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("网格布局", "Grid Layout")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        设置 <code class="text-xs bg-muted px-1 py-0.5 rounded">Layout="SortableLayout.Grid"</code>
+                        即可得到两列网格。传入类似 <code class="text-xs bg-muted px-1 py-0.5 rounded">grid-cols-3 gap-3</code>
+                        的 <code class="text-xs bg-muted px-1 py-0.5 rounded">Class</code> 可以覆盖列数。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Set <code class="text-xs bg-muted px-1 py-0.5 rounded">Layout="SortableLayout.Grid"</code>
+                        for a two-column grid. Pass a <code class="text-xs bg-muted px-1 py-0.5 rounded">Class</code>
+                        like <code class="text-xs bg-muted px-1 py-0.5 rounded">grid-cols-3 gap-3</code> to override
+                        the column count.
+                    </p>
+                </text>
+            }
+        </div>
+
+        <Sortable TItem="ColorCard"
+                    Items="@_gridCards"
+                    Layout="SortableLayout.Grid"
+                    AriaLabel="@(L.T("可排序卡片网格", "Sortable card grid"))"
+                    OnUpdate="@((args) => MoveWithin(_gridCards, args))">
+            <ItemTemplate Context="card">
+                <Card Class="cursor-grab active:cursor-grabbing select-none">
+                    <CardContent Class="pt-6">
+                        <div class="@($"h-16 rounded-md {card.Color} flex items-center justify-center")">
+                            <span class="text-white font-semibold text-sm">@card.Label</span>
+                        </div>
+                    </CardContent>
+                </Card>
+            </ItemTemplate>
+        </Sortable>
+
+        <CodeBlock Source="Components/Sortable/grid.txt" />
+    </div>
+
+    <!-- Kanban Board -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("看板", "Kanban Board")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        三个互联列，每列各自由一个
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Sortable</code> 支撑。
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">OnRemove</code> 在源列上触发并移除任务；
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">OnAdd</code> 在目标列上触发并插入任务。
+                        父组件在两个回调之间把在途任务暂存在
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">_draggedTask</code> 字段里。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        Three connected columns each backed by their own
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Sortable</code>.
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">OnRemove</code> fires on the source column
+                        and removes the task; <code class="text-xs bg-muted px-1 py-0.5 rounded">OnAdd</code> fires
+                        on the target column and inserts it. The parent stages the in-flight task in a
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">_draggedTask</code> field between the
+                        two callbacks.
+                    </p>
+                </text>
+            }
+        </div>
+
+        <div class="grid grid-cols-3 gap-4">
+            @foreach (var column in _kanbanColumns)
+            {
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm font-semibold">@column.Title</p>
+                        <Badge Variant="BadgeVariant.Secondary">@column.Items.Count</Badge>
+                    </div>
+                    <Sortable TItem="KanbanTask"
+                                Items="@column.Items"
+                                Group="@_kanbanGroup"
+                                AriaLabel="@(L.IsChinese ? $"{column.Title} 列" : $"{column.Title} column")"
+                                OnUpdate="@((args) => MoveWithin(column.Items, args))"
+                                OnRemove="@((args) => KanbanOnRemove(column, args))"
+                                OnAdd="@((args) => KanbanOnAdd(column, args))"
+                                Class="min-h-24 rounded-lg border border-dashed p-2">
+                        <ItemTemplate Context="task">
+                            <Card Class="cursor-grab active:cursor-grabbing">
+                                <CardHeader Class="pb-2">
+                                    <CardTitle Class="text-sm font-medium">@task.Title</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <Badge Variant="@GetPriorityVariant(task.Priority)">
+                                        @task.Priority
+                                    </Badge>
+                                </CardContent>
+                            </Card>
+                        </ItemTemplate>
+                    </Sortable>
+                </div>
+            }
+        </div>
+
+        <CodeBlock Source="Components/Sortable/kanban.txt" />
+    </div>
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("键盘排序与被拒绝的移动", "Keyboard sorting and rejected moves")</h2>
+        <p class="text-sm text-muted-foreground">@L.T("用 Tab 聚焦到某个条目，按空格拾取，用方向键移动，再按空格放下。按 Escape 取消且不改动集合。第一个位置由 CanMove 保护，键盘与指针重排都适用。", "Tab to an item, press Space to pick it up, use arrows to move, and press Space to drop. Escape cancels without changing the collection. The first position is protected by CanMove, for both keyboard and pointer reordering.")</p>
+        <Sortable TItem="string" Items="keyboardItems" AriaLabel="@(L.T("键盘排序示例", "Keyboard sorting example"))"
+            CanMove="@(move => move.OldIndex > 0 && move.NewIndex > 0)"
+            OnUpdate="@(args => MoveWithin(keyboardItems, args))">
+    <ItemTemplate Context="item">
+        <div class="flex items-center gap-2 rounded-md border bg-card p-3"><SortableHandle AriaLabel="@(L.IsChinese ? $"重排 {item}" : $"Reorder {item}")" />@item</div>
+    </ItemTemplate>
+    <DragOverlayTemplate Context="item">
+        @if (L.IsChinese)
+        {
+            <text>
+                <div class="rounded-lg border bg-background px-4 py-2 shadow-xl">移动中：@item</div>
+            </text>
+        }
+        else
+        {
+            <text>
+                <div class="rounded-lg border bg-background px-4 py-2 shadow-xl">Moving: @item</div>
+            </text>
+        }
+    </DragOverlayTemplate>
+</Sortable>
+        <CodeBlock Source="Components/Sortable/keyboard.txt" />
+        <p class="text-sm text-muted-foreground">@L.T("上面的互联列表示例最多接受三个已选条目。源侧 CanDrop 在任一转移回调之前执行；被拒绝的放下会让两个列表都恢复原状。省略 Handle 时会自动识别 SortableHandle。先拾取一个条目，然后用 Control 加左/右方向键把它转移到上一个或下一个互联列表。上面的示例还提供了自定义指针预览。", "The connected-list example above accepts at most three selected items. Source-side CanDrop runs before either transfer callback; a rejected drop restores both lists. SortableHandle is detected automatically when Handle is omitted. Pick up an item, then use Control plus Left/Right to transfer it between the connected lists. The example above also supplies a custom pointer preview.")</p>
+        <CodeBlock Source="Components/Sortable/drop-permission.txt" />
+
+    </section>
+
+    <!-- Accessibility -->
+
+    <!-- API Reference -->
+
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        容器带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="list"</code>，
+                        并通过
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AriaLabel</code> 参数接受一个可访问名称。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        The container has <code class="text-xs bg-muted px-1 py-0.5 rounded">role="list"</code>
+                        and accepts an accessible label via the
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AriaLabel</code> parameter.
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        一个视觉隐藏的 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="status"</code>
+                        实时区域会向读屏软件播报每一次移动
+                        （例如“条目已从第 2 个位置移动到第 4 个位置。”）。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        A visually-hidden <code class="text-xs bg-muted px-1 py-0.5 rounded">role="status"</code>
+                        live region announces each move to screen readers
+                        (e.g., "Item moved from position 2 to position 4.").
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @L.T("每个条目都会被自动包裹在一个容器元素中，以保证 DOM 结构一致并利于 Blazor diff。", "Each item is automatically wrapped in a container element for consistent DOM structure and Blazor diffing.")
+            </AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("聚焦到一个可用的排序手柄", "Focus an enabled sorting handle"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("拾取或放下当前聚焦的条目", "Pick up or drop the focused item"))"><Kbd>Space</Kbd> / <Kbd>Enter</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在其列表内移动已拾取的条目", "Move a picked-up item within its list"))"><Kbd>ArrowUp</Kbd> / <Kbd>ArrowDown</Kbd> / <Kbd>ArrowLeft</Kbd> / <Kbd>ArrowRight</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("把已拾取的条目移到第一个或最后一个位置", "Move a picked-up item to the first or last position"))"><Kbd>Home</Kbd> / <Kbd>End</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("把已拾取的条目转移到上一个或下一个互联列表，遵循 Pull、Put 与 CanDrop", "Transfer a picked-up item to the previous or next connected list, respecting Pull, Put and CanDrop"))"><Kbd>Ctrl + ArrowLeft</Kbd> / <Kbd>Ctrl + ArrowRight</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("取消并恢复原始顺序", "Cancel and restore the original order"))"><Kbd>Escape</Kbd> / <Kbd>Tab</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <ApiReference ComponentName="Sortable&lt;TItem&gt;">
+            <ApiParameter Since="v4" Name="KeyboardSorting" Type="bool" Default="true">@L.T("启用键盘拾取、列表内重排与互联列表转移。Sort=false 会禁止列表内移动但仍允许转移。遵循 Handle、Pull、Put 与 CanDrop。", "Enable keyboard pickup, reordering and connected-list transfer. Sort=false blocks in-list movement but allows transfer. Respects Handle, Pull, Put and CanDrop.")</ApiParameter>
+            <ApiParameter Since="v4" Name="DragOverlayTemplate" Type="RenderFragment&lt;TItem&gt;?">@L.T("按条目渲染的装饰性指针预览，拖拽期间会在列表外克隆一份。使用 fallback 拖拽方式，继承作用域内的主题令牌，处于 inert 状态且不接收实时交互。保持轻量；可交互的事件应放在 ItemTemplate 里。", "Decorative pointer preview rendered per item and cloned outside the list during drag. Uses fallback dragging, inherits scoped theme tokens, is inert, and receives no live interaction. Keep it lightweight; interactive events belong in ItemTemplate.")</ApiParameter>
+            <ApiParameter Since="v4" Name="KeyboardInstructions" Type="string">@L.T("与每个排序手柄关联的可访问说明。", "Accessible instructions associated with each sorting handle.")</ApiParameter>
+            <ApiParameter Since="v4" Name="CanDrop" Type="Func&lt;SortableDropContext&lt;TItem&gt;, bool&gt;?">@L.T("跨列表放下的源侧许可。接收 Item、SourceId、TargetId、OldIndex、NewIndex 与 IsClone。返回 false 时两个回调都不触发；被接受的转移会先通知 OnRemove 再通知 OnAdd。", "Source-side permission for a cross-list drop. Receives Item, SourceId, TargetId, OldIndex, NewIndex and IsClone. Returning false suppresses both callbacks; accepted transfers notify OnRemove before OnAdd.")</ApiParameter>
+            <ApiParameter Since="v4" Name="CanMove" Type="Func&lt;SortableMoveContext&lt;TItem&gt;, bool&gt;?">@L.T("返回 false 可在 OnUpdate 触发前拒绝列表内重排。接收 Item、OldIndex 与 NewIndex。适用于键盘与指针移动；跨列表转移使用 OnRemove/OnAdd。", "Return false to reject an in-list reorder before OnUpdate is raised. Receives Item, OldIndex and NewIndex. Applies to keyboard and pointer moves; cross-list transfers use OnRemove/OnAdd.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <ApiParameter Name="ItemTemplate" Type="RenderFragment&lt;TItem&gt;?">
+                        用于显示每个条目的渲染片段。<code>context</code> 变量
+                        提供数据项。
+                    </ApiParameter>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <ApiParameter Name="ItemTemplate" Type="RenderFragment&lt;TItem&gt;?">
+                        Render fragment used to display each item. The <code>context</code> variable
+                        provides the data item.
+                    </ApiParameter>
+                </text>
+            }
+            <ApiParameter Name="Items" Type="IList&lt;TItem&gt;">
+                @L.T("要渲染并允许重排的条目列表。", "The list of items to render and reorder.")
+            </ApiParameter>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <ApiParameter Name="OnUpdate" Type="EventCallback&lt;(int OldIndex, int NewIndex)&gt;">
+                        条目在本列表内被重排时触发。从
+                        <code>OldIndex</code> 移除并在 <code>NewIndex</code> 处插入。
+                    </ApiParameter>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <ApiParameter Name="OnUpdate" Type="EventCallback&lt;(int OldIndex, int NewIndex)&gt;">
+                        Raised when an item is reordered within this list. Remove from
+                        <code>OldIndex</code> and insert at <code>NewIndex</code>.
+                    </ApiParameter>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <ApiParameter Name="OnRemove" Type="EventCallback&lt;(int OldIndex, int NewIndex)&gt;">
+                        条目被移出本列表进入某个互联列表时触发。
+                        <code>OldIndex</code> 是条目在本列表中的位置；
+                        <code>NewIndex</code> 是它在目标列表中的落点位置。
+                    </ApiParameter>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <ApiParameter Name="OnRemove" Type="EventCallback&lt;(int OldIndex, int NewIndex)&gt;">
+                        Raised when an item is moved out of this list into a connected list.
+                        <code>OldIndex</code> is the item's position in this list;
+                        <code>NewIndex</code> is its landing position in the target list.
+                    </ApiParameter>
+                </text>
+            }
+            @if (L.IsChinese)
+            {
+                <text>
+                    <ApiParameter Name="OnAdd" Type="EventCallback&lt;(int OldIndex, int NewIndex)&gt;">
+                        来自互联列表的条目被放入本列表时触发。
+                        <code>OldIndex</code> 是它在源列表中的位置；
+                        <code>NewIndex</code> 是它在本列表中的落点位置。
+                        需与源列表的 <code>OnRemove</code> 搭配，通过共享字段
+                        暂存条目后再在此插入。
+                    </ApiParameter>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <ApiParameter Name="OnAdd" Type="EventCallback&lt;(int OldIndex, int NewIndex)&gt;">
+                        Raised when an item from a connected list is dropped into this list.
+                        <code>OldIndex</code> is its position in the source list;
+                        <code>NewIndex</code> is its landing position in this list.
+                        Use together with <code>OnRemove</code> on the source to stage the item via a
+                        shared field and then insert it here.
+                    </ApiParameter>
+                </text>
+            }
+            <ApiParameter Name="Group" Type="string" Default="auto">
+                @L.T("Sortable.js 组名。使用相同名称的列表可以交换条目。默认取唯一自动生成的值（独立列表）。", "Sortable.js group name. Lists sharing the same name can exchange items. Defaults to a unique auto-generated value (isolated list).")
+            </ApiParameter>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <ApiParameter Name="Pull" Type="string?" Default="null">
+                        Pull 行为：<code>"clone"</code> 复制条目；<code>null</code> 移动条目。
+                    </ApiParameter>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <ApiParameter Name="Pull" Type="string?" Default="null">
+                        Pull behaviour: <code>"clone"</code> copies items; <code>null</code> moves them.
+                    </ApiParameter>
+                </text>
+            }
+            <ApiParameter Name="Put" Type="bool" Default="true">
+                @L.T("是否允许把互联列表中的条目放入本列表。", "Whether items from connected lists can be dropped into this one.")
+            </ApiParameter>
+            <ApiParameter Name="Sort" Type="bool" Default="true">
+                @L.T("是否允许重排本列表内的条目。", "Whether items within this list can be reordered.")
+            </ApiParameter>
+            <ApiParameter Name="Handle" Type="string" Default='""'>
+                @L.T("拖拽手柄元素的 CSS 选择器。只有该元素会发起拖拽。", "CSS selector for the drag-handle element. Only that element initiates a drag.")
+            </ApiParameter>
+            <ApiParameter Name="Filter" Type="string?" Default="null">
+                @L.T("不可拖拽的子元素的 CSS 选择器。", "CSS selector for child elements that cannot be dragged.")
+            </ApiParameter>
+            <ApiParameter Name="ForceFallback" Type="bool" Default="true">
+                @L.T("使用软件 fallback 渲染器代替原生 HTML5 拖放。为保证跨浏览器行为一致，推荐使用。", "Use the software fallback renderer instead of native HTML5 drag-and-drop. Recommended for consistent cross-browser behaviour.")
+            </ApiParameter>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <ApiParameter Name="Layout" Type="SortableLayout" Default="SortableLayout.List">
+                        视觉布局：<code>List</code>（垂直单列）或 <code>Grid</code>
+                        （两列网格）。通过 <code>Class</code> 覆盖列数。
+                    </ApiParameter>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <ApiParameter Name="Layout" Type="SortableLayout" Default="SortableLayout.List">
+                        Visual layout: <code>List</code> (vertical column) or <code>Grid</code>
+                        (two-column grid). Override columns via <code>Class</code>.
+                    </ApiParameter>
+                </text>
+            }
+            <ApiParameter Name="Id" Type="string" Default="auto">
+                @L.T("可排序容器的 HTML 元素 id。默认自动生成。", "HTML element id for the sortable container. Auto-generated by default.")
+            </ApiParameter>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <ApiParameter Name="AriaLabel" Type="string?">
+                        暴露在容器上的可访问标签，即 <code>aria-label</code>。
+                    </ApiParameter>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <ApiParameter Name="AriaLabel" Type="string?">
+                        Accessible label exposed as <code>aria-label</code> on the container.
+                    </ApiParameter>
+                </text>
+            }
+            <ApiParameter Name="Class" Type="string?">
+                @L.T("作用于容器元素的额外 CSS 类。", "Additional CSS classes for the container element.")
+            </ApiParameter>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                </text>
+            }
+        </ApiReference>
+
+        <div class="rounded-lg border p-6">
+            <h3 class="font-mono text-sm font-semibold mb-3">SortableLayout</h3>
+            <div class="text-sm text-muted-foreground space-y-1">
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p><strong>List</strong> — 条目在单列中垂直堆叠（默认）。</p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p><strong>List</strong> — items stacked vertically in a single column (default).</p>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p>
+                            <strong>Grid</strong> — 条目以两列网格排布。传入自定义的
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">Class</code>，例如
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">grid-cols-3 gap-4</code>，
+                            即可改变列数。
+                        </p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p>
+                            <strong>Grid</strong> — items in a two-column grid. Pass a custom
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">Class</code> such as
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">grid-cols-3 gap-4</code>
+                            to change the column count.
+                        </p>
+                    </text>
+                }
+            </div>
+        </div>
+
+        <span id="sortable-handle" class="block scroll-mt-20" aria-hidden="true"></span>
+        <ApiReference Since="v4" ComponentName="SortableHandle">
+            <ApiParameter Name="AriaLabel / Disabled" Type="string / bool" Default="Reorder item / false">@L.T("可访问名称与禁用状态。", "Accessible name and disabled state.")</ApiParameter>
+            <ApiParameter Name="ChildContent / Class / AdditionalAttributes" Type="RenderFragment / string / Dictionary&lt;string, object&gt;">@L.T("可选的握柄内容、CSS 类与 HTML 属性。", "Optional grip content, CSS classes and HTML attributes.")</ApiParameter>
+        </ApiReference>
+    </section>
+
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private readonly List<string> keyboardItems = ["Pinned: project overview", "Plan", "Build", "Review"];
+    // ── Shared helpers ────────────────────────────────────────────────────────
+
+    private static void MoveWithin<T>(List<T> list, (int OldIndex, int NewIndex) args)
+    {
+        var item = list[args.OldIndex];
+        list.RemoveAt(args.OldIndex);
+        list.Insert(args.NewIndex, item);
+    }
+
+    private static void MoveAcross<T>(List<T> source, List<T> target, (int OldIndex, int NewIndex) args)
+    {
+        var item = source[args.OldIndex];
+        source.RemoveAt(args.OldIndex);
+        target.Insert(args.NewIndex, item);
+    }
+
+    // ── Basic list ────────────────────────────────────────────────────────────
+
+    private List<string> _basicItems =
+    [
+        "Design mockups",
+        "Set up project",
+        "Implement authentication",
+        "Write unit tests",
+        "Deploy to staging",
+    ];
+
+    // ── Handle list ───────────────────────────────────────────────────────────
+
+    private List<string> _handleItems =
+    [
+        "Dashboard",
+        "Analytics",
+        "Reports",
+        "Settings",
+        "Users",
+    ];
+
+    // ── Multiple lists ────────────────────────────────────────────────────────
+
+    private readonly string _transferGroup = Guid.NewGuid().ToString();
+    private List<string> _available = ["React", "Vue", "Angular", "Svelte", "Solid"];
+    private List<string> _selected = ["Blazor"];
+
+    // ── Grid ──────────────────────────────────────────────────────────────────
+
+    private record ColorCard(string Label, string Color);
+
+    private List<ColorCard> _gridCards =
+    [
+        new("Ocean", "bg-blue-500"),
+        new("Forest", "bg-green-500"),
+        new("Sunset", "bg-orange-500"),
+        new("Berry", "bg-purple-500"),
+        new("Rose", "bg-rose-500"),
+        new("Sky", "bg-cyan-500"),
+    ];
+
+    // ── Kanban ────────────────────────────────────────────────────────────────
+
+    private record KanbanTask(string Title, string Priority);
+
+    private sealed class KanbanColumn(string title, List<KanbanTask> items)
+    {
+        public string Title { get; } = title;
+        public List<KanbanTask> Items { get; } = items;
+    }
+
+    private readonly string _kanbanGroup = Guid.NewGuid().ToString();
+
+    private List<KanbanColumn> _kanbanColumns =
+    [
+        new("To Do",
+        [
+            new("Design system audit", "High"),
+            new("Update README", "Low"),
+            new("Fix login bug", "High"),
+        ]),
+        new("In Progress",
+        [
+            new("Build sortable demo", "Medium"),
+            new("Write unit tests", "Medium"),
+        ]),
+        new("Done",
+        [
+            new("Project setup", "Low"),
+            new("CI pipeline", "Medium"),
+        ]),
+    ];
+
+    // Stages the task that is in-flight between columns.
+    // KanbanOnRemove (source) populates it; KanbanOnAdd (target) consumes it.
+    private KanbanTask? _draggedTask;
+
+    private void KanbanOnRemove(KanbanColumn source, (int OldIndex, int NewIndex) args)
+    {
+        _draggedTask = source.Items[args.OldIndex];
+        source.Items.RemoveAt(args.OldIndex);
+    }
+
+    private void KanbanOnAdd(KanbanColumn target, (int OldIndex, int NewIndex) args)
+    {
+        if (_draggedTask is null)
+        {
+            return;
+        }
+
+        target.Items.Insert(Math.Min(args.NewIndex, target.Items.Count), _draggedTask);
+        _draggedTask = null;
+    }
+
+    private static BadgeVariant GetPriorityVariant(string priority) => priority switch
+    {
+        "High" => BadgeVariant.Destructive,
+        "Medium" => BadgeVariant.Default,
+        _ => BadgeVariant.Secondary,
+    };
+}

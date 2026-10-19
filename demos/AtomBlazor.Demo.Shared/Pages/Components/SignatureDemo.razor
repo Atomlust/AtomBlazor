@@ -1,0 +1,438 @@
+@page "/components/signature"
+<PageTitle>@L.T("Signature 签名 - Atom BlazorUI", "Signature - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Signature 签名", "Signature")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("可用手写或输入姓名完成签名。墨迹颜色跟随主题，签名值以 SVG 形式输出，可在任意展示处重新着色。", "Sign by hand or by typing a name. The ink follows the theme, and the value comes out as SVG that can be recoloured wherever it is shown.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        用鼠标、手指或触控笔绘制。移动越快线条越细，正因如此它看起来像墨迹而非鼠标轨迹。切换到
+                        <strong>输入</strong>即可改为用姓名签名。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        Draw with a mouse, a finger or a pen. The line thins as you move faster, which is
+                        what makes it read as ink rather than as a mouse track. Switch to
+                        <strong>Type</strong> to sign with a name instead.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <Signature Label="@(L.T("签名", "Signature"))" @bind-Value="basicValue" />
+                <p class="text-sm text-muted-foreground">
+                    @L.T("值：", "Value:")
+                    <span class="font-mono text-foreground">@DescribeBasic</span>
+                </p>
+            </div>
+
+            <CodeBlock Source="Components/Signature/basic.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("获取签名结果", "Getting the Signature Out")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("SVG 随值一同返回，签名一变即可拿到。PNG 与原始笔画则按需获取，因为它们不该出现在每一笔都触发的事件里。PNG 默认以黑色渲染，而不是主题的墨色，这正是下方图片在白底上依然清晰可读的原因。", "SVG arrives with the value, so it is there the moment the signature changes. PNG and the raw strokes are pulled on demand, because neither belongs in an event that fires on every stroke. The PNG is rendered in black by default, not in the theme's ink, which is why the image below is readable on white.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <Signature @ref="exportField" Label="@(L.T("签名", "Signature"))" @bind-Value="exportValue" />
+                <div class="flex flex-wrap gap-2">
+                    <Button Size="ButtonSize.Small" Disabled="@(exportValue is null or { IsEmpty: true })" OnClick="InspectAsync">
+                        @L.T("查看输出结果", "Inspect the output")
+                    </Button>
+                </div>
+                @if (exportReport is not null)
+                {
+                    <dl class="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-1 text-sm">
+                        @foreach (var (name, detail) in exportReport)
+                        {
+                            <dt class="text-muted-foreground">@name</dt>
+                            <dd class="font-mono truncate">@detail</dd>
+                        }
+                    </dl>
+                }
+                @if (exportValue?.Svg is not null)
+                {
+                    <div class="space-y-2">
+                        @if (L.IsChinese)
+                        {
+                                                <text>
+                                                    <p class="text-sm text-muted-foreground">
+                                同一个 SVG 放在两种背景上。它的墨色是
+                                <code class="text-xs bg-muted px-1 py-0.5 rounded">currentColor</code>，因此会取所在位置的文本颜色：
+                            </p>
+                                                </text>
+}
+                        else
+                        {
+                                                <text>
+                                                    <p class="text-sm text-muted-foreground">
+                                The same SVG on two backgrounds. Its ink is
+                                <code class="text-xs bg-muted px-1 py-0.5 rounded">currentColor</code>, so it
+                                takes the text colour of whatever it is placed in:
+                            </p>
+                                                </text>
+}
+                        <div class="grid gap-3 sm:grid-cols-2">
+                            <div class="rounded-md border bg-white text-black p-2 overflow-hidden">
+                                @((MarkupString)exportValue.Svg)
+                            </div>
+                            <div class="rounded-md border bg-slate-900 text-amber-300 p-2 overflow-hidden">
+                                @((MarkupString)exportValue.Svg)
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (exportPng is not null)
+                {
+                    <div class="space-y-2">
+                        <p class="text-sm text-muted-foreground">
+                            @L.T("PNG 的墨色在渲染时即固定，因此无论页面主题如何，这里都是黑色。", "The PNG. Its ink is fixed at render time, so it is black here whatever the page theme is:")
+                        </p>
+                        <img src="@exportPng" alt="@(L.T("以 PNG 形式显示的签名", "The signature as a PNG"))" class="rounded-md border bg-white max-w-full" />
+                    </div>
+                }
+            </div>
+
+            <CodeBlock Source="Components/Signature/export.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("外观", "Appearance")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">MaxWidth</code> 是线条的最粗值，
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">MinWidth</code> 是收细时的最细值。
+                        不设置
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">StrokeColor</code> 时，墨色跟随主题，
+                        包括签名绘制完成之后再切换主题也会跟随。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">MaxWidth</code> is the thickest
+                        the line gets and <code class="text-xs bg-muted px-1 py-0.5 rounded">MinWidth</code>
+                        the thinnest it tapers to. Leave
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">StrokeColor</code> unset and the
+                        ink follows the theme, including a change of theme after the signature is drawn.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <Signature Label="@(L.T("签名", "Signature"))"
+                             Height="14rem"
+                             StrokeColor="#1d4ed8"
+                             MinWidth="1"
+                             MaxWidth="4"
+                             TypedFontFamily="'Brush Script MT', cursive"
+                             @bind-Value="styledValue" />
+            </div>
+
+            <CodeBlock Source="Components/Signature/appearance.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("仅手绘", "Drawn Only")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AllowTyped="false"</code> 会移除输入签名这条路径。
+                        使用前请先阅读下方的警告。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AllowTyped="false"</code> removes
+                        the typed route. Read the warning below before you use it.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-3">
+                <Alert Variant="AlertVariant.Warning">
+                    <AlertTitle>@L.T("这会把一部分用户挡在外面", "This locks some people out")</AlertTitle>
+                    <AlertDescription>
+                        @L.T("手绘签名无法通过键盘、开关设备或屏幕阅读器完成。仅当法律要求必须是手绘笔迹、且本字段之外另有签名途径时，才关闭输入签名这条路径。", "A drawn signature cannot be given with a keyboard, a switch or a screen reader. Only turn the typed route off where a drawn mark is a legal requirement, and where another way to sign exists outside this field.")
+                    </AlertDescription>
+                </Alert>
+                <Signature Label="@(L.T("签名", "Signature"))" AllowTyped="false" @bind-Value="drawnOnlyValue" />
+            </div>
+
+            <CodeBlock Source="Components/Signature/drawn-only.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("手绘与输入都会被忽略。已经签好的内容保持可见。", "Drawing and typing are both ignored. Whatever was already signed stays visible.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <Signature Label="@(L.T("签名", "Signature"))" Disabled="true" />
+            </div>
+        </section>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    <strong>输入签名这条路径才是无障碍可用的，且默认开启。</strong>手绘签名无法通过键盘、开关设备或屏幕阅读器完成。
+                    除非法律要求必须是手绘笔迹且别处另有途径，否则请保留
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">AllowTyped</code> 的默认值。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    <strong>The typed route is the accessible one, and it is on by default.</strong> A drawn
+                    signature cannot be given with a keyboard, a switch or a screen reader. Leave
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">AllowTyped</code> alone unless a drawn
+                    mark is a legal requirement and another route exists elsewhere.
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    绘制区域带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="img"</code>
+                    和标签，因此它会被宣告为一个区域，而不是被读作空白画布。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    The drawing surface carries <code class="text-xs bg-muted px-1 py-0.5 rounded">role="img"</code>
+                    and a label, so it is announced as a region rather than read as an empty canvas.
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Label</code> 通过
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">for</code> 与输入框绑定，点击标签即可聚焦输入框。
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Label</code> is tied to the typed input
+                    with <code class="text-xs bg-muted px-1 py-0.5 rounded">for</code>, so clicking it focuses
+                    the field.
+                </AccessibilityItem>
+                        </text>
+}
+            <AccessibilityItem>
+                @L.T("路径切换是一个带有可访问名称的切换组，两种签名方式都可以被聚焦和朗读。", "The route switch is a toggle group with an accessible name, so the two ways to sign are reachable and announced.")
+            </AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在路径切换、输入框与按钮之间移动", "Move between the route switch, the typed field and the buttons"))">
+                <Kbd>Tab</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在手绘与输入之间切换", "Switch between drawing and typing"))">
+                <Kbd>&larr;</Kbd> / <Kbd>&rarr;</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("清除，或撤销最后一笔", "Clear, or undo the last stroke"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd> @L.T("（焦点在按钮上时）", "on the button")
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="Signature">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Value" Type="SignatureValue?">
+                        捕获到的签名。携带 <code class="text-xs bg-muted px-1 py-0.5 rounded">Kind</code>（<code class="text-xs bg-muted px-1 py-0.5 rounded">None</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Drawn</code> 或 <code class="text-xs bg-muted px-1 py-0.5 rounded">Typed</code>）、<code class="text-xs bg-muted px-1 py-0.5 rounded">Svg</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Text</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">IsEmpty</code>。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Value" Type="SignatureValue?">
+                        The captured signature. Carries <code class="text-xs bg-muted px-1 py-0.5 rounded">Kind</code> (<code class="text-xs bg-muted px-1 py-0.5 rounded">None</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Drawn</code> or <code class="text-xs bg-muted px-1 py-0.5 rounded">Typed</code>), <code class="text-xs bg-muted px-1 py-0.5 rounded">Svg</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Text</code> and <code class="text-xs bg-muted px-1 py-0.5 rounded">IsEmpty</code>.
+                    </ApiParameter>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="ValueChanged" Type="EventCallback&lt;SignatureValue?&gt;">
+                        签名变化时触发。与 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code> 搭配使用。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="ValueChanged" Type="EventCallback&lt;SignatureValue?&gt;">
+                        Invoked when the signature changes. Use with <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code>.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="Label" Type="string?">
+                    @L.T("显示在字段上方的标签。", "The label shown above the field.")
+                </ApiParameter>
+                <ApiParameter Name="AllowTyped" Type="bool" Default="true">
+                    @L.T("是否提供输入签名路径。关闭后，键盘与屏幕阅读器用户将无法签名。", "Whether the typed route is offered. Turning it off leaves keyboard and screen reader users unable to sign.")
+                </ApiParameter>
+                <ApiParameter Name="Height" Type="string" Default="10rem">
+                    @L.T("签名区域的高度，取 CSS 长度值。", "The height of the signing area, as a CSS length.")
+                </ApiParameter>
+                <ApiParameter Name="StrokeColor" Type="string?">
+                    @L.T("墨迹颜色，取 CSS 颜色值。未设置时，签名使用主题的前景色并跟随主题切换。", "The ink colour as a CSS colour. When unset, the signature uses the theme's foreground colour and follows a theme change.")
+                </ApiParameter>
+                <ApiParameter Name="MinWidth" Type="double" Default="0.7">
+                    @L.T("手绘线条收细到的最细值，单位为 CSS 像素。", "The thinnest the drawn line tapers to, in CSS pixels.")
+                </ApiParameter>
+                <ApiParameter Name="MaxWidth" Type="double" Default="2.5">
+                    @L.T("手绘线条达到的最粗值，单位为 CSS 像素。", "The thickest the drawn line gets, in CSS pixels.")
+                </ApiParameter>
+                <ApiParameter Name="TypedFontFamily" Type="string" Default="handwriting stack">
+                    @L.T("输入签名所用的 CSS 字体栈。不内置字体，因此不会产生任何下载。", "The CSS font stack a typed signature is drawn in. No font is bundled, so nothing is downloaded.")
+                </ApiParameter>
+                <ApiParameter Name="ShowUndo" Type="bool" Default="true">
+                    @L.T("是否在绘制区旁显示撤销按钮。", "Whether an undo button is shown beside the drawing area.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("字段是否被禁用。", "Whether the field is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("应用于根元素的额外 CSS 类。", "Additional CSS classes for the root element.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @L.T("应用到根元素的额外 HTML 属性。", "Additional HTML attributes applied to the root element.")
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="@(L.T("方法", "Methods"))">
+                <ApiParameter Name="GetPngAsync(background, ink)" Type="Task&lt;string?&gt;">
+                    @L.T("手绘签名，输出为 PNG 数据 URL。墨色默认为黑色而非主题色：深色主题下绘制的签名接近白色，放到白纸上会消失。PNG 没有可以延后继承颜色的地方，所以在此固定颜色而不是误打误撞地继承。", "The drawn signature as a PNG data URL. The ink defaults to black, not to the theme's colour: a signature drawn in a dark theme is near-white and would vanish on white paper. A PNG has nowhere to defer the colour to, so it is fixed here rather than inherited by accident.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="GetPngBytesAsync(background, ink)" Type="Task&lt;byte[]?&gt;">
+                        同一张 PNG 的原始字节。用于保存或上传时优先选它而不是展示：数据 URL 体积大约三分之一，而离开 <code class="text-xs bg-muted px-1 py-0.5 rounded">img</code> 标签就没有好处。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="GetPngBytesAsync(background, ink)" Type="Task&lt;byte[]?&gt;">
+                        The same PNG as raw bytes. Prefer it when saving or uploading rather than showing: a data URL is a third larger for no benefit outside an <code class="text-xs bg-muted px-1 py-0.5 rounded">img</code> tag.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="GetStrokesAsync()" Type="Task&lt;IReadOnlyList&lt;SignatureStroke&gt;&gt;">
+                    @L.T("手绘签名背后的原始采样点，含时间信息。", "The raw samples behind a drawn signature, timings included.")
+                </ApiParameter>
+                <ApiParameter Name="SetStrokesAsync(strokes)" Type="Task">
+                    @L.T("用此前捕获的采样点替换当前绘制内容，并切换到绘制路径。", "Replaces the drawing with previously captured samples and switches to the drawn route.")
+                </ApiParameter>
+                <ApiParameter Name="ClearAsync()" Type="Task">
+                    @L.T("清除当前显示路径上的签名。", "Clears the signature on whichever route is showing.")
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private SignatureValue? basicValue;
+    private SignatureValue? styledValue;
+    private SignatureValue? drawnOnlyValue;
+
+    private Signature? exportField;
+    private SignatureValue? exportValue;
+    private List<(string Name, string Detail)>? exportReport;
+    private string? exportPng;
+
+    private string DescribeBasic => basicValue switch
+    {
+        null or { IsEmpty: true } => L.T("未签名", "not signed"),
+        { Kind: SignatureKind.Typed } typed => L.IsChinese ? $"输入 — “{typed.Text}”" : $"Typed — \"{typed.Text}\"",
+        var drawn => L.IsChinese ? $"手绘 — {drawn.Svg?.Length ?? 0} 字节 SVG" : $"Drawn — {drawn.Svg?.Length ?? 0} bytes of SVG"
+    };
+
+    private async Task InspectAsync()
+    {
+        if (exportField is null || exportValue is null or { IsEmpty: true })
+        {
+            return;
+        }
+
+        var strokes = await exportField.GetStrokesAsync();
+        exportPng = await exportField.GetPngAsync("#ffffff");
+
+        exportReport =
+        [
+            ("Kind", exportValue.Kind.ToString()),
+            ("SVG", L.IsChinese ? $"{exportValue.Svg?.Length ?? 0} 字节" : $"{exportValue.Svg?.Length ?? 0} bytes"),
+            ("PNG", L.IsChinese ? $"数据 URL 共 {exportPng?.Length ?? 0} 字节" : $"{exportPng?.Length ?? 0} bytes as a data URL"),
+            ("Strokes", L.IsChinese ? $"{strokes.Count} 笔，共 {strokes.Sum(s => s.Points.Count)} 个采样点" : $"{strokes.Count} stroke(s), {strokes.Sum(s => s.Points.Count)} sample(s)")
+        ];
+    }
+}

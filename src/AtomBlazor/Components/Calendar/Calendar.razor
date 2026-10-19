@@ -1,0 +1,814 @@
+@namespace AtomBlazor
+@using System.Globalization
+@using AtomBlazor.Icons.Lucide
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+@inject ILocalizer Localizer
+
+@*
+    Calendar 组件——显示带可选日期的月视图。
+*@
+
+<div class="@CssClass" @attributes="FilteredAttributes">
+    @* 含导航的日历头部 *@
+    <div class="atom:flex atom:flex-col atom:space-y-4 atom:sm:flex-row atom:sm:space-x-4 atom:sm:space-y-0">
+        <div class="atom:space-y-4">
+            @* 月份/年份导航 *@
+            <div class="atom:flex atom:items-center atom:justify-between atom:pt-1">
+                <Button Variant="ButtonVariant.Outline"
+                        Size="ButtonSize.Icon"
+                        Class="atom:h-7 atom:w-7 atom:bg-transparent atom:p-0 atom:opacity-50 atom:hover:opacity-100"
+                        OnClick="@PreviousMonth"
+                        AriaLabel="@Localizer["Calendar.GoToPreviousMonth"]">
+                    <LucideIcon Name="chevron-left" Class="atom:h-4 atom:w-4" />
+                </Button>
+                <div class="atom:flex atom:items-center atom:gap-1">
+                    @if (ShowMonthYearDropdowns)
+                    {
+                        @* 月份下拉 *@
+                        <Select TValue="int" Value="@DisplayDate.Month" ValueChanged="@OnMonthChanged">
+                            <AtomBlazor.SelectTrigger TValue="int" Class="atom:w-[120px] atom:h-8 atom:border-0 atom:bg-transparent atom:px-2 atom:text-sm atom:font-medium atom:hover:bg-accent atom:focus:ring-0 atom:focus:ring-offset-0">
+                                <span>@GetMonthName(DisplayDate.Month)</span>
+                            </AtomBlazor.SelectTrigger>
+                            <SelectContent>
+                                @foreach (var month in GetMonths())
+                                {
+                                    <AtomBlazor.SelectItem TValue="int" Value="@month.Number">@month.Name</AtomBlazor.SelectItem>
+                                }
+                            </SelectContent>
+                        </Select>
+                        @* 年份下拉 *@
+                        @* w-[80px] 会把选中年份截断：下拉继承触发器宽度，而选中项要占用
+                           16px 的 px-2 加一个 16px 勾选图标，四位数放不下（#484）。 *@
+                        <Select TValue="int" Value="@DisplayDate.Year" ValueChanged="@OnYearChanged">
+                            <AtomBlazor.SelectTrigger TValue="int" Class="atom:w-[100px] atom:h-8 atom:border-0 atom:bg-transparent atom:px-2 atom:text-sm atom:font-medium atom:hover:bg-accent atom:focus:ring-0 atom:focus:ring-offset-0">
+                                <span>@DisplayDate.Year</span>
+                            </AtomBlazor.SelectTrigger>
+                            <SelectContent>
+                                @foreach (var year in GetYears())
+                                {
+                                    <AtomBlazor.SelectItem TValue="int" Value="@year">@year</AtomBlazor.SelectItem>
+                                }
+                            </SelectContent>
+                        </Select>
+                    }
+                    else
+                    {
+                        @* 简单的月份/年份文本头部 *@
+                        <span class="atom:text-sm atom:font-medium">@GetMonthName(DisplayDate.Month) @DisplayDate.Year</span>
+                    }
+                </div>
+                <Button Variant="ButtonVariant.Outline"
+                        Size="ButtonSize.Icon"
+                        Class="atom:h-7 atom:w-7 atom:bg-transparent atom:p-0 atom:opacity-50 atom:hover:opacity-100"
+                        OnClick="@NextMonth"
+                        AriaLabel="@Localizer["Calendar.GoToNextMonth"]">
+                    <LucideIcon Name="chevron-right" Class="atom:h-4 atom:w-4" />
+                </Button>
+            </div>
+
+            @* 日历网格 *@
+            <table class="atom:w-full atom:border-collapse atom:space-y-1" role="grid"
+                   @onkeydown="HandleKeyDown"
+                   @onkeydown:preventDefault="@ShouldPreventKeyDefault">
+                <thead>
+                    @* 居中对齐而非左对齐。七天单元格固定各占 9 单位（252px）；表格宽度
+                       取决于上方月/年下拉，通常更宽。左对齐会把差值留在网格右侧成为
+                       空白——自 b39be911 加宽年份下拉后尤为明显。 *@
+                    <tr class="atom:flex atom:w-full atom:justify-center">
+                        @foreach (var dayName in DayNames)
+                        {
+                            <th scope="col" class="atom:text-muted-foreground atom:rounded-md atom:w-9 atom:font-normal atom:text-[0.8rem]">
+                                @dayName
+                            </th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var week in GetWeeksInMonth())
+                    {
+                        <tr class="atom:flex atom:w-full atom:justify-center atom:mt-2">
+                            @foreach (var day in week)
+                            {
+                                var isSelected = day.HasValue && Selected.HasValue && day.Value.Date == Selected.Value.Date;
+                                var isOutside = day.HasValue && (day.Value.Month != DisplayDate.Month || day.Value.Year != DisplayDate.Year);
+                                var isDisabled = day.HasValue && IsDisabled(day.Value);
+                                var isFocused = day.HasValue && _focusedDate.HasValue && day.Value.Date == _focusedDate.Value.Date;
+                                <td class="@GetCellClasses(day, isSelected)"
+                                    role="gridcell"
+                                    aria-selected="@(isSelected ? "true" : "false")">
+                                    @if (day.HasValue)
+                                    {
+                                        <button type="button"
+                                                id="@GetDayId(day.Value)"
+                                                class="@GetDayClasses(day.Value, isSelected, isDisabled, isFocused, isOutside)"
+                                                disabled="@isDisabled"
+                                                tabindex="@(isFocused ? 0 : -1)"
+                                                @onclick="@(() => SelectDate(day.Value))"
+                                                @onclick:stopPropagation="true"
+                                                @onfocus="@(() => HandleDayFocus(day.Value))">
+                                            @if (DayTemplate != null)
+                                            {
+                                                @DayTemplate(new CalendarDayContext
+                                                {
+                                                    Date = day.Value,
+                                                    IsSelected = isSelected,
+                                                    IsDisabled = isDisabled,
+                                                    IsOutsideMonth = isOutside,
+                                                    IsToday = day.Value.Date == DateTime.Today
+                                                })
+                                            }
+                                            else
+                                            {
+                                                @day.Value.Day
+                                            }
+                                        </button>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    private DateTime _displayDate;
+    private DateTime? _previousSelected;
+    private IJSObjectReference? _elementUtilsModule;
+
+    // 键盘导航字段
+    private DateTime? _focusedDate;
+    private bool _isKeyboardNavigating;
+    private readonly string _calendarId = $"calendar-{Guid.NewGuid():N}";
+
+    // 缓存字段
+    private CultureInfo _resolvedCulture = CultureInfo.CurrentCulture;
+    private DayOfWeek _cachedFirstDayOfWeek;
+    private bool _cachedShowOutsideDays;
+    private List<List<DateTime?>>? _cachedWeeks;
+
+    // ShouldRender 跟踪字段
+    private bool _parametersChanged;
+    private DateTime? _lastSelected;
+    private DateTime _lastDisplayDate;
+    private DateTime? _lastMinDate;
+    private DateTime? _lastMaxDate;
+    private bool _lastShowMonthYearDropdowns;
+    private DateTime? _lastFocusedDate;
+    private bool _lastIsKeyboardNavigating;
+
+    /// <summary>当前显示的月份。</summary>
+    private DateTime DisplayDate
+    {
+        get => _displayDate;
+        set
+        {
+            if (_displayDate.Year != value.Year || _displayDate.Month != value.Month)
+                _cachedWeeks = null;
+            _displayDate = value;
+        }
+    }
+
+    /// <summary>已选日期（单选取模式）。</summary>
+    [Parameter]
+    public DateTime? Selected { get; set; }
+
+    /// <summary>已选日期变化时回调。</summary>
+    [Parameter]
+    public EventCallback<DateTime?> SelectedChanged { get; set; }
+
+    /// <summary>最小可选日期。</summary>
+    [Parameter]
+    public DateTime? MinDate { get; set; }
+
+    /// <summary>最大可选日期。</summary>
+    [Parameter]
+    public DateTime? MaxDate { get; set; }
+
+    /// <summary>判断某日期是否禁用的函数。</summary>
+    [Parameter]
+    public Func<DateTime, bool>? DisabledDates { get; set; }
+
+    /// <summary>每周的第一天，默认为当前区域性的每周首日。</summary>
+    [Parameter]
+    public DayOfWeek? FirstDayOfWeek { get; set; }
+
+    private DayOfWeek EffectiveFirstDayOfWeek => FirstDayOfWeek ?? _resolvedCulture.DateTimeFormat.FirstDayOfWeek;
+
+    /// <summary>覆盖区域默认月份名的自定义月份名，必须为 12 个元素。</summary>
+    [Parameter]
+    public string[]? MonthNames { get; set; }
+
+    /// <summary>覆盖区域默认星期缩写的自定义星期名，必须为 7 个元素且从周日起。</summary>
+    [Parameter]
+    public string[]? CustomDayNames { get; set; }
+
+    /// <summary>是否显示上月/下月溢出到本月的日期。</summary>
+    [Parameter]
+    public bool ShowOutsideDays { get; set; } = true;
+
+    /// <summary>
+    /// 是否显示月份/年份下拉选择器；为 false 时改为简单的文本头部。
+    /// </summary>
+    [Parameter]
+    public bool ShowMonthYearDropdowns { get; set; } = true;
+
+    /// <summary>
+    /// 是否在日历首次渲染时把键盘焦点移到当前活动日期，使方向键导航立即可用。
+    /// 适合按需显示的日历（如内联展开）。对于渲染在基于 portal 的浮层或对话框内的
+    /// 日历，请改在容器的内容就绪事件中调用 <see cref="FocusActiveDayAsync"/>，
+    /// 因为其首渲染发生在浮层定位之前。始终可见的内联日历请保持 false，
+    /// 以免页面加载时抢占焦点。
+    /// </summary>
+    [Parameter]
+    public bool AutoFocus { get; set; }
+
+    /// <summary>应用到日历根元素的额外 CSS 类。</summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>应用到日期按钮的额外 CSS 类。</summary>
+    [Parameter]
+    public string? DayClass { get; set; }
+
+    /// <summary>
+    /// 返回某个日期按钮额外 CSS 类的函数，与内置日期类及 <see cref="DayClass"/> 组合。
+    /// </summary>
+    [Parameter]
+    public Func<DateTime, string?>? DayClassFunc { get; set; }
+
+    /// <summary>
+    /// 在每个日期按钮内渲染自定义内容的可选模板；为 null 时渲染日期数字。
+    /// </summary>
+    [Parameter]
+    public RenderFragment<CalendarDayContext>? DayTemplate { get; set; }
+
+    /// <summary>应用到日期单元格（td 元素）的额外 CSS 类。</summary>
+    [Parameter]
+    public string? CellClass { get; set; }
+
+    /// <summary>应用到日历的额外属性。</summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>返回移除了已显式处理参数（class）的 AdditionalAttributes。</summary>
+    private Dictionary<string, object>? FilteredAttributes
+    {
+        get
+        {
+            if (AdditionalAttributes == null) return null;
+            
+            var filtered = new Dictionary<string, object>();
+            foreach (var kvp in AdditionalAttributes)
+            {
+                var key = kvp.Key.ToLowerInvariant();
+                if (key != "class")
+                {
+                    filtered[kvp.Key] = kvp.Value;
+                }
+            }
+            
+            return filtered.Count > 0 ? filtered : null;
+        }
+    }
+
+    /// <summary>选中日期时回调。</summary>
+    [Parameter]
+    public EventCallback<DateTime> OnSelect { get; set; }
+
+    protected override void OnInitialized()
+    {
+        _resolvedCulture = CultureInfo.CurrentCulture;
+        _displayDate = Selected ?? DateTime.Today;
+        _previousSelected = Selected;
+        InitializeFocusedDate();
+    }
+
+    protected override void OnParametersSet()
+    {
+        _parametersChanged = true;
+
+        // 仅当 Selected 确实由外部变化时才同步显示日期，
+        // 避免覆盖用户的月/年导航。
+        if (Selected != _previousSelected)
+        {
+            _previousSelected = Selected;
+            if (Selected.HasValue)
+            {
+                _displayDate = Selected.Value;
+                _focusedDate = Selected.Value;
+            }
+        }
+
+        // 在参数设置时捕获区域性，使渲染周期之间保持稳定
+        var currentCulture = CultureInfo.CurrentCulture;
+        if (!ReferenceEquals(_resolvedCulture, currentCulture) && _resolvedCulture.Name != currentCulture.Name)
+        {
+            _resolvedCulture = currentCulture;
+            _cachedWeeks = null;
+        }
+
+        // 相关参数变化时使缓存失效
+        if (_cachedFirstDayOfWeek != EffectiveFirstDayOfWeek)
+        {
+            _cachedFirstDayOfWeek = EffectiveFirstDayOfWeek;
+            _cachedWeeks = null;
+        }
+
+        if (_cachedShowOutsideDays != ShowOutsideDays)
+        {
+            _cachedShowOutsideDays = ShowOutsideDays;
+            _cachedWeeks = null;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // 按需把焦点移到活动日期，让内联日历在首渲染后即可用方向键导航。
+        // 渲染在基于 portal 的浮层/对话框内的日历应在容器报告就绪后
+        // 调用 FocusActiveDayAsync()（日期选择器即如此处理）。
+        if (firstRender && AutoFocus)
+        {
+            await FocusActiveDayAsync();
+        }
+    }
+
+    /// <summary>
+    /// 把键盘焦点移到当前活动日期，使日历可立即进行方向键导航。请在日历变为可见
+    /// 之后调用——例如嵌入自建浮层时，在浮层的内容就绪回调里调用。
+    /// </summary>
+    public async Task FocusActiveDayAsync()
+    {
+        _focusedDate ??= GetFirstEnabledDayOfMonth();
+        await FocusCurrentButton();
+    }
+
+    private void InitializeFocusedDate()
+    {
+        // 优先级：Selected 日期 > 今天（若在本月）> 本月第一天
+        if (Selected.HasValue && Selected.Value.Month == DisplayDate.Month &&
+            Selected.Value.Year == DisplayDate.Year)
+        {
+            _focusedDate = Selected.Value.Date;
+        }
+        else if (DateTime.Today.Month == DisplayDate.Month &&
+                 DateTime.Today.Year == DisplayDate.Year)
+        {
+            _focusedDate = DateTime.Today;
+        }
+        else
+        {
+            _focusedDate = GetFirstEnabledDayOfMonth();
+        }
+    }
+
+    private DateTime GetFirstEnabledDayOfMonth()
+    {
+        var date = new DateTime(DisplayDate.Year, DisplayDate.Month, 1);
+        var lastDay = date.AddMonths(1).AddDays(-1);
+        while (date <= lastDay && IsDisabled(date))
+        {
+            date = date.AddDays(1);
+        }
+        return date <= lastDay ? date : new DateTime(DisplayDate.Year, DisplayDate.Month, 1);
+    }
+
+    private DateTime GetLastEnabledDayOfMonth()
+    {
+        var date = new DateTime(DisplayDate.Year, DisplayDate.Month, 1).AddMonths(1).AddDays(-1);
+        var firstDay = new DateTime(DisplayDate.Year, DisplayDate.Month, 1);
+        while (date >= firstDay && IsDisabled(date))
+        {
+            date = date.AddDays(-1);
+        }
+        return date >= firstDay ? date : new DateTime(DisplayDate.Year, DisplayDate.Month, 1).AddMonths(1).AddDays(-1);
+    }
+
+    private string[] DayNames => BuildDayNames();
+
+    private string[] BuildDayNames()
+    {
+        if (CustomDayNames is { Length: 7 })
+        {
+            var start = (int)EffectiveFirstDayOfWeek;
+            var result = new string[7];
+            for (int i = 0; i < 7; i++)
+            {
+                result[i] = CustomDayNames[(start + i) % 7];
+            }
+            return result;
+        }
+
+        var cultureNames = _resolvedCulture.DateTimeFormat.AbbreviatedDayNames;
+        var startIdx = (int)EffectiveFirstDayOfWeek;
+        var cultureDays = new string[7];
+        for (int i = 0; i < 7; i++)
+        {
+            cultureDays[i] = cultureNames[(startIdx + i) % 7];
+        }
+        return cultureDays;
+    }
+
+    #region 导航
+
+    private void PreviousMonth()
+    {
+        DisplayDate = DisplayDate.AddMonths(-1);
+        InitializeFocusedDate();
+    }
+
+    private void NextMonth()
+    {
+        DisplayDate = DisplayDate.AddMonths(1);
+        InitializeFocusedDate();
+    }
+
+    private void OnMonthChanged(int month)
+    {
+        DisplayDate = new DateTime(DisplayDate.Year, month, 1);
+        InitializeFocusedDate();
+    }
+
+    private void OnYearChanged(int year)
+    {
+        DisplayDate = new DateTime(year, DisplayDate.Month, 1);
+        InitializeFocusedDate();
+    }
+
+    #endregion
+
+    #region 键盘导航
+
+    // 对导航键一律阻止默认行为，避免页面滚动
+    private bool ShouldPreventKeyDefault => true;
+
+    private string GetDayId(DateTime date) => $"{_calendarId}-day-{date:yyyyMMdd}";
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        // 判断是否需要处理该按键
+        var shouldHandle = e.Key is "ArrowLeft" or "ArrowRight" or "ArrowUp" or "ArrowDown"
+            or "Home" or "End" or "PageUp" or "PageDown" or "Enter" or " ";
+
+        if (!shouldHandle) return;
+
+        _isKeyboardNavigating = true;
+
+        switch (e.Key)
+        {
+            case "ArrowLeft":
+                await NavigateDay(-1);
+                break;
+            case "ArrowRight":
+                await NavigateDay(1);
+                break;
+            case "ArrowUp":
+                await NavigateDay(-7);
+                break;
+            case "ArrowDown":
+                await NavigateDay(7);
+                break;
+            case "Home":
+                await NavigateToFirstOfMonth();
+                break;
+            case "End":
+                await NavigateToLastOfMonth();
+                break;
+            case "PageUp":
+                await NavigateMonth(e.ShiftKey ? -12 : -1);
+                break;
+            case "PageDown":
+                await NavigateMonth(e.ShiftKey ? 12 : 1);
+                break;
+            case "Enter":
+            case " ":
+                await SelectFocusedDate();
+                break;
+        }
+    }
+
+    private async Task NavigateDay(int days)
+    {
+        var currentFocus = _focusedDate ?? Selected ?? DateTime.Today;
+        var newDate = currentFocus.AddDays(days);
+
+        // 沿导航方向跳过禁用日期
+        var direction = days > 0 ? 1 : -1;
+        var maxIterations = 365; // 防止无限循环
+        var iterations = 0;
+        while (IsDisabled(newDate) && iterations < maxIterations)
+        {
+            newDate = newDate.AddDays(direction);
+            iterations++;
+        }
+
+        // 检查是否仍在有效边界内
+        if (MinDate.HasValue && newDate < MinDate.Value.Date) return;
+        if (MaxDate.HasValue && newDate > MaxDate.Value.Date) return;
+        if (IsDisabled(newDate)) return;
+
+        // 处理月份边界——自动导航
+        if (newDate.Month != DisplayDate.Month || newDate.Year != DisplayDate.Year)
+        {
+            DisplayDate = new DateTime(newDate.Year, newDate.Month, 1);
+        }
+
+        _focusedDate = newDate;
+        await FocusCurrentButton();
+    }
+
+    private async Task NavigateToFirstOfMonth()
+    {
+        _focusedDate = GetFirstEnabledDayOfMonth();
+        await FocusCurrentButton();
+    }
+
+    private async Task NavigateToLastOfMonth()
+    {
+        _focusedDate = GetLastEnabledDayOfMonth();
+        await FocusCurrentButton();
+    }
+
+    private async Task NavigateMonth(int months)
+    {
+        var currentFocus = _focusedDate ?? Selected ?? DateTime.Today;
+        var targetMonth = DisplayDate.AddMonths(months);
+        DisplayDate = new DateTime(targetMonth.Year, targetMonth.Month, 1);
+
+        // 尽可能保持相同的日期数字
+        var targetDay = Math.Min(currentFocus.Day, DateTime.DaysInMonth(targetMonth.Year, targetMonth.Month));
+        var newDate = new DateTime(targetMonth.Year, targetMonth.Month, targetDay);
+
+        // 目标日期被禁用时找到最近的有效日期
+        if (IsDisabled(newDate))
+        {
+            _focusedDate = GetFirstEnabledDayOfMonth();
+        }
+        else
+        {
+            _focusedDate = newDate;
+        }
+
+        await FocusCurrentButton();
+    }
+
+    private async Task SelectFocusedDate()
+    {
+        if (_focusedDate.HasValue && !IsDisabled(_focusedDate.Value))
+        {
+            await SelectDate(_focusedDate.Value);
+        }
+    }
+
+    private async Task FocusCurrentButton()
+    {
+        if (!_focusedDate.HasValue) return;
+
+        StateHasChanged();
+        await Task.Yield(); // 等待渲染完成
+
+        try
+        {
+            var elementId = GetDayId(_focusedDate.Value);
+            _elementUtilsModule ??= await PrimitiveModules.GetAsync(JS);
+            await _elementUtilsModule.InvokeVoidAsync("elementUtils.focusElement", elementId);
+        }
+        catch
+        {
+            // 忽略焦点错误（元素可能尚未存在）
+        }
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        // 无需释放：基元 JS 模块是共享的，由 PrimitiveModules 持有。
+        return ValueTask.CompletedTask;
+    }
+
+    private void HandleDayFocus(DateTime date)
+    {
+        // 用户点击/Tab 到某天时同步焦点日期
+        _focusedDate = date;
+        // 不在此处重置 _isKeyboardNavigating——让它延续到鼠标点击为止
+    }
+
+    #endregion
+
+    #region 月/年数据
+
+    // 缓存的 CSS 类常量，便于性能
+    private const string cellBaseClasses = "atom:h-9 atom:w-9 atom:text-center atom:text-sm atom:p-0 atom:relative";
+    private const string cellSelectedClasses = "atom:h-9 atom:w-9 atom:text-center atom:text-sm atom:p-0 atom:relative atom:[&:has([aria-selected])]:bg-accent atom:first:[&:has([aria-selected])]:rounded-s-md atom:last:[&:has([aria-selected])]:rounded-e-md";
+    private const string cellEmptyClasses = "atom:h-9 atom:w-9 atom:text-center atom:text-sm atom:p-0 atom:relative atom:text-muted-foreground atom:opacity-50";
+
+    private const string dayBaseClasses = "atom:inline-flex atom:h-9 atom:w-9 atom:items-center atom:justify-center atom:rounded-md atom:text-sm atom:font-normal atom:ring-offset-background atom:transition-colors atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2 atom:disabled:pointer-events-none atom:disabled:opacity-50 atom:hover:bg-accent atom:hover:text-accent-foreground";
+    private const string daySelectedClasses = "atom:inline-flex atom:h-9 atom:w-9 atom:items-center atom:justify-center atom:rounded-md atom:text-sm atom:font-normal atom:ring-offset-background atom:transition-colors atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2 atom:disabled:pointer-events-none atom:disabled:opacity-50 atom:bg-primary atom:text-primary-foreground atom:hover:bg-primary atom:hover:text-primary-foreground atom:focus:bg-primary atom:focus:text-primary-foreground";
+    private const string dayTodayClasses = "atom:inline-flex atom:h-9 atom:w-9 atom:items-center atom:justify-center atom:rounded-md atom:text-sm atom:font-normal atom:ring-offset-background atom:transition-colors atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2 atom:disabled:pointer-events-none atom:disabled:opacity-50 atom:hover:bg-accent atom:hover:text-accent-foreground atom:bg-accent atom:text-accent-foreground";
+    private const string dayDisabledClasses = "atom:inline-flex atom:h-9 atom:w-9 atom:items-center atom:justify-center atom:rounded-md atom:text-sm atom:font-normal atom:ring-offset-background atom:transition-colors atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2 atom:disabled:pointer-events-none atom:disabled:opacity-50 atom:hover:bg-accent atom:hover:text-accent-foreground atom:text-muted-foreground atom:opacity-50";
+    // 外部（上月/下月）日期：与禁用态同样灰显，但依然可交互、可点击。
+    private const string dayOutsideClasses = "atom:inline-flex atom:h-9 atom:w-9 atom:items-center atom:justify-center atom:rounded-md atom:text-sm atom:font-normal atom:ring-offset-background atom:transition-colors atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2 atom:disabled:pointer-events-none atom:disabled:opacity-50 atom:hover:bg-accent atom:hover:text-accent-foreground atom:text-muted-foreground atom:opacity-50";
+
+    private string GetMonthName(int month) => MonthNames is { Length: 12 }
+        ? MonthNames[month - 1]
+        : _resolvedCulture.DateTimeFormat.GetMonthName(month);
+
+    private IEnumerable<(int Number, string Name)> GetMonths()
+    {
+        for (int i = 1; i <= 12; i++)
+        {
+            yield return (i, GetMonthName(i));
+        }
+    }
+
+    private IEnumerable<int> GetYears()
+    {
+        var currentYear = DateTime.Today.Year;
+        var startYear = MinDate?.Year ?? currentYear - 50;
+        var endYear = MaxDate?.Year ?? currentYear + 50;
+
+        for (int year = startYear; year <= endYear; year++)
+        {
+            yield return year;
+        }
+    }
+
+    #endregion
+
+    #region 日期选择
+
+    private async Task SelectDate(DateTime date)
+    {
+        if (IsDisabled(date)) return;
+
+        // 点击选择时重置键盘导航模式
+        _isKeyboardNavigating = false;
+        _focusedDate = date;
+
+        // 选中外部（上月/下月）日期时，把显示月份导航到该日期所在月，
+        // 使其进入视野。
+        if (date.Month != DisplayDate.Month || date.Year != DisplayDate.Year)
+        {
+            DisplayDate = new DateTime(date.Year, date.Month, 1);
+        }
+
+        Selected = date;
+        await SelectedChanged.InvokeAsync(date);
+        await OnSelect.InvokeAsync(date);
+    }
+
+    private bool IsDisabled(DateTime date)
+    {
+        if (MinDate.HasValue && date < MinDate.Value.Date) return true;
+        if (MaxDate.HasValue && date > MaxDate.Value.Date) return true;
+        if (DisabledDates != null && DisabledDates(date)) return true;
+        return false;
+    }
+
+    private List<List<DateTime?>> GetWeeksInMonth()
+    {
+        if (_cachedWeeks != null)
+            return _cachedWeeks;
+
+        _cachedWeeks = BuildWeeksInMonth();
+        return _cachedWeeks;
+    }
+
+    private List<List<DateTime?>> BuildWeeksInMonth()
+    {
+        var weeks = new List<List<DateTime?>>();
+        var firstOfMonth = new DateTime(DisplayDate.Year, DisplayDate.Month, 1);
+        var lastOfMonth = firstOfMonth.AddMonths(1).AddDays(-1);
+
+        // 找到起始日期（第一周的第一天）
+        var startDate = firstOfMonth;
+        while (startDate.DayOfWeek != EffectiveFirstDayOfWeek)
+        {
+            startDate = startDate.AddDays(-1);
+        }
+
+        var currentDate = startDate;
+        while (currentDate <= lastOfMonth || weeks.Count < 6)
+        {
+            var week = new List<DateTime?>();
+            for (int i = 0; i < 7; i++)
+            {
+                if (currentDate.Month == DisplayDate.Month)
+                {
+                    week.Add(currentDate);
+                }
+                else
+                {
+                    // 启用外部日期则显示，否则为 null（空单元格）
+                    week.Add(ShowOutsideDays ? currentDate : null);
+                }
+                currentDate = currentDate.AddDays(1);
+            }
+            weeks.Add(week);
+
+            // 已越过月末且至少填满 5 周时停止
+            if (currentDate.Month != DisplayDate.Month && weeks.Count >= 5)
+            {
+                break;
+            }
+        }
+
+        return weeks;
+    }
+
+    private string GetCellClasses(DateTime? day, bool isSelected)
+    {
+        string baseClass;
+        if (!day.HasValue)
+            baseClass = cellEmptyClasses;
+        else if (isSelected)
+            baseClass = cellSelectedClasses;
+        else
+            baseClass = cellBaseClasses;
+
+        return string.IsNullOrEmpty(CellClass) ? baseClass : ClassNames.cn(baseClass, CellClass);
+    }
+
+    private string GetDayClasses(DateTime date, bool isSelected, bool isDisabled, bool isFocused, bool isOutside)
+    {
+        string baseClass;
+        if (isSelected)
+            baseClass = daySelectedClasses;
+        else if (isDisabled)
+            baseClass = dayDisabledClasses;
+        else if (isOutside)
+            baseClass = dayOutsideClasses;
+        else if (date.Date == DateTime.Today)
+            baseClass = dayTodayClasses;
+        else
+            baseClass = dayBaseClasses;
+
+        // 键盘焦点环（区别于程序化焦点下的 :focus-visible）
+        if (isFocused && _isKeyboardNavigating && !isSelected)
+        {
+            baseClass = ClassNames.cn(baseClass, "atom:ring-2 atom:ring-ring atom:ring-offset-2");
+        }
+
+        var customClass = DayClassFunc?.Invoke(date);
+        if (string.IsNullOrEmpty(DayClass) && string.IsNullOrEmpty(customClass))
+        {
+            return baseClass;
+        }
+
+        return ClassNames.cn(baseClass, DayClass, customClass);
+    }
+
+    #endregion
+
+    /// <summary>
+    /// 依据跟踪的状态变化决定组件是否重新渲染，以减少不必要的渲染周期。
+    /// </summary>
+    protected override bool ShouldRender()
+    {
+        if (_parametersChanged)
+        {
+            _parametersChanged = false;
+            _lastSelected = Selected;
+            _lastDisplayDate = _displayDate;
+            _lastMinDate = MinDate;
+            _lastMaxDate = MaxDate;
+            _lastShowMonthYearDropdowns = ShowMonthYearDropdowns;
+            _lastFocusedDate = _focusedDate;
+            _lastIsKeyboardNavigating = _isKeyboardNavigating;
+            return true;
+        }
+
+        var selectedChanged = _lastSelected != Selected;
+        var displayDateChanged = _lastDisplayDate != _displayDate;
+        var minDateChanged = _lastMinDate != MinDate;
+        var maxDateChanged = _lastMaxDate != MaxDate;
+        var dropdownsChanged = _lastShowMonthYearDropdowns != ShowMonthYearDropdowns;
+        var focusedDateChanged = _lastFocusedDate != _focusedDate;
+        var keyboardNavigatingChanged = _lastIsKeyboardNavigating != _isKeyboardNavigating;
+
+        if (selectedChanged || displayDateChanged || minDateChanged || maxDateChanged ||
+            dropdownsChanged || focusedDateChanged || keyboardNavigatingChanged)
+        {
+            _lastSelected = Selected;
+            _lastDisplayDate = _displayDate;
+            _lastMinDate = MinDate;
+            _lastMaxDate = MaxDate;
+            _lastShowMonthYearDropdowns = ShowMonthYearDropdowns;
+            _lastFocusedDate = _focusedDate;
+            _lastIsKeyboardNavigating = _isKeyboardNavigating;
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 获取日历容器的计算 CSS 类。
+    /// </summary>
+    private string CssClass => ClassNames.cn(
+        "atom:p-3",
+        Class
+    );
+}

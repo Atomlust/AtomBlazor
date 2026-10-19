@@ -1,0 +1,202 @@
+@page "/components/scroll-to-top"
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("Scroll To Top 回到顶部 - Atom BlazorUI", "Scroll To Top - Atom BlazorUI")</PageTitle>
+
+<div class="max-w-4xl space-y-8">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Scroll To Top 回到顶部", "Scroll To Top")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("页面滚动后出现的悬浮按钮，点击可回到顶部。", "A floating button that appears once the page has been scrolled, and returns it to the top.")
+        </p>
+    </div>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("监视面板", "Watching a panel")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    传入 <code class="rounded bg-muted px-1 py-0.5 text-xs">Selector</code> 可改为监视
+                    某个滚动面板而非整个文档，再传入
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">Fixed="false"</code> 可把按钮
+                    固定在其内部。试着滚动下面的面板。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Pass a <code class="rounded bg-muted px-1 py-0.5 text-xs">Selector</code> to watch
+                    a scrolling panel instead of the document, and
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">Fixed="false"</code> to pin the
+                    button inside it. Scroll the panel below.
+                </p>
+                        </text>
+}
+        </div>
+        <div id="scroll-demo-panel" class="relative h-72 overflow-auto rounded-lg border p-4">
+            <div class="space-y-3 text-sm text-muted-foreground">
+                @for (var i = 1; i <= 30; i++)
+                {
+                    <p>@L.F("第 {0} 行 —— 滚动超过 120 像素后，按钮会出现在这个面板的角落。", "Row {0} — scroll past 120 pixels and the button appears in the corner of this panel.", i)</p>
+                }
+            </div>
+            <ScrollToTop Selector="#scroll-demo-panel" Fixed="false" VisibleAt="120" />
+        </div>
+        <CodeBlock Source="Components/ScrollToTop/container.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("监视页面", "Watching the page")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    不给选择器时它监视整个文档。本页自身的内容是在一个面板里滚动的，
+                    所以下面的示例按 id 监视那个面板——普通页面用
+                    <code class="rounded bg-muted px-1 py-0.5 text-xs">&lt;ScrollToTop /&gt;</code>
+                    可以免费得到的东西，这里要靠手动指定。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    With no selector it watches the document. This page's own content scrolls in a
+                    panel, so the example below watches that panel by id — the same thing a normal
+                    page gets for free from <code class="rounded bg-muted px-1 py-0.5 text-xs">&lt;ScrollToTop /&gt;</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="space-y-3 rounded-lg border p-6">
+            <Button Variant="ButtonVariant.Outline" OnClick="@(() => showPageButton = !showPageButton)">
+                @(showPageButton ? L.T("隐藏页面按钮", "Hide the page button") : L.T("显示页面按钮", "Show the page button"))
+            </Button>
+            @if (showPageButton)
+            {
+                <ScrollToTop Selector="#main-content" VisibleAt="200"
+                               OnScrolledToTop="@(() => status = L.T("已滚回顶部。", "Scrolled back to the top."))" />
+            }
+            <p role="status" class="text-sm text-muted-foreground">@status</p>
+        </div>
+        <CodeBlock Source="Components/ScrollToTop/basic.txt" />
+    </section>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("外观", "Appearance")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    它基于 <code class="rounded bg-muted px-1 py-0.5 text-xs">Fab</code> 构建，因此
+                    variant、size、shape 与 placement 的行为完全一致。这里以内联方式展示。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    It is built on <code class="rounded bg-muted px-1 py-0.5 text-xs">Fab</code>, so
+                    variant, size, shape and placement behave the same way. Shown inline here.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="flex flex-wrap items-center gap-4 rounded-lg border p-6">
+            <Fab Placement="FabPlacement.Inline" Variant="FabVariant.Surface" Size="FabSize.Small" Shape="FabShape.Rounded" AriaLabel="@(L.T("默认外观", "Default appearance"))">
+                <Icon><LucideIcon Name="arrow-up" Size="20" /></Icon>
+            </Fab>
+            <Fab Placement="FabPlacement.Inline" Variant="FabVariant.Primary" Size="FabSize.Small" Shape="FabShape.Circle" AriaLabel="@(L.T("圆形主色", "Circular primary"))">
+                <Icon><LucideIcon Name="arrow-up" Size="20" /></Icon>
+            </Fab>
+            <Fab Placement="FabPlacement.Inline" Variant="FabVariant.Secondary" AriaLabel="@(L.T("更大的次级样式", "Larger secondary"))">
+                <Icon><LucideIcon Name="arrow-up" Size="24" /></Icon>
+            </Fab>
+        </div>
+    </section>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>按钮的可访问名称来自本地化的 <code>ScrollToTop.Label</code>，或来自 <code>AriaLabel</code>。</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>The button has an accessible name from the localized <code>ScrollToTop.Label</code>, or from <code>AriaLabel</code>.</AccessibilityItem>
+                        </text>
+}
+            <AccessibilityItem>@L.T("容器滚过阈值之前不会渲染任何东西，所以短页面上不会多出Tab 停靠点。", "Nothing renders until the container is scrolled past the threshold, so there is no extra tab stop on a short page.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("只有访问者没有要求减弱动效时滚动才有动画；这一点由浏览器报告，组件会遵循它。", "The scroll is animated only when the visitor has not asked for reduced motion; the browser reports that and the component honours it.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("滚动监听是 passive 的，可见状态会去重，因此快速滚动不会淹没渲染循环。", "The scroll listener is passive and the visible state is de-duplicated, so a fast scroll does not flood the render loop.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("按钮出现后移焦到它", "Move to the button once it is visible"))"><Kbd>Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("滚回顶部", "Scroll back to the top"))"><Kbd>Enter / Space</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <LocalizationSection
+        Description="@(L.T("按钮的可访问名称可以配置。", "The button's accessible name is configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("ScrollToTop.Label", "Scroll back to top", L.T("按钮的无障碍名称。", "Accessible name for the button")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""ScrollToTop.Label"", ""Nach oben scrollen"");
+});")" />
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+        <ApiReference Since="v4" ComponentName="ScrollToTop">
+            <ApiParameter Name="Selector" Type="string?">@L.T("要监视的滚动元素的 CSS 选择器。未设置时监视文档。", "A CSS selector for the scrolling element to watch. The document is watched when not set.")</ApiParameter>
+            <ApiParameter Name="VisibleAt" Type="int" Default="300">@L.T("按钮出现前容器需要被滚动的距离，以像素计。", "How far the container must be scrolled, in pixels, before the button appears.")</ApiParameter>
+            <ApiParameter Name="Smooth" Type="bool" Default="true">@L.T("让滚动带动画。访问者要求减弱动效时被忽略。", "Animates the scroll. Ignored when the visitor has asked for reduced motion.")</ApiParameter>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <ApiParameter Name="Variant / Size / Shape / Placement / Fixed" Type="FabVariant / FabSize / FabShape / FabPlacement / bool" Default="Surface / Small / Rounded / BottomEnd / true">转发给底层的 <code>Fab</code>。</ApiParameter>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <ApiParameter Name="Variant / Size / Shape / Placement / Fixed" Type="FabVariant / FabSize / FabShape / FabPlacement / bool" Default="Surface / Small / Rounded / BottomEnd / true">Forwarded to the underlying <code>Fab</code>.</ApiParameter>
+                        </text>
+}
+            <ApiParameter Name="AriaLabel" Type="string?">@L.T("可访问名称。默认为本地化字符串。", "The accessible name. Defaults to the localized string.")</ApiParameter>
+            <ApiParameter Name="ChildContent" Type="RenderFragment?">@L.T("图标。默认为向上箭头。", "The icon. Defaults to an upward arrow.")</ApiParameter>
+            <ApiParameter Name="OnScrolledToTop" Type="EventCallback">@L.T("容器滚回之后触发。", "Raised after the container is scrolled back.")</ApiParameter>
+            <ApiParameter Name="Class / AdditionalAttributes" Type="string? / Dictionary&lt;string, object&gt;?">@L.T("附加的 CSS 类与 HTML 属性。", "Additional CSS classes and HTML attributes.")</ApiParameter>
+        </ApiReference>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private bool showPageButton;
+    private string status = "The button appears once this page is scrolled.";
+
+    /// <summary>字段初值先于级联到达，用哨兵比较把初始占位文案归位到当前语言（两种形态都认）。</summary>
+    protected override void OnParametersSet()
+    {
+        if (status is "The button appears once this page is scrolled." or "本页滚动后按钮就会出现。")
+        {
+            status = L.T("本页滚动后按钮就会出现。", "The button appears once this page is scrolled.");
+        }
+    }
+}

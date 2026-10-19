@@ -1,0 +1,257 @@
+@namespace AtomBlazor.Primitives
+@implements IAsyncDisposable
+@inject IJSRuntime JSRuntime
+
+@* TabsList 基元——标签触发器的容器 *@
+<div @ref="_elementRef"
+     id="@Context.ListId"
+     role="tablist"
+     aria-orientation="@_ariaOrientation"
+     @attributes="AdditionalAttributes">
+    <CascadingValue Value="this" IsFixed="true">
+        @ChildContent
+    </CascadingValue>
+</div>
+
+@code {
+    /// <summary>当 DirectionProvider 提供了书写方向时，该方向。</summary>
+    [CascadingParameter] private DirectionContext? Direction { get; set; }
+
+    private string _ariaOrientation => Context.Orientation == TabsOrientation.Horizontal ? "horizontal" : "vertical";
+    private List<TabsTrigger> _triggers = new();
+    private ElementReference _elementRef;
+    private IJSObjectReference? _keyboardNavModule;
+    private IJSObjectReference? _keyboardNavCleanup;
+    private bool _disposed;
+
+    /// <summary>
+    /// 用于接收 Tabs 上下文的级联参数。
+    /// </summary>
+    [CascadingParameter]
+    public TabsContext Context { get; set; } = null!;
+
+    /// <summary>
+    /// 在标签列表内渲染的子内容。
+    /// 应当包含 TabsTrigger 组件。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 要应用到标签列表元素的额外属性。
+    /// 可用于自定义 CSS 类、data 特性等。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 将一个标签触发器注册到本列表，用于键盘导航。
+    /// </summary>
+    internal void RegisterTrigger(TabsTrigger trigger)
+    {
+        if (!_triggers.Contains(trigger))
+        {
+            _triggers.Add(trigger);
+        }
+    }
+
+    /// <summary>
+    /// 将某个标签触发器从本列表取消注册。
+    /// </summary>
+    internal void UnregisterTrigger(TabsTrigger trigger)
+    {
+        _triggers.Remove(trigger);
+    }
+
+    /// <summary>
+    /// 处理标签之间的键盘导航。
+    /// </summary>
+    internal void HandleKeyNavigation(string currentValue, string key)
+    {
+        if (_triggers.Count == 0) return;
+
+        var currentIndex = _triggers.FindIndex(t => t.Value == currentValue);
+        if (currentIndex == -1) return;
+
+        var nextIndex = -1;
+        var isHorizontal = Context.Orientation == TabsOrientation.Horizontal;
+        var isRtl = DirectionContext.Resolve(Direction);
+
+        switch (key)
+        {
+            case "ArrowLeft":
+                if (isHorizontal)
+                {
+                    nextIndex = isRtl ? GetNextIndex(currentIndex) : GetPreviousIndex(currentIndex);
+                }
+                break;
+
+            case "ArrowRight":
+                if (isHorizontal)
+                {
+                    nextIndex = isRtl ? GetPreviousIndex(currentIndex) : GetNextIndex(currentIndex);
+                }
+                break;
+
+            case "ArrowUp":
+                if (!isHorizontal)
+                {
+                    nextIndex = GetPreviousIndex(currentIndex);
+                }
+                break;
+
+            case "ArrowDown":
+                if (!isHorizontal)
+                {
+                    nextIndex = GetNextIndex(currentIndex);
+                }
+                break;
+
+            case "Home":
+                nextIndex = GetFirstEnabledIndex();
+                break;
+
+            case "End":
+                nextIndex = GetLastEnabledIndex();
+                break;
+        }
+
+        if (nextIndex != -1 && nextIndex != currentIndex)
+        {
+            var nextTrigger = _triggers[nextIndex];
+            _ = nextTrigger.FocusAsync();
+
+            // 自动激活模式下立即激活
+            if (Context.ActivationMode == TabsActivationMode.Automatic)
+            {
+                nextTrigger.Activate();
+            }
+        }
+    }
+
+    private int GetNextIndex(int currentIndex)
+    {
+        for (int i = currentIndex + 1; i < _triggers.Count; i++)
+        {
+            if (!_triggers[i].Disabled)
+                return i;
+        }
+        // 回绕到第一个可用项
+        return GetFirstEnabledIndex();
+    }
+
+    private int GetPreviousIndex(int currentIndex)
+    {
+        for (int i = currentIndex - 1; i >= 0; i--)
+        {
+            if (!_triggers[i].Disabled)
+                return i;
+        }
+        // 回绕到最后一个可用项
+        return GetLastEnabledIndex();
+    }
+
+    private int GetFirstEnabledIndex()
+    {
+        for (int i = 0; i < _triggers.Count; i++)
+        {
+            if (!_triggers[i].Disabled)
+                return i;
+        }
+        return -1;
+    }
+
+    private int GetLastEnabledIndex()
+    {
+        for (int i = _triggers.Count - 1; i >= 0; i--)
+        {
+            if (!_triggers[i].Disabled)
+                return i;
+        }
+        return -1;
+    }
+
+    /// <summary>
+    /// 按顺序取得全部已注册触发器的值。
+    /// </summary>
+    internal IEnumerable<string> GetTriggerValues()
+    {
+        return _triggers.Select(t => t.Value);
+    }
+
+    /// <summary>
+    /// 把 Ctrl 加方向键转换为按书写方向求解的一步移动。
+    /// </summary>
+    /// <remarks>
+    /// 这里只求解决方向，因为 <c>DirectionContext</c> 已经在此处。
+    /// 标签的位置刻意不从已注册的触发器读取：键控列表被重排后，注册顺序就不再是
+    /// 渲染顺序，因为一次纯置换不改变任何参数，于是子组件的生命周期一次都不会运行。
+    /// 带样式的那一层改从 DOM 读取位置，
+    /// 而那里不会漂移。
+    /// </remarks>
+    internal void HandleMoveRequest(string currentValue, string key)
+    {
+        var trigger = _triggers.Find(t => t.Value == currentValue);
+        if (trigger is null)
+        {
+            return;
+        }
+
+        var isRtl = DirectionContext.Resolve(Direction);
+        var delta = key switch
+        {
+            "ArrowLeft" => isRtl ? 1 : -1,
+            "ArrowRight" => isRtl ? -1 : 1,
+            "ArrowUp" => -1,
+            "ArrowDown" => 1,
+            _ => 0,
+        };
+
+        if (delta != 0)
+        {
+            _ = trigger.RequestMoveAsync(delta);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                _keyboardNavModule = await PrimitiveModules.GetAsync(JSRuntime);
+
+                _keyboardNavCleanup = await _keyboardNavModule.InvokeAsync<IJSObjectReference>(
+"keyboardNav.setupKeyboardNav", _elementRef);
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or JSException or TaskCanceledException or ObjectDisposedException)
+            {
+                // 电路断开或模块加载失败，忽略
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
+        if (_keyboardNavCleanup is not null)
+        {
+            try
+            {
+                await _keyboardNavCleanup.InvokeVoidAsync("dispose");
+                await _keyboardNavCleanup.DisposeAsync();
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            {
+                // 电路断开，忽略
+            }
+        }
+
+    }
+}

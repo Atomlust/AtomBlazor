@@ -1,0 +1,45 @@
+@* Right-click an empty slot for "New event"; right-click an event for Edit and Delete.
+   Both menus work with no configuration. Override either one to add your own items. *@
+<Scheduler @bind-Events="events" TimeZoneId="UTC">
+
+    @* Render context.DefaultItems to keep the built-in entries, then add your own. *@
+    <SlotContextMenuContent>
+        @context.DefaultItems
+        <ContextMenuSeparator />
+        <ContextMenuItem OnClick="@(() => BlockHour(context.Start))">Block one hour</ContextMenuItem>
+    </SlotContextMenuContent>
+
+    @* Leave DefaultItems out to replace the menu entirely. *@
+    <EventContextMenuContent>
+        @context.DefaultItems
+        <ContextMenuSeparator />
+        <ContextMenuItem OnClick="@(() => Duplicate(context.Occurrence))">Duplicate</ContextMenuItem>
+    </EventContextMenuContent>
+
+</Scheduler>
+
+@code {
+    private IReadOnlyList<SchedulerEvent> events =
+    [
+        new() { Id = "standup", Title = "Stand-up",
+                Start = new(2026, 9, 14, 9, 0, 0, TimeSpan.Zero),
+                End = new(2026, 9, 14, 9, 30, 0, TimeSpan.Zero) }
+    ];
+
+    // SchedulerSlotMenuContext carries Start, End and Resource.
+    private void BlockHour(DateTimeOffset start) =>
+        events = [.. events, new SchedulerEvent { Title = "Blocked", Start = start, End = start.AddHours(1) }];
+
+    // SchedulerEventMenuContext carries the SchedulerOccurrence that was right-clicked.
+    private void Duplicate(SchedulerOccurrence occurrence)
+    {
+        var copy = occurrence.Event.Clone();
+        copy.Id = Guid.NewGuid().ToString("N");
+        copy.Title = occurrence.Event.Title + " (copy)";
+        copy.Start = occurrence.Start.AddHours(1);
+        copy.End = occurrence.End.AddHours(1);
+        copy.RecurrenceRule = null;
+        copy.ExcludedStarts = [];
+        events = [.. events, copy];
+    }
+}

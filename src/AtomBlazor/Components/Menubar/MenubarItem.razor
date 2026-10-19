@@ -1,0 +1,84 @@
+@namespace AtomBlazor
+@using AtomBlazor.Primitives.Services
+@inject IKeyboardShortcutService KeyboardShortcuts
+@implements IDisposable
+@implements IAsyncDisposable
+
+<AtomBlazor.Primitives.MenubarItem
+    Disabled="@Disabled"
+    OnClick="@HandleClick"
+    class="@CssClass"
+    @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.MenubarItem>
+
+@code {
+    [CascadingParameter]
+    public MenubarMenu? Menu { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用于根元素的额外 HTML 特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public bool Inset { get; set; }
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    /// <summary>
+    /// 要自动注册的键盘快捷键（例如 "Ctrl+N"、"Ctrl+Shift+T"）。
+    /// 设置后，会自动通过 IKeyboardShortcutService 注册该快捷键
+    /// 并在按下时触发 OnClick。
+    /// </summary>
+    [Parameter]
+    public string? Shortcut { get; set; }
+
+    private IDisposable? shortcutRegistration;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !string.IsNullOrEmpty(Shortcut) && !Disabled)
+        {
+            shortcutRegistration = await KeyboardShortcuts.RegisterAsync(Shortcut, async () =>
+            {
+                if (!Disabled)
+                {
+                    await OnClick.InvokeAsync();
+                }
+            });
+        }
+    }
+
+    private async Task HandleClick() =>
+        await OnClick.InvokeAsync();
+
+    public void Dispose() =>
+        shortcutRegistration?.Dispose();
+
+    public async ValueTask DisposeAsync()
+    {
+        shortcutRegistration?.Dispose();
+        await ValueTask.CompletedTask;
+    }
+
+    private string CssClass => ClassNames.cn(
+        "atom:relative atom:flex atom:cursor-default atom:select-none atom:items-center atom:rounded-sm atom:px-2 atom:py-1.5 atom:text-sm atom:outline-none",
+        "atom:focus:bg-(--atom-menu-accent) atom:focus:text-(--atom-menu-accent-foreground)",
+        "atom:hover:bg-(--atom-menu-accent) atom:hover:text-(--atom-menu-accent-foreground)",
+        Disabled ? "atom:pointer-events-none atom:opacity-50" : null,
+        Inset ? "atom:ps-8" : null,
+        Class
+    );
+}

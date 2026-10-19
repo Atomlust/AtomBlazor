@@ -1,0 +1,93 @@
+@using AtomBlazor.Primitives.SignaturePad
+@using AtomBlazor.Primitives.Gantt
+@using AtomBlazor.Primitives.Pivot
+<h1>Component state regression fixture</h1>
+<DateRangeState />
+<section id="list">
+<input aria-label="Before list" />
+<ListBox TValue="string" Label="Probe list" Options="options" />
+<button id="after-list">After list</button>
+</section>
+<section id="signature">
+<Signature @ref="signature" Value="typed" ValueChanged="value => signatureKind = value?.Kind.ToString()" />
+<button @onclick="Restore">Restore strokes</button>
+<button @onclick="ReadStrokes">Read strokes</button>
+<p id="stroke-count">@strokeCount</p><p id="restore-count">@restoreCount</p>
+<p id="signature-kind">@signatureKind</p>
+</section>
+<section id="invalid-gantt">
+<button @onclick="() => invalid = !invalid">Toggle invalid data</button>
+<Gantt TItem="Job" Data="@(invalid ? badJobs : jobs)" IdSelector="j => j.Id" TextSelector="j => j.Id"
+ StartSelector="j => j.Start" EndSelector="j => j.End" ShowToolbar="false" />
+</section>
+<section id="working-gantt">
+<button @onclick="() => nonWorking = [DayOfWeek.Monday]">Change nonworking days</button>
+<Gantt @ref="gantt" TItem="Job" Data="jobs" IdSelector="j => j.Id" TextSelector="j => j.Id"
+ StartSelector="j => j.Start" EndSelector="j => j.End" ShowToolbar="false" NonWorkingDays="nonWorking" Zoom="GanttZoom.Day" />
+</section>
+<section id="pivot">
+<button @onclick="ChangeRegion">Change pivot parent</button>
+<PivotDataGrid TItem="Sale" Data="sales" Totals="PivotTotals.None">
+<Rows><PivotField TItem="Sale" Title="Region" Value="_ => region" /><PivotField TItem="Sale" Title="City" Value="s => s.City" /></Rows>
+<Values><PivotValue TItem="Sale" Title="Amount" Value="s => s.Amount" /></Values>
+</PivotDataGrid>
+</section>
+<section id="keyboard-controls">
+<Checkbox aria-label="Probe checkbox" />
+<Slider />
+<button id="after-controls">After controls</button>
+</section>
+<section id="chart-callback">
+<button @onclick="() => listen = true">Enable chart handler</button>
+<button @onclick="() => listen = false">Disable chart handler</button>
+<button @onclick="() => useAlternate = !useAlternate">Replace chart handler</button>
+<p id="chart-listening">@listen</p><p id="chart-alternate">@useAlternate</p><p id="chart-clicks">@chartClicks</p>
+<MapChart Data="mapRows" Height="300px" OnDataPointClick="@(listen ? EventCallback.Factory.Create<ChartClickEventArgs>(this, useAlternate ? CountAlternateClick : CountChartClick) : default)">
+<Map CountryKey="Country" DataKey="Visitors" />
+</MapChart>
+</section>
+<section id="upload">
+<FileUpload @bind-Files="files" />
+<button @onclick="() => files = null">Reset files to null</button>
+<button @onclick="() => files = []">Reset files to empty</button>
+<p id="file-count">@(files is null ? "null" : files.Count.ToString())</p>
+</section>
+<section id="uncontrolled-upload">
+<FileUpload />
+<button @onclick="() => unrelatedRenders++">Unrelated render</button>
+<p id="unrelated-renders">@unrelatedRenders</p>
+</section>
+<PortalHost />
+@code {
+    private int unrelatedRenders;
+    private IReadOnlyList<FileUploadItem>? files;
+    private bool listen;
+    private int chartClicks;
+    private bool useAlternate;
+    private void CountAlternateClick(ChartClickEventArgs e) => chartClicks += 10;
+    private void CountChartClick(ChartClickEventArgs e) => chartClicks++;
+    private readonly object[] mapRows = [new { Country = "US", Visitors = 5 }];
+    private readonly SelectOption<string>[] options = [new("a", "Alpha"), new("b", "Beta"), new("c", "Charlie")];
+    private Signature? signature;
+    private readonly SignatureValue typed = new() { Kind = SignatureKind.Typed, Text = "Saved name" };
+    private int strokeCount = -1;
+    private int restoreCount;
+    private string? signatureKind;
+    private async Task Restore()
+    {
+        strokeCount = -1;
+        await signature!.SetStrokesAsync([new SignatureStroke([new(10, 10, 0), new(80, 50, 20)])]);
+        restoreCount++;
+    }
+    private async Task ReadStrokes() { strokeCount = (await signature!.GetStrokesAsync()).Count; }
+    private Gantt<Job>? gantt;
+    private IReadOnlyCollection<DayOfWeek> nonWorking = [DayOfWeek.Saturday, DayOfWeek.Sunday];
+    private readonly Job[] jobs = [new("Task", new(2026, 9, 21, 0, 0, 0, TimeSpan.Zero), new(2026, 9, 28, 0, 0, 0, TimeSpan.Zero))];
+    private bool invalid = true;
+    private Job[] badJobs => [jobs[0], jobs[0]];
+    private string region = "North";
+    private void ChangeRegion() => region = region == "North" ? "South" : "North";
+    private readonly Sale[] sales = [new("City", 10)];
+    public record Job(string Id, DateTimeOffset Start, DateTimeOffset End);
+    public record Sale(string City, decimal Amount);
+}

@@ -1,0 +1,366 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@inject ThemeService ThemeService
+@inject ILocalizer Localizer
+@implements IDisposable
+
+<Popover @bind-Open="isOpen">
+    <AtomBlazor.PopoverTrigger AsChild="true">
+        <Button Variant="@Variant" Size="ButtonSize.Icon" Class="@TriggerClass"
+                  aria-label="@Localizer["Theme.Switcher.Label"]"
+                  @attributes="AdditionalAttributes">
+            <LucideIcon Name="paintbrush" Class="atom:h-4 atom:w-4" />
+        </Button>
+    </AtomBlazor.PopoverTrigger>
+    <AtomBlazor.PopoverContent Class="@ClassNames.cn("atom:w-[340px] atom:max-h-[calc(100dvh-2rem)] atom:overflow-y-auto atom:p-0", PopoverContentClass)"
+                      Align="@Align"
+                      Strategy="@Strategy">
+
+        @* ── Header ── *@
+        <div class="atom:p-4 atom:pb-1">
+            <p class="atom:text-sm atom:font-semibold atom:leading-none">@Localizer["Theme.Switcher.Title"]</p>
+            <p class="atom:mt-1 atom:text-xs atom:text-muted-foreground">@Localizer["Theme.Switcher.Description"]</p>
+        </div>
+
+        <Separator Class="atom:my-2" />
+
+        @if (ColorLayout == ThemeSwitcherColorLayout.Combined)
+        {
+            @* ── Color (combined grid, single indicator) ── *@
+            <div class="atom:px-4 atom:py-2 atom:space-y-2">
+                <p class="atom:text-xs atom:font-medium atom:text-muted-foreground">@Localizer["Theme.Color"]</p>
+                <div class="atom:grid atom:grid-cols-3 atom:gap-1.5">
+                    @foreach (var color in baseColors)
+                    {
+                        @ColorChip(color.Label, color.Swatch,
+                            ThemeService.PrimaryColor == PrimaryColor.Default && ThemeService.BaseColor == color.Value,
+                            () => OnCombinedBaseSelectedAsync(color.Value))
+                    }
+                    @foreach (var color in primaryColors)
+                    {
+                        @ColorChip(color.Label, color.Swatch,
+                            ThemeService.PrimaryColor == color.Value,
+                            () => ThemeService.SetPrimaryColorAsync(color.Value))
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            @* ── Base color ── *@
+            <div class="atom:px-4 atom:py-2 atom:space-y-2">
+                <p class="atom:text-xs atom:font-medium atom:text-muted-foreground">@Localizer["Theme.BaseColor"]</p>
+                <div class="atom:grid atom:grid-cols-3 atom:gap-1.5">
+                    @foreach (var color in baseColors)
+                    {
+                        @ColorChip(color.Label, color.Swatch,
+                            ThemeService.BaseColor == color.Value,
+                            () => ThemeService.SetBaseColorAsync(color.Value))
+                    }
+                </div>
+            </div>
+
+            <Separator Class="atom:my-2" />
+
+            @* ── Primary color ── *@
+            <div class="atom:px-4 atom:py-2 atom:space-y-2">
+                <p class="atom:text-xs atom:font-medium atom:text-muted-foreground">@Localizer["Theme.PrimaryColor"]</p>
+                <div class="atom:grid atom:grid-cols-3 atom:gap-1.5">
+                    @ColorChip(Localizer["Theme.Default"], CurrentBaseSwatch,
+                        ThemeService.PrimaryColor == PrimaryColor.Default,
+                        () => ThemeService.SetPrimaryColorAsync(PrimaryColor.Default))
+                    @foreach (var color in primaryColors)
+                    {
+                        @ColorChip(color.Label, color.Swatch,
+                            ThemeService.PrimaryColor == color.Value,
+                            () => ThemeService.SetPrimaryColorAsync(color.Value))
+                    }
+                </div>
+            </div>
+        }
+
+        <Separator Class="atom:my-2" />
+
+        @* ── Radius ── *@
+        <div class="atom:px-4 atom:py-2 atom:space-y-2">
+            <p class="atom:text-xs atom:font-medium atom:text-muted-foreground">@Localizer["Theme.Radius"]</p>
+            <div class="atom:flex atom:gap-1.5">
+                @foreach (var r in radiusOptions)
+                {
+                    var isSelected = Math.Abs(ThemeService.Radius - r) < 0.001;
+                    <button type="button"
+                            class="@ClassNames.cn(
+                                "atom:flex-1 atom:rounded-md atom:border atom:px-2 atom:py-1.5 atom:text-xs atom:text-center atom:transition-colors atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring",
+                                isSelected ? "atom:border-foreground atom:bg-accent" : "atom:border-input atom:hover:bg-accent/50")"
+                            @onclick="() => OnRadiusSelected(r)"
+                            aria-pressed="@isSelected.ToString().ToLowerInvariant()">
+                        @r.ToString("0.0##", System.Globalization.CultureInfo.InvariantCulture)
+                    </button>
+                }
+            </div>
+        </div>
+
+        <Separator Class="atom:my-2" />
+
+        @* ── Mode ── *@
+        <div class="atom:px-4 atom:pt-2 atom:pb-4 atom:space-y-2">
+            <p class="atom:text-xs atom:font-medium atom:text-muted-foreground">@Localizer["Theme.Mode"]</p>
+            <div class="atom:grid atom:grid-cols-2 atom:gap-1.5">
+                <button type="button"
+                        class="@ClassNames.cn(
+                            "atom:inline-flex atom:items-center atom:justify-center atom:gap-1.5 atom:rounded-md atom:border atom:px-3 atom:py-1.5 atom:text-xs atom:font-medium atom:transition-colors atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring",
+                            !ThemeService.IsDarkMode ? "atom:border-foreground atom:bg-accent" : "atom:border-input atom:hover:bg-accent/50")"
+                        @onclick="() => OnModeSelected(false)"
+                        aria-pressed="@((!ThemeService.IsDarkMode).ToString().ToLowerInvariant())">
+                    <LucideIcon Name="sun" Class="atom:h-3.5 atom:w-3.5" />
+                    @Localizer["Theme.Light"]
+                </button>
+                <button type="button"
+                        class="@ClassNames.cn(
+                            "atom:inline-flex atom:items-center atom:justify-center atom:gap-1.5 atom:rounded-md atom:border atom:px-3 atom:py-1.5 atom:text-xs atom:font-medium atom:transition-colors atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring",
+                            ThemeService.IsDarkMode ? "atom:border-foreground atom:bg-accent" : "atom:border-input atom:hover:bg-accent/50")"
+                        @onclick="() => OnModeSelected(true)"
+                        aria-pressed="@ThemeService.IsDarkMode.ToString().ToLowerInvariant()">
+                    <LucideIcon Name="moon" Class="atom:h-3.5 atom:w-3.5" />
+                    @Localizer["Theme.Dark"]
+                </button>
+            </div>
+        </div>
+
+        @if (ShowDesignOptions)
+        {
+            <Separator Class="atom:my-2" />
+            <div class="atom:grid atom:grid-cols-2 atom:gap-2 atom:px-4 atom:pb-4">
+                <label class="atom:space-y-1 atom:text-xs">
+                    @Localizer["Theme.Density"]
+                    <NativeSelect TValue="ThemeDensity" Value="@ThemeService.Preset.Design.Density"
+                                    ValueChanged="@(value => ThemeService.SetDesignAsync(ThemeService.Preset.Design with { Density = value }))">
+                        @foreach (var option in Enum.GetValues<ThemeDensity>())
+                        {
+                            <option value="@option">@option</option>
+                        }
+                    </NativeSelect>
+                </label>
+                <label class="atom:space-y-1 atom:text-xs">
+                    @Localizer["Theme.Font"]
+                    <NativeSelect TValue="ThemeFont" Value="@ThemeService.Preset.Design.Font"
+                                    ValueChanged="@(value => ThemeService.SetDesignAsync(ThemeService.Preset.Design with { Font = value }))">
+                        @foreach (var option in Enum.GetValues<ThemeFont>())
+                        {
+                            <option value="@option">@option</option>
+                        }
+                    </NativeSelect>
+                </label>
+                <label class="atom:space-y-1 atom:text-xs">
+                    @Localizer["Theme.Surface"]
+                    <NativeSelect TValue="ThemeSurface" Value="@ThemeService.Preset.Design.Surface"
+                                    ValueChanged="@(value => ThemeService.SetDesignAsync(ThemeService.Preset.Design with { Surface = value }))">
+                        @foreach (var option in Enum.GetValues<ThemeSurface>())
+                        {
+                            <option value="@option">@option</option>
+                        }
+                    </NativeSelect>
+                </label>
+                <label class="atom:space-y-1 atom:text-xs">
+                    @Localizer["Theme.MenuColor"]
+                    <NativeSelect TValue="ThemeMenuColor" Value="@ThemeService.Preset.Design.MenuColor"
+                                    ValueChanged="@(value => ThemeService.SetDesignAsync(ThemeService.Preset.Design with { MenuColor = value }))">
+                        @foreach (var option in Enum.GetValues<ThemeMenuColor>())
+                        {
+                            <option value="@option">@option</option>
+                        }
+                    </NativeSelect>
+                </label>
+                <label class="atom:space-y-1 atom:text-xs">
+                    @Localizer["Theme.MenuAccent"]
+                    <NativeSelect TValue="ThemeMenuAccent" Value="@ThemeService.Preset.Design.MenuAccent"
+                                    ValueChanged="@(value => ThemeService.SetDesignAsync(ThemeService.Preset.Design with { MenuAccent = value }))">
+                        @foreach (var option in Enum.GetValues<ThemeMenuAccent>())
+                        {
+                            <option value="@option">@option</option>
+                        }
+                    </NativeSelect>
+                </label>
+            </div>
+        }
+    </AtomBlazor.PopoverContent>
+</Popover>
+
+@code {
+    /// <summary>显示密度、字体、表面与菜单外观选择器。</summary>
+    [Parameter] public bool ShowDesignOptions { get; set; }
+
+    private bool isOpen;
+
+    /// <summary>
+    /// 触发按钮的视觉变体。默认为 <see cref="ButtonVariant.Outline"/>。
+    /// </summary>
+    [Parameter]
+    public ButtonVariant Variant { get; set; } = ButtonVariant.Outline;
+
+    /// <summary>
+    /// 触发按钮的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? TriggerClass { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 浮层内容面板的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? PopoverContentClass { get; set; }
+
+    /// <summary>
+    /// 浮层相对触发器的水平对齐方式。
+    /// 默认为 <see cref="PopoverAlign.End"/>。
+    /// </summary>
+    [Parameter]
+    public PopoverAlign Align { get; set; } = PopoverAlign.End;
+
+    /// <summary>
+    /// 浮层的定位策略。默认为 <see cref="PositioningStrategy.Absolute"/>。
+    /// </summary>
+    [Parameter]
+    public PositioningStrategy Strategy { get; set; } = PositioningStrategy.Absolute;
+
+    /// <summary>
+    /// 颜色选择区布局。默认为 <see cref="ThemeSwitcherColorLayout.Split"/>，即基础色与主色
+    /// 分区展示、各带独立选中标识。使用 <see cref="ThemeSwitcherColorLayout.Combined"/> 可回到
+    /// 旧版单网格布局：此时选择基础色会把主色重置为 <see cref="PrimaryColor.Default"/>。
+    /// </summary>
+    [Parameter]
+    public ThemeSwitcherColorLayout ColorLayout { get; set; } = ThemeSwitcherColorLayout.Split;
+
+    /// <inheritdoc />
+    protected override void OnInitialized() =>
+        ThemeService.OnThemeChanged += HandleThemeChanged;
+
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !ThemeService.IsInitialized)
+        {
+            await ThemeService.InitializeAsync();
+            StateHasChanged();
+        }
+    }
+
+    /// <summary>
+    /// 渲染一枚颜色色片按钮，选中时携带选中标识。
+    /// </summary>
+    private RenderFragment ColorChip(string label, string swatch, bool isSelected, Func<Task> onClick) => __builder =>
+    {
+        <button type="button"
+                class="@ClassNames.cn(
+                    "atom:inline-flex atom:items-center atom:gap-1.5 atom:rounded-md atom:border atom:px-2 atom:py-1.5 atom:text-xs atom:transition-colors",
+                    isSelected ? "atom:border-foreground atom:bg-accent" : "atom:border-input atom:hover:bg-accent/50")"
+                @onclick="onClick"
+                aria-pressed="@isSelected.ToString().ToLowerInvariant()">
+            @if (isSelected)
+            {
+                <span class="atom:flex atom:h-4 atom:w-4 atom:shrink-0 atom:items-center atom:justify-center atom:rounded-full atom:border-2 atom:border-foreground"
+                      style="background-color: @swatch;">
+                    <LucideIcon Name="check" Class="atom:h-2.5 atom:w-2.5 atom:text-white" />
+                </span>
+            }
+            else
+            {
+                <span class="atom:h-4 atom:w-4 atom:shrink-0 atom:rounded-full" style="background-color: @swatch;"></span>
+            }
+            @label
+        </button>
+    };
+
+    /// <summary>
+    /// 仅用于合并布局：选中基础色时同时设置基础色并把主色重置为 Default，
+    /// 从而使用该基础色自带的强调色。
+    /// </summary>
+    private async Task OnCombinedBaseSelectedAsync(BaseColor value)
+    {
+        await ThemeService.SetPrimaryColorAsync(PrimaryColor.Default);
+        await ThemeService.SetBaseColorAsync(value);
+    }
+
+    private async Task OnRadiusSelected(double value) =>
+        await ThemeService.SetRadiusAsync(value);
+
+    private async Task OnModeSelected(bool dark) =>
+        await ThemeService.SetDarkModeAsync(dark);
+
+    private void HandleThemeChanged() =>
+        InvokeAsync(StateHasChanged);
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        ThemeService.OnThemeChanged -= HandleThemeChanged;
+        GC.SuppressFinalize(this);
+    }
+
+    // ── Data ──────────────────────────────────────────────────────────────
+
+    private static readonly double[] radiusOptions = [0, 0.3, 0.5, 0.75, 1.0];
+
+    private static readonly ColorInfo<BaseColor>[] baseColors =
+    [
+        new("Zinc", "oklch(0.552 0.016 285.94)", BaseColor.Zinc),
+        new("Slate", "oklch(0.554 0.046 257.42)", BaseColor.Slate),
+        new("Stone", "oklch(0.553 0.013 58.07)", BaseColor.Stone),
+        new("Gray", "oklch(0.551 0.027 264.36)", BaseColor.Gray),
+        new("Neutral", "oklch(0.556 0 0)", BaseColor.Neutral),
+    ];
+
+    private static readonly ColorInfo<PrimaryColor>[] primaryColors =
+    [
+        new("Red", "oklch(0.577 0.245 27.33)", PrimaryColor.Red),
+        new("Rose", "oklch(0.585 0.22 3.96)", PrimaryColor.Rose),
+        new("Orange", "oklch(0.705 0.213 47.60)", PrimaryColor.Orange),
+        new("Amber", "oklch(0.769 0.188 70.08)", PrimaryColor.Amber),
+        new("Yellow", "oklch(0.852 0.199 91.94)", PrimaryColor.Yellow),
+        new("Lime", "oklch(0.768 0.233 130.85)", PrimaryColor.Lime),
+        new("Green", "oklch(0.596 0.145 163.23)", PrimaryColor.Green),
+        new("Emerald", "oklch(0.596 0.145 163.23)", PrimaryColor.Emerald),
+        new("Teal", "oklch(0.627 0.134 184.13)", PrimaryColor.Teal),
+        new("Cyan", "oklch(0.655 0.151 207.08)", PrimaryColor.Cyan),
+        new("Sky", "oklch(0.6 0.118 184.71)", PrimaryColor.Sky),
+        new("Blue", "oklch(0.546 0.245 262.88)", PrimaryColor.Blue),
+        new("Indigo", "oklch(0.488 0.243 264.38)", PrimaryColor.Indigo),
+        new("Violet", "oklch(0.541 0.281 293.01)", PrimaryColor.Violet),
+        new("Purple", "oklch(0.553 0.261 301.92)", PrimaryColor.Purple),
+        new("Fuchsia", "oklch(0.591 0.293 322.90)", PrimaryColor.Fuchsia),
+        new("Pink", "oklch(0.592 0.249 0.58)", PrimaryColor.Pink),
+    ];
+
+    /// <summary>
+    /// 当前生效基础色的色片——用于 Default 主色色片，
+    /// 因为 Default 主色的强调色继承自基础调色板。
+    /// </summary>
+    private string CurrentBaseSwatch
+    {
+        get
+        {
+            foreach (var color in baseColors)
+            {
+                if (color.Value == ThemeService.BaseColor)
+                {
+                    return color.Swatch;
+                }
+            }
+
+            return baseColors[0].Swatch;
+        }
+    }
+
+    private sealed class ColorInfo<TColor>(string label, string swatch, TColor value) where TColor : struct, Enum
+    {
+        public string Label { get; } = label;
+        public string Swatch { get; } = swatch;
+        public TColor Value { get; } = value;
+    }
+}

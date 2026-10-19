@@ -1,0 +1,354 @@
+@namespace AtomBlazor.Primitives
+@using System.ComponentModel
+@using System.Globalization
+@using System.Text
+@using System.Text.Json
+@inherits PrimitiveBase
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+@*
+    SignaturePad 基元——手写签名的无头（headless）绘制面。
+
+    墨迹引擎运行在浏览器里。C# 只在一笔绘制结束时听到一次调用，绘制进行中从不被打扰。
+    画布本身不带任何样式：请自行给它一个尺寸和一个边框。
+*@
+
+<canvas @ref="canvasRef"
+        data-min-width="@MinWidth.ToString(CultureInfo.InvariantCulture)"
+        data-max-width="@MaxWidth.ToString(CultureInfo.InvariantCulture)"
+        data-velocity-weight="@VelocityWeight.ToString(CultureInfo.InvariantCulture)"
+        data-colour="@StrokeColor"
+        data-disabled="@(Disabled ? "true" : null)"
+        @attributes="FilteredAttributes"
+        style="@MergeStyles("touch-action: none")">
+</canvas>
+
+@code {
+    private ElementReference canvasRef;
+    private IJSObjectReference? jsModule;
+    private DotNetObjectReference<SignaturePadPrimitive>? dotNetRef;
+    private readonly TaskCompletionSource<bool> initializationReady = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly string padId = Guid.NewGuid().ToString("N");
+    private bool jsInitialized;
+    private bool disposed;
+
+    /// <summary>
+    /// 获取或设置绘制内容变化时调用的回调：一笔结束之后，以及 <see cref="ClearAsync"/> 或
+    /// <see cref="UndoAsync"/> 之后都会触发。参数为画板此刻是否为空。
+    /// </summary>
+    /// <remarks>
+    /// 笔画绘制过程中不上报任何内容。请在此回调触发时、或在外层表单提交时，经
+    /// <see cref="GetSvgAsync"/>、<see cref="GetPngAsync"/> 或 <see cref="GetStrokesAsync"/>
+    /// 读取签名。
+    /// </remarks>
+    [Parameter]
+    public EventCallback<bool> OnChange { get; set; }
+
+    /// <summary>
+    /// 获取或设置墨迹颜色，取 CSS 颜色值。未设置时，画板以自身计算出的 <c>color</c> 绘制，
+    /// 于是签名无需任何接线即可跟随主题。
+    /// </summary>
+    [Parameter]
+    public string? StrokeColor { get; set; }
+
+    /// <summary>
+    /// 获取或设置线条最细可到多少，以 CSS 像素计。默认为 0.5。
+    /// </summary>
+    [Parameter]
+    public double MinWidth { get; set; } = 0.5;
+
+    /// <summary>
+    /// 获取或设置线条最粗可到多少，以 CSS 像素计。默认为 2.5。
+    /// </summary>
+    [Parameter]
+    public double MaxWidth { get; set; } = 2.5;
+
+    /// <summary>
+    /// 获取或设置最新速度读数对线宽的影响权重，介于 0 与 1 之间。默认为 0.7。
+    /// </summary>
+    /// <remarks>
+    /// 取值越低，平均的笔画段落越多，线条越均匀；取值越高，对每一次提腕的响应越灵敏，
+    /// 锥形越锐利、也越跳跃。
+    /// </remarks>
+    [Parameter]
+    public double VelocityWeight { get; set; } = 0.7;
+
+    /// <summary>
+    /// 获取或设置是否忽略绘制。已经画好的内容保持可见。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeJsAsync();
+        }
+    }
+
+    private async Task InitializeJsAsync()
+    {
+        if (jsInitialized)
+        {
+            return;
+        }
+
+        try
+        {
+            jsModule = await PrimitiveModules.GetAsync(JSRuntime);
+            dotNetRef = DotNetObjectReference.Create(this);
+            await jsModule.InvokeVoidAsync("signaturePad.initialize", canvasRef, dotNetRef, padId);
+            jsInitialized = true;
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+        {
+            // 电路断开期间属预期情况
+        }
+        catch (InvalidOperationException)
+        {
+            // 预渲染期间 JS interop 不可用
+        }
+        finally
+        {
+            initializationReady.TrySetResult(jsInitialized && !disposed);
+        }
+    }
+
+    /// <summary>
+    /// 擦除全部笔画。
+    /// </summary>
+    public async Task ClearAsync()
+    {
+        if (await CallAsync("signaturePad.clear"))
+        {
+            await OnChange.InvokeAsync(true);
+        }
+    }
+
+    /// <summary>
+    /// 移除最近的一笔。
+    /// </summary>
+    /// <returns>确有笔画被移除时为 <c>true</c>。</returns>
+    public async Task<bool> UndoAsync()
+    {
+        var removed = await InvokeAsync<bool>("signaturePad.undo");
+        if (removed)
+        {
+            await OnChange.InvokeAsync(await IsEmptyAsync());
+        }
+        return removed;
+    }
+
+    /// <summary>
+    /// 是否尚未画下任何东西。
+    /// </summary>
+    public Task<bool> IsEmptyAsync() => InvokeAsync<bool>("signaturePad.isEmpty", true);
+
+    /// <summary>
+    /// 签名的 SVG 标记，未绘制任何东西时为 <c>null</c>。
+    /// </summary>
+    /// <remarks>
+    /// 笔画以 <c>currentColor</c> 绘制，所以同一份标记在纸面上呈深色、在深色页面上呈浅色。
+    /// 当签名需要在事先无法确定墨色的场合再次展示时，应存储这一形式。
+    /// </remarks>
+    public async Task<string?> GetSvgAsync()
+    {
+        var bytes = await ReadStreamAsync("signaturePad.toSvgStream");
+        return bytes is null ? null : Encoding.UTF8.GetString(bytes);
+    }
+
+    /// <summary>
+    /// 签名的 PNG data URL，未绘制任何东西时为 <c>null</c>。
+    /// </summary>
+    /// <param name="background">
+    /// 垫在墨迹之后的 CSS 颜色，透明背景传 <c>null</c>。
+    /// </param>
+    /// <param name="ink">
+    /// 笔画的 CSS 颜色。默认取黑色，而非画板当前正在绘制的颜色。
+    /// </param>
+    /// <remarks>
+    /// 这里的墨迹刻意不跟随主题的。PNG 是一份离开应用的图片文件，而深色主题下画出的签名
+    /// 近乎白色：原样导出到 PDF 想要的白底上，就是一张白页。<see cref="GetSvgAsync"/> 可以把
+    /// 颜色推迟到渲染处决定；PNG 做不到，所以在这里固定下来，而不是任由它被意外带出去。
+    /// </remarks>
+    public async Task<string?> GetPngAsync(string? background = null, string ink = "#000000")
+    {
+        var bytes = await GetPngBytesAsync(background, ink);
+        return bytes is null ? null : $"data:image/png;base64,{Convert.ToBase64String(bytes)}";
+    }
+
+    /// <summary>
+    /// 签名的 PNG 字节，未绘制任何东西时为 <c>null</c>。
+    /// </summary>
+    /// <param name="background">
+    /// 垫在墨迹之后的 CSS 颜色，透明背景传 <c>null</c>。
+    /// </param>
+    /// <param name="ink">笔画的 CSS 颜色。</param>
+    /// <remarks>
+    /// 图片是要保存或上传、而非显示时，请优先用本方法而非 <see cref="GetPngAsync"/>：
+    /// data URL 出了 <c>img</c> 标签就是白胖三分之一。
+    /// </remarks>
+    public Task<byte[]?> GetPngBytesAsync(string? background = null, string ink = "#000000")
+        => ReadStreamAsync("signaturePad.toPngStream", background, ink);
+
+    /// <summary>
+    /// 签名背后的原始采样。
+    /// </summary>
+    /// <remarks>
+    /// 比一张图像更小，且可经 <see cref="SetStrokesAsync"/> 回放。时间戳一并随行——
+    /// 事后核查签名是如何写下时，需要的正是这些时间。
+    /// </remarks>
+    // IL2026/IL3050（IsAotCompatible，沿 FormFieldBase 先例）：反序列化目标为已知的
+    // SignatureStroke/SignaturePoint 记录类型，裁剪与 AOT 下均可静态分析保活，
+    // 仅为反射式 JsonSerializer 泛形入口的保守标注所阻。
+    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026: 与反射相关的标注可能导致运行时缺失项",
+        Justification = "目标类型为已知的 SignatureStroke 记录，随程序集保活。")]
+    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("AOT", "IL3050: 调用标注了 RequiresDynamicCode 的方法",
+        Justification = "目标类型为已知的 SignatureStroke 记录，随程序集保活。")]
+    public async Task<IReadOnlyList<SignatureStroke>> GetStrokesAsync()
+    {
+        var bytes = await ReadStreamAsync("signaturePad.toStrokesStream");
+        if (bytes is null || bytes.Length == 0)
+        {
+            return Array.Empty<SignatureStroke>();
+        }
+
+        return JsonSerializer.Deserialize<IReadOnlyList<SignatureStroke>>(bytes, strokeJson)
+            ?? Array.Empty<SignatureStroke>();
+    }
+
+    /// <summary>
+    /// 用先前捕获的采样替换当前绘制内容。
+    /// </summary>
+    /// <param name="strokes">要绘制的采样，坐标即捕获时所在坐标系。</param>
+    /// <remarks>
+    /// 坐标为自画板左上角起的 CSS 像素。若画板比写下签名时更窄，签名会被裁剪而非缩放。
+    /// </remarks>
+    public async Task SetStrokesAsync(IReadOnlyList<SignatureStroke>? strokes)
+    {
+        if (!await initializationReady.Task)
+        {
+            return;
+        }
+        if (await CallAsync("signaturePad.setStrokes", strokes ?? Array.Empty<SignatureStroke>()))
+        {
+            await OnChange.InvokeAsync(await IsEmptyAsync());
+        }
+    }
+
+    private async Task<bool> CallAsync(string identifier, params object?[] args)
+    {
+        if (disposed || !jsInitialized || jsModule is null)
+        {
+            return false;
+        }
+
+        try
+        {
+            await jsModule.InvokeVoidAsync(identifier, [padId, .. args]);
+            return true;
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+        {
+            return false;
+        }
+    }
+
+    private static readonly JsonSerializerOptions strokeJson =
+        new(JsonSerializerDefaults.Web);
+
+    /// <summary>
+    /// 本组件接受的导出内容大小上限，以字节计。足以容纳大画板上一份细节丰富的签名，
+    /// 同时设有界限，让浏览器侧的故障无法令服务端无休止地分配内存。
+    /// </summary>
+    private const long maxExportBytes = 32 * 1024 * 1024;
+
+    /// <summary>
+    /// 以流的形式读取画板的一项导出。
+    /// </summary>
+    /// <remarks>
+    /// 导出走流式而非返回值。Blazor Server 电路默认把单条入站 hub 消息封顶在 32KB，
+    /// 而一份细节丰富的签名在三种形式——SVG、PNG 与原始采样——上都会击穿这条上限。
+    /// 返回一个值会在调用中途撕毁电路：组件永远等不到答复，页面停止响应且屏幕上一无所有，
+    /// 没有任何线索说明原因。流由框架分块传输，不受该封顶约束。
+    /// </remarks>
+    private async Task<byte[]?> ReadStreamAsync(string identifier, params object?[] args)
+    {
+        if (disposed || !jsInitialized || jsModule is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            var reference = await jsModule.InvokeAsync<IJSStreamReference?>(identifier, [padId, .. args]);
+            if (reference is null)
+            {
+                return null;
+            }
+
+            await using var stream = await reference.OpenReadStreamAsync(maxExportBytes);
+            using var buffer = new MemoryStream();
+            await stream.CopyToAsync(buffer);
+            return buffer.ToArray();
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+        {
+            return null;
+        }
+    }
+
+    private async Task<T> InvokeAsync<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(
+        System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors |
+        System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicFields |
+        System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicProperties)] T>(
+        string identifier, T fallback = default!, params object?[] args)
+    {
+        if (disposed || !jsInitialized || jsModule is null)
+        {
+            return fallback;
+        }
+
+        try
+        {
+            return await jsModule.InvokeAsync<T>(identifier, [padId, .. args]);
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+        {
+            return fallback;
+        }
+    }
+
+    [JSInvokable]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public async Task JsSignatureChanged(bool empty)
+    {
+        if (disposed)
+        {
+            return;
+        }
+
+        await OnChange.InvokeAsync(empty);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        GC.SuppressFinalize(this);
+        disposed = true;
+        initializationReady.TrySetResult(false);
+        if (jsModule != null && jsInitialized)
+        {
+            try
+            {
+                await jsModule.InvokeVoidAsync("signaturePad.dispose", padId);
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            {
+                // 电路断开期间属预期情况
+            }
+        }
+        dotNetRef?.Dispose();
+    }
+}

@@ -1,0 +1,307 @@
+@page "/components/carousel"
+<PageTitle>@L.T("轮播组件 - Atom BlazorUI", "Carousel Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("轮播组件", "Carousel Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("带翻页控件与幻灯片导航的轮播。", "A carousel with slide navigation and controls.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本示例", "Basic Example")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个带翻页控件的简单轮播。", "A simple carousel with navigation controls.")
+            </p>
+        </div>
+        <div class="w-full max-w-xs mx-auto">
+            <Carousel Class="w-full">
+                <CarouselContent>
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <CarouselItem>
+                            <div class="p-1">
+                                <Card>
+                                    <CardContent Class="flex aspect-square items-center justify-center p-6">
+                                        <span class="text-4xl font-semibold">@i</span>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </CarouselItem>
+                    }
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+            </Carousel>
+        </div>
+        <CodeBlock Source="Components/Carousel/basic.txt" />
+    </div>
+
+    <!-- With Loop -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("循环播放", "With Loop")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("开启幻灯片之间的无限循环。", "Enable infinite looping through slides.")
+            </p>
+        </div>
+        <div class="w-full max-w-xs mx-auto">
+            <Carousel Class="w-full" Loop="true">
+                <CarouselContent>
+                    @for (int i = 1; i <= 3; i++)
+                    {
+                        <CarouselItem>
+                            <div class="p-1">
+                                <Card>
+                                    <CardContent Class="flex aspect-square items-center justify-center p-6 bg-primary/10">
+                                        <span class="text-4xl font-semibold">@i</span>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </CarouselItem>
+                    }
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+            </Carousel>
+        </div>
+        <CodeBlock Source="Components/Carousel/loop.txt" />
+    </div>
+
+    <!-- Image Gallery -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("图片画廊", "Image Gallery")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("借助 AspectRatio 组件保持统一宽高比，用轮播展示图片。", "A carousel showcasing images with consistent aspect ratios using the AspectRatio component.")
+            </p>
+        </div>
+        <div class="w-full max-w-lg mx-auto">
+            <Carousel Class="w-full" Loop="true">
+                <CarouselContent>
+                    <CarouselItem>
+                        <div class="p-1">
+                            <AspectRatio Ratio="16 / 9">
+                                <img src="https://images.unsplash.com/photo-1767536472182-6e7142d5fb7a?w=800&auto=format&fit=crop"
+                                     alt=""
+                                     class="rounded-lg object-cover w-full h-full" />
+                            </AspectRatio>
+                        </div>
+                    </CarouselItem>
+                    <CarouselItem>
+                        <div class="p-1">
+                            <AspectRatio Ratio="16 / 9">
+                                <img src="https://images.unsplash.com/photo-1766488735864-44c313801587?w=800&auto=format&fit=crop"
+                                     alt=""
+                                     class="rounded-lg object-cover w-full h-full" />
+                            </AspectRatio>
+                        </div>
+                    </CarouselItem>
+                    <CarouselItem>
+                        <div class="p-1">
+                            <AspectRatio Ratio="16 / 9">
+                                <img src="https://images.unsplash.com/photo-1766596534244-104ac1d954f1?w=800&auto=format&fit=crop"
+                                     alt=""
+                                     class="rounded-lg object-cover w-full h-full" />
+                            </AspectRatio>
+                        </div>
+                    </CarouselItem>
+                    <CarouselItem>
+                        <div class="p-1">
+                            <AspectRatio Ratio="16 / 9">
+                                <img src="https://images.unsplash.com/photo-1766512433912-ba04869c2fbc?w=800&auto=format&fit=crop"
+                                     alt=""
+                                     class="rounded-lg object-cover w-full h-full" />
+                            </AspectRatio>
+                        </div>
+                    </CarouselItem>
+                    <CarouselItem>
+                        <div class="p-1">
+                            <AspectRatio Ratio="16 / 9">
+                                <img src="https://images.unsplash.com/photo-1767305680237-daa42b9e9a98?w=800&auto=format&fit=crop"
+                                     alt=""
+                                     class="rounded-lg object-cover w-full h-full" />
+                            </AspectRatio>
+                        </div>
+                    </CarouselItem>
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+            </Carousel>
+        </div>
+        <CodeBlock Source="Components/Carousel/image-gallery.txt" />
+    </div>
+
+
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("自动播放、拖拽与幻灯片指示器", "Autoplay, dragging and slide indicators")</h2>
+        <p class="text-sm text-muted-foreground">@L.T("可以滑动或拖拽卡片。悬停会暂时停止轮播；获得键盘焦点后会一直暂停，直到你显式重新开始。系统偏好为减少动效时不会自动播放。下方绑定了当前首个可见幻灯片的序号。", "Swipe or drag the cards. Hover temporarily pauses rotation; keyboard focus pauses it until you explicitly restart. Reduced-motion preferences disable autoplay. The first visible index is bound below.")</p>
+<Carousel SlidesPerView="2" Gap="12" Loop="true" Autoplay="true" AutoplayInterval="4000"
+          ShowIndicators="true" @bind-Paused="paused" @bind-ActiveIndex="activeSlide" AriaLabel="@(L.T("精选合集", "Featured collections"))"
+          Class="mx-12">
+    <CarouselContent>
+        @for (var i = 1; i <= 6; i++)
+        {
+            <CarouselItem><div class="flex h-36 items-center justify-center rounded-lg border bg-muted text-3xl font-semibold">@i</div></CarouselItem>
+        }
+    </CarouselContent>
+    <CarouselPrevious />
+    <CarouselNext />
+</Carousel>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm">首个幻灯片：@(activeSlide + 1)。轮播 @(paused ? "已暂停" : "进行中")。</p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm">First slide: @(activeSlide + 1). Rotation @(paused ? "paused" : "enabled").</p>
+                </text>
+}
+        <CodeBlock Source="Components/Carousel/controls.txt" />
+
+    </section>
+    <!-- Accessibility Notes -->
+
+    <!-- API Reference -->
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    根容器带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="region"</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-roledescription="carousel"</code>
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">role="region"</code> with <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-roledescription="carousel"</code> on the root container
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    每张幻灯片使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="group"</code> 并配合 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-roledescription="slide"</code>
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Each slide uses <code class="text-xs bg-muted px-1 py-0.5 rounded">role="group"</code> with <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-roledescription="slide"</code>
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    翻页按钮带有 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code>（"上一张" / "下一张"）以及 <code class="text-xs bg-muted px-1 py-0.5 rounded">sr-only</code> 文本
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Navigation buttons include <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> ("Previous slide" / "Next slide") and <code class="text-xs bg-muted px-1 py-0.5 rounded">sr-only</code> text
+                </AccessibilityItem>
+                        </text>
+}
+            <AccessibilityItem>
+                @L.T("未开启循环时，轮播到达首尾边界会禁用翻页按钮", "Navigation buttons are disabled at carousel boundaries when not looping")
+            </AccessibilityItem>
+                    <AccessibilityItem>@L.T("自动播放会在获得键盘焦点、指针悬停或文档不可见时暂停；系统偏好为减少动效时停止自动移动。开启自动播放时应提供暂停/继续控件。", "Autoplay pauses for keyboard focus, pointer hover and hidden documents. Reduced-motion preferences stop automatic movement. Provide a pause/resume control when enabling autoplay.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("屏幕外的幻灯片处于 inert 状态，其内部可交互元素不会留在键盘 Tab 序列中。", "Offscreen slides are inert so their interactive children do not remain in the keyboard tab sequence.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("激活上一页/下一页按钮", "Activate previous/next buttons"))">
+                <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("在按钮之间移动", "Navigate between buttons"))">
+                <Kbd>Tab</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="Carousel">
+                <ApiParameter Name="Orientation" Type="CarouselOrientation">
+                    @L.T("水平（默认）或垂直。", "Horizontal (default) or Vertical.")
+                </ApiParameter>
+                <ApiParameter Name="Loop" Type="bool" Default="false">
+                    @L.T("是否开启无限循环。", "Enable infinite loop.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+
+            <ApiParameter Since="v4" Name="SlidesPerView / Gap" Type="double / int" Default="1 / 16">@L.T("可见幻灯片数量（至少 1，允许小数以露出下一页边角）与内容间距（像素）。单项 Class 可覆盖响应式基准宽度；导航边界由浏览器实测决定。", "Visible slides (at least 1, fractional peeks allowed) and content spacing in pixels. Per-item Class can override responsive basis; browser measurements determine navigation limits.")</ApiParameter>
+            <ApiParameter Since="v4" Name="Draggable" Type="bool" Default="true">@L.T("指针拖拽/滑动翻页。链接、按钮与表单控件保持原有交互方式。焦点位于轮播区域时方向键可用。", "Pointer drag/swipe navigation. Links, buttons and form controls retain normal interaction. Arrow keys work when the carousel region is focused.")</ApiParameter>
+            <ApiParameter Since="v4" Name="Autoplay / AutoplayInterval" Type="bool / int" Default="false / 5000">@L.T("定时轮播与可见的暂停控件；间隔不小于 1000 毫秒。悬停、文档不可见、键盘焦点以及减少动效偏好都会暂停。", "Timed rotation and visible pause control; interval at least 1000ms. Pauses on hover, hidden document, keyboard focus and reduced motion.")</ApiParameter>
+            <ApiParameter Since="v4" Name="Paused / PausedChanged" Type="bool / EventCallback&lt;bool&gt;" Default="false">@L.T("由用户控制的轮播状态，支持双向绑定。获得焦点会暂停，直到显式重新开始。", "User-controlled rotation state; supports two-way binding. Focus pauses until explicitly restarted.")</ApiParameter>
+            <ApiParameter Since="v4" Name="ActiveIndex / ActiveIndexChanged / OnSlideChanged" Type="int / EventCallback&lt;int&gt; / EventCallback&lt;int&gt;" Default="0">@L.T("首个可见幻灯片、绑定回调与变更通知。布局变化后序号会被重新夹紧。", "First visible slide, binding callback and change notification. Index is clamped after layout changes.")</ApiParameter>
+            <ApiParameter Since="v4" Name="GoToAsync(index)" Type="Task">@L.T("以编程方式翻页，遵循 Loop 与实测边界。", "Programmatic navigation respecting Loop and measured limits.")</ApiParameter>
+            <ApiParameter Since="v4" Name="ShowIndicators / IndicatorPosition" Type="bool / CarouselIndicatorPosition" Default="false / Bottom">@L.T("内置的幻灯片按钮；可放在 Bottom、Top 或 Inside。", "Built-in slide buttons; Bottom, Top or Inside placement.")</ApiParameter>
+            <ApiParameter Since="v4" Name="AriaLabel" Type="string?">@L.T("轮播区域的名称。屏幕外的幻灯片不参与键盘导航。", "Name for the carousel region. Offscreen slides are excluded from keyboard navigation.")</ApiParameter>
+
+        </ApiReference>
+        </div>
+
+
+    </section>
+
+<LocalizationSection
+        Description="@(L.T("Carousel 翻页按钮的无障碍标签可以配置。", "Carousel navigation button aria labels are configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("NextSlide", "Next slide", L.T("下一张按钮的无障碍标签。", "Aria label for the next slide button")),
+            new("PreviousSlide", "Previous slide", L.T("上一张按钮的无障碍标签。", "Aria label for the previous slide button")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""Carousel.NextSlide"", ""Nächste Folie"");
+    localizer.Set(""Carousel.PreviousSlide"", ""Vorherige Folie"");
+});")" />
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private bool paused;
+    private int activeSlide;
+}

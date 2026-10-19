@@ -1,0 +1,238 @@
+@namespace AtomBlazor
+@typeparam TValue
+@attribute [CascadingTypeParameter(nameof(TValue))]
+@using AtomBlazor.Icons.Lucide
+
+<CascadingValue Value="this" IsFixed="true">
+<div class="@ContainerClass" @attributes="AdditionalAttributes">
+    <Popover Open="_isOpen" OpenChanged="HandleOpenChanged" RestoreFocusOnClose="_restoreFocusOnClose">
+        <AtomBlazor.PopoverTrigger AsChild="false" role="combobox" aria-label="@AriaLabel"
+                        aria-expanded="@_isOpen.ToString().ToLower()"
+                        aria-controls="@($"{Id}-listbox")"
+                        aria-haspopup="listbox"
+                        aria-multiselectable="true" aria-required="@(Required ? "true" : null)"
+                        aria-describedby="@AriaDescribedBy"
+                        disabled="@Disabled"
+                        class="@TriggerCssClass">
+            <div class="@TagListClass">
+                @if (HasSelectedItems)
+                {
+                    @foreach (var value in SelectedValues.Take(MaxDisplayTags))
+                    {
+                        <Badge @key="value" Variant="BadgeVariant.Secondary" Class="@TagBadgeClass">
+                            @GetDisplayText(value)
+                            <button type="button"
+                                    class="@TagRemoveButtonCssClass"
+                                    aria-label="@Localizer["MultiSelect.Remove", GetDisplayText(value)]"
+                                    @onclick="GetRemoveHandler(value)"
+                                    @onclick:stopPropagation="true">
+                                <LucideIcon Name="x" Size="12" Class="atom:h-3 atom:w-3" />
+                            </button>
+                        </Badge>
+                    }
+                    @* 换行模式下"+N more"跟随标签一起流动；单行模式下它被钉在下方右侧
+                       分组里，标签被裁切时依旧保持可见。 *@
+                    @if (OverflowCount > 0 && !SingleLine)
+                    {
+                        <span class="atom:text-xs atom:text-muted-foreground">@Localizer["MultiSelect.More", OverflowCount]</span>
+                    }
+                }
+                else
+                {
+                    <span class="atom:text-muted-foreground">@EffectivePlaceholder</span>
+                }
+            </div>
+            <div class="atom:flex atom:shrink-0 atom:items-center atom:gap-1 atom:ms-2">
+                @if (HasSelectedItems && OverflowCount > 0 && SingleLine)
+                {
+                    <span class="atom:shrink-0 atom:whitespace-nowrap atom:text-xs atom:text-muted-foreground">@Localizer["MultiSelect.More", OverflowCount]</span>
+                }
+                @if (HasSelectedItems)
+                {
+                    <button type="button"
+                            class="atom:rounded-sm atom:opacity-70 atom:hover:opacity-100 atom:focus:outline-none"
+                            aria-label="@Localizer["MultiSelect.Clear"]"
+                            @onclick="ClearAll"
+                            @onclick:stopPropagation="true">
+                        <LucideIcon Name="x" Size="14" Class="atom:h-3.5 atom:w-3.5" />
+                    </button>
+                }
+                <LucideIcon Name="chevron-down" Size="16" Class="atom:h-4 atom:w-4 atom:shrink-0 atom:opacity-50" />
+            </div>
+        </AtomBlazor.PopoverTrigger>
+
+        <AtomBlazor.PopoverContent Side="@PopoverSide.Bottom"
+                        Align="@PopoverAlign.Start"
+                        CloseOnClickOutside="@AutoClose"
+                        CloseOnEscape="false"
+                        OnEscapeKeyDown="@(_ => CloseAsync())"
+                        OnClickOutside="@GetClickOutsideHandler()"
+                        AutoFocusId="@($"{Id}-search")"
+                        MatchTriggerWidth="@MatchTriggerWidth"
+                        Class="@(MatchTriggerWidth ? "atom:!p-0" : $"{PopoverWidth} atom:!p-0")">
+            @* 经由门户再级联一次，让 MultiSelectItem 能在弹层内解析到它的 CascadingParameter *@
+            <CascadingValue Value="this" IsFixed="true">
+            @* 搜索输入区——样式对齐 CommandInput *@
+            <div class="atom:flex atom:items-center atom:border-b atom:border-border atom:px-3">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="24"
+                     height="24"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     class="atom:me-2 atom:h-4 atom:w-4 atom:shrink-0 atom:opacity-50">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <input @ref="_searchInputRef"
+                       id="@($"{Id}-search")"
+                       type="text"
+                       placeholder="@EffectiveSearchPlaceholder"
+                       @bind="_searchQuery"
+                       @bind:event="oninput"
+                       @bind:after="HandleSearchQueryChangedAsync"
+                       class="atom:flex atom:h-11 atom:w-full atom:rounded-md atom:bg-transparent atom:py-3 atom:text-sm atom:outline-none atom:placeholder:text-muted-foreground atom:disabled:cursor-not-allowed atom:disabled:opacity-50 atom:ms-2" />
+            </div>
+
+            @* 条目列表区 *@
+            <div id="@($"{Id}-listbox")" @ref="_listboxScrollRef" role="listbox" aria-multiselectable="true" aria-required="@(Required ? "true" : null)" class="atom:max-h-[300px] atom:overflow-y-auto atom:p-1">
+                @if (IsCompositionalMode)
+                {
+                    @* 复合模式：Select All + ChildContent *@
+                    @if (ShowSelectAll && _itemTextRegistry.Count > 0)
+                    {
+                        var selectAllState = GetSelectAllState();
+                        <div role="option"
+                             aria-selected="@(selectAllState == SelectAllState.All ? "true" : "false")"
+                             @onclick="HandleSelectAllToggle"
+                             @onclick:stopPropagation="true"
+                             class="@ItemCssClass">
+                            <AtomBlazor.Primitives.CheckboxPrimitive Checked="@(selectAllState == SelectAllState.All)"
+                                      Indeterminate="@(selectAllState == SelectAllState.Indeterminate)"
+                                      class="@CheckboxCssClass"
+                                      AriaLabel="@EffectiveSelectAllLabel">
+                                @if (selectAllState == SelectAllState.All)
+                                {
+                                    <LucideIcon Name="check" Size="14" Class="atom:h-3.5 atom:w-3.5 atom:stroke-current" />
+                                }
+                                else if (selectAllState == SelectAllState.Indeterminate)
+                                {
+                                    <LucideIcon Name="minus" Size="14" Class="atom:h-3.5 atom:w-3.5 atom:stroke-current" />
+                                }
+                            </AtomBlazor.Primitives.CheckboxPrimitive>
+                            <span class="atom:font-medium">@EffectiveSelectAllLabel</span>
+                        </div>
+                        <Separator Decorative="false" Class="atom:my-1" />
+                    }
+                    @ChildContent
+                    @if (_itemTextRegistry.Count > 0 && !HasFilteredItems)
+                    {
+                        <div class="atom:py-6 atom:text-center atom:text-sm atom:text-muted-foreground">@EffectiveEmptyMessage</div>
+                    }
+                }
+                else
+                {
+                    @* Options 模式：沿用既有渲染 *@
+                    @if (!HasFilteredItems)
+                    {
+                        <div class="atom:py-6 atom:text-center atom:text-sm atom:text-muted-foreground">@EffectiveEmptyMessage</div>
+                    }
+                    else
+                    {
+                        @* Select All 选项 *@
+                        @if (ShowSelectAll)
+                        {
+                            var selectAllState = GetSelectAllState();
+                            <div role="option"
+                                 aria-selected="@(selectAllState == SelectAllState.All ? "true" : "false")"
+                                 @onclick="HandleSelectAllToggle"
+                                 @onclick:stopPropagation="true"
+                                 class="@ItemCssClass">
+                                <AtomBlazor.Primitives.CheckboxPrimitive Checked="@(selectAllState == SelectAllState.All)"
+                                          Indeterminate="@(selectAllState == SelectAllState.Indeterminate)"
+                                          class="@CheckboxCssClass"
+                                          AriaLabel="@EffectiveSelectAllLabel">
+                                    @if (selectAllState == SelectAllState.All)
+                                    {
+                                        <LucideIcon Name="check" Size="14" Class="atom:h-3.5 atom:w-3.5 atom:stroke-current" />
+                                    }
+                                    else if (selectAllState == SelectAllState.Indeterminate)
+                                    {
+                                        <LucideIcon Name="minus" Size="14" Class="atom:h-3.5 atom:w-3.5 atom:stroke-current" />
+                                    }
+                                </AtomBlazor.Primitives.CheckboxPrimitive>
+                                <span class="atom:font-medium">@EffectiveSelectAllLabel</span>
+                            </div>
+                            <Separator Decorative="false" Class="atom:my-1" />
+                        }
+
+                        @* 单个条目 *@
+                        @foreach (var option in FilteredOptions)
+                        {
+                            var itemValue = option.Value;
+                            var displayText = option.Text;
+                            var isSelected = IsSelected(option);
+
+                            <div @key="itemValue"
+                                 role="option"
+                                 aria-selected="@isSelected.ToString().ToLower()"
+                                 @onclick="GetToggleHandler(option)"
+                                 @onclick:stopPropagation="true"
+                                 class="@ItemCssClass">
+                                <AtomBlazor.Primitives.CheckboxPrimitive Checked="@isSelected"
+                                          class="@CheckboxCssClass"
+                                          AriaLabel="@displayText">
+                                    @if (isSelected)
+                                    {
+                                        <LucideIcon Name="check" Size="14" Class="atom:h-3.5 atom:w-3.5 atom:stroke-current" />
+                                    }
+                                </AtomBlazor.Primitives.CheckboxPrimitive>
+                                <span>@displayText</span>
+                            </div>
+                        }
+                    }
+                }
+                @if (IsLoading)
+                {
+                    <div class="atom:flex atom:items-center atom:justify-center atom:py-2">
+                        <Spinner Size="SpinnerSize.Small" />
+                    </div>
+                }
+                else if (!string.IsNullOrEmpty(EndOfListMessage))
+                {
+                    <div class="atom:py-2 atom:text-center atom:text-xs atom:text-muted-foreground">
+                        @EndOfListMessage
+                    </div>
+                }
+            </div>
+
+            @if (FooterContent is not null)
+            {
+                <div class="atom:border-t atom:p-2">@FooterContent</div>
+            }
+            else
+            {
+            @* 页脚区 *@
+            <div class="atom:flex atom:items-center atom:justify-between atom:border-t atom:p-2">
+                <button type="button"
+                        class="atom:text-xs atom:text-muted-foreground atom:hover:text-foreground atom:transition-colors"
+                        @onclick="ClearAll"
+                        @onclick:stopPropagation="true">
+                    @EffectiveClearLabel
+                </button>
+                <button type="button"
+                        class="atom:text-xs atom:text-muted-foreground atom:hover:text-foreground atom:transition-colors"
+                        @onclick="Close"
+                        @onclick:stopPropagation="true">
+                    @EffectiveCloseLabel
+                </button>
+            </div>
+            }
+            </CascadingValue>
+        </AtomBlazor.PopoverContent>
+    </Popover>
+</div>
+</CascadingValue>

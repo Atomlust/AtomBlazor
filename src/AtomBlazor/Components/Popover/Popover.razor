@@ -1,0 +1,71 @@
+@namespace AtomBlazor
+
+@*
+    带样式的 Popover 组件包装层。
+    在 Popover 基元之上叠加 shadcn/ui 样式。
+*@
+
+<AtomBlazor.Primitives.PopoverPrimitive Open="@Open"
+                                           OpenChanged="@OpenChanged"
+                                           DefaultOpen="@DefaultOpen"
+                                           OnOpenChange="@OnOpenChange"
+                                           RestoreFocusOnClose="@RestoreFocusOnClose"
+                                           Modal="@Modal"
+                                           @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.PopoverPrimitive>
+
+@code {
+    /// <summary>
+    /// 在浮层上下文中渲染的子内容。
+    /// 应包含 PopoverTrigger 与 PopoverContent。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 控制浮层是否打开（受控模式）。
+    /// 为 null 时浮层自管状态（非受控模式）。
+    /// </summary>
+    [Parameter]
+    public bool? Open { get; set; }
+
+    /// <summary>
+    /// 开合状态变化时触发的回调。
+    /// 与 @bind-Open 联用实现双向绑定。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>
+    /// 非受控模式下的默认开合状态。
+    /// </summary>
+    [Parameter]
+    public bool DefaultOpen { get; set; } = false;
+
+    /// <summary>
+    /// 浮层开合状态变化时触发的回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OnOpenChange { get; set; }
+
+    /// <summary>
+    /// 浮层能否通过点击外部或按 Escape 消除。默认为 true。
+    /// </summary>
+    [Parameter]
+    public bool Modal { get; set; } = true;
+
+    /// <summary>
+    /// 当浮层经由受控的 <see cref="Open"/> 绑定被关闭（使用者驱动，
+    /// 例如选中某项之后）时，是否把焦点归还给触发器。默认为 false。
+    /// 点击外部与 Escape 消除不受影响。
+    /// </summary>
+    [Parameter]
+    public bool RestoreFocusOnClose { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}

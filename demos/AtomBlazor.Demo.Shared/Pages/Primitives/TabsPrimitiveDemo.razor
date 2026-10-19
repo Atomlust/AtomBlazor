@@ -1,0 +1,527 @@
+@page "/primitives/tabs"
+<PageTitle>@L.T("Tabs 选项卡基础构件 - Atom BlazorUI", "Tabs Primitive - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Tabs 选项卡基础构件", "Tabs Primitive")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("无头、无样式的选项卡基础构件，内置键盘支持与 ARIA 属性。", "Headless, unstyled tabs primitive with keyboard support and ARIA attributes.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("使用最少内联样式的简单选项卡实现。使用方向键在选项卡之间导航。", "A simple tabs implementation with minimal inline styles. Use arrow keys to navigate between tabs.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <AtomBlazor.Primitives.TabsPrimitive DefaultValue="tab1">
+                    <AtomBlazor.Primitives.TabsList class="flex gap-1 p-1 bg-muted rounded-md w-fit">
+                        <AtomBlazor.Primitives.TabsTrigger Value="tab1" class="px-4 py-2 border-none bg-transparent cursor-pointer rounded text-sm aria-[selected=true]:bg-background aria-[selected=true]:shadow-sm">
+                            @L.T("选项卡 1", "Tab 1")
+                        </AtomBlazor.Primitives.TabsTrigger>
+                        <AtomBlazor.Primitives.TabsTrigger Value="tab2" class="px-4 py-2 border-none bg-transparent cursor-pointer rounded text-sm aria-[selected=true]:bg-background aria-[selected=true]:shadow-sm">
+                            @L.T("选项卡 2", "Tab 2")
+                        </AtomBlazor.Primitives.TabsTrigger>
+                        <AtomBlazor.Primitives.TabsTrigger Value="tab3" class="px-4 py-2 border-none bg-transparent cursor-pointer rounded text-sm aria-[selected=true]:bg-background aria-[selected=true]:shadow-sm">
+                            @L.T("选项卡 3", "Tab 3")
+                        </AtomBlazor.Primitives.TabsTrigger>
+                    </AtomBlazor.Primitives.TabsList>
+
+                    <AtomBlazor.Primitives.TabsContent Value="tab1" class="p-4 mt-2 border border-border rounded-md">
+                        <h3 class="font-semibold mb-2">@L.T("选项卡 1 内容", "Tab 1 Content")</h3>
+                        <p>@L.T("这是第一个选项卡的内容。使用方向键导航或点击切换选项卡。", "This is the content for the first tab. Navigate using arrow keys or click to switch tabs.")</p>
+                    </AtomBlazor.Primitives.TabsContent>
+
+                    <AtomBlazor.Primitives.TabsContent Value="tab2" class="p-4 mt-2 border border-border rounded-md">
+                        <h3 class="font-semibold mb-2">@L.T("选项卡 2 内容", "Tab 2 Content")</h3>
+                        <p>@L.T("这是第二个选项卡的内容。该基础构件会自动处理所有键盘导航。", "This is the content for the second tab. The primitive handles all keyboard navigation automatically.")</p>
+                    </AtomBlazor.Primitives.TabsContent>
+
+                    <AtomBlazor.Primitives.TabsContent Value="tab3" class="p-4 mt-2 border border-border rounded-md">
+                        <h3 class="font-semibold mb-2">@L.T("选项卡 3 内容", "Tab 3 Content")</h3>
+                        <p>@L.T("这是第三个选项卡的内容。按 Home/End 可跳转到首个/最后一个选项卡。", "This is the content for the third tab. Press Home/End to jump to first/last tab.")</p>
+                    </AtomBlazor.Primitives.TabsContent>
+                </AtomBlazor.Primitives.TabsPrimitive>
+            </div>
+
+            <CodeBlock Source="Primitives/Tabs/basic.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("受控选项卡", "Controlled Tabs")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("使用 @@bind-Value 从你的组件代码中控制当前激活的选项卡。", "Control the active tab from your component code using @@bind-Value.")
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex gap-2">
+                    <button @onclick='() => controlledValue = "account"'
+                            class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3">
+                        @L.T("显示账户", "Show Account")
+                    </button>
+                    <button @onclick='() => controlledValue = "password"'
+                            class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3">
+                        @L.T("显示密码", "Show Password")
+                    </button>
+                </div>
+
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <p class="text-xs text-muted-foreground">当前选项卡：<strong>@controlledValue</strong></p>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <p class="text-xs text-muted-foreground">Current tab: <strong>@controlledValue</strong></p>
+                    </text>
+                }
+
+                <div class="rounded-lg border bg-card p-6">
+                    <AtomBlazor.Primitives.TabsPrimitive @bind-Value="controlledValue">
+                        <AtomBlazor.Primitives.TabsList class="flex gap-1 p-1 bg-muted rounded-md w-fit">
+                            <AtomBlazor.Primitives.TabsTrigger Value="account" class="px-4 py-2 border-none bg-transparent cursor-pointer rounded text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                                @L.T("账户", "Account")
+                            </AtomBlazor.Primitives.TabsTrigger>
+                            <AtomBlazor.Primitives.TabsTrigger Value="password" class="px-4 py-2 border-none bg-transparent cursor-pointer rounded text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                                @L.T("密码", "Password")
+                            </AtomBlazor.Primitives.TabsTrigger>
+                        </AtomBlazor.Primitives.TabsList>
+
+                        <AtomBlazor.Primitives.TabsContent Value="account" class="p-4 mt-2 border border-border rounded-md">
+                            <h3 class="font-semibold mb-2">@L.T("账户设置", "Account Settings")</h3>
+                            <p>@L.T("在此更改你的账户信息。", "Make changes to your account here.")</p>
+                        </AtomBlazor.Primitives.TabsContent>
+
+                        <AtomBlazor.Primitives.TabsContent Value="password" class="p-4 mt-2 border border-border rounded-md">
+                            <h3 class="font-semibold mb-2">@L.T("密码设置", "Password Settings")</h3>
+                            <p>@L.T("在此更改你的密码。", "Change your password here.")</p>
+                        </AtomBlazor.Primitives.TabsContent>
+                    </AtomBlazor.Primitives.TabsPrimitive>
+                </div>
+
+                <CodeBlock Source="Primitives/Tabs/controlled.txt" />
+            </div>
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("纵向选项卡", "Vertical Tabs")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("选项卡可以纵向排列。使用上下方向键导航。", "Tabs can be arranged vertically. Use arrow up/down keys to navigate.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <AtomBlazor.Primitives.TabsPrimitive DefaultValue="general" Orientation="TabsOrientation.Vertical">
+                    <div class="flex gap-4">
+                        <AtomBlazor.Primitives.TabsList class="flex flex-col gap-1 p-1 bg-muted rounded-md w-[150px]">
+                            <AtomBlazor.Primitives.TabsTrigger Value="general" class="px-4 py-2 border-none bg-transparent cursor-pointer rounded text-sm text-left data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                                @L.T("通用", "General")
+                            </AtomBlazor.Primitives.TabsTrigger>
+                            <AtomBlazor.Primitives.TabsTrigger Value="security" class="px-4 py-2 border-none bg-transparent cursor-pointer rounded text-sm text-left data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                                @L.T("安全", "Security")
+                            </AtomBlazor.Primitives.TabsTrigger>
+                            <AtomBlazor.Primitives.TabsTrigger Value="notifications" class="px-4 py-2 border-none bg-transparent cursor-pointer rounded text-sm text-left data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                                @L.T("通知", "Notifications")
+                            </AtomBlazor.Primitives.TabsTrigger>
+                        </AtomBlazor.Primitives.TabsList>
+
+                        <div class="flex-1">
+                            <AtomBlazor.Primitives.TabsContent Value="general" class="p-4 border border-border rounded-md">
+                                <h3 class="font-semibold mb-2">@L.T("通用设置", "General Settings")</h3>
+                                <p>@L.T("配置通用的应用程序设置。", "Configure general application settings.")</p>
+                            </AtomBlazor.Primitives.TabsContent>
+
+                            <AtomBlazor.Primitives.TabsContent Value="security" class="p-4 border border-border rounded-md">
+                                <h3 class="font-semibold mb-2">@L.T("安全设置", "Security Settings")</h3>
+                                <p>@L.T("管理你的安全偏好设置。", "Manage your security preferences.")</p>
+                            </AtomBlazor.Primitives.TabsContent>
+
+                            <AtomBlazor.Primitives.TabsContent Value="notifications" class="p-4 border border-border rounded-md">
+                                <h3 class="font-semibold mb-2">@L.T("通知设置", "Notification Settings")</h3>
+                                <p>@L.T("控制你接收通知的方式。", "Control how you receive notifications.")</p>
+                            </AtomBlazor.Primitives.TabsContent>
+                        </div>
+                    </div>
+                </AtomBlazor.Primitives.TabsPrimitive>
+            </div>
+
+            <CodeBlock Source="Primitives/Tabs/vertical.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("手动激活模式", "Manual Activation Mode")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("在手动模式下，选项卡必须被点击或按 Enter/Space 激活。方向键只移动焦点。", "In manual mode, tabs must be clicked or activated with Enter/Space. Arrow keys only move focus.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <AtomBlazor.Primitives.TabsPrimitive DefaultValue="overview" ActivationMode="TabsActivationMode.Manual">
+                    <AtomBlazor.Primitives.TabsList class="flex gap-1 p-1 bg-muted rounded-md w-fit">
+                        <AtomBlazor.Primitives.TabsTrigger Value="overview" class="px-4 py-2 border-none bg-transparent cursor-pointer rounded text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                            @L.T("概览", "Overview")
+                        </AtomBlazor.Primitives.TabsTrigger>
+                        <AtomBlazor.Primitives.TabsTrigger Value="analytics" class="px-4 py-2 border-none bg-transparent cursor-pointer rounded text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                            @L.T("分析", "Analytics")
+                        </AtomBlazor.Primitives.TabsTrigger>
+                        <AtomBlazor.Primitives.TabsTrigger Value="reports" class="px-4 py-2 border-none bg-transparent cursor-pointer rounded text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                            @L.T("报告", "Reports")
+                        </AtomBlazor.Primitives.TabsTrigger>
+                    </AtomBlazor.Primitives.TabsList>
+
+                    <AtomBlazor.Primitives.TabsContent Value="overview" class="p-4 mt-2 border border-border rounded-md">
+                        <h3 class="font-semibold mb-2">@L.T("概览", "Overview")</h3>
+                        <p>@L.T("使用方向键移动焦点，然后按 Enter 或 Space 激活选项卡。", "Use arrow keys to move focus, then press Enter or Space to activate a tab.")</p>
+                    </AtomBlazor.Primitives.TabsContent>
+
+                    <AtomBlazor.Primitives.TabsContent Value="analytics" class="p-4 mt-2 border border-border rounded-md">
+                        <h3 class="font-semibold mb-2">@L.T("分析", "Analytics")</h3>
+                        <p>@L.T("在此查看你的分析数据。", "View your analytics data here.")</p>
+                    </AtomBlazor.Primitives.TabsContent>
+
+                    <AtomBlazor.Primitives.TabsContent Value="reports" class="p-4 mt-2 border border-border rounded-md">
+                        <h3 class="font-semibold mb-2">@L.T("报告", "Reports")</h3>
+                        <p>@L.T("生成并下载报告。", "Generate and download reports.")</p>
+                    </AtomBlazor.Primitives.TabsContent>
+                </AtomBlazor.Primitives.TabsPrimitive>
+            </div>
+
+            <CodeBlock Source="Primitives/Tabs/manual-activation.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("禁用选项卡", "Disabled Tab")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("选项卡可以被禁用。键盘导航会跳过被禁用的选项卡。", "Tabs can be disabled. Keyboard navigation will skip over disabled tabs.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <AtomBlazor.Primitives.TabsPrimitive DefaultValue="enabled1">
+                    <AtomBlazor.Primitives.TabsList class="flex gap-1 p-1 bg-muted rounded-md w-fit">
+                        <AtomBlazor.Primitives.TabsTrigger Value="enabled1" class="px-4 py-2 border-none bg-transparent cursor-pointer rounded text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                            @L.T("启用 1", "Enabled 1")
+                        </AtomBlazor.Primitives.TabsTrigger>
+                        <AtomBlazor.Primitives.TabsTrigger Value="disabled" Disabled="true" class="px-4 py-2 border-none bg-transparent cursor-not-allowed rounded text-sm opacity-50">
+                            @L.T("禁用", "Disabled")
+                        </AtomBlazor.Primitives.TabsTrigger>
+                        <AtomBlazor.Primitives.TabsTrigger Value="enabled2" class="px-4 py-2 border-none bg-transparent cursor-pointer rounded text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                            @L.T("启用 2", "Enabled 2")
+                        </AtomBlazor.Primitives.TabsTrigger>
+                    </AtomBlazor.Primitives.TabsList>
+
+                    <AtomBlazor.Primitives.TabsContent Value="enabled1" class="p-4 mt-2 border border-border rounded-md">
+                        <p>@L.T("第一个启用选项卡的内容。试着使用方向键——它们会跳过被禁用的选项卡。", "First enabled tab content. Try using arrow keys - they'll skip the disabled tab.")</p>
+                    </AtomBlazor.Primitives.TabsContent>
+
+                    <AtomBlazor.Primitives.TabsContent Value="disabled" class="p-4 mt-2 border border-border rounded-md">
+                        <p>@L.T("由于该选项卡被禁用，此内容不会显示。", "This content won't be shown because the tab is disabled.")</p>
+                    </AtomBlazor.Primitives.TabsContent>
+
+                    <AtomBlazor.Primitives.TabsContent Value="enabled2" class="p-4 mt-2 border border-border rounded-md">
+                        <p>@L.T("第二个启用选项卡的内容。", "Second enabled tab content.")</p>
+                    </AtomBlazor.Primitives.TabsContent>
+                </AtomBlazor.Primitives.TabsPrimitive>
+            </div>
+
+            <CodeBlock Source="Primitives/Tabs/disabled.txt" />
+        </section>
+
+        <AccessibilityList>
+            <AriaAttributes>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="tablist"</code> 设在选项卡列表容器上
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="tablist"</code> on the tabs list container
+                        </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="tab"</code> 设在每个选项卡触发器上
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="tab"</code> on each tab trigger
+                        </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="tabpanel"</code> 设在每个选项卡内容面板上
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">role="tabpanel"</code> on each tab content panel
+                        </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-selected</code> 标明当前激活的选项卡
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-selected</code> indicates the active tab
+                        </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-controls</code> 把触发器关联到内容面板
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-controls</code> links trigger to content panel
+                        </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-labelledby</code> 把内容关联到触发器
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-labelledby</code> links content to trigger
+                        </AccessibilityItem>
+                    </text>
+                }
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-orientation</code> 标明横向或纵向布局
+                        </AccessibilityItem>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <AccessibilityItem>
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-orientation</code> indicates horizontal or vertical layout
+                        </AccessibilityItem>
+                    </text>
+                }
+            </AriaAttributes>
+            <KeyboardNavigation>
+                <KeyboardShortcutItem Description="@(L.T("聚焦选项卡列表", "Focus the tab list"))">
+                    <Kbd>Tab</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("在选项卡之间导航（横向）", "Navigate between tabs (horizontal)"))">
+                    <Kbd>Arrow Left</Kbd> / <Kbd>Arrow Right</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("在选项卡之间导航（纵向）", "Navigate between tabs (vertical)"))">
+                    <Kbd>Arrow Up</Kbd> / <Kbd>Arrow Down</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("跳转到首个选项卡", "Jump to first tab"))">
+                    <Kbd>Home</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("跳转到最后一个选项卡", "Jump to last tab"))">
+                    <Kbd>End</Kbd>
+                </KeyboardShortcutItem>
+                <KeyboardShortcutItem Description="@(L.T("激活聚焦的选项卡（手动模式）", "Activate focused tab (manual mode)"))">
+                    <Kbd>Enter</Kbd> / <Kbd>Space</Kbd>
+                </KeyboardShortcutItem>
+            </KeyboardNavigation>
+        </AccessibilityList>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+                <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+            </div>
+            <div class="space-y-4">
+                <ApiReference ComponentName="Tabs">
+                    <ApiParameter Name="Value" Type="string?" Default="null">
+                        @L.T("控制哪个选项卡处于激活状态（受控模式）。为 null 时，选项卡自行管理状态。", "Controls which tab is active (controlled mode). When null, the tabs manage their own state.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="ValueChanged" Type="EventCallback&lt;string?&gt;">
+                                激活选项卡发生变化时调用的事件回调。配合 <code>@@bind-Value</code> 实现双向绑定。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="ValueChanged" Type="EventCallback&lt;string?&gt;">
+                                Event callback invoked when the active tab changes. Use with <code>@@bind-Value</code> for two-way binding.
+                            </ApiParameter>
+                        </text>
+                    }
+                    <ApiParameter Name="DefaultValue" Type="string?" Default="null">
+                        @L.T("非受控模式下的默认激活选项卡值。", "Default active tab value when in uncontrolled mode.")
+                    </ApiParameter>
+                    <ApiParameter Name="OnValueChange" Type="EventCallback&lt;string?&gt;">
+                        @L.T("激活选项卡发生变化时调用的事件回调。接收新的激活选项卡值。", "Event callback invoked when the active tab changes. Receives the new active tab value.")
+                    </ApiParameter>
+                    <ApiParameter Name="Orientation" Type="TabsOrientation" Default="TabsOrientation.Horizontal">
+                        @L.T("选项卡的朝向（横向或纵向）。影响键盘导航的方向。", "Orientation of the tabs (horizontal or vertical). Affects keyboard navigation direction.")
+                    </ApiParameter>
+                    <ApiParameter Name="ActivationMode" Type="TabsActivationMode" Default="TabsActivationMode.Automatic">
+                        @L.T("选项卡的激活模式。Automatic 在聚焦时激活；Manual 需要 Enter/Space。", "Activation mode for tabs. Automatic activates on focus; Manual requires Enter/Space.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在选项卡上下文内部渲染的子内容。通常包含 TabsList 与 TabsContent 组件。", "The child content to render within the tabs context. Typically includes TabsList and TabsContent components.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                应用到根 div 元素上的附加 HTML 特性（例如 <code>class</code>、<code>style</code>）。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                Additional HTML attributes applied to the root div element (e.g. <code>class</code>, <code>style</code>).
+                            </ApiParameter>
+                        </text>
+                    }
+                </ApiReference>
+
+                <ApiReference ComponentName="TabsList">
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在选项卡列表内部渲染的子内容。应包含 TabsTrigger 组件。", "The child content to render within the tabs list. Should contain TabsTrigger components.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                应用到选项卡列表元素上的附加 HTML 特性（例如 <code>class</code>、<code>style</code>）。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                Additional HTML attributes applied to the tabs list element (e.g. <code>class</code>, <code>style</code>).
+                            </ApiParameter>
+                        </text>
+                    }
+                </ApiReference>
+
+                <ApiReference ComponentName="TabsTrigger">
+                    <ApiParameter Name="Value" Type="string">
+                        @L.T("标识该选项卡的值。用于与 TabsContent 组件匹配。必填。", "The value that identifies this tab. Used to match with TabsContent components. Required.")
+                    </ApiParameter>
+                    <ApiParameter Name="Disabled" Type="bool" Default="false">
+                        @L.T("该选项卡触发器是否被禁用。禁用选项卡在键盘导航期间会被跳过。", "Whether this tab trigger is disabled. Disabled tabs are skipped during keyboard navigation.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("在选项卡触发按钮内部渲染的子内容。", "The child content to render within the tab trigger button.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                应用到选项卡触发按钮元素上的附加 HTML 特性（例如 <code>class</code>、<code>style</code>）。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                Additional HTML attributes applied to the tab trigger button element (e.g. <code>class</code>, <code>style</code>).
+                            </ApiParameter>
+                        </text>
+                    }
+                </ApiReference>
+
+                <ApiReference ComponentName="TabsContent">
+                    <ApiParameter Name="Value" Type="string">
+                        @L.T("标识该选项卡内容面板的值。必须与对应 TabsTrigger 的 Value 相同。必填。", "The value that identifies this tab content panel. Must match the Value of the corresponding TabsTrigger. Required.")
+                    </ApiParameter>
+                    <ApiParameter Name="ForceMount" Type="bool" Default="false">
+                        @L.T("是否在非激活时仍强制挂载内容。为 false 时，非激活的内容会被卸载；为 true 时，内容保持挂载但隐藏。", "Whether to force mount the content even when inactive. When false, content is unmounted when not active. When true, content remains mounted but hidden.")
+                    </ApiParameter>
+                    <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                        @L.T("该选项卡激活时渲染的子内容。", "The child content to render when this tab is active.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                应用到选项卡内容面板元素上的附加 HTML 特性（例如 <code>class</code>、<code>style</code>）。
+                            </ApiParameter>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                                Additional HTML attributes applied to the tab content panel element (e.g. <code>class</code>, <code>style</code>).
+                            </ApiParameter>
+                        </text>
+                    }
+                </ApiReference>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    private string? controlledValue = "account";
+
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

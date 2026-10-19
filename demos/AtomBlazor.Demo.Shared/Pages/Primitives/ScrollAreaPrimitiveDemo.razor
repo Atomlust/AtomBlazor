@@ -1,0 +1,269 @@
+@page "/primitives/scroll-area"
+<PageTitle>@L.T("Scroll Area 滚动区域原语 - Atom BlazorUI", "Scroll Area Primitive - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Scroll Area 滚动区域原语", "Scroll Area Primitive")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("无头、无样式的滚动区域，带自定义滚动条、ARIA 滚动条角色以及拖拽滚动支持。", "Headless, unstyled scroll area with custom scrollbar, ARIA scrollbar role, and drag-to-scroll support.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("垂直滚动", "Vertical Scroll")</h2>
+                <p class="text-muted-foreground">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            一个由 Viewport、Scrollbar 与 Thumb 子组件组合而成的可组合滚动区域。
+                            滚动条包含 <code class="bg-muted px-1 py-0.5 rounded">role="scrollbar"</code> 并具备完整的 ARIA 属性。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            A composable scroll area with Viewport, Scrollbar, and Thumb sub-components.
+                            The scrollbar includes <code class="bg-muted px-1 py-0.5 rounded">role="scrollbar"</code> with full ARIA attributes.
+                        </text>
+                    }
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <AtomBlazor.Primitives.ScrollAreaPrimitive
+                    style="position: relative; overflow: hidden; height: 200px; width: 350px; border: 1px solid var(--border); border-radius: 0.375rem;">
+                    <AtomBlazor.Primitives.ScrollAreaViewport
+                        style="padding: 1rem;">
+                        <h4 style="font-size: 0.875rem; font-weight: 500; margin-bottom: 1rem;">@L.T("标签", "Tags")</h4>
+                        @foreach (var tag in tags)
+                        {
+                            <div style="font-size: 0.875rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+                                @tag
+                            </div>
+                        }
+                    </AtomBlazor.Primitives.ScrollAreaViewport>
+                    <AtomBlazor.Primitives.ScrollAreaScrollbar
+                        Orientation="AtomBlazor.Primitives.ScrollAreaOrientation.Vertical"
+                        style="display: flex; touch-action: none; user-select: none; width: 10px; padding: 1px; border-left: 1px solid transparent;">
+                        <AtomBlazor.Primitives.ScrollAreaThumb
+                            style="position: relative; flex: 1; border-radius: 9999px; background-color: var(--border);" />
+                    </AtomBlazor.Primitives.ScrollAreaScrollbar>
+                </AtomBlazor.Primitives.ScrollAreaPrimitive>
+            </div>
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("水平滚动", "Horizontal Scroll")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("配置为水平滚动的滚动区域。", "Scroll area configured for horizontal scrolling.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <AtomBlazor.Primitives.ScrollAreaPrimitive
+                    Orientation="AtomBlazor.Primitives.ScrollAreaOrientation.Horizontal"
+                    style="position: relative; overflow: hidden; width: 100%; border: 1px solid var(--border); border-radius: 0.375rem;">
+                    <AtomBlazor.Primitives.ScrollAreaViewport
+                        style="padding: 1rem;">
+                        <div style="display: flex; gap: 1rem; width: max-content;">
+                            @for (var i = 1; i <= 12; i++)
+                            {
+                                <div style="flex-shrink: 0; width: 200px; height: 120px; background-color: var(--muted); border-radius: 0.375rem; display: flex; align-items: center; justify-content: center;">
+                                    <span style="font-size: 1.125rem; font-weight: 600;">@L.T("图片", "Image") @i</span>
+                                </div>
+                            }
+                        </div>
+                    </AtomBlazor.Primitives.ScrollAreaViewport>
+                    <AtomBlazor.Primitives.ScrollAreaScrollbar
+                        Orientation="AtomBlazor.Primitives.ScrollAreaOrientation.Horizontal"
+                        style="display: flex; flex-direction: column; touch-action: none; user-select: none; height: 10px; padding: 1px; border-top: 1px solid transparent;">
+                        <AtomBlazor.Primitives.ScrollAreaThumb
+                            style="position: relative; flex: 1; border-radius: 9999px; background-color: var(--border);" />
+                    </AtomBlazor.Primitives.ScrollAreaScrollbar>
+                </AtomBlazor.Primitives.ScrollAreaPrimitive>
+            </div>
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("双轴", "Both Axes")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("同时带有垂直与水平滚动条的滚动区域。", "Scroll area with both vertical and horizontal scrollbars.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <AtomBlazor.Primitives.ScrollAreaPrimitive
+                    Orientation="AtomBlazor.Primitives.ScrollAreaOrientation.Both"
+                    style="position: relative; overflow: hidden; height: 250px; width: 400px; border: 1px solid var(--border); border-radius: 0.375rem;">
+                    <AtomBlazor.Primitives.ScrollAreaViewport
+                        style="padding: 1rem;">
+                        <div style="width: 800px;">
+                            @for (var i = 0; i < 30; i++)
+                            {
+                                <div style="font-size: 0.875rem; padding: 0.25rem 0; white-space: nowrap;">
+                                    @L.F("第 {0} 行 —— 这一行的内容足够宽，需要在这个容器里横向滚动。", "Row {0} — This is a wide row with enough content to require horizontal scrolling in the container.", i + 1)
+                                </div>
+                            }
+                        </div>
+                    </AtomBlazor.Primitives.ScrollAreaViewport>
+                    <AtomBlazor.Primitives.ScrollAreaScrollbar
+                        Orientation="AtomBlazor.Primitives.ScrollAreaOrientation.Vertical"
+                        style="display: flex; touch-action: none; user-select: none; width: 10px; padding: 1px; border-left: 1px solid transparent;">
+                        <AtomBlazor.Primitives.ScrollAreaThumb
+                            style="position: relative; flex: 1; border-radius: 9999px; background-color: var(--border);" />
+                    </AtomBlazor.Primitives.ScrollAreaScrollbar>
+                    <AtomBlazor.Primitives.ScrollAreaScrollbar
+                        Orientation="AtomBlazor.Primitives.ScrollAreaOrientation.Horizontal"
+                        style="display: flex; flex-direction: column; touch-action: none; user-select: none; height: 10px; padding: 1px; border-top: 1px solid transparent;">
+                        <AtomBlazor.Primitives.ScrollAreaThumb
+                            style="position: relative; flex: 1; border-radius: 9999px; background-color: var(--border);" />
+                    </AtomBlazor.Primitives.ScrollAreaScrollbar>
+                </AtomBlazor.Primitives.ScrollAreaPrimitive>
+            </div>
+        </section>
+    </div>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("组件结构", "Component Structure")</h2>
+            <p class="text-muted-foreground">
+                @L.T("滚动区域由四个子组件组合而成。", "The scroll area is composed of four sub-components.")
+            </p>
+        </div>
+
+        <div class="rounded-lg border p-6 space-y-4 bg-muted/30">
+            <pre class="text-sm"><code>&lt;ScrollArea&gt;
+    &lt;ScrollAreaViewport&gt;
+        &lt;!-- Scrollable content --&gt;
+    &lt;/ScrollAreaViewport&gt;
+    &lt;ScrollAreaScrollbar Orientation="Vertical"&gt;
+        &lt;ScrollAreaThumb /&gt;
+    &lt;/ScrollAreaScrollbar&gt;
+&lt;/ScrollArea&gt;</code></pre>
+        </div>
+    </section>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件的属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="ScrollArea">
+                <ApiParameter Name="Orientation" Type="ScrollAreaOrientation" Default="Vertical">
+                    @L.T("滚动方向。可选值：Vertical、Horizontal 或 Both。", "The scroll orientation. Options: Vertical, Horizontal, or Both.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            应用到组件根元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="ScrollAreaScrollbar">
+                <ApiParameter Name="Orientation" Type="ScrollAreaOrientation" Default="Vertical">
+                    @L.T("滚动条方向。必须与它所控制的滚动方向一致。", "The scrollbar orientation. Must match the scroll direction it controls.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            应用到根 <code>&lt;div&gt;</code> 元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        滚动条使用 <code class="bg-muted px-1 py-0.5 rounded">role="scrollbar"</code>，并通过 <code class="bg-muted px-1 py-0.5 rounded">aria-controls</code> 指向视口
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Scrollbar uses <code class="bg-muted px-1 py-0.5 rounded">role="scrollbar"</code> with <code class="bg-muted px-1 py-0.5 rounded">aria-controls</code> pointing to the viewport
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        包含 <code class="bg-muted px-1 py-0.5 rounded">aria-valuenow</code>、<code class="bg-muted px-1 py-0.5 rounded">aria-valuemin</code> 与 <code class="bg-muted px-1 py-0.5 rounded">aria-valuemax</code> 以表示滚动位置
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Includes <code class="bg-muted px-1 py-0.5 rounded">aria-valuenow</code>, <code class="bg-muted px-1 py-0.5 rounded">aria-valuemin</code>, and <code class="bg-muted px-1 py-0.5 rounded">aria-valuemax</code> for scroll position
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <code class="bg-muted px-1 py-0.5 rounded">aria-orientation</code> 反映滚动条的方向
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <code class="bg-muted px-1 py-0.5 rounded">aria-orientation</code> reflects the scrollbar direction
+                    </text>
+                }
+            </AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("上下或左右滚动内容", "Scroll content up/down or left/right"))">
+                <Kbd>Arrow Keys</Kbd>
+            </KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("按页滚动", "Scroll by page"))">
+                <Kbd>PageUp</Kbd> / <Kbd>PageDown</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private readonly string[] tags =
+    [
+        "React", "Vue", "Angular", "Svelte", "Blazor",
+        "Next.js", "Nuxt", "Gatsby", "Remix", "Astro",
+        "TypeScript", "JavaScript", "C#", "Python", "Go",
+        "Rust", "Kotlin", "Swift", "Ruby", "PHP"
+    ];
+}

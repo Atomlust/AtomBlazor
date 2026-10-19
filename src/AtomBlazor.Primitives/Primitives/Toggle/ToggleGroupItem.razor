@@ -1,0 +1,164 @@
+@typeparam TValue
+@namespace AtomBlazor.Primitives
+@implements IDisposable
+
+<button @ref="elementRef"
+        type="button"
+        role="@Role"
+        aria-checked="@(IsSingle ? IsPressed.ToString().ToLowerInvariant() : null)"
+        aria-pressed="@(IsSingle ? null : IsPressed.ToString().ToLowerInvariant())"
+        data-state="@(IsPressed ? "on" : "off")"
+        data-orientation="@Context?.Orientation"
+        disabled="@IsDisabled"
+        tabindex="@TabIndex"
+        @onclick="HandleClick"
+        @onfocus="HandleFocus"
+        @attributes="AdditionalAttributes">
+    @ChildContent
+</button>
+
+@code {
+    private ElementReference elementRef;
+
+    [CascadingParameter]
+    private ToggleGroupContext<TValue>? Context { get; set; }
+
+    /// <summary>
+    /// 获取或设置与这个切换项关联的值。
+    /// </summary>
+    [Parameter]
+    public TValue? Value { get; set; }
+
+    /// <summary>
+    /// 获取或设置该项是否禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 获取或设置的子内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置额外属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private bool IsDisabled => Disabled || (Context?.Disabled ?? false);
+
+    private bool IsPressed
+    {
+        get
+        {
+            if (Value == null || Context == null)
+            {
+                return false;
+            }
+
+            if (Context.Type == ToggleGroupType.Single)
+            {
+                return EqualityComparer<TValue>.Default.Equals(Context.Value, Value);
+            }
+            else
+            {
+                return Context.Values.Contains(Value);
+            }
+        }
+    }
+
+    /// <summary>所属组是否只允许单选。</summary>
+    private bool IsSingle => Context?.Type == ToggleGroupType.Single;
+
+    /// <summary>
+    /// 该项的 ARIA 角色，以及与之配套的状态属性。
+    /// </summary>
+    /// <remarks>
+    /// <c>aria-pressed</c> 归属于 <c>role="button"</c>，<c>aria-checked</c> 归属于
+    /// <c>role="radio"</c>。单选模式曾渲染 radio 角色却带 button 的状态属性，
+    /// 这不是屏幕阅读器能识别的组合——该项被播报为 radio，其选中状态却干脆缺失。
+    /// </remarks>
+    private string Role => IsSingle ? "radio" : "button";
+
+    private int TabIndex
+    {
+        get
+        {
+            if (IsDisabled)
+            {
+                return -1;
+            }
+
+            if (Context?.Type == ToggleGroupType.Single)
+            {
+                // 漫游 tabindex（roving tabindex）：只有按下项（或第一项）可被 Tab 聚焦。
+                if (IsPressed)
+                {
+                    return 0;
+                }
+
+                var hasPressed = Context.Value != null;
+                if (!hasPressed && Context.Items.Count > 0 && Context.Items[0] == this)
+                {
+                    return 0;
+                }
+
+                return -1;
+            }
+
+            return 0;
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        Context?.Items.Add(this);
+    }
+
+    /// <summary>
+    /// 告诉组当前哪个项真正持有焦点。
+    /// </summary>
+    /// <remarks>
+    /// 组曾只跟踪自己的方向键处理最后聚焦的那个项，于是用户点击或 Tab 到另一个项之后，
+    /// 下一次方向键仍从过期项出发，焦点会跳到无关的位置。
+    /// </remarks>
+    private void HandleFocus() => Context?.ItemFocused?.Invoke(this);
+
+    private async Task HandleClick()
+    {
+        if (IsDisabled || Value == null || Context?.ToggleItem == null)
+        {
+            return;
+        }
+
+        await Context.ToggleItem(Value);
+    }
+
+    internal async Task FocusAsync()
+    {
+        try
+        {
+            await elementRef.FocusAsync();
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or JSException or TaskCanceledException or ObjectDisposedException)
+        {
+            // 电路断开时属于预期情形。
+        }
+    }
+
+    /// <summary>
+    /// 把该项从其所属组中移除。
+    /// </summary>
+    /// <remarks>
+    /// 组件曾声明这个方法却没有实现 <c>IDisposable</c>，Blazor 因此从不调用它。
+    /// 已从标记中移除的项会永远滞留在组的列表里，方向键导航会一直走到早已不在页面上的按钮。
+    /// </remarks>
+    public void Dispose()
+    {
+        Context?.Items.Remove(this);
+        GC.SuppressFinalize(this);
+    }
+}

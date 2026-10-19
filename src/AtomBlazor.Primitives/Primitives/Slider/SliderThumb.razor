@@ -1,0 +1,58 @@
+@namespace AtomBlazor.Primitives
+@using System.Globalization
+
+@* SliderThumb —— 带有 ARIA slider 角色的可拖拽手柄 *@
+<div role="slider"
+     aria-valuenow="@Context?.CurrentValue.ToString(CultureInfo.InvariantCulture)"
+     aria-valuemin="@Context?.Min.ToString(CultureInfo.InvariantCulture)"
+     aria-valuemax="@Context?.Max.ToString(CultureInfo.InvariantCulture)"
+     aria-orientation="@Context?.Orientation.ToString().ToLower()"
+     aria-disabled="@(Context?.Disabled == true ? "true" : null)"
+     data-orientation="@Context?.Orientation.ToString().ToLower()"
+     data-disabled="@(Context?.Disabled == true ? "true" : null)"
+     tabindex="@(Context?.Disabled == true ? -1 : 0)"
+     style="@MergedStyle"
+     @attributes="FilteredAttributes">
+    @ChildContent
+</div>
+
+@inherits AtomBlazor.Primitives.PrimitiveBase
+
+@code {
+    [CascadingParameter]
+    private SliderPrimitive? Context { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        if (Context == null)
+        {
+            throw new InvalidOperationException(
+                "SliderThumb 必须用在 Slider 组件内部。");
+        }
+    }
+
+    /// <summary>
+    /// thumb 内部的可选子内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private string ThumbStyle
+    {
+        get
+        {
+            var percentage = Context?.Percentage ?? 0;
+            var pctStr = percentage.ToString(CultureInfo.InvariantCulture);
+            if (Context?.Orientation == SliderOrientation.Vertical)
+            {
+                return $"bottom: var(--atom-slider-position, {pctStr}%)";
+            }
+            // 逻辑属性，因此百分比从阅读边起算并随 dir 镜像。
+            return $"inset-inline-start: var(--atom-slider-position, {pctStr}%)";
+        }
+    }
+
+    private string? MergedStyle => MergeStyles(ThumbStyle);
+}

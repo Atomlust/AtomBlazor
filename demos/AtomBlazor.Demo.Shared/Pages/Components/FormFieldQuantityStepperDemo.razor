@@ -1,0 +1,235 @@
+@page "/components/form-field-quantity-stepper"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("FormFieldQuantityStepper 数量步进器表单域 - Atom BlazorUI", "FormFieldQuantityStepper Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">FormFieldQuantityStepper</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("为 QuantityStepper 提供表单域包装，自带标签、辅助文本与错误提示。", "A form field wrapper for QuantityStepper with built-in label, helper text, and error messages.")
+        </p>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带标签与辅助文本的数量控件。", "A quantity control with a label and helper text.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldQuantityStepper @bind-Value="_quantity"
+                                        Label="@(L.T("数量", "Quantity"))"
+                                        HelperText="@(L.T("要加入购物车的数量。", "How many to add to the basket."))" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Value:")</p>
+            <p class="text-sm font-mono">@_quantity</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldQuantityStepper/basic.txt" />
+    </div>
+
+    <!-- Bounds -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("边界与移除", "Bounds and Remove")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    到达 <code class="text-xs bg-muted px-1 py-0.5 rounded">Min</code> 时，减少按钮会变成移除操作，
+                    并触发 <code class="text-xs bg-muted px-1 py-0.5 rounded">OnRemove</code>。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    At <code class="text-xs bg-muted px-1 py-0.5 rounded">Min</code> the decrease button becomes a remove
+                    action and raises <code class="text-xs bg-muted px-1 py-0.5 rounded">OnRemove</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldQuantityStepper @bind-Value="_cases"
+                                        Label="@(L.T("箱数", "Cases"))"
+                                        HelperText="@(L.T("1 到 24 之间，步长为 6。", "Between 1 and 24, in steps of 6."))"
+                                        Min="1"
+                                        Max="24"
+                                        Step="6"
+                                        OnRemove="@(() => _removed = true)" />
+        </div>
+        @if (_removed)
+        {
+            <div class="rounded-lg border p-4 bg-muted/50">
+                <p class="text-sm">@L.T("OnRemove 已触发 —— 购物车里的这一行会被删掉。", "OnRemove fired — the basket line would be dropped.")</p>
+            </div>
+        }
+        <CodeBlock Source="Components/FormFieldQuantityStepper/bounds.txt" />
+    </div>
+
+    <!-- Validation -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("校验", "Validation")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("校验错误会在 EditForm 内自动显示。把数量减到零再提交，就能看到一条。", "Validation errors display automatically inside an EditForm. Step down to zero and submit to see one.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <EditForm Model="_formModel" OnValidSubmit="HandleFormSubmit">
+                <DataAnnotationsValidator />
+                <div class="space-y-4">
+                    <FormFieldQuantityStepper @bind-Value="_formModel.Quantity"
+                                                Label="@(L.T("数量", "Quantity"))"
+                                                HelperText="@(L.T("至少一件。", "At least one."))" />
+                    <Button Type="ButtonType.Submit">@L.T("提交", "Submit")</Button>
+                </div>
+            </EditForm>
+            @if (_formSubmitted)
+            {
+                <div class="mt-4 rounded-lg border border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800 p-4">
+                    <p class="text-sm font-medium text-green-800 dark:text-green-200">
+                        @L.F("已提交：数量 = {0}", "Submitted: Quantity = {0}", _formModel.Quantity)
+                    </p>
+                </div>
+            }
+        </div>
+        <CodeBlock Source="Components/FormFieldQuantityStepper/editform.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">@L.T("禁用的数量步进器表单域。", "A disabled quantity stepper form field.")</p>
+        </div>
+        <div class="max-w-md">
+            <FormFieldQuantityStepper Value="3"
+                                        Label="@(L.T("数量", "Quantity"))"
+                                        HelperText="@(L.T("订单付款期间这一行会被锁定。", "This line is locked while the order is being paid for."))"
+                                        Disabled="true" />
+        </div>
+        <CodeBlock Source="Components/FormFieldQuantityStepper/disabled.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>标签通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">for</code> 与数值关联</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Label associated with the value through <code class="text-xs bg-muted px-1 py-0.5 rounded">for</code></AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>辅助文本与错误文本通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code> 关联</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Helper and error text linked with <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-describedby</code></AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>该控件是一个带标签的 <code class="text-xs bg-muted px-1 py-0.5 rounded">group</code>；减少按钮在变成移除操作时会自行换成移除标签</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>The control is a labelled <code class="text-xs bg-muted px-1 py-0.5 rounded">group</code>; the decrease button relabels itself when it becomes a remove action</AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可用的表单控件之间移动", "Move between enabled form controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("按下获得焦点的按钮", "Press the focused button"))"><Kbd>Enter</Kbd> / <Kbd>Space</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="FormFieldQuantityStepper">
+                <ApiParameter Name="Label" Type="string?" Default="null">@L.T("标签文本。", "The label text.")</ApiParameter>
+                <ApiParameter Name="HelperText" Type="string?" Default="null">@L.T("控件下方的辅助文本。", "Helper text below the control.")</ApiParameter>
+                <ApiParameter Name="ErrorText" Type="string?" Default="null">@L.T("手动指定的错误文本。", "Manual error text override.")</ApiParameter>
+                <ApiParameter Name="Value" Type="int" Default="0">@L.T("当前的数量。使用 @bind-Value 双向绑定。", "The current quantity. Use @bind-Value.")</ApiParameter>
+                <ApiParameter Name="ValueChanged" Type="EventCallback&lt;int&gt;">@L.T("数量发生变化时调用的回调。", "Callback when the quantity changes.")</ApiParameter>
+                <ApiParameter Name="Min" Type="int" Default="0">@L.T("允许的最小数量。", "The smallest allowed quantity.")</ApiParameter>
+                <ApiParameter Name="Max" Type="int?" Default="null">@L.T("允许的最大数量；为 null 表示没有上限。", "The largest allowed quantity, or null for no upper bound.")</ApiParameter>
+                <ApiParameter Name="Step" Type="int" Default="1">@L.T("每次按下所应用的增量。", "The increment each press applies.")</ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="OnRemove" Type="EventCallback">在 <code>Min</code> 处按下减少按钮时触发。</ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="OnRemove" Type="EventCallback">Raised when the decrease button is pressed at <code>Min</code>.</ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="ReadOnly" Type="bool" Default="false">@L.T("数量是否只能读取。", "Whether the quantity may only be read.")</ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">@L.T("控件是否被禁用。", "Whether the control is disabled.")</ApiParameter>
+                <ApiParameter Name="Orientation" Type="FieldOrientation" Default="Vertical">@L.T("标签相对控件的摆放位置。", "Label placement relative to the control.")</ApiParameter>
+                <ApiParameter Name="InputClass" Type="string?" Default="null">@L.T("应用到内部数量步进器的 CSS 类。", "CSS classes for the inner quantity stepper.")</ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private int _quantity = 1;
+    private int _cases = 6;
+    private bool _removed;
+    private readonly FormModel _formModel = new() { Quantity = 1 };
+    private bool _formSubmitted;
+
+    private void HandleFormSubmit() => _formSubmitted = true;
+
+    private sealed class FormModel
+    {
+        [Range(1, 99, ErrorMessage = "Order at least one.")]
+        public int Quantity { get; set; }
+    }
+}

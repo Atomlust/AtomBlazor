@@ -1,0 +1,575 @@
+@page "/components/field"
+
+<PageTitle>@L.T("Field 字段 - Atom BlazorUI", "Field - Atom BlazorUI")</PageTitle>
+
+@* 偏差记录： 时期 RadioGroup/Checkbox 家族尚未交付，本页曾以 plain-HTML input[type=checkbox/radio] 等价降级；RadioGroup/Checkbox 交付后已按源 恢复组件树与 notificationMethod 绑定。 *@
+
+<div class="space-y-10 max-w-4xl">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">Field</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("把标签、控件与帮助文本组合成可访问的表单字段。", "Combine labels, controls, and help text to compose accessible form fields.")
+        </p>
+    </div>
+
+    <!-- Which input component? -->
+    <div class="rounded-lg border border-dashed bg-muted/30 p-6 space-y-3">
+        <h2 class="text-lg font-semibold">@L.T("该用哪个输入组件？", "Which input component?")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <div class="space-y-2 text-sm text-muted-foreground">
+                <p><strong>非文本控件</strong>（复选框、单选、开关、选择器）？&rarr; <strong>Field</strong>（本页）</p>
+                <p><strong>简单的字符串输入</strong>并配合 EditForm？&rarr; <a href="/components/input" class="text-primary underline underline-offset-4 hover:text-primary/80">Input</a></p>
+                <p><strong>带类型的值</strong>并需要自定义错误界面或 EditForm？&rarr; <a href="/components/input-field" class="text-primary underline underline-offset-4 hover:text-primary/80">InputField&lt;T&gt;</a></p>
+                <p><strong>带类型的值</strong>并希望开箱即用？&rarr; <a href="/components/form-field-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldInput&lt;T&gt;</a>（同样支持 EditForm）</p>
+            </div>
+                </text>
+}
+        else
+        {
+                <text>
+                    <div class="space-y-2 text-sm text-muted-foreground">
+                <p><strong>Non-text control</strong> (checkbox, radio, switch, select)? &rarr; <strong>Field</strong> (this page)</p>
+                <p><strong>Simple string input</strong> with EditForm? &rarr; <a href="/components/input" class="text-primary underline underline-offset-4 hover:text-primary/80">Input</a></p>
+                <p><strong>Typed value</strong> with custom error UI or EditForm? &rarr; <a href="/components/input-field" class="text-primary underline underline-offset-4 hover:text-primary/80">InputField&lt;T&gt;</a></p>
+                <p><strong>Typed value</strong> and you want it to work out of the box? &rarr; <a href="/components/form-field-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldInput&lt;T&gt;</a> (also supports EditForm)</p>
+            </div>
+                </text>
+}
+    </div>
+
+    <!-- Basic Forms -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基础表单", "Basic Forms")</h2>
+            <p class="text-muted-foreground">
+                @L.T("使用默认的垂直布局，把标签、输入框与说明文字组成简单的表单字段。", "Simple form fields with labels, inputs, and descriptions using vertical layout (default).")
+            </p>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Simple Text Input -->
+            <div class="space-y-2">
+                <Field>
+                    <FieldLabel For="username">@L.T("用户名", "Username")</FieldLabel>
+                    <FieldContent>
+                        <Input Id="username" Type="InputType.Text" Placeholder="@(L.T("请输入你的用户名", "Enter your username"))" />
+                        <FieldDescription>@L.T("为你的账户选一个唯一的用户名。", "Choose a unique username for your account.")</FieldDescription>
+                    </FieldContent>
+                </Field>
+            </div>
+
+            <!-- Email Input -->
+            <div class="space-y-2">
+                <Field>
+                    <FieldLabel For="email">@L.T("邮箱地址", "Email Address")</FieldLabel>
+                    <FieldContent>
+                        <Input Id="email" Type="InputType.Email" Placeholder="you@example.com" />
+                        <FieldDescription>@L.T("我们不会把你的邮箱分享给任何人。", "We'll never share your email with anyone else.")</FieldDescription>
+                    </FieldContent>
+                </Field>
+            </div>
+
+            <!-- Password Input -->
+            <div class="space-y-2">
+                <Field>
+                    <FieldLabel For="password">@L.T("密码", "Password")</FieldLabel>
+                    <FieldContent>
+                        <Input Id="password" Type="InputType.Password" />
+                        <FieldDescription>@L.T("长度至少为 8 个字符。", "Must be at least 8 characters long.")</FieldDescription>
+                    </FieldContent>
+                </Field>
+            </div>
+
+            <!-- Textarea -->
+            <div class="space-y-2">
+                <Field>
+                    <FieldLabel For="bio">@L.T("个人简介", "Bio")</FieldLabel>
+                    <FieldContent>
+                        <Textarea Id="bio" Placeholder="@(L.T("介绍一下你自己……", "Tell us about yourself..."))" />
+                        <FieldDescription>@L.T("用于个人资料的简短说明，最多 500 个字符。", "Brief description for your profile. Maximum 500 characters.")</FieldDescription>
+                    </FieldContent>
+                </Field>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Field/basic.txt" />
+    </section>
+
+    <!-- Validation Examples -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("校验示例", "Validation Examples")</h2>
+            <p class="text-muted-foreground">
+                @L.T("用 FieldError 展示错误状态与校验提示。", "Display error states and validation messages using FieldError.")
+            </p>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Single Error -->
+            <div class="space-y-2">
+                <Field IsInvalid="true">
+                    <FieldLabel For="username-error">@L.T("用户名", "Username")</FieldLabel>
+                    <FieldContent>
+                        <Input Id="username-error" Type="InputType.Text" Placeholder="@(L.T("请输入你的用户名", "Enter your username"))" Class="border-destructive" />
+                        <FieldError>
+                            @L.T("该用户名已被占用，请换一个。", "Username is already taken. Please choose another.")
+                        </FieldError>
+                    </FieldContent>
+                </Field>
+            </div>
+
+            <!-- Multiple Errors -->
+            <div class="space-y-2">
+                <Field IsInvalid="true">
+                    <FieldLabel For="password-errors">@L.T("密码", "Password")</FieldLabel>
+                    <FieldContent>
+                        <Input Id="password-errors" Type="InputType.Password" Class="border-destructive" />
+                        <FieldError Errors="passwordErrors" />
+                    </FieldContent>
+                </Field>
+            </div>
+
+            <!-- Invalid Email -->
+            <div class="space-y-2">
+                <Field IsInvalid="true">
+                    <FieldLabel For="email-invalid">@L.T("邮箱地址", "Email Address")</FieldLabel>
+                    <FieldContent>
+                        <Input Id="email-invalid" Type="InputType.Email" Value="invalid-email" Class="border-destructive" />
+                        <FieldError>
+                            @L.T("请输入有效的邮箱地址。", "Please enter a valid email address.")
+                        </FieldError>
+                    </FieldContent>
+                </Field>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Field/validation.txt" />
+    </section>
+
+    <!-- Horizontal Orientation -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("水平布局", "Horizontal Orientation")</h2>
+            <p class="text-muted-foreground">
+                @L.T("使用水平布局，把标签放在控件旁边。", "Place labels beside controls using horizontal orientation.")
+            </p>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Horizontal Text Input -->
+            <div class="space-y-2">
+                <Field Orientation="FieldOrientation.Horizontal">
+                    <FieldLabel For="name-horizontal" Class="w-32 pt-2">@L.T("姓名", "Full Name")</FieldLabel>
+                    <FieldContent>
+                        <Input Id="name-horizontal" Type="InputType.Text" Placeholder="John Doe" />
+                        <FieldDescription>@L.T("请输入你的名和姓。", "Enter your first and last name.")</FieldDescription>
+                    </FieldContent>
+                </Field>
+            </div>
+
+            <!-- Horizontal with Checkbox -->
+            <div class="space-y-2">
+                <Field Orientation="FieldOrientation.Horizontal">
+                    <FieldLabel For="terms-horizontal" Class="w-32">@L.T("接受条款", "Accept Terms")</FieldLabel>
+                    <FieldContent>
+                        <div class="flex items-center gap-2">
+                            <Checkbox Id="terms-horizontal" />
+                            <FieldDescription Class="!mb-0">@L.T("我同意条款与条件", "I agree to the terms and conditions")</FieldDescription>
+                        </div>
+                    </FieldContent>
+                </Field>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Field/horizontal.txt" />
+    </section>
+
+    <!-- Responsive Orientation -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("响应式布局", "Responsive Orientation")</h2>
+            <p class="text-muted-foreground">
+                @L.T("借助容器查询，在中等断点处自动从垂直切换为水平。", "Automatically switch from vertical to horizontal at medium breakpoint using container queries.")
+            </p>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Responsive Layout -->
+            <div class="space-y-2">
+                <Field Orientation="FieldOrientation.Responsive">
+                    <FieldLabel For="company-responsive" Class="w-full md:w-32 md:pt-2">@L.T("公司", "Company")</FieldLabel>
+                    <FieldContent>
+                        <Input Id="company-responsive" Type="InputType.Text" Placeholder="Acme Inc." />
+                        <FieldDescription>@L.T("你的公司或组织名称。", "Your company or organization name.")</FieldDescription>
+                    </FieldContent>
+                </Field>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Field/responsive.txt" />
+    </section>
+
+    <!-- Field Groups -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("字段组", "Field Groups")</h2>
+            <p class="text-muted-foreground">
+                @L.T("用 FieldGroup 堆叠多个字段，保持一致的间距。", "Stack multiple fields using FieldGroup for consistent spacing.")
+            </p>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Vertical Field Group -->
+            <div class="space-y-2">
+                <FieldGroup Orientation="FieldGroupOrientation.Vertical">
+                    <Field>
+                        <FieldLabel For="first-name">@L.T("名", "First Name")</FieldLabel>
+                        <FieldContent>
+                            <Input Id="first-name" Type="InputType.Text" Placeholder="John" />
+                        </FieldContent>
+                    </Field>
+                    <Field>
+                        <FieldLabel For="last-name">@L.T("姓", "Last Name")</FieldLabel>
+                        <FieldContent>
+                            <Input Id="last-name" Type="InputType.Text" Placeholder="Doe" />
+                        </FieldContent>
+                    </Field>
+                </FieldGroup>
+            </div>
+
+            <!-- Horizontal Field Group -->
+            <div class="space-y-2">
+                <FieldGroup Orientation="FieldGroupOrientation.Horizontal">
+                    <Field Class="flex-1">
+                        <FieldLabel For="city">@L.T("城市", "City")</FieldLabel>
+                        <FieldContent>
+                            <Input Id="city" Type="InputType.Text" Placeholder="New York" />
+                        </FieldContent>
+                    </Field>
+                    <Field Class="flex-1">
+                        <FieldLabel For="state">@L.T("州", "State")</FieldLabel>
+                        <FieldContent>
+                            <Input Id="state" Type="InputType.Text" Placeholder="NY" />
+                        </FieldContent>
+                    </Field>
+                    <Field Class="w-32">
+                        <FieldLabel For="zip">@L.T("邮编", "ZIP")</FieldLabel>
+                        <FieldContent>
+                            <Input Id="zip" Type="InputType.Text" Placeholder="10001" />
+                        </FieldContent>
+                    </Field>
+                </FieldGroup>
+            </div>
+
+            <!-- With Separator -->
+            <div class="space-y-2">
+                <FieldGroup Orientation="FieldGroupOrientation.Vertical">
+                    <Field>
+                        <FieldLabel For="account-name">@L.T("账户名称", "Account Name")</FieldLabel>
+                        <FieldContent>
+                            <Input Id="account-name" Type="InputType.Text" />
+                        </FieldContent>
+                    </Field>
+                    <Field>
+                        <FieldLabel For="account-email">@L.T("账户邮箱", "Account Email")</FieldLabel>
+                        <FieldContent>
+                            <Input Id="account-email" Type="InputType.Email" />
+                        </FieldContent>
+                    </Field>
+
+                    <FieldSeparator />
+
+                    <Field>
+                        <FieldLabel For="billing-name">@L.T("账单姓名", "Billing Name")</FieldLabel>
+                        <FieldContent>
+                            <Input Id="billing-name" Type="InputType.Text" />
+                        </FieldContent>
+                    </Field>
+                    <Field>
+                        <FieldLabel For="billing-address">@L.T("账单地址", "Billing Address")</FieldLabel>
+                        <FieldContent>
+                            <Input Id="billing-address" Type="InputType.Text" />
+                        </FieldContent>
+                    </Field>
+                </FieldGroup>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Field/groups.txt" />
+    </section>
+
+    <!-- FieldSets -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("复杂字段集", "Complex Fieldsets")</h2>
+            <p class="text-muted-foreground">
+                @L.T("用 FieldSet 与 FieldLegend 把相关的控件做语义化分组。", "Use FieldSet and FieldLegend for semantic grouping of related controls.")
+            </p>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Basic FieldSet -->
+            <div class="space-y-2">
+                <FieldSet>
+                    <FieldLegend>@L.T("联系方式", "Contact Information")</FieldLegend>
+                    <FieldGroup>
+                        <Field>
+                            <FieldLabel For="contact-email">@L.T("邮箱", "Email")</FieldLabel>
+                            <FieldContent>
+                                <Input Id="contact-email" Type="InputType.Email" />
+                            </FieldContent>
+                        </Field>
+                        <Field>
+                            <FieldLabel For="contact-phone">@L.T("电话", "Phone")</FieldLabel>
+                            <FieldContent>
+                                <Input Id="contact-phone" Type="InputType.Tel" />
+                            </FieldContent>
+                        </Field>
+                    </FieldGroup>
+                </FieldSet>
+            </div>
+
+            <!-- FieldSet with Radio Group -->
+            <div class="space-y-2">
+                <FieldSet>
+                    <FieldLegend>@L.T("你希望通过哪种方式接收通知？", "How would you like to receive notifications?")</FieldLegend>
+                    <RadioGroup @bind-Value="notificationMethod" TValue="string">
+                        <FieldGroup>
+                            <Field Orientation="FieldOrientation.Horizontal">
+                                <div class="flex items-center gap-2">
+                                    <AtomBlazor.RadioGroupItem Value="@("email")" Id="notify-email" TValue="string" />
+                                    <FieldLabel For="notify-email" Class="font-normal">@L.T("邮箱", "Email")</FieldLabel>
+                                </div>
+                            </Field>
+                            <Field Orientation="FieldOrientation.Horizontal">
+                                <div class="flex items-center gap-2">
+                                    <AtomBlazor.RadioGroupItem Value="@("sms")" Id="notify-sms" TValue="string" />
+                                    <FieldLabel For="notify-sms" Class="font-normal">@L.T("短信", "SMS")</FieldLabel>
+                                </div>
+                            </Field>
+                            <Field Orientation="FieldOrientation.Horizontal">
+                                <div class="flex items-center gap-2">
+                                    <AtomBlazor.RadioGroupItem Value="@("push")" Id="notify-push" TValue="string" />
+                                    <FieldLabel For="notify-push" Class="font-normal">@L.T("推送通知", "Push Notifications")</FieldLabel>
+                                </div>
+                            </Field>
+                        </FieldGroup>
+                    </RadioGroup>
+                    <FieldDescription Class="mt-2">@L.T("我们会把重要更新发送到你首选的渠道。", "We'll send important updates to your preferred channel.")</FieldDescription>
+                </FieldSet>
+            </div>
+
+            <!-- Complex FieldSet with Multiple Sections -->
+            <div class="space-y-2">
+                <FieldSet>
+                    <FieldLegend>@L.T("用户资料", "User Profile")</FieldLegend>
+                    <FieldGroup>
+                        <FieldGroup Orientation="FieldGroupOrientation.Horizontal">
+                            <Field Class="flex-1">
+                                <FieldLabel For="profile-first">@L.T("名", "First Name")</FieldLabel>
+                                <FieldContent>
+                                    <Input Id="profile-first" Type="InputType.Text" />
+                                </FieldContent>
+                            </Field>
+                            <Field Class="flex-1">
+                                <FieldLabel For="profile-last">@L.T("姓", "Last Name")</FieldLabel>
+                                <FieldContent>
+                                    <Input Id="profile-last" Type="InputType.Text" />
+                                </FieldContent>
+                            </Field>
+                        </FieldGroup>
+
+                        <Field>
+                            <FieldLabel For="profile-username">@L.T("用户名", "Username")</FieldLabel>
+                            <FieldContent>
+                                <Input Id="profile-username" Type="InputType.Text" />
+                                <FieldDescription>@L.T("这会是你的公开显示名称。", "This will be your public display name.")</FieldDescription>
+                            </FieldContent>
+                        </Field>
+
+                        <FieldSeparator />
+
+                        <Field>
+                            <FieldLabel For="profile-bio">@L.T("个人简介", "Biography")</FieldLabel>
+                            <FieldContent>
+                                <Textarea Id="profile-bio" Placeholder="@(L.T("介绍一下你自己……", "Tell us about yourself..."))" />
+                                <FieldDescription>@L.T("用于个人资料的简短介绍，最多 500 个字符。", "Brief bio for your profile. Maximum 500 characters.")</FieldDescription>
+                            </FieldContent>
+                        </Field>
+
+                        <Field Orientation="FieldOrientation.Horizontal">
+                            <div class="flex items-center gap-2">
+                                <Checkbox Id="profile-public" />
+                                <FieldLabel For="profile-public" Class="font-normal">@L.T("把资料设为公开", "Make profile public")</FieldLabel>
+                            </div>
+                        </Field>
+                    </FieldGroup>
+                </FieldSet>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Field/fieldsets.txt" />
+    </section>
+
+    <!-- Field with Title -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带标题的 Field", "Field with Title")</h2>
+            <p class="text-muted-foreground">
+                @L.T("用 FieldTitle 在 FieldContent 内添加标题。", "Use FieldTitle for headings within FieldContent.")
+            </p>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Settings with Title -->
+            <div class="space-y-2">
+                <Field>
+                    <FieldContent>
+                        <FieldTitle>@L.T("邮件通知", "Email Notifications")</FieldTitle>
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-2">
+                                <Checkbox Id="notify-updates" />
+                                <FieldLabel For="notify-updates" Class="font-normal">@L.T("产品更新", "Product updates")</FieldLabel>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <Checkbox Id="notify-security" />
+                                <FieldLabel For="notify-security" Class="font-normal">@L.T("安全提醒", "Security alerts")</FieldLabel>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <Checkbox Id="notify-marketing" />
+                                <FieldLabel For="notify-marketing" Class="font-normal">@L.T("营销邮件", "Marketing emails")</FieldLabel>
+                            </div>
+                        </div>
+                        <FieldDescription>@L.T("选择你希望接收哪些邮件。", "Choose which emails you want to receive.")</FieldDescription>
+                    </FieldContent>
+                </Field>
+            </div>
+        </div>
+
+        <CodeBlock Source="Components/Field/title.txt" />
+    </section>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("用 FieldLabel 并配合正确的 'for' 属性把标签关联到输入框", "Use FieldLabel with proper 'for' attribute to associate with inputs")</AccessibilityItem>
+            <AccessibilityItem>@L.T("FieldDescription 应有 ID，供 aria-describedby 引用", "FieldDescription should have an ID for aria-describedby")</AccessibilityItem>
+            <AccessibilityItem>@L.T("FieldError 应有 ID，供无效输入框的 aria-describedby 引用", "FieldError should have an ID for aria-describedby on invalid inputs")</AccessibilityItem>
+            <AccessibilityItem>@L.T("FieldSet 为相关控件提供语义化分组", "FieldSet provides semantic grouping for related controls")</AccessibilityItem>
+            <AccessibilityItem>@L.T("所有组件都渲染正确的语义化 HTML 元素", "All components render proper semantic HTML elements")</AccessibilityItem>
+        </AriaAttributes>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="Field">
+                <ApiParameter Name="Orientation" Type="FieldOrientation" Default="Vertical">
+                    @L.T("布局方向：Vertical、Horizontal 或 Responsive。", "Layout orientation: Vertical, Horizontal, or Responsive.")
+                </ApiParameter>
+                <ApiParameter Name="IsInvalid" Type="bool" Default="false">
+                    @L.T("为 true 时自动把无效状态级联给子输入框。", "When true, cascades invalid state to child inputs automatically.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;div&gt;</code> 元素上的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="FieldError">
+                <ApiParameter Name="Errors" Type="IEnumerable&lt;string&gt;?">
+                    @L.T("要显示的错误消息列表；也可以改用 ChildContent 写单条消息。", "List of error messages to display. Alternatively use ChildContent for a single message.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;div&gt;</code> 元素上的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="FieldGroup">
+                <ApiParameter Name="Orientation" Type="FieldGroupOrientation" Default="Vertical">
+                    @L.T("布局方向：Vertical 或 Horizontal。", "Layout orientation: Vertical or Horizontal.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;div&gt;</code> 元素上的附加 HTML 特性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private List<string> passwordErrors = new()
+    {
+        "Password must be at least 8 characters long",
+        "Password must contain at least one uppercase letter",
+        "Password must contain at least one number"
+    };
+
+    private string? passwordErrorsLanguage;
+
+    /// <summary>字段初值早于级联语言到达，这里按当前显示语言归位展示用的错误文案。</summary>
+    protected override void OnParametersSet()
+    {
+        if (passwordErrorsLanguage == L.Language)
+        {
+            return;
+        }
+
+        passwordErrorsLanguage = L.Language;
+        passwordErrors = new()
+        {
+            L.T("密码长度至少为 8 个字符", "Password must be at least 8 characters long"),
+            L.T("密码必须至少包含一个大写字母", "Password must contain at least one uppercase letter"),
+            L.T("密码必须至少包含一个数字", "Password must contain at least one number")
+        };
+    }
+
+    // RadioGroup 段的绑定值（自源恢复）。
+    private string? notificationMethod = "email";
+}

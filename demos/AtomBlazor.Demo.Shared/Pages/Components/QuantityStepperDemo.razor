@@ -1,0 +1,86 @@
+@page "/components/quantity-stepper"
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("Quantity Stepper 数量步进器 - Atom BlazorUI", "Quantity Stepper - Atom BlazorUI")</PageTitle>
+<div class="max-w-4xl space-y-8">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Quantity Stepper 数量步进器", "Quantity Stepper")</h1>
+        <p class="text-xl text-muted-foreground">@L.T("数量输入框，配大号加大/减小按钮与上下限，并可选提供移除操作。", "A quantity input with large increment and decrement buttons, bounds and an optional remove action.")</p>
+    </div>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("限定范围的数量", "Bounded quantity")</h2>
+        <div class="rounded-lg border p-6 space-y-4">
+<QuantityStepper @bind-Value="quantity" Min="1" Max="8" AriaLabel="@(L.T("笔记本数量", "Number of notebooks"))" />
+@if (L.IsChinese)
+{
+<text>
+    <p role="status" class="text-sm text-muted-foreground">@quantity 本 · $@(quantity * 12)</p>
+</text>
+}
+else
+{
+<text>
+    <p role="status" class="text-sm text-muted-foreground">@quantity notebooks · $@(quantity * 12)</p>
+</text>
+}
+        </div>
+        <CodeBlock Source="Components/QuantityStepper/basic.txt" />
+    </section>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("到下限即可移除", "Remove at the minimum")</h2>
+        <div class="rounded-lg border p-6 space-y-4">
+@if (removed)
+{
+    <p role="status">@L.T("商品已移除。", "Item removed.")</p>
+    <Button Variant="ButtonVariant.Outline" OnClick="@(() => { removed = false; removableQuantity = 1; })">@L.T("恢复商品", "Restore item")</Button>
+}
+else
+{
+    <QuantityStepper @bind-Value="removableQuantity" Min="1" Max="5" OnRemove="@(() => removed = true)" AriaLabel="@(L.T("购物车数量", "Cart quantity"))" />
+}
+<p class="text-sm text-muted-foreground">@L.T("已到下限时，减少按钮会变成移除操作。移除本身由应用处理。", "At the minimum, the decrease button becomes a remove action. The application handles removal.")</p>
+        </div>
+        <CodeBlock Source="Components/QuantityStepper/remove.txt" />
+    </section>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("控件状态", "Control states")</h2>
+        <div class="rounded-lg border p-6 space-y-4">
+<div class="flex flex-wrap gap-8">
+    <div class="space-y-2"><p class="text-sm font-medium">@L.T("已禁用", "Disabled")</p><QuantityStepper Value="3" Disabled="true" AriaLabel="@(L.T("已禁用的数量", "Disabled quantity"))" /></div>
+    <div class="space-y-2"><p class="text-sm font-medium">@L.T("只读", "Read only")</p><QuantityStepper Value="4" ReadOnly="true" AriaLabel="@(L.T("只读的数量", "Read-only quantity"))" /></div>
+</div>
+        </div>
+        <CodeBlock Source="Components/QuantityStepper/states.txt" />
+    </section>
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("控件把带标签的加大/减小按钮与数字输入框归为一组，AriaLabel 用于指明这是哪个数量。", "The control groups labelled increase/decrease buttons with its numeric input. AriaLabel identifies the quantity.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("上下限会禁用不可用的操作。只读值仍可获得焦点；禁用控件不可编辑。", "Bounds disable unavailable actions. Read-only values remain focusable; disabled controls cannot be edited.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在启用的按钮与输入框之间移动", "Move between enabled buttons and the input"))"><Kbd>Tab / Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("激活获得焦点的加大、减小或移除按钮", "Activate the focused increase, decrease or remove button"))"><Kbd>Enter / Space</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("对可编辑的数字输入框加一或减一", "Increment or decrement the editable numeric input"))"><Kbd>ArrowUp / ArrowDown</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+<ApiReference Since="v4" ComponentName="QuantityStepper">
+        <ApiParameter Name="Value / ValueChanged / ValueExpression" Type="int / EventCallback&lt;int&gt; / Expression&lt;Func&lt;int&gt;&gt;" Default="1">@L.T("双向绑定值，并与 EditForm 字段集成。", "Two-way value and EditForm field integration.")</ApiParameter>
+        <ApiParameter Name="Min / Max / Step" Type="int / int? / int" Default="1 / null / 1">@L.T("闭区间上下限与按钮的正向步长。手动输入的数值走数字输入框的常规校验。", "Inclusive bounds and positive button increment. Typed values use the numeric input's normal validation.")</ApiParameter>
+        <ApiParameter Name="OnRemove" Type="EventCallback">@L.T("到达下限时把减号按钮变为移除操作。移除本身由应用负责。", "Changes the minus button to a remove action at the minimum. The application owns removal.")</ApiParameter>
+        <ApiParameter Name="Disabled / ReadOnly" Type="bool" Default="false">@L.T("禁止编辑；只读输入框仍可获得焦点。", "Prevents editing; read-only input remains focusable.")</ApiParameter>
+        <ApiParameter Name="Id / Name / AriaLabel" Type="string?">@L.T("输入框标识、表单名称与无障碍的数量标签。", "Input identity, form name and accessible quantity label.")</ApiParameter>
+    <ApiParameter Name="Class / AdditionalAttributes" Type="string? / Dictionary&lt;string, object&gt;?">@L.T("追加到根元素的 CSS 类与 HTML 属性。", "Additional root CSS classes and HTML attributes.")</ApiParameter>
+    </ApiReference>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private int quantity = 2;
+    private int removableQuantity = 1;
+    private bool removed;
+}

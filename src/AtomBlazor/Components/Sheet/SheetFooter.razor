@@ -1,0 +1,34 @@
+@namespace AtomBlazor
+
+@*
+    面板页脚辅助组件，用于组织面板的操作/按钮。
+*@
+
+<div class="@GetClassNames()" @attributes="AdditionalAttributes">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// 在面板页脚中显示的内容（通常为操作按钮）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用到页脚容器的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置要应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string GetClassNames() => ClassNames.cn(
+        "atom:flex atom:flex-col-reverse atom:sm:flex-row atom:sm:justify-end atom:sm:space-x-2",
+        Class
+    );
+}

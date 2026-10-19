@@ -1,0 +1,385 @@
+@namespace AtomBlazor
+@using Microsoft.JSInterop
+@using AtomBlazor.Icons.Lucide
+@inject IJSRuntime JS
+@inject ILocalizer Localizer
+@implements IAsyncDisposable
+
+<div class="@ContainerCssClass" data-slot="rich-text-editor" id="@Id" @attributes="AdditionalAttributes">
+    @if (Toolbar != ToolbarPreset.None && ToolbarContent == null)
+    {
+        <div class="@ToolbarCssClass" data-slot="toolbar">
+            <div class="atom:flex atom:flex-wrap atom:items-center atom:gap-0.5">
+                @if (Toolbar >= ToolbarPreset.Standard)
+                {
+                    <Button Variant="ButtonVariant.Ghost"
+                            Size="ButtonSize.IconSmall"
+                            OnClick="@(async _ => await UndoAsync())"
+                            Disabled="@(Disabled || !_canUndo)"
+                            Class="atom:h-8 atom:w-8"
+                            AriaLabel="@Localizer["RichTextEditor.Undo"]"
+                            title="@Localizer["RichTextEditor.Undo"]">
+                        <LucideIcon Name="undo-2" Size="16" />
+                    </Button>
+                    <Button Variant="ButtonVariant.Ghost"
+                            Size="ButtonSize.IconSmall"
+                            OnClick="@(async _ => await RedoAsync())"
+                            Disabled="@(Disabled || !_canRedo)"
+                            Class="atom:h-8 atom:w-8"
+                            AriaLabel="@Localizer["RichTextEditor.Redo"]"
+                            title="@Localizer["RichTextEditor.Redo"]">
+                        <LucideIcon Name="redo-2" Size="16" />
+                    </Button>
+                    <Separator Orientation="SeparatorOrientation.Vertical" Class="atom:h-6 atom:mx-1" />
+
+                    <NativeSelect TValue="string"
+                                 Value="@_headerLevel"
+                                 ValueChanged="@HandleHeaderChangeAsync"
+                                 Disabled="@Disabled"
+                                 Size="NativeSelectSize.Small"
+                                 Class="atom:w-auto atom:min-w-[100px]">
+                        <option value="">@Localizer["RichTextEditor.Normal"]</option>
+                        <option value="1">@Localizer["RichTextEditor.Heading1"]</option>
+                        <option value="2">@Localizer["RichTextEditor.Heading2"]</option>
+                        <option value="3">@Localizer["RichTextEditor.Heading3"]</option>
+                    </NativeSelect>
+                    <Separator Orientation="SeparatorOrientation.Vertical" Class="atom:h-6 atom:mx-1" />
+                }
+
+                <Toggle Pressed="@_isBold"
+                        PressedChanged="@(async _ => await ToggleFormatAsync("bold"))"
+                        Size="ToggleSize.Small"
+                        Disabled="@Disabled"
+                        Class="atom:h-8 atom:w-8 atom:p-0"
+                        title="@Localizer["RichTextEditor.Bold"]">
+                    <LucideIcon Name="bold" Size="16" />
+                </Toggle>
+                <Toggle Pressed="@_isItalic"
+                        PressedChanged="@(async _ => await ToggleFormatAsync("italic"))"
+                        Size="ToggleSize.Small"
+                        Disabled="@Disabled"
+                        Class="atom:h-8 atom:w-8 atom:p-0"
+                        title="@Localizer["RichTextEditor.Italic"]">
+                    <LucideIcon Name="italic" Size="16" />
+                </Toggle>
+                <Toggle Pressed="@_isUnderline"
+                        PressedChanged="@(async _ => await ToggleFormatAsync("underline"))"
+                        Size="ToggleSize.Small"
+                        Disabled="@Disabled"
+                        Class="atom:h-8 atom:w-8 atom:p-0"
+                        title="@Localizer["RichTextEditor.Underline"]">
+                    <LucideIcon Name="underline" Size="16" />
+                </Toggle>
+
+                @if (Toolbar >= ToolbarPreset.Standard)
+                {
+                    <Toggle Pressed="@_isStrike"
+                            PressedChanged="@(async _ => await ToggleFormatAsync("strike"))"
+                            Size="ToggleSize.Small"
+                            Disabled="@Disabled"
+                            Class="atom:h-8 atom:w-8 atom:p-0"
+                            title="@Localizer["RichTextEditor.Strikethrough"]">
+                        <LucideIcon Name="strikethrough" Size="16" />
+                    </Toggle>
+                }
+
+                @if (Toolbar == ToolbarPreset.Full)
+                {
+                    <Toggle Pressed="@_isCode"
+                            PressedChanged="@(async _ => await ToggleFormatAsync("code"))"
+                            Size="ToggleSize.Small"
+                            Disabled="@Disabled"
+                            Class="atom:h-8 atom:w-8 atom:p-0"
+                            title="@Localizer["RichTextEditor.InlineCode"]">
+                        <LucideIcon Name="square-code" Size="16" />
+                    </Toggle>
+
+                    <Separator Orientation="SeparatorOrientation.Vertical" Class="atom:h-6 atom:mx-1" />
+                    <DropdownMenu>
+                        <AtomBlazor.DropdownMenuTrigger AsChild="true">
+                            <Button Variant="ButtonVariant.Ghost"
+                                    Size="ButtonSize.IconSmall"
+                                    Disabled="@Disabled"
+                                    Class="atom:h-8 atom:w-8"
+                                    AriaLabel="@Localizer["RichTextEditor.Align"]"
+                                    title="@Localizer["RichTextEditor.Align"]">
+                                <LucideIcon Name="@AlignIcon" Size="16" />
+                            </Button>
+                        </AtomBlazor.DropdownMenuTrigger>
+                        <AtomBlazor.DropdownMenuContent>
+                            @AlignItem("align-left", "RichTextEditor.AlignLeft", null)
+                            @AlignItem("align-center", "RichTextEditor.AlignCenter", "center")
+                            @AlignItem("align-right", "RichTextEditor.AlignRight", "right")
+                            @AlignItem("align-justify", "RichTextEditor.AlignJustify", "justify")
+                        </AtomBlazor.DropdownMenuContent>
+                    </DropdownMenu>
+                }
+
+                <Separator Orientation="SeparatorOrientation.Vertical" Class="atom:h-6 atom:mx-1" />
+
+                <Toggle Pressed="@_isBulletList"
+                        PressedChanged="@(async _ => await ToggleFormatAsync("list", "bullet"))"
+                        Size="ToggleSize.Small"
+                        Disabled="@Disabled"
+                        Class="atom:h-8 atom:w-8 atom:p-0"
+                        title="@Localizer["RichTextEditor.BulletList"]">
+                    <LucideIcon Name="list" Size="16" />
+                </Toggle>
+                <Toggle Pressed="@_isOrderedList"
+                        PressedChanged="@(async _ => await ToggleFormatAsync("list", "ordered"))"
+                        Size="ToggleSize.Small"
+                        Disabled="@Disabled"
+                        Class="atom:h-8 atom:w-8 atom:p-0"
+                        title="@Localizer["RichTextEditor.NumberedList"]">
+                    <LucideIcon Name="list-ordered" Size="16" />
+                </Toggle>
+
+                @if (Toolbar >= ToolbarPreset.Standard)
+                {
+                    <Toggle Pressed="@_isCheckList"
+                            PressedChanged="@(async _ => await ToggleFormatAsync("list", "check"))"
+                            Size="ToggleSize.Small"
+                            Disabled="@Disabled"
+                            Class="atom:h-8 atom:w-8 atom:p-0"
+                            title="@Localizer["RichTextEditor.CheckList"]">
+                        <LucideIcon Name="list-todo" Size="16" />
+                    </Toggle>
+                }
+
+                @if (Toolbar == ToolbarPreset.Full)
+                {
+                    <Separator Orientation="SeparatorOrientation.Vertical" Class="atom:h-6 atom:mx-1" />
+                    <Popover Open="@_textColorOpen" OpenChanged="HandleTextColorOpenChanged">
+                        <AtomBlazor.PopoverTrigger AsChild="true">
+                            <Button Variant="ButtonVariant.Ghost"
+                                    Size="ButtonSize.IconSmall"
+                                    Disabled="@Disabled"
+                                    Class="atom:h-8 atom:w-8"
+                                    AriaLabel="@Localizer["RichTextEditor.TextColor"]"
+                                    title="@Localizer["RichTextEditor.TextColor"]">
+                                <LucideIcon Name="baseline" Size="16" />
+                            </Button>
+                        </AtomBlazor.PopoverTrigger>
+                        <AtomBlazor.PopoverContent Align="PopoverAlign.Start" Class="atom:w-auto atom:p-2">
+                            @ColorPalette("color", textColors)
+                        </AtomBlazor.PopoverContent>
+                    </Popover>
+                    <Popover Open="@_highlightOpen" OpenChanged="HandleHighlightOpenChanged">
+                        <AtomBlazor.PopoverTrigger AsChild="true">
+                            <Button Variant="ButtonVariant.Ghost"
+                                    Size="ButtonSize.IconSmall"
+                                    Disabled="@Disabled"
+                                    Class="atom:h-8 atom:w-8"
+                                    AriaLabel="@Localizer["RichTextEditor.Highlight"]"
+                                    title="@Localizer["RichTextEditor.Highlight"]">
+                                <LucideIcon Name="highlighter" Size="16" />
+                            </Button>
+                        </AtomBlazor.PopoverTrigger>
+                        <AtomBlazor.PopoverContent Align="PopoverAlign.Start" Class="atom:w-auto atom:p-2">
+                            @ColorPalette("background", highlightColors)
+                        </AtomBlazor.PopoverContent>
+                    </Popover>
+                }
+
+                @if (Toolbar >= ToolbarPreset.Standard)
+                {
+                    <Separator Orientation="SeparatorOrientation.Vertical" Class="atom:h-6 atom:mx-1" />
+                    <Button Variant="ButtonVariant.Ghost"
+                            Size="ButtonSize.IconSmall"
+                            OnClick="@(async _ => await InsertLinkAsync())"
+                            Disabled="@Disabled"
+                            Class="atom:h-8 atom:w-8"
+                            AriaLabel="@Localizer["RichTextEditor.InsertLink"]"
+                            title="@Localizer["RichTextEditor.InsertLink"]">
+                        <LucideIcon Name="link" Size="16" />
+                    </Button>
+                }
+
+                @if (Toolbar == ToolbarPreset.Full)
+                {
+                    <Button Variant="ButtonVariant.Ghost"
+                            Size="ButtonSize.IconSmall"
+                            OnClick="@(async _ => await PickImageAsync())"
+                            Disabled="@Disabled"
+                            Class="atom:h-8 atom:w-8"
+                            AriaLabel="@Localizer["RichTextEditor.InsertImage"]"
+                            title="@Localizer["RichTextEditor.InsertImage"]">
+                        <LucideIcon Name="image" Size="16" />
+                    </Button>
+
+                    <Separator Orientation="SeparatorOrientation.Vertical" Class="atom:h-6 atom:mx-1" />
+                    <Toggle Pressed="@_isBlockquote"
+                            PressedChanged="@(async _ => await ToggleFormatAsync("blockquote"))"
+                            Size="ToggleSize.Small"
+                            Disabled="@Disabled"
+                            Class="atom:h-8 atom:w-8 atom:p-0"
+                            title="@Localizer["RichTextEditor.Blockquote"]">
+                        <LucideIcon Name="quote" Size="16" />
+                    </Toggle>
+                    <Toggle Pressed="@_isCodeBlock"
+                            PressedChanged="@(async _ => await ToggleFormatAsync("code-block"))"
+                            Size="ToggleSize.Small"
+                            Disabled="@Disabled"
+                            Class="atom:h-8 atom:w-8 atom:p-0"
+                            title="@Localizer["RichTextEditor.CodeBlock"]">
+                        <LucideIcon Name="code" Size="16" />
+                    </Toggle>
+
+                    <Separator Orientation="SeparatorOrientation.Vertical" Class="atom:h-6 atom:mx-1" />
+                    <Popover @bind-Open="_tableMenuOpen" OnOpenChange="HandleTableMenuOpenChange">
+                        <AtomBlazor.PopoverTrigger AsChild="true">
+                            <Button Variant="ButtonVariant.Ghost"
+                                    Size="ButtonSize.IconSmall"
+                                    Disabled="@Disabled"
+                                    Class="atom:h-8 atom:w-8"
+                                    AriaLabel="@Localizer["RichTextEditor.Table"]"
+                                    title="@Localizer["RichTextEditor.Table"]">
+                                <LucideIcon Name="table" Size="16" />
+                            </Button>
+                        </AtomBlazor.PopoverTrigger>
+                        <AtomBlazor.PopoverContent Align="PopoverAlign.Start" Class="atom:w-auto atom:p-1">
+                            @if (_isInTable)
+                            {
+                                <div class="atom:flex atom:flex-col" data-slot="table-actions">
+                                    @TableAction("between-horizontal-start", "RichTextEditor.InsertRowAbove", "insertRowAbove")
+                                    @TableAction("between-horizontal-end", "RichTextEditor.InsertRowBelow", "insertRowBelow")
+                                    @TableAction("between-vertical-start", "RichTextEditor.InsertColumnLeft", "insertColumnLeft")
+                                    @TableAction("between-vertical-end", "RichTextEditor.InsertColumnRight", "insertColumnRight")
+                                    <Separator Class="atom:my-1" />
+                                    @TableAction("rows-3", "RichTextEditor.DeleteRow", "deleteRow")
+                                    @TableAction("columns-3", "RichTextEditor.DeleteColumn", "deleteColumn")
+                                    @TableAction("trash-2", "RichTextEditor.DeleteTable", "deleteTable")
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="atom:flex atom:flex-col atom:gap-2 atom:p-1" data-slot="table-picker">
+                                    <div class="atom:grid atom:grid-cols-6 atom:gap-1" role="grid" aria-label="@Localizer["RichTextEditor.InsertTable"]">
+                                        @for (var r = 1; r <= tablePickerSize; r++)
+                                        {
+                                            for (var c = 1; c <= tablePickerSize; c++)
+                                            {
+                                                var rows = r;
+                                                var columns = c;
+                                                <button type="button"
+                                                        class="@TablePickerCellClass(rows, columns)"
+                                                        aria-label="@Localizer["RichTextEditor.TableSize", rows, columns]"
+                                                        @onmouseover="@(() => SetTablePickerHover(rows, columns))"
+                                                        @onfocus="@(() => SetTablePickerHover(rows, columns))"
+                                                        @onclick="@(() => InsertTableFromPickerAsync(rows, columns))"></button>
+                                            }
+                                        }
+                                    </div>
+                                    <p class="atom:text-center atom:text-xs atom:text-muted-foreground">@TablePickerLabel</p>
+                                </div>
+                            }
+                        </AtomBlazor.PopoverContent>
+                    </Popover>
+                }
+            </div>
+        </div>
+    }
+
+    @if (ToolbarContent != null)
+    {
+        <div class="@ToolbarCssClass" data-slot="custom-toolbar">
+            @ToolbarContent
+        </div>
+    }
+
+    <div @ref="_editorRef"
+         class="@EditorCssClass"
+         style="@EditorStyle"
+         aria-label="@AriaLabel"
+         aria-describedby="@AriaDescribedBy"
+         aria-invalid="@(AriaInvalid?.ToString()?.ToLower())"
+         data-slot="editor">
+    </div>
+
+    @* 链接对话框 *@
+    <Dialog @bind-Open="_linkDialogOpen">
+        <AtomBlazor.DialogContent Class="atom:sm:max-w-md">
+            <DialogHeader>
+                <AtomBlazor.DialogTitle>@(_hasExistingLink ? Localizer["RichTextEditor.EditLink"] : Localizer["RichTextEditor.InsertLinkTitle"])</AtomBlazor.DialogTitle>
+                <AtomBlazor.DialogDescription>
+                    @(_hasExistingLink ? Localizer["RichTextEditor.EditLinkDescription"] : Localizer["RichTextEditor.InsertLinkDescription"])
+                </AtomBlazor.DialogDescription>
+            </DialogHeader>
+            <div class="atom:grid atom:gap-4 atom:py-4">
+                <div class="atom:grid atom:gap-2">
+                    <Label For="link-url">URL</Label>
+                    <Input Id="link-url"
+                           Type="InputType.Url"
+                           Placeholder="https://example.com"
+                           @bind-Value="_linkUrl"
+                           @bind-Value:after="ValidateLinkUrl" />
+                    @if (!string.IsNullOrEmpty(_linkUrlError))
+                    {
+                        <p class="atom:text-sm atom:text-destructive">@_linkUrlError</p>
+                    }
+                </div>
+            </div>
+            <DialogFooter Class="atom:flex-col atom:sm:flex-row atom:gap-2">
+                @if (_hasExistingLink)
+                {
+                    <Button Variant="ButtonVariant.Destructive"
+                            OnClick="RemoveLinkAsync"
+                            Class="atom:sm:me-auto">
+                        @Localizer["RichTextEditor.RemoveLink"]
+                    </Button>
+                }
+                <Button Variant="ButtonVariant.Outline" OnClick="CloseLinkDialog">
+                    @Localizer["RichTextEditor.Cancel"]
+                </Button>
+                <Button OnClick="ApplyLinkAsync" Disabled="@(!IsValidUrl(_linkUrl))">
+                    @(_hasExistingLink ? Localizer["RichTextEditor.Update"] : Localizer["RichTextEditor.Insert"])
+                </Button>
+            </DialogFooter>
+        </AtomBlazor.DialogContent>
+    </Dialog>
+</div>
+
+@code {
+    private RenderFragment AlignItem(string icon, string labelKey, string? value) => __builder =>
+    {
+        <AtomBlazor.DropdownMenuItem OnClick="@(async _ => await SetAlignAsync(value))">
+            <Icon><LucideIcon Name="@icon" Size="16" /></Icon>
+            <ChildContent>@Localizer[labelKey]</ChildContent>
+        </AtomBlazor.DropdownMenuItem>
+    };
+
+    private RenderFragment ColorPalette(string format, IReadOnlyList<string> palette) => __builder =>
+    {
+        <div class="atom:flex atom:flex-col atom:gap-2" data-slot="color-palette">
+            <div class="atom:grid atom:grid-cols-7 atom:gap-1" role="group">
+                @foreach (var color in palette)
+                {
+                    var value = color;
+                    <button type="button"
+                            class="atom:h-6 atom:w-6 atom:rounded-sm atom:border atom:border-input atom:transition-transform atom:hover:scale-110 atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring"
+                            style="background-color: @value"
+                            aria-label="@value"
+                            title="@value"
+                            @onclick="@(() => SetColorAsync(format, value))"></button>
+                }
+            </div>
+            <Button Variant="ButtonVariant.Ghost"
+                    Size="ButtonSize.Small"
+                    Class="atom:h-7 atom:justify-start atom:px-2 atom:font-normal"
+                    OnClick="@(async _ => await SetColorAsync(format, null))">
+                @Localizer["RichTextEditor.RemoveColor"]
+            </Button>
+        </div>
+    };
+
+    private RenderFragment TableAction(string icon, string labelKey, string action) => __builder =>
+    {
+        <Button Variant="ButtonVariant.Ghost"
+                Size="ButtonSize.Small"
+                Class="atom:h-8 atom:justify-start atom:gap-2 atom:px-2 atom:font-normal"
+                OnClick="@(async _ => await RunTableActionAsync(action))">
+            <LucideIcon Name="@icon" Size="16" />
+            @Localizer[labelKey]
+        </Button>
+    };
+}

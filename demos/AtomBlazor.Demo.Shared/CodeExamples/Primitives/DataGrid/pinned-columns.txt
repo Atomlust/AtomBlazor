@@ -1,0 +1,57 @@
+<div style="max-width: 700px; overflow-x: auto;">
+    <DataGrid TData="Person" Items="@people"
+                AriaLabel="Pinned columns grid"
+                Class="w-full text-sm table-fixed" style="min-width: 1000px;">
+        <colgroup>
+            <col style="width: 120px" />
+            <col style="width: 200px" />
+            <col style="width: 200px" />
+            <col style="width: 100px" />
+            <col style="width: 180px" />
+            <col style="width: 120px" />
+        </colgroup>
+        <DataGridHeader>
+            <tr>
+                @* Left-pinned header *@
+                <DataGridHeaderCell TData="Person" ColumnId="name"
+                    Class="bg-background border-r border-border"
+                    style="position: sticky; left: 0; z-index: 2;">
+                    Name
+                </DataGridHeaderCell>
+                @* Scrollable headers *@
+                <DataGridHeaderCell TData="Person" ColumnId="email">Email</DataGridHeaderCell>
+                <DataGridHeaderCell TData="Person" ColumnId="department">Department</DataGridHeaderCell>
+                <DataGridHeaderCell TData="Person" ColumnId="age">Age</DataGridHeaderCell>
+                <DataGridHeaderCell TData="Person" ColumnId="id">ID</DataGridHeaderCell>
+                @* Right-pinned header *@
+                <DataGridHeaderCell TData="Person" ColumnId="actions"
+                    Class="bg-background border-l border-border"
+                    style="position: sticky; right: 0; z-index: 2;">
+                    Actions
+                </DataGridHeaderCell>
+            </tr>
+        </DataGridHeader>
+        <DataGridBody>
+            @foreach (var person in people)
+            {
+                <DataGridRow TData="Person">
+                    @* Left-pinned cell *@
+                    <DataGridCell Class="bg-background border-r border-border"
+                        style="position: sticky; left: 0; z-index: 1;">
+                        @person.Name
+                    </DataGridCell>
+                    @* Scrollable cells *@
+                    <DataGridCell>@person.Email</DataGridCell>
+                    <DataGridCell>@person.Department</DataGridCell>
+                    <DataGridCell>@person.Age</DataGridCell>
+                    <DataGridCell>@person.Id</DataGridCell>
+                    @* Right-pinned cell *@
+                    <DataGridCell Class="bg-background border-l border-border"
+                        style="position: sticky; right: 0; z-index: 1;">
+                        <button>Edit</button>
+                    </DataGridCell>
+                </DataGridRow>
+            }
+        </DataGridBody>
+    </DataGrid>
+</div>

@@ -1,0 +1,886 @@
+@page "/components/input-group"
+@using AtomBlazor.Primitives.Services
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("Input Group 输入组 - Atom BlazorUI", "Input Group - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-10 max-w-sm">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Input Group 输入组", "Input Group")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("用图标、文本与操作按钮来增强输入框。", "Enhance inputs with icons, text, and action buttons.")
+        </p>
+    </div>
+
+    <!-- Basic Examples -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本示例", "Basic Examples")</h2>
+            <p class="text-muted-foreground">
+                @L.T("为输入框加上图标与文本，提供更充分的语境。", "Add icons and text to inputs for better context.")
+            </p>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Icon Start -->
+            <div class="space-y-2">
+                <Label>@L.T("搜索", "Search")</Label>
+                <InputGroup>
+                    <InputGroupAddon Align="InputGroupAlign.InlineStart">
+                        <LucideIcon Name="search" Size="16" />
+                    </InputGroupAddon>
+                    <InputGroupInput Placeholder="@(L.T("搜索…", "Search..."))" />
+                </InputGroup>
+            </div>
+
+            <!-- Icon End -->
+            <div class="space-y-2">
+                <Label>@L.T("用户名", "Username")</Label>
+                <InputGroup>
+                    <InputGroupInput Value="johndoe123" Placeholder="@(L.T("请输入用户名", "Enter username"))" />
+                    <InputGroupAddon Align="InputGroupAlign.InlineEnd" Class="text-sm text-muted-foreground">
+                        @@company.com
+                    </InputGroupAddon>
+                </InputGroup>
+            </div>
+
+            <!-- Icons on Both Sides -->
+            <div class="space-y-2">
+                <Label>@L.T("邮箱", "Email")</Label>
+                <InputGroup>
+                    <InputGroupAddon Align="InputGroupAlign.InlineStart">
+                        <LucideIcon Name="at-sign" Size="16" />
+                    </InputGroupAddon>
+                    <InputGroupInput Type="InputType.Email" Placeholder="name@example.com" />
+                    <InputGroupAddon Align="InputGroupAlign.InlineEnd">
+                        <LucideIcon Name="circle-check" Size="16" />
+                    </InputGroupAddon>
+                </InputGroup>
+            </div>
+
+            <!-- Icons on Both Sides and Rounded -->
+            <div class="space-y-2">
+                <Label>@L.T("网站", "Website")</Label>
+                <InputGroup Class="rounded-full">
+                    <InputGroupAddon Align="InputGroupAlign.InlineStart">
+                        <LucideIcon Name="circle-alert" Size="16" />
+                        <span class="font-semibold text-sm">https://</span>
+                    </InputGroupAddon>
+                    <InputGroupInput Type="InputType.Text" Placeholder="www.example.com" />
+                    <InputGroupAddon Align="InputGroupAlign.InlineEnd">
+                        <LucideIcon Name="star" Size="16" />
+                    </InputGroupAddon>
+                </InputGroup>
+            </div>
+        </div>
+        <CodeBlock Source="Components/InputGroup/basic.txt" />
+    </section>
+
+    <!-- Text Addons -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("文本附加元素", "Text Addons")</h2>
+            <p class="text-muted-foreground">
+                @L.T("为输入框添加前缀、后缀与标签文本。", "Add text prefixes, suffixes, and labels to inputs.")
+            </p>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Currency -->
+            <div class="space-y-2">
+                <Label>@L.T("价格", "Price")</Label>
+                <InputGroup>
+                    <InputGroupAddon Align="InputGroupAlign.InlineStart">
+                        <InputGroupText>$</InputGroupText>
+                    </InputGroupAddon>
+                    <InputGroupInput Type="InputType.Number" Placeholder="0.00" />
+                    <InputGroupAddon Align="InputGroupAlign.InlineEnd">
+                        <InputGroupText>USD</InputGroupText>
+                    </InputGroupAddon>
+                </InputGroup>
+            </div>
+
+            <!-- URL -->
+            <div class="space-y-2">
+                <Label>@L.T("网站", "Website")</Label>
+                <InputGroup>
+                    <InputGroupAddon Align="InputGroupAlign.InlineStart">
+                        <InputGroupText>https://</InputGroupText>
+                    </InputGroupAddon>
+                    <InputGroupInput Placeholder="example.com" />
+                </InputGroup>
+            </div>
+
+            <!-- Weight -->
+            <div class="space-y-2">
+                <Label>@L.T("重量", "Weight")</Label>
+                <InputGroup>
+                    <InputGroupInput Type="InputType.Number" Placeholder="0" />
+                    <InputGroupAddon Align="InputGroupAlign.InlineEnd">
+                        <InputGroupText>kg</InputGroupText>
+                    </InputGroupAddon>
+                </InputGroup>
+            </div>
+        </div>
+        <CodeBlock Source="Components/InputGroup/text-addons.txt" />
+    </section>
+
+    <!-- Action Buttons -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("操作按钮", "Action Buttons")</h2>
+            <p class="text-muted-foreground">
+                @L.T("把操作按钮直接集成进输入框。", "Integrate action buttons directly into inputs.")
+            </p>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Search with Button -->
+            <div class="space-y-2">
+                <Label>@L.T("搜索", "Search")</Label>
+                <InputGroup>
+                    <InputGroupInput Placeholder="@(L.T("搜索商品…", "Search products..."))" />
+                    <InputGroupAddon Align="InputGroupAlign.InlineEnd">
+                        <InputGroupButton Class="!px-2.5 !py-0.5 !rounded-sm">
+                            @L.T("搜索", "Search")
+                        </InputGroupButton>
+                    </InputGroupAddon>
+                </InputGroup>
+            </div>
+
+            <!-- Icon Button -->
+            <div class="space-y-2">
+                <Label>@L.T("API 密钥", "API Key")</Label>
+                <InputGroup>
+                    <InputGroupInput Value="sk-1234567890abcdef" />
+                    <InputGroupAddon Align="InputGroupAlign.InlineEnd">
+                        <InputGroupButton Variant="ButtonVariant.Ghost" Class="!px-1.5 !py-1.5 !rounded-md">
+                            <LucideIcon Name="copy" Size="16" />
+                        </InputGroupButton>
+                    </InputGroupAddon>
+                </InputGroup>
+            </div>
+
+            <!-- Icon + Button -->
+            <div class="space-y-2">
+                <Label>@L.T("Newsletter 订阅", "Newsletter")</Label>
+                <InputGroup>
+                    <InputGroupAddon Align="InputGroupAlign.InlineStart">
+                        <LucideIcon Name="mail" Size="16" />
+                    </InputGroupAddon>
+                    <InputGroupInput Type="InputType.Email" Placeholder="@(L.T("请输入你的邮箱", "Enter your email"))" />
+                    <InputGroupAddon Align="InputGroupAlign.InlineEnd">
+                        <InputGroupButton Class="!px-2.5 !py-0.5 !rounded-sm">
+                            @L.T("订阅", "Subscribe")
+                        </InputGroupButton>
+                    </InputGroupAddon>
+                </InputGroup>
+            </div>
+        </div>
+        <CodeBlock Source="Components/InputGroup/action-buttons.txt" />
+    </section>
+
+    <!-- Form Validation -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表单校验", "Form Validation")</h2>
+            <p class="text-muted-foreground">
+                @L.T("用图标与颜色展示校验状态。", "Show validation states with icons and colors.")
+            </p>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Success State -->
+            <div class="space-y-2">
+                <Label>@L.T("用户名", "Username")</Label>
+                <InputGroup>
+                    <InputGroupInput Value="johndoe" />
+                    <InputGroupAddon Align="InputGroupAlign.InlineEnd">
+                        <LucideIcon Name="circle-check" Size="16" Color="Green" />
+                    </InputGroupAddon>
+                </InputGroup>
+                <p class="text-sm text-green-600">@L.T("该用户名可用", "Username is available")</p>
+            </div>
+
+            <!-- Error State -->
+            <div class="space-y-2">
+                <Label>@L.T("邮箱", "Email")</Label>
+                <InputGroup>
+                    <InputGroupInput
+                        Type="InputType.Email"
+                        Value="invalid-email"
+                        AriaInvalid="true" />
+                    <InputGroupAddon Align="InputGroupAlign.InlineEnd">
+                        <LucideIcon Name="triangle-alert" Size="16" Class="text-destructive" />
+                    </InputGroupAddon>
+                </InputGroup>
+                <p class="text-sm text-destructive">@L.T("请输入有效的邮箱地址", "Please enter a valid email address")</p>
+            </div>
+
+            <!-- Loading State -->
+            <div class="space-y-2">
+                <Label>@L.T("验证码", "Verification Code")</Label>
+                <InputGroup>
+                    <InputGroupInput Placeholder="@(L.T("请输入验证码…", "Enter code..."))" />
+                    <InputGroupAddon Align="InputGroupAlign.InlineEnd">
+                        <LucideIcon Name="loader-circle" Size="16" Class="animate-spin" />
+                    </InputGroupAddon>
+                </InputGroup>
+                <p class="text-sm text-muted-foreground">@L.T("正在校验…", "Verifying...")</p>
+            </div>
+        </div>
+        <CodeBlock Source="Components/InputGroup/form-validation.txt" />
+    </section>
+
+    <!-- Advanced Examples -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("进阶示例", "Advanced Examples")</h2>
+            <p class="text-muted-foreground">
+                @L.T("组合多项特性应对复杂场景。", "Combine multiple features for complex use cases.")
+            </p>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Search with Clear and Search Button -->
+            <div class="space-y-2">
+                <Label>@L.T("高级搜索", "Advanced Search")</Label>
+                <InputGroup>
+                    <InputGroupAddon Align="InputGroupAlign.InlineStart">
+                        <LucideIcon Name="search" Size="16" />
+                    </InputGroupAddon>
+                    <InputGroupInput Placeholder="@(L.T("搜索文件与文件夹…", "Search files and folders..."))" />
+                    <InputGroupAddon Align="InputGroupAlign.InlineEnd">
+                        <InputGroupButton Variant="ButtonVariant.Ghost" Class="!px-1.5 !py-1.5 !rounded-md">
+                            <LucideIcon Name="x" Size="16" />
+                        </InputGroupButton>
+                    </InputGroupAddon>
+                    <InputGroupAddon Align="InputGroupAlign.InlineEnd">
+                        <InputGroupButton Class="!px-2.5 !py-0.5 !rounded-sm">
+                            @L.T("搜索", "Search")
+                        </InputGroupButton>
+                    </InputGroupAddon>
+                </InputGroup>
+            </div>
+
+            <!-- Amount with Currency Button -->
+            <div class="space-y-2">
+                <Label>@L.T("转账金额", "Transfer Amount")</Label>
+                <InputGroup>
+                    <InputGroupAddon Align="InputGroupAlign.InlineStart">
+                        <LucideIcon Name="circle-dollar-sign" Size="16" />
+                    </InputGroupAddon>
+                    <InputGroupInput Type="InputType.Number" Placeholder="0.00" />
+                    <InputGroupAddon Align="InputGroupAlign.InlineEnd">
+                        <InputGroupButton Variant="ButtonVariant.Outline" Class="!px-2.5 !py-0.5 !rounded-sm">
+                            USD <LucideIcon Name="chevron-down" Size="14" />
+                        </InputGroupButton>
+                    </InputGroupAddon>
+                </InputGroup>
+            </div>
+
+            <!-- Textarea with Action Buttons -->
+            <div class="space-y-2">
+                <Label>@L.T("评论", "Comment")</Label>
+                <InputGroup>
+                    <InputGroupTextarea Rows="4" Placeholder="@(L.T("写下你的评论…", "Write your comment..."))" />
+                    <InputGroupAddon Align="InputGroupAlign.BlockEnd">
+                        <div class="flex items-center justify-between w-full">
+                            <p class="text-sm text-muted-foreground">@L.T("最多 500 个字符", "Max 500 characters")</p>
+                            <div class="flex gap-2">
+                                <InputGroupButton Variant="ButtonVariant.Ghost" Class="!px-2.5 !py-0.5 !rounded-sm">
+                                    @L.T("取消", "Cancel")
+                                </InputGroupButton>
+                                <InputGroupButton Class="!px-2.5 !py-0.5 !rounded-sm">
+                                    @L.T("发布", "Post")
+                                </InputGroupButton>
+                            </div>
+                        </div>
+                    </InputGroupAddon>
+                </InputGroup>
+            </div>
+        </div>
+        <CodeBlock Source="Components/InputGroup/advanced.txt" />
+    </section>
+
+    <!-- Dropdown Menu Example -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("下拉菜单", "Dropdown Menu")</h2>
+            <p class="text-muted-foreground">
+                @L.T("把下拉菜单与输入框结合，用于上下文操作。", "Integrate dropdown menus with input fields for context actions.")
+            </p>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Input with Dropdown Menu -->
+            <div class="space-y-2">
+                <Label>@L.T("文件名", "File Name")</Label>
+                <DropdownMenu>
+                    <InputGroup>
+                        <InputGroupInput Placeholder="@(L.T("请输入文件名", "Enter file name"))" />
+                        <InputGroupAddon Align="InputGroupAlign.InlineEnd">
+                            <AtomBlazor.DropdownMenuTrigger>
+                                <InputGroupButton Variant="ButtonVariant.Ghost" Class="!px-1.5 !py-1.5 !rounded-md">
+                                    <LucideIcon Name="chevron-down" Size="16" />
+                                </InputGroupButton>
+                            </AtomBlazor.DropdownMenuTrigger>
+                        </InputGroupAddon>
+                    </InputGroup>
+                    <AtomBlazor.DropdownMenuContent Align="@PopoverAlign.End">
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleMenuAction("Settings"))">@L.T("设置", "Settings")</AtomBlazor.DropdownMenuItem>
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleMenuAction("Copy path"))">@L.T("复制路径", "Copy path")</AtomBlazor.DropdownMenuItem>
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleMenuAction("Open location"))">@L.T("打开所在位置", "Open location")</AtomBlazor.DropdownMenuItem>
+                    </AtomBlazor.DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+
+            <!-- Input with Search Scope Dropdown -->
+            <div class="space-y-2">
+                <Label>@L.T("搜索", "Search")</Label>
+                <DropdownMenu>
+                    <InputGroup Class="rounded-lg">
+                        <InputGroupInput Placeholder="@(L.T("请输入搜索内容", "Enter search query"))" />
+                        <InputGroupAddon Align="InputGroupAlign.InlineEnd">
+                            <AtomBlazor.DropdownMenuTrigger>
+                                <InputGroupButton Variant="ButtonVariant.Ghost" Class="!px-1 !py-1 !rounded-md">
+                                    @L.T("搜索范围…", "Search In...")
+                                    <LucideIcon Name="chevron-down" Size="16" />
+                                </InputGroupButton>
+                            </AtomBlazor.DropdownMenuTrigger>
+                        </InputGroupAddon>
+                    </InputGroup>
+                    <AtomBlazor.DropdownMenuContent Align="@PopoverAlign.End">
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleSearchScope("Documentation"))">@L.T("文档", "Documentation")</AtomBlazor.DropdownMenuItem>
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleSearchScope("Blog Posts"))">@L.T("博客文章", "Blog Posts")</AtomBlazor.DropdownMenuItem>
+                        <AtomBlazor.DropdownMenuItem OnClick="@(() => HandleSearchScope("Changelog"))">@L.T("更新日志", "Changelog")</AtomBlazor.DropdownMenuItem>
+                    </AtomBlazor.DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+        </div>
+        <CodeBlock Source="Components/InputGroup/dropdown-menu.txt" />
+    </section>
+
+    <!-- Code Editor Example -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("代码编辑器", "Code Editor")</h2>
+            <p class="text-muted-foreground">
+                @L.T("带页眉与页脚工具栏的代码编辑器界面。", "Create code editor interfaces with header and footer toolbars.")
+            </p>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Code Editor with Toolbar -->
+            <div class="space-y-2">
+                <InputGroup>
+                    <InputGroupAddon Align="InputGroupAlign.BlockStart" Class="order-1 border-b !py-3">
+                        <InputGroupText Class="font-mono font-medium gap-1.5">
+                            <LucideIcon Name="file-code" Size="16" />
+                            script.js
+                        </InputGroupText>
+                        <InputGroupButton Variant="ButtonVariant.Ghost" Class="ml-auto !px-2 !py-2 !rounded-md">
+                            <LucideIcon Name="refresh-cw" Size="16" />
+                        </InputGroupButton>
+                        <InputGroupButton Variant="ButtonVariant.Ghost" Class="!px-2 !py-2 !rounded-md">
+                            <LucideIcon Name="copy" Size="16" />
+                        </InputGroupButton>
+                    </InputGroupAddon>
+                    <InputGroupTextarea
+                        Placeholder="console.log('Hello, world!');"
+                        Rows="8"
+                        Class="min-h-[200px] font-mono text-sm order-2 !border-0" />
+                    <InputGroupAddon Align="InputGroupAlign.BlockEnd" Class="order-3 border-t !py-3">
+                        <InputGroupText>@L.T("第 1 行，第 1 列", "Line 1, Column 1")</InputGroupText>
+                        <InputGroupButton Class="ml-auto !px-3 !py-1.5 !rounded-md">
+                            @L.T("运行", "Run") <LucideIcon Name="corner-down-left" Size="16" />
+                        </InputGroupButton>
+                    </InputGroupAddon>
+                </InputGroup>
+            </div>
+        </div>
+        <CodeBlock Source="Components/InputGroup/code-editor.txt" />
+    </section>
+
+    <!-- Update Timing -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("更新时机", "Update Timing")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    在 InputGroupInput 与 InputGroupTextarea 上用
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">UpdateTiming</code> 参数控制
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">ValueChanged</code> 的触发时机。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    Control when <code class="text-xs bg-muted px-1 py-0.5 rounded">ValueChanged</code> fires using the
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">UpdateTiming</code> parameter on InputGroupInput and InputGroupTextarea.
+                </p>
+                        </text>
+}
+        </div>
+
+        <div class="space-y-6">
+            <!-- Immediate -->
+            <div class="space-y-2">
+                <Label>@L.T("即时（默认）", "Immediate (default)")</Label>
+                <InputGroup>
+                    <InputGroupAddon Align="InputGroupAlign.InlineStart">
+                        <LucideIcon Name="search" Size="16" />
+                    </InputGroupAddon>
+                    <InputGroupInput UpdateTiming="UpdateTiming.Immediate"
+                                     Value="@_igImmediateValue"
+                                     ValueChanged="@((v) => _igImmediateValue = v)"
+                                     Placeholder="@(L.T("每次按键都会触发", "Fires on every keystroke"))" />
+                </InputGroup>
+                <div class="rounded-lg border p-3 bg-muted/50">
+                    <p class="text-xs text-muted-foreground mb-1">@L.T("值：", "Value:")</p>
+                    <p class="text-sm font-mono">@(string.IsNullOrEmpty(_igImmediateValue) ? L.T("（空）", "(empty)") : _igImmediateValue)</p>
+                </div>
+            </div>
+
+            <!-- OnChange -->
+            <div class="space-y-2">
+                <Label>@L.T("OnChange（失去焦点 / 回车）", "OnChange (blur / Enter)")</Label>
+                <InputGroup>
+                    <InputGroupAddon Align="InputGroupAlign.InlineStart">
+                        <LucideIcon Name="search" Size="16" />
+                    </InputGroupAddon>
+                    <InputGroupInput UpdateTiming="UpdateTiming.OnChange"
+                                     Value="@_igOnChangeValue"
+                                     ValueChanged="@((v) => _igOnChangeValue = v)"
+                                     Placeholder="@(L.T("失去焦点或按回车时触发", "Fires on blur or Enter"))" />
+                </InputGroup>
+                <div class="rounded-lg border p-3 bg-muted/50">
+                    <p class="text-xs text-muted-foreground mb-1">@L.T("值：", "Value:")</p>
+                    <p class="text-sm font-mono">@(string.IsNullOrEmpty(_igOnChangeValue) ? L.T("（空）", "(empty)") : _igOnChangeValue)</p>
+                </div>
+            </div>
+
+            <!-- Debounced -->
+            <div class="space-y-2">
+                <Label>@L.T("防抖（500ms）", "Debounced (500ms)")</Label>
+                <InputGroup>
+                    <InputGroupAddon Align="InputGroupAlign.InlineStart">
+                        <LucideIcon Name="search" Size="16" />
+                    </InputGroupAddon>
+                    <InputGroupInput UpdateTiming="UpdateTiming.Debounced"
+                                     DebounceInterval="500"
+                                     Value="@_igDebouncedValue"
+                                     ValueChanged="@((v) => _igDebouncedValue = v)"
+                                     Placeholder="@(L.T("停止输入后触发", "Fires after typing pauses"))" />
+                </InputGroup>
+                <div class="rounded-lg border p-3 bg-muted/50">
+                    <p class="text-xs text-muted-foreground mb-1">@L.T("值：", "Value:")</p>
+                    <p class="text-sm font-mono">@(string.IsNullOrEmpty(_igDebouncedValue) ? L.T("（空）", "(empty)") : _igDebouncedValue)</p>
+                </div>
+            </div>
+
+            <!-- Textarea Debounced -->
+            <div class="space-y-2">
+                <Label>@L.T("文本域防抖（300ms）", "Textarea Debounced (300ms)")</Label>
+                <InputGroup>
+                    <InputGroupTextarea UpdateTiming="UpdateTiming.Debounced"
+                                        DebounceInterval="300"
+                                        Rows="3"
+                                        Value="@_igTextareaDebouncedValue"
+                                        ValueChanged="@((v) => _igTextareaDebouncedValue = v)"
+                                        Placeholder="@(L.T("输入即可看到防抖更新…", "Type to see debounced updates..."))" />
+                    <InputGroupAddon Align="InputGroupAlign.BlockEnd">
+                        <InputGroupText>@L.T("防抖间隔 300ms", "Debounced at 300ms")</InputGroupText>
+                    </InputGroupAddon>
+                </InputGroup>
+                <div class="rounded-lg border p-3 bg-muted/50">
+                    <p class="text-xs text-muted-foreground mb-1">@L.T("值：", "Value:")</p>
+                    <p class="text-sm font-mono">@(string.IsNullOrEmpty(_igTextareaDebouncedValue) ? L.T("（空）", "(empty)") : _igTextareaDebouncedValue)</p>
+                </div>
+            </div>
+        </div>
+        <CodeBlock Source="Components/InputGroup/update-timing.txt" />
+    </section>
+
+    <!-- Form Validation with EditForm -->
+    <section class="space-y-6">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("EditForm 校验", "EditForm Validation")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    InputGroupInput 与 InputGroupTextarea 可以接入 Blazor 的 EditForm 做模型校验。
+                    校验错误会自动通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> 应用错误样式。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-muted-foreground">
+                    InputGroupInput and InputGroupTextarea integrate with Blazor's EditForm for model validation.
+                    Validation errors automatically apply error styling via <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code>.
+                </p>
+                        </text>
+}
+        </div>
+
+        <EditForm Model="formModel" OnValidSubmit="HandleValidSubmit" class="space-y-4">
+            <DataAnnotationsValidator />
+
+            <div class="space-y-2">
+                <Label>@L.T("邮箱", "Email")</Label>
+                <InputGroup>
+                    <InputGroupAddon Align="InputGroupAlign.InlineStart">
+                        <LucideIcon Name="at-sign" Size="16" />
+                    </InputGroupAddon>
+                    <InputGroupInput Type="InputType.Email" @bind-Value="formModel.Email" Placeholder="name@example.com" />
+                </InputGroup>
+                <ValidationMessage For="@(() => formModel.Email)" class="text-sm text-destructive" />
+            </div>
+
+            <div class="space-y-2">
+                <Label>@L.T("评论", "Comment")</Label>
+                <InputGroup>
+                    <InputGroupTextarea @bind-Value="formModel.Comment" Rows="3" Placeholder="@(L.T("写下你的评论…", "Write your comment..."))" />
+                </InputGroup>
+                <ValidationMessage For="@(() => formModel.Comment)" class="text-sm text-destructive" />
+            </div>
+
+            <div class="flex gap-4">
+                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Default">@L.T("提交", "Submit")</Button>
+                <Button Type="ButtonType.Button" Variant="ButtonVariant.Outline" OnClick="ResetForm">@L.T("重置", "Reset")</Button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(formMessage))
+            {
+                <div class="p-4 bg-card rounded-lg border">
+                    <p class="text-sm">@formMessage</p>
+                </div>
+            }
+        </EditForm>
+        <CodeBlock Source="Components/InputGroup/editform-validation.txt" />
+    </section>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("没有可见标签时，InputGroupInput 与 InputGroupTextarea 支持用 aria-label 提供无障碍名称", "InputGroupInput and InputGroupTextarea support aria-label for accessible labeling when no visible label is present")</AccessibilityItem>
+            <AccessibilityItem>@L.T("aria-describedby 把输入框与补充说明或操作提示关联起来", "aria-describedby links inputs to supplementary descriptions or instructions")</AccessibilityItem>
+            <AccessibilityItem>@L.T("在 EditForm 内校验失败时会自动设置 aria-invalid，也可通过 AriaInvalid 参数手动设置", "aria-invalid is set automatically when validation fails inside an EditForm, or manually via AriaInvalid parameter")</AccessibilityItem>
+            <AccessibilityItem>@L.T("任一子控件的 aria-invalid 为 true 时，InputGroup 会应用 destructive 边框样式", "InputGroup applies destructive border styling when any child control has aria-invalid=\"true\"")</AccessibilityItem>
+            <AccessibilityItem>@L.T("没有可见文字的纯图标按钮，InputGroupButton 支持 aria-label", "InputGroupButton supports aria-label for icon-only buttons without visible text")</AccessibilityItem>
+            <AccessibilityItem>@L.T("点击 InputGroupAddon 会把焦点转交给关联的输入控件", "Clicking an InputGroupAddon delegates focus to the associated input control")</AccessibilityItem>
+        </AriaAttributes>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="InputGroup">
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到输入组容器上的额外 CSS 类。", "Additional CSS classes applied to the input group container.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("子内容，通常是一个 InputGroupInput/InputGroupTextarea 与若干 InputGroupAddon 组件。", "The child content containing InputGroupInput/InputGroupTextarea and InputGroupAddon components.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="InputGroupAddon">
+                <ApiParameter Name="Align" Type="InputGroupAlign" Default="InlineStart">
+                    @L.T("附加元素的对齐位置：InlineStart、InlineEnd、BlockStart 或 BlockEnd。", "The alignment position of the addon: InlineStart, InlineEnd, BlockStart, or BlockEnd.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到附加元素容器上的额外 CSS 类。", "Additional CSS classes applied to the addon container.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("附加元素的内容（图标、按钮、文本或其他元素）。", "The addon content (icons, buttons, text, or other elements).")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="InputGroupInput">
+                <ApiParameter Name="Type" Type="InputType" Default="Text">
+                    @L.T("输入框类型（Text、Email、Password、Number、Tel、Url、Search、Date、Time、File）。", "The type of input (Text, Email, Password, Number, Tel, Url, Search, Date, Time, File).")
+                </ApiParameter>
+                <ApiParameter Name="Value" Type="string?" Default="null">
+                    @L.T("输入框的当前值。使用 @bind-Value 进行双向绑定。", "The current value of the input. Use @bind-Value for two-way binding.")
+                </ApiParameter>
+                <ApiParameter Name="ValueChanged" Type="EventCallback&lt;string?&gt;">
+                    @L.T("输入值发生变化时调用的回调。", "Callback invoked when the input value changes.")
+                </ApiParameter>
+                <ApiParameter Name="ValueExpression" Type="Expression&lt;Func&lt;string?&gt;&gt;?" Default="null">
+                    @L.T("标识绑定值的表达式，用于 EditForm 集成。", "Expression that identifies the bound value for EditForm integration.")
+                </ApiParameter>
+                <ApiParameter Name="Placeholder" Type="string?" Default="null">
+                    @L.T("输入框为空时显示的占位文本。", "Placeholder text displayed when the input is empty.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("输入框是否被禁用。", "Whether the input is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">
+                    @L.T("输入框是否为必填（会设置 HTML 的 required 属性）。", "Whether the input is required (sets the HTML required attribute).")
+                </ApiParameter>
+                <ApiParameter Name="UpdateTiming" Type="UpdateTiming" Default="Immediate">
+                    @L.T("ValueChanged 的触发时机：Immediate、OnChange 或 Debounced。", "When ValueChanged fires: Immediate, OnChange, or Debounced.")
+                </ApiParameter>
+                <ApiParameter Name="DebounceInterval" Type="int" Default="500">
+                    @L.T("UpdateTiming 为 Debounced 时的防抖延迟（毫秒）。", "Debounce delay in milliseconds when UpdateTiming is Debounced.")
+                </ApiParameter>
+                <ApiParameter Name="Id" Type="string?" Default="null">
+                    @L.T("HTML id 属性。", "The HTML id attribute.")
+                </ApiParameter>
+                <ApiParameter Name="Name" Type="string?" Default="null">
+                    @L.T("HTML name 属性。在 EditForm 内未设置时会自动从 ValueExpression 推导。", "The HTML name attribute. Auto-derived from ValueExpression inside EditForm if not set.")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                    @L.T("用于无障碍的 ARIA 标签。", "ARIA label for accessibility.")
+                </ApiParameter>
+                <ApiParameter Name="AriaDescribedBy" Type="string?" Default="null">
+                    @L.T("指向描述元素的 ARIA described-by 属性。", "ARIA described-by attribute linking to a description element.")
+                </ApiParameter>
+                <ApiParameter Name="AriaInvalid" Type="bool?" Default="null">
+                    @L.T("输入值是否无效。在 EditForm 内会自动检测。", "Whether the input value is invalid. Auto-detected inside EditForm.")
+                </ApiParameter>
+                <ApiParameter Name="OnInputRef" Type="Action&lt;ElementReference&gt;?" Default="null">
+                    @L.T("首次渲染后调用，传入输入框的 ElementReference 以便做 JS interop。", "Callback invoked after first render with the input's ElementReference for JS interop.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到输入元素上的额外 CSS 类。", "Additional CSS classes applied to the input element.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到根 <code>&lt;input&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the root <code>&lt;input&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="InputGroupTextarea">
+                <ApiParameter Name="Value" Type="string?" Default="null">
+                    @L.T("文本域的当前值。使用 @bind-Value 进行双向绑定。", "The current value of the textarea. Use @bind-Value for two-way binding.")
+                </ApiParameter>
+                <ApiParameter Name="ValueChanged" Type="EventCallback&lt;string?&gt;">
+                    @L.T("文本域值发生变化时调用的回调。", "Callback invoked when the textarea value changes.")
+                </ApiParameter>
+                <ApiParameter Name="ValueExpression" Type="Expression&lt;Func&lt;string?&gt;&gt;?" Default="null">
+                    @L.T("标识绑定值的表达式，用于 EditForm 集成。", "Expression that identifies the bound value for EditForm integration.")
+                </ApiParameter>
+                <ApiParameter Name="Rows" Type="int" Default="3">
+                    @L.T("可见的文本行数。", "The number of visible text rows.")
+                </ApiParameter>
+                <ApiParameter Name="Placeholder" Type="string?" Default="null">
+                    @L.T("文本域为空时显示的占位文本。", "Placeholder text displayed when the textarea is empty.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("文本域是否被禁用。", "Whether the textarea is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">
+                    @L.T("文本域是否为必填（会设置 HTML 的 required 属性）。", "Whether the textarea is required (sets the HTML required attribute).")
+                </ApiParameter>
+                <ApiParameter Name="UpdateTiming" Type="UpdateTiming" Default="Immediate">
+                    @L.T("ValueChanged 的触发时机：Immediate、OnChange 或 Debounced。", "When ValueChanged fires: Immediate, OnChange, or Debounced.")
+                </ApiParameter>
+                <ApiParameter Name="DebounceInterval" Type="int" Default="500">
+                    @L.T("UpdateTiming 为 Debounced 时的防抖延迟（毫秒）。", "Debounce delay in milliseconds when UpdateTiming is Debounced.")
+                </ApiParameter>
+                <ApiParameter Name="Id" Type="string?" Default="null">
+                    @L.T("HTML id 属性。", "The HTML id attribute.")
+                </ApiParameter>
+                <ApiParameter Name="Name" Type="string?" Default="null">
+                    @L.T("HTML name 属性。在 EditForm 内未设置时会自动从 ValueExpression 推导。", "The HTML name attribute. Auto-derived from ValueExpression inside EditForm if not set.")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                    @L.T("用于无障碍的 ARIA 标签。", "ARIA label for accessibility.")
+                </ApiParameter>
+                <ApiParameter Name="AriaDescribedBy" Type="string?" Default="null">
+                    @L.T("指向描述元素的 ARIA described-by 属性。", "ARIA described-by attribute linking to a description element.")
+                </ApiParameter>
+                <ApiParameter Name="AriaInvalid" Type="bool?" Default="null">
+                    @L.T("文本域的值是否无效。在 EditForm 内会自动检测。", "Whether the textarea value is invalid. Auto-detected inside EditForm.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到文本域元素上的额外 CSS 类。", "Additional CSS classes applied to the textarea element.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到根 <code>&lt;textarea&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the root <code>&lt;textarea&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="InputGroupButton">
+                <ApiParameter Name="Type" Type="ButtonType" Default="Button">
+                    @L.T("按钮类型（Button、Submit、Reset）。", "The button type (Button, Submit, Reset).")
+                </ApiParameter>
+                <ApiParameter Name="Variant" Type="ButtonVariant" Default="Default">
+                    @L.T("按钮的视觉变体。", "The button visual variant.")
+                </ApiParameter>
+                <ApiParameter Name="Size" Type="ButtonSize" Default="Small">
+                    @L.T("按钮尺寸。在输入组中默认为 Small 以获得更好的比例。", "The button size. Defaults to Small for better proportions within input groups.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("按钮是否被禁用。", "Whether the button is disabled.")
+                </ApiParameter>
+                <ApiParameter Name="OnClick" Type="EventCallback">
+                    @L.T("点击事件处理程序。", "Click event handler.")
+                </ApiParameter>
+                <ApiParameter Name="Icon" Type="RenderFragment?">
+                    @L.T("在按钮内显示的图标。", "Icon to display in the button.")
+                </ApiParameter>
+                <ApiParameter Name="IconPosition" Type="IconPosition" Default="Start">
+                    @L.T("图标相对按钮文字的位置。", "Position of the icon relative to button text.")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                    @L.T("用于无障碍的 ARIA 标签，尤其适合纯图标按钮。", "ARIA label for accessibility, especially for icon-only buttons.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到按钮上的额外 CSS 类。", "Additional CSS classes applied to the button.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("按钮的文字内容。", "The button text content.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="InputGroupText">
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("应用到文本容器上的额外 CSS 类。", "Additional CSS classes applied to the text container.")
+                </ApiParameter>
+                <ApiParameter Name="ChildContent" Type="RenderFragment?">
+                    @L.T("文本内容（货币符号、URL 前缀、单位等）。", "The text content (currency symbols, URL prefixes, units, etc.).")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到根 <code>&lt;span&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the root <code>&lt;span&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string? _igImmediateValue;
+    private string? _igOnChangeValue;
+    private string? _igDebouncedValue;
+    private string? _igTextareaDebouncedValue;
+    private InputGroupFormModel formModel = new();
+    private string? formMessage;
+
+    private void HandleValidSubmit()
+    {
+        formMessage = L.IsChinese
+            ? $"表单已提交！邮箱：{formModel.Email}，评论：{formModel.Comment}"
+            : $"Form submitted! Email: {formModel.Email}, Comment: {formModel.Comment}";
+    }
+
+    private void ResetForm()
+    {
+        formModel = new();
+        formMessage = null;
+    }
+
+    // 菜单项回调：与源一致，下拉菜单在点击项后自动关闭，这里仅记录所选动作。
+    private void HandleMenuAction(string action)
+    {
+        // Handle menu action
+        // The dropdown menu closes automatically after clicking an item
+        Console.WriteLine($"Menu action: {action}");
+    }
+
+    // 搜索范围回调：与源一致，仅记录所选范围。
+    private void HandleSearchScope(string scope)
+    {
+        // Handle search scope selection
+        Console.WriteLine($"Search scope: {scope}");
+    }
+
+    private class InputGroupFormModel
+    {
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Please enter a valid email address.")]
+        public string? Email { get; set; }
+
+        [Required(ErrorMessage = "Comment is required.")]
+        [StringLength(500, MinimumLength = 5, ErrorMessage = "Comment must be between 5 and 500 characters.")]
+        public string? Comment { get; set; }
+    }
+}

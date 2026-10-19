@@ -1,0 +1,21 @@
+@namespace AtomBlazor
+@typeparam TValue
+@attribute [CascadingTypeParameter(nameof(TValue))]
+
+<AtomBlazor.Primitives.MenuRadioGroup TValue="TValue" Value="@Value" ValueChanged="@ValueChanged"
+                                                 Disabled="@Disabled" @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.MenuRadioGroup>
+
+@code {
+    /// <summary>当前选中的值。</summary>
+    [Parameter] public TValue? Value { get; set; }
+    /// <summary>选中值发生变化时调用。</summary>
+    [Parameter] public EventCallback<TValue> ValueChanged { get; set; }
+    /// <summary>禁用组内的所有项。</summary>
+    [Parameter] public bool Disabled { get; set; }
+    /// <summary>单选按钮项。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>HTML 特性，包含可访问的分组标签。</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}

@@ -1,0 +1,370 @@
+@page "/components/time-picker"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("TimePicker 时间选择器 - Atom BlazorUI", "TimePicker Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("TimePicker 时间选择器", "TimePicker Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("支持 12/24 小时制、分钟步进与时间限制的时间选择组件。", "A time selection component with 12/24-hour format support, minute stepping, and time constraints.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic 12-Hour -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("12 小时制（默认）", "12-Hour Format (Default)")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("标准 12 小时制，带 AM/PM 切换。", "Standard 12-hour format with AM/PM toggle.")
+            </p>
+        </div>
+        <TimePicker AriaLabel="@(L.T("选择时间", "Choose a time"))" @bind-Value="_time12" />
+        <p class="text-sm text-muted-foreground">
+            @L.F("已选择：{0}", "Selected: {0}", _time12.HasValue ? FormatTime12(_time12.Value) : L.T("无", "None"))
+        </p>
+        <CodeBlock Source="Components/TimePicker/12-hour.txt" />
+    </div>
+
+    <!-- 24-Hour Format -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("24 小时制", "24-Hour Format")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("军用／国际时间格式。", "Military/international time format.")
+            </p>
+        </div>
+        <TimePicker @bind-Value="_time24" Format="TimeFormat.Hour24" />
+        <p class="text-sm text-muted-foreground">
+            @L.F("已选择：{0}", "Selected: {0}", _time24.HasValue ? _time24.Value.ToString(@"hh\:mm") : L.T("无", "None"))
+        </p>
+        <CodeBlock Source="Components/TimePicker/24-hour.txt" />
+    </div>
+
+    <!-- With Seconds -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("显示秒数", "With Seconds")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("显示秒选择器，便于精确选择时间。", "Shows seconds selector for precise time selection.")
+            </p>
+        </div>
+        <TimePicker @bind-Value="_timeSeconds" ShowSeconds="true" />
+        <p class="text-sm text-muted-foreground">
+            @L.F("已选择：{0}", "Selected: {0}", _timeSeconds.HasValue ? FormatTime12WithSeconds(_timeSeconds.Value) : L.T("无", "None"))
+        </p>
+        <CodeBlock Source="Components/TimePicker/with-seconds.txt" />
+    </div>
+
+    <!-- 24-Hour with Seconds -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("24 小时制并显示秒", "24-Hour with Seconds")</h2>
+        </div>
+        <TimePicker @bind-Value="_time24Seconds" Format="TimeFormat.Hour24" ShowSeconds="true" />
+        <p class="text-sm text-muted-foreground">
+            @L.F("已选择：{0}", "Selected: {0}", _time24Seconds.HasValue ? _time24Seconds.Value.ToString(@"hh\:mm\:ss") : L.T("无", "None"))
+        </p>
+        <CodeBlock Source="Components/TimePicker/24-hour-with-seconds.txt" />
+    </div>
+
+    <!-- Minute Step -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("15 分钟间隔", "15-Minute Intervals")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("分钟数按 15 递增（0、15、30、45）。", "Minutes increment by 15 (0, 15, 30, 45).")
+            </p>
+        </div>
+        <TimePicker @bind-Value="_timeStep15" MinuteStep="15" />
+        <p class="text-sm text-muted-foreground">
+            @L.F("已选择：{0}", "Selected: {0}", _timeStep15.HasValue ? FormatTime12(_timeStep15.Value) : L.T("无", "None"))
+        </p>
+        <CodeBlock Source="Components/TimePicker/15-minute-intervals.txt" />
+    </div>
+
+    <!-- 5-Minute Step -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("5 分钟间隔", "5-Minute Intervals")</h2>
+        </div>
+        <TimePicker @bind-Value="_timeStep5" MinuteStep="5" />
+        <p class="text-sm text-muted-foreground">
+            @L.F("已选择：{0}", "Selected: {0}", _timeStep5.HasValue ? FormatTime12(_timeStep5.Value) : L.T("无", "None"))
+        </p>
+        <CodeBlock Source="Components/TimePicker/5-minute-intervals.txt" />
+    </div>
+
+    <!-- With Time Constraints -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("营业时间（上午 9 点 - 下午 5 点）", "Business Hours (9 AM - 5 PM)")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("时间被限制在营业时间之内。", "Time is constrained to business hours.")
+            </p>
+        </div>
+        <TimePicker @bind-Value="_timeConstrained"
+                    MinTime="@(new TimeSpan(9, 0, 0))"
+                    MaxTime="@(new TimeSpan(17, 0, 0))" />
+        <p class="text-sm text-muted-foreground">
+            @L.F("已选择：{0}", "Selected: {0}", _timeConstrained.HasValue ? FormatTime12(_timeConstrained.Value) : L.T("无", "None")) @L.T("（上午 9:00 - 下午 5:00）", "(9:00 AM - 5:00 PM)")
+        </p>
+        <CodeBlock Source="Components/TimePicker/business-hours.txt" />
+    </div>
+
+    <!-- Pre-selected Value -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("预选值", "Pre-selected Value")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("初始值为下午 2:30。", "Initialized with 2:30 PM.")
+            </p>
+        </div>
+        <TimePicker @bind-Value="_timePreset" />
+        <p class="text-sm text-muted-foreground">
+            @L.F("已选择：{0}", "Selected: {0}", _timePreset.HasValue ? FormatTime12(_timePreset.Value) : L.T("无", "None"))
+        </p>
+        <CodeBlock Source="Components/TimePicker/pre-selected.txt" />
+    </div>
+
+    <!-- Custom Placeholder -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义占位符", "Custom Placeholder")</h2>
+        </div>
+        <TimePicker @bind-Value="_timePlaceholder" Placeholder="@(L.T("选择会议时间", "Choose meeting time"))" />
+        <p class="text-sm text-muted-foreground">
+            @L.F("已选择：{0}", "Selected: {0}", _timePlaceholder.HasValue ? FormatTime12(_timePlaceholder.Value) : L.T("无", "None"))
+        </p>
+        <CodeBlock Source="Components/TimePicker/custom-placeholder.txt" />
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+        </div>
+        <TimePicker Value="@(new TimeSpan(10, 30, 0))" Disabled="true" />
+        <CodeBlock Source="Components/TimePicker/disabled.txt" />
+    </div>
+
+    <!-- Multiple Pickers -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("开始时间与结束时间", "Start and End Time")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("排期场景的常见用法。", "Common pattern for scheduling.")
+            </p>
+        </div>
+        <div class="flex items-center gap-4">
+            <div>
+                <label class="text-sm font-medium mb-1 block">@L.T("开始", "Start")</label>
+                <TimePicker @bind-Value="_startTime" />
+            </div>
+            <span class="mt-6">@L.T("至", "to")</span>
+            <div>
+                <label class="text-sm font-medium mb-1 block">@L.T("结束", "End")</label>
+                <TimePicker @bind-Value="_endTime" />
+            </div>
+        </div>
+        <p class="text-sm text-muted-foreground">
+            @if (_startTime.HasValue && _endTime.HasValue)
+            {
+                var duration = _endTime.Value - _startTime.Value;
+                if (duration < TimeSpan.Zero) duration += TimeSpan.FromHours(24);
+                @if (L.IsChinese)
+                {
+                    <text>
+                        @($"时长：{duration.Hours} 小时 {duration.Minutes} 分钟。")
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        @($"Duration: {duration.Hours}h {duration.Minutes}m")
+                    </text>
+                }
+            }
+            else
+            {
+                @L.T("请同时选择两个时间以查看时长。", "Select both times to see duration")
+            }
+        </p>
+        <CodeBlock Source="Components/TimePicker/start-end-time.txt" />
+    </div>
+
+    <!-- Form Validation with EditForm -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表单校验", "Form Validation")</h2>
+            @if (L.IsChinese)
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        TimePicker 与 Blazor 的 EditForm、EditContext 集成，支持模型校验。
+                        在 EditForm 内使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code>，
+                        校验错误会自动通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> 应用错误样式。
+                    </p>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                        TimePicker integrates with Blazor's EditForm and EditContext for model validation.
+                        Use <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code> within an EditForm and
+                        validation errors will automatically apply error styling via <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code>.
+                    </p>
+                </text>
+            }
+        </div>
+        <EditForm Model="timeFormModel" OnValidSubmit="HandleTimeFormSubmit" class="max-w-md space-y-4">
+            <DataAnnotationsValidator />
+
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("会议时间", "Meeting Time")</label>
+                <TimePicker @bind-Value="timeFormModel.MeetingTime" />
+                <ValidationMessage For="@(() => timeFormModel.MeetingTime)" class="text-sm text-destructive" />
+            </div>
+
+            <div class="flex gap-4">
+                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Default">@L.T("提交", "Submit")</Button>
+                <Button Type="ButtonType.Button" Variant="ButtonVariant.Outline" OnClick="ResetTimeForm">@L.T("重置", "Reset")</Button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(timeFormMessage))
+            {
+                <div class="p-4 bg-card rounded-lg border">
+                    <p class="text-sm">@timeFormMessage</p>
+                </div>
+            }
+        </EditForm>
+    </div>
+
+    <!-- API Reference -->
+
+
+        <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@(L.T("选择器由一个按钮触发器与一个弹出层组成，弹出层内含时、分以及可选的秒控件。请提供描述性的 Placeholder 文案，并配合可见的标签使用。", "The picker uses a button trigger and a popover containing hour, minute and optional second controls. Provide descriptive Placeholder text and pair it with a visible label."))</AccessibilityItem>
+            <AccessibilityItem>@(L.T("Required 会把触发器标记为必填。Disabled 会阻止打开或修改选择器；值校验可通过 ValueExpression 关联。", "Required marks the trigger as required. Disabled prevents opening or changing the picker; value validation can be associated through ValueExpression."))</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在触发器与已打开的选择器控件之间移动", "Move between the trigger and open picker controls"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("打开选择器，或激活聚焦的递增、递减与时段按钮", "Open the picker or activate a focused increment, decrement or period button"))"><Kbd>Enter</Kbd> / <Kbd>Space</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("关闭选择器", "Close the picker"))"><Kbd>Escape</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="TimePicker">
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">@L.T("转发给交互控件或分组的无障碍名称。", "Accessible name forwarded to the interactive control or group.")</ApiParameter>
+                <ApiParameter Name="Value" Type="TimeSpan?">
+                    @L.T("已选择的时间值。", "Selected time value.")
+                </ApiParameter>
+                <ApiParameter Name="Format" Type="TimeFormat" Default="Hour12">
+                    @L.T("时间格式。可选：Hour12 或 Hour24。", "Time format. Options: Hour12 or Hour24.")
+                </ApiParameter>
+                <ApiParameter Name="ShowSeconds" Type="bool" Default="false">
+                    @L.T("显示秒选择器，便于精确选择时间。", "Show seconds selector for precise time selection.")
+                </ApiParameter>
+                <ApiParameter Name="MinuteStep" Type="int" Default="1">
+                    @L.T("分钟递增值。有效值：1、5、10、15、30。", "Minute increment value. Valid values: 1, 5, 10, 15, 30.")
+                </ApiParameter>
+                <ApiParameter Name="MinTime" Type="TimeSpan?">
+                    @L.T("允许的最小时间限制。", "Minimum allowed time constraint.")
+                </ApiParameter>
+                <ApiParameter Name="MaxTime" Type="TimeSpan?">
+                    @L.T("允许的最大时间限制。", "Maximum allowed time constraint.")
+                </ApiParameter>
+                <ApiParameter Name="Placeholder" Type="string" Default="Select time">
+                    @L.T("未选择时间时显示的占位文案。", "Placeholder text displayed when no time is selected.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("禁用选择器并阻止交互。", "Disables the picker and prevents interaction.")
+                </ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">
+                    @L.T("该时间选择器是否为必填。", "Whether the time picker is required.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            应用到组件根元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Additional HTML attributes applied to the component's root element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                        </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private TimeSpan? _time12;
+    private TimeSpan? _time24;
+    private TimeSpan? _timeSeconds;
+    private TimeSpan? _time24Seconds;
+    private TimeSpan? _timeStep15;
+    private TimeSpan? _timeStep5;
+    private TimeSpan? _timeConstrained;
+    private TimeSpan? _timePreset = new TimeSpan(14, 30, 0);
+    private TimeSpan? _timePlaceholder;
+    private TimeSpan? _startTime = new TimeSpan(9, 0, 0);
+    private TimeSpan? _endTime = new TimeSpan(17, 0, 0);
+
+    private string FormatTime12(TimeSpan time)
+    {
+        var hour = time.Hours % 12;
+        if (hour == 0) hour = 12;
+        var amPm = time.Hours < 12 ? "AM" : "PM";
+        return $"{hour:D2}:{time.Minutes:D2} {amPm}";
+    }
+
+    private string FormatTime12WithSeconds(TimeSpan time)
+    {
+        var hour = time.Hours % 12;
+        if (hour == 0) hour = 12;
+        var amPm = time.Hours < 12 ? "AM" : "PM";
+        return $"{hour:D2}:{time.Minutes:D2}:{time.Seconds:D2} {amPm}";
+    }
+
+    private TimeFormModel timeFormModel = new();
+    private string? timeFormMessage;
+
+    private void HandleTimeFormSubmit()
+    {
+        timeFormMessage = L.IsChinese
+            ? $"表单已提交！会议时间：{(timeFormModel.MeetingTime.HasValue ? FormatTime12(timeFormModel.MeetingTime.Value) : "无")}"
+            : $"Form submitted! Meeting Time: {(timeFormModel.MeetingTime.HasValue ? FormatTime12(timeFormModel.MeetingTime.Value) : "None")}";
+    }
+
+    private void ResetTimeForm()
+    {
+        timeFormModel = new();
+        timeFormMessage = null;
+    }
+
+    private class TimeFormModel
+    {
+        [Required(ErrorMessage = "Please select a meeting time.")]
+        public TimeSpan? MeetingTime { get; set; }
+    }
+}

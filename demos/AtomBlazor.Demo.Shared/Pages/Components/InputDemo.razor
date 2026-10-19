@@ -1,0 +1,730 @@
+@page "/components/input"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("Input 输入框 - Atom BlazorUI", "Input Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Input 输入框组件", "Input Component")</h1>
+        <p class="text-xl text-muted-foreground">
+            @L.T("渲染一个表单输入框，或一个看起来像输入框的组件。",
+                 "Displays a form input field or a component that looks like an input field.")
+        </p>
+        </div>
+    </div>
+
+    <!-- Which input component? -->
+    <div class="rounded-lg border border-dashed bg-muted/30 p-6 space-y-3">
+        <h2 class="text-lg font-semibold">@L.T("该用哪个输入组件？", "Which input component?")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <div class="space-y-2 text-sm text-muted-foreground">
+                <p><strong>非文本控件</strong>（复选框、单选、开关、下拉选择）？ &rarr; <a href="/components/field" class="text-primary underline underline-offset-4 hover:text-primary/80">Field</a></p>
+                <p><strong>配合 EditForm 使用的简单字符串输入</strong>？ &rarr; <strong>Input</strong>（当前页面）</p>
+                <p><strong>带自定义错误界面或 EditForm 的强类型值</strong>？ &rarr; <a href="/components/input-field" class="text-primary underline underline-offset-4 hover:text-primary/80">InputField&lt;T&gt;</a></p>
+                <p><strong>强类型值</strong>，而且希望开箱即用？ &rarr; <a href="/components/form-field-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldInput&lt;T&gt;</a>（同样支持 EditForm）</p>
+            </div>
+                </text>
+}
+        else
+        {
+                <text>
+                    <div class="space-y-2 text-sm text-muted-foreground">
+                <p><strong>Non-text control</strong> (checkbox, radio, switch, select)? &rarr; <a href="/components/field" class="text-primary underline underline-offset-4 hover:text-primary/80">Field</a></p>
+                <p><strong>Simple string input</strong> with EditForm? &rarr; <strong>Input</strong> (this page)</p>
+                <p><strong>Typed value</strong> with custom error UI or EditForm? &rarr; <a href="/components/input-field" class="text-primary underline underline-offset-4 hover:text-primary/80">InputField&lt;T&gt;</a></p>
+                <p><strong>Typed value</strong> and you want it to work out of the box? &rarr; <a href="/components/form-field-input" class="text-primary underline underline-offset-4 hover:text-primary/80">FormFieldInput&lt;T&gt;</a> (also supports EditForm)</p>
+            </div>
+                </text>
+}
+    </div>
+
+    <!-- Default Input -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("默认", "Default")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("一个带占位文本的简单文本输入框。", "A simple text input with placeholder.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <Input Type="InputType.Text" Placeholder="@(L.T("请输入文本……", "Enter your text..."))" />
+        </div>
+        <CodeBlock Source="Components/Input/default.txt" />
+    </div>
+
+    <!-- Input Types -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("输入类型", "Input Types")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("不同的 HTML5 输入类型，配有针对性的键盘与校验。",
+                     "Different HTML5 input types with optimized keyboards and validation.")
+            </p>
+        </div>
+        <div class="space-y-4 max-w-md">
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("文本（Text）", "Text")</label>
+                <Input Type="InputType.Text" Placeholder="@(L.T("请输入文本", "Enter text"))" />
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("邮箱（Email）", "Email")</label>
+                <Input Type="InputType.Email" Placeholder="@(L.T("请输入邮箱", "Enter email"))" />
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("密码（Password）", "Password")</label>
+                <Input Type="InputType.Password" Placeholder="@(L.T("请输入密码", "Enter password"))" />
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("数字（Number）", "Number")</label>
+                <Input Type="InputType.Number" Placeholder="@(L.T("请输入数字", "Enter number"))" />
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("电话（Tel）", "Tel")</label>
+                <Input Type="InputType.Tel" Placeholder="@(L.T("请输入电话号码", "Enter phone number"))" />
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("网址（URL）", "URL")</label>
+                <Input Type="InputType.Url" Placeholder="https://example.com" />
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("搜索（Search）", "Search")</label>
+                <Input Type="InputType.Search" Placeholder="@(L.T("搜索……", "Search..."))" />
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("日期（Date）", "Date")</label>
+                <Input Type="InputType.Date" />
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("时间（Time）", "Time")</label>
+                <Input Type="InputType.Time" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/Input/types.txt" />
+    </div>
+
+    <!-- File Input -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("文件", "File")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带有增强伪元素选择器样式（file:border-0、file:bg-transparent、file:text-sm、file:font-medium）的文件上传输入框。",
+                     "File upload input with enhanced pseudo-selector styling (file:border-0, file:bg-transparent, file:text-sm, file:font-medium).")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("上传文件", "Upload file")</label>
+                <Input Type="InputType.File" />
+                <p class="text-xs text-muted-foreground">
+                    @L.T("文件输入框如今使用 file: 伪元素选择器改进了样式。",
+                         "File inputs now have improved styling using file: pseudo-selectors.")
+                </p>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Input/file.txt" />
+    </div>
+
+    <!-- Disabled State -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("处于禁用状态的输入框。", "Input with disabled state.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <Input Type="InputType.Text" Placeholder="@(L.T("已禁用的输入框", "Disabled input"))" Disabled="true" Value="@(L.T("此处无法编辑", "Cannot edit this"))" />
+        </div>
+        <CodeBlock Source="Components/Input/disabled.txt" />
+    </div>
+
+    <!-- Required State -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("必填", "Required")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带 HTML5 required 校验的输入框。", "Input with HTML5 required validation.")
+            </p>
+        </div>
+        <div class="max-w-md">
+            <form class="space-y-4">
+                <div class="space-y-2">
+                    <label class="text-sm font-medium">@L.T("用户名（必填）", "Username (required)")</label>
+                    <Input Type="InputType.Text" Placeholder="@(L.T("请输入用户名", "Enter username"))" Required="true" />
+                </div>
+                <button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90">
+                    @L.T("提交", "Submit")
+                </button>
+            </form>
+        </div>
+        <CodeBlock Source="Components/Input/required.txt" />
+    </div>
+
+    <!-- With Label and Description -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("带标签", "With Label")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("带标签与辅助文本的输入框。", "Inputs with labels and helper text.")
+            </p>
+        </div>
+        <div class="max-w-md space-y-4">
+            <div class="space-y-2">
+                <label for="email-input" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    @L.T("邮箱", "Email")
+                </label>
+                <Input Type="InputType.Email" Placeholder="m@example.com" AriaLabel="@(L.T("邮箱地址", "Email address"))" />
+                <p class="text-sm text-muted-foreground">
+                    @L.T("我们不会把你的邮箱分享给任何人。", "We'll never share your email with anyone else.")
+                </p>
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    @L.T("密码", "Password")
+                </label>
+                <Input Type="InputType.Password" Placeholder="@(L.T("请输入你的密码", "Enter your password"))" AriaLabel="@(L.T("密码", "Password"))" />
+                <p class="text-sm text-muted-foreground">
+                    @L.T("至少需要 8 个字符。", "Must be at least 8 characters.")
+                </p>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Input/with-label.txt" />
+    </div>
+
+    <!-- Auto-Generated ID -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自动生成的 ID", "Auto-Generated ID")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    输入框组件总会带着一枚 <code class="text-xs bg-muted px-1 py-0.5 rounded">id</code> 属性渲染。
+                    未提供 <code class="text-xs bg-muted px-1 py-0.5 rounded">Id</code> 时会自动生成一个稳定的 ID
+                    （例如 <code class="text-xs bg-muted px-1 py-0.5 rounded">input-a3f7c2d4</code>）。用户提供的 ID 始终优先。
+                    想要为标签做 <code class="text-xs bg-muted px-1 py-0.5 rounded">for</code> 关联，请提供显式的
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Id</code>，或使用会自动处理这件事的
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">FormFieldInput</code> 封装组件。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Input components always render with an <code class="text-xs bg-muted px-1 py-0.5 rounded">id</code> attribute.
+                    When no <code class="text-xs bg-muted px-1 py-0.5 rounded">Id</code> is provided, a stable ID is auto-generated
+                    (e.g., <code class="text-xs bg-muted px-1 py-0.5 rounded">input-a3f7c2d4</code>). User-provided IDs always take precedence.
+                    For label <code class="text-xs bg-muted px-1 py-0.5 rounded">for</code> wiring, provide an explicit
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Id</code> or use a
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">FormFieldInput</code> wrapper which handles this automatically.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md space-y-4">
+            <div class="space-y-2">
+                <label for="my-email" class="text-sm font-medium leading-none">
+                    @L.T("邮箱（显式 Id —— 点击标签即可聚焦）", "Email (explicit Id — click label to focus)")
+                </label>
+                <Input Id="my-email" Type="InputType.Email" Placeholder="m@example.com" />
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-xs text-muted-foreground">
+                        它带着 <code class="text-xs bg-muted px-1 py-0.5 rounded">id="my-email"</code> 渲染 —— 标签上的
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">for="my-email"</code> 把点击聚焦的行为连接了起来。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-xs text-muted-foreground">
+                        Rendered with <code class="text-xs bg-muted px-1 py-0.5 rounded">id="my-email"</code> — the label's
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">for="my-email"</code> wires the click-to-focus behavior.
+                    </p>
+                                </text>
+}
+            </div>
+            <div class="space-y-2">
+                <Input Type="InputType.Text" Placeholder="@(L.T("请输入用户名", "Enter username"))" />
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-xs text-muted-foreground">
+                        未提供 <code class="text-xs bg-muted px-1 py-0.5 rounded">Id</code> —— 会自动生成形如
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">input-a3f7c2d4</code> 的 id，在 DevTools 中可见。
+                        它便于程序化访问、无障碍工具链以及 FormField 封装组件。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-xs text-muted-foreground">
+                        No <code class="text-xs bg-muted px-1 py-0.5 rounded">Id</code> provided — auto-generated id like
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">input-a3f7c2d4</code> is visible in DevTools.
+                        Useful for programmatic access, accessibility tooling, and FormField wrappers.
+                    </p>
+                                </text>
+}
+            </div>
+        </div>
+        <CodeBlock Source="Components/Input/auto-id.txt" />
+    </div>
+
+    <!-- Two-Way Binding Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("双向绑定", "Two-Way Binding")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    演示用 Value 与 ValueChanged 实现的实时值更新。
+                    空的或只有空白的输入会自动归一化为 <code class="text-xs bg-muted px-1 py-0.5 rounded">null</code>，
+                    与 ASP.NET MVC 的模型绑定约定保持一致。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Demonstrating real-time value updates using Value and ValueChanged.
+                    Empty or whitespace-only input is automatically normalized to <code class="text-xs bg-muted px-1 py-0.5 rounded">null</code>,
+                    matching ASP.NET MVC model binding conventions.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md space-y-4">
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("输入一些内容", "Type something")</label>
+                <Input Type="InputType.Text" Value="@boundValue" ValueChanged="@((value) => boundValue = value)" Placeholder="@(L.T("开始输入……", "Start typing..."))" />
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-xs text-muted-foreground">
+                        试着输入一些文字，再把它清空。值会回到 <code class="text-xs bg-muted px-1 py-0.5 rounded">null</code>，而不是变成一个空字符串。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-xs text-muted-foreground">
+                        Try typing text, then clearing it. The value returns to <code class="text-xs bg-muted px-1 py-0.5 rounded">null</code> instead of becoming an empty string.
+                    </p>
+                                </text>
+}
+            </div>
+            <div class="rounded-lg border p-4 bg-muted/50">
+                <p class="text-sm font-medium mb-1">@L.T("当前值：", "Current value:")</p>
+                @if (boundValue is null)
+                {
+                    <p class="text-sm font-mono text-muted-foreground italic">null</p>
+                }
+                else
+                {
+                    <p class="text-sm font-mono">"@boundValue"</p>
+                }
+            </div>
+        </div>
+        <CodeBlock Source="Components/Input/two-way-binding.txt" />
+    </div>
+
+    <!-- Custom Styling -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义样式", "Custom Styling")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("用 Class 参数覆盖样式。", "Override styles with the Class parameter.")
+            </p>
+        </div>
+        <div class="space-y-4 max-w-md">
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("自定义边框颜色", "Custom border color")</label>
+                <Input Type="InputType.Text" Placeholder="@(L.T("蓝色边框", "Blue border"))" Class="border-blue-500 focus-visible:ring-blue-500" />
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("全圆角", "Rounded full")</label>
+                <Input Type="InputType.Search" Placeholder="@(L.T("搜索……", "Search..."))" Class="rounded-full" />
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("成功状态", "Success state")</label>
+                <Input Type="InputType.Text" Value="@(L.T("有效的输入", "Valid input"))" Class="border-green-500 focus-visible:ring-green-500" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/Input/custom-styling.txt" />
+    </div>
+
+    <!-- Update Timing -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("更新时机", "Update Timing")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">UpdateTiming</code> 参数来控制
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">ValueChanged</code> 何时触发。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Control when <code class="text-xs bg-muted px-1 py-0.5 rounded">ValueChanged</code> fires using the
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">UpdateTiming</code> parameter.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="grid gap-6 md:grid-cols-3 max-w-4xl">
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("即时（默认）", "Immediate (default)")</label>
+                <Input Type="InputType.Text"
+                       UpdateTiming="UpdateTiming.Immediate"
+                       Value="@_immediateValue"
+                       ValueChanged="@((v) => _immediateValue = v)"
+                       Placeholder="@(L.T("每次按键都会触发", "Fires on every keystroke"))" />
+                <div class="rounded-lg border p-3 bg-muted/50">
+                    <p class="text-xs text-muted-foreground mb-1">@L.T("值：", "Value:")</p>
+                    <p class="text-sm font-mono">@(string.IsNullOrEmpty(_immediateValue) ? L.T("（空）", "(empty)") : _immediateValue)</p>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("OnChange（失去焦点 / 回车）", "OnChange (blur / Enter)")</label>
+                <Input Type="InputType.Text"
+                       UpdateTiming="UpdateTiming.OnChange"
+                       Value="@_onChangeValue"
+                       ValueChanged="@((v) => _onChangeValue = v)"
+                       Placeholder="@(L.T("失去焦点或回车时触发", "Fires on blur or Enter"))" />
+                <div class="rounded-lg border p-3 bg-muted/50">
+                    <p class="text-xs text-muted-foreground mb-1">@L.T("值：", "Value:")</p>
+                    <p class="text-sm font-mono">@(string.IsNullOrEmpty(_onChangeValue) ? L.T("（空）", "(empty)") : _onChangeValue)</p>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("防抖（500ms）", "Debounced (500ms)")</label>
+                <Input Type="InputType.Text"
+                       UpdateTiming="UpdateTiming.Debounced"
+                       DebounceInterval="500"
+                       Value="@_debouncedValue"
+                       ValueChanged="@((v) => _debouncedValue = v)"
+                       Placeholder="@(L.T("停顿输入后触发", "Fires after typing pauses"))" />
+                <div class="rounded-lg border p-3 bg-muted/50">
+                    <p class="text-xs text-muted-foreground mb-1">@L.T("值：", "Value:")</p>
+                    <p class="text-sm font-mono">@(string.IsNullOrEmpty(_debouncedValue) ? L.T("（空）", "(empty)") : _debouncedValue)</p>
+                </div>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Input/update-timing.txt" />
+    </div>
+
+    <!-- Programmatic Focus -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("程序化聚焦", "Programmatic Focus")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@ref</code> 捕获组件并调用
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">FocusAsync()</code>，无需 JS interop 就能让输入框聚焦。
+                    底层的 <code class="text-xs bg-muted px-1 py-0.5 rounded">ElementReference</code> 也会通过
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">Element</code> 属性暴露出来。
+                    Input、Textarea、InputField、InputGroup 输入框、NumericInput、CurrencyInput、MaskedInput、
+                    TagInput，以及 FormFieldInput / FormFieldTextarea 封装组件都支持。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Capture the component with <code class="text-xs bg-muted px-1 py-0.5 rounded">@@ref</code> and call
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">FocusAsync()</code> to focus the input without JS interop.
+                    The underlying <code class="text-xs bg-muted px-1 py-0.5 rounded">ElementReference</code> is also exposed
+                    via the <code class="text-xs bg-muted px-1 py-0.5 rounded">Element</code> property.
+                    Available on Input, Textarea, InputField, InputGroup inputs, NumericInput, CurrencyInput, MaskedInput,
+                    TagInput, and the FormFieldInput / FormFieldTextarea wrappers.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="flex gap-4 items-start max-w-md">
+            <Input @ref="_focusTarget" Type="InputType.Text" Placeholder="@(L.T("点按钮让我聚焦", "Click the button to focus me"))" />
+            <Button Variant="ButtonVariant.Outline" OnClick="@(() => _focusTarget!.FocusAsync())">@L.T("聚焦", "Focus")</Button>
+        </div>
+        <CodeBlock Source="Components/Input/programmatic-focus.txt" />
+    </div>
+
+    <!-- Form Validation with EditForm -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表单校验", "Form Validation")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    输入框组件与 Blazor 的 EditForm、EditContext 集成来完成模型校验。
+                    在 EditForm 内使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code>，
+                    校验错误就会通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> 自动应用错误样式。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Input components integrate with Blazor's EditForm and EditContext for model validation.
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code> within an EditForm and
+                    validation errors will automatically apply error styling via <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <EditForm Model="formModel" OnValidSubmit="HandleValidSubmit" class="max-w-md space-y-4">
+            <DataAnnotationsValidator />
+
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("姓名", "Name")</label>
+                <Input Type="InputType.Text" @bind-Value="formModel.Name" Placeholder="@(L.T("请输入你的名字", "Enter your name"))" />
+                <ValidationMessage For="@(() => formModel.Name)" class="text-sm text-destructive" />
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("邮箱", "Email")</label>
+                <Input Type="InputType.Email" @bind-Value="formModel.Email" Placeholder="@(L.T("请输入你的邮箱", "Enter your email"))" />
+                <ValidationMessage For="@(() => formModel.Email)" class="text-sm text-destructive" />
+            </div>
+
+            <div class="flex gap-4">
+                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Default">@L.T("提交", "Submit")</Button>
+                <Button Type="ButtonType.Button" Variant="ButtonVariant.Outline" OnClick="ResetForm">@L.T("重置", "Reset")</Button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(formMessage))
+            {
+                <div class="p-4 bg-card rounded-lg border">
+                    <p class="text-sm">@formMessage</p>
+                </div>
+            }
+        </EditForm>
+        <CodeBlock Source="Components/Input/form-validation.txt" />
+    </div>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>它渲染一枚原生的 <code>&lt;input&gt;</code> 元素，并带上正确的 <code>type</code> 属性</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>Renders a native <code>&lt;input&gt;</code> element with the correct <code>type</code> attribute</AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem><code>aria-label</code> 在没有可见标签时提供可访问名称</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem><code>aria-label</code> provides an accessible name when no visible label is present</AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem><code>aria-describedby</code> 把辅助文本或错误文本与输入框关联起来，供读屏软件使用</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem><code>aria-describedby</code> links helper or error text to the input for screen readers</AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem><code>aria-invalid="true"</code> 会在校验失败时自动设置，也可以通过 AriaInvalid 参数手动设置</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem><code>aria-invalid="true"</code> is set automatically when validation fails or manually via the AriaInvalid parameter</AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem><code>disabled</code> 属性会阻止交互，辅助技术同样会播报它</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem><code>disabled</code> attribute prevents interaction and is announced by assistive technologies</AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem><code>required</code> 属性向读屏软件表明该字段必填，并启用原生校验</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem><code>required</code> attribute signals mandatory fields to screen readers and enables native validation</AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="Input">
+                <ApiParameter Name="Type" Type="InputType" Default="Text">
+                    @L.T("HTML 输入类型。支持 Text、Email、Password、Number、Tel、Url、Search、Date、Time 与 File。", "The HTML input type. Supports Text, Email, Password, Number, Tel, Url, Search, Date, Time, and File.")
+                </ApiParameter>
+                <ApiParameter Name="Value" Type="string?" Default="null">
+                    @L.T("输入框的当前值。支持用 @bind-Value 双向绑定。空的或只有空白的输入会归一化为 null。", "The current value of the input. Supports two-way binding with @bind-Value. Empty or whitespace-only input is normalized to null.")
+                </ApiParameter>
+                <ApiParameter Name="ValueChanged" Type="EventCallback&lt;string?&gt;" Default="">
+                    @L.T("输入值发生变化时调用的回调。与 Value 一起用于双向绑定。", "Callback invoked when the input value changes. Used with Value for two-way binding.")
+                </ApiParameter>
+                <ApiParameter Name="ValueExpression" Type="Expression&lt;Func&lt;string?&gt;&gt;?" Default="null">
+                    @L.T("标识被绑定值的表达式。用于与 EditForm 的校验集成。", "Expression identifying the bound value. Used for EditForm validation integration.")
+                </ApiParameter>
+                <ApiParameter Name="Placeholder" Type="string?" Default="null">
+                    @L.T("输入框为空时显示的占位文本。", "Placeholder text displayed when the input is empty.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("输入框是否禁用。禁用会阻止交互并降低不透明度。", "Whether the input is disabled. Prevents interaction and reduces opacity.")
+                </ApiParameter>
+                <ApiParameter Name="Required" Type="bool" Default="false">
+                    @L.T("输入框是否为表单校验必填。会设置 HTML5 的 required 属性。", "Whether the input is required for form validation. Sets the HTML5 required attribute.")
+                </ApiParameter>
+                <ApiParameter Name="UpdateTiming" Type="UpdateTiming" Default="Immediate">
+                    @L.T("控制 ValueChanged 何时触发。Immediate（每次按键）、OnChange（失去焦点或回车）或 Debounced（停顿输入后）。", "Controls when ValueChanged fires. Immediate (every keystroke), OnChange (blur or Enter), or Debounced (after typing pauses).")
+                </ApiParameter>
+                <ApiParameter Name="DebounceInterval" Type="int" Default="500">
+                    @L.T("UpdateTiming 为 Debounced 时的防抖延时（毫秒）。其它时机模式下会被忽略。", "Debounce delay in milliseconds when UpdateTiming is Debounced. Ignored for other timing modes.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Id" Type="string?" Default="auto-generated">
+                        HTML 的 id 属性，用于把输入框与标签元素关联起来。未指定时会自动生成（例如 <code>input-a3f7c2d4</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Id" Type="string?" Default="auto-generated">
+                        The HTML id attribute. Used to associate the input with a label element. Auto-generated if not specified (e.g., <code>input-a3f7c2d4</code>).
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="Name" Type="string?" Default="null">
+                    @L.T("HTML 的 name 属性。在 EditForm 中未设置时，会从 ValueExpression 自动推导。", "The HTML name attribute. Auto-derived from ValueExpression inside an EditForm when not set.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?" Default="null">
+                    @L.T("追加到输入元素上的额外 CSS 类，用于覆盖样式。", "Additional CSS classes appended to the input element for style overrides.")
+                </ApiParameter>
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">
+                    @L.T("没有可见标签时，为输入框提供的可访问名称。", "Accessible name for the input when no visible label is present.")
+                </ApiParameter>
+                <ApiParameter Name="AriaDescribedBy" Type="string?" Default="null">
+                    @L.T("包含帮助文本或错误消息、供读屏软件使用的元素 ID。", "ID of the element containing help text or error messages for screen readers.")
+                </ApiParameter>
+                <ApiParameter Name="AriaInvalid" Type="bool?" Default="null">
+                    @L.T("手动设置 aria-invalid。为 null 时由 EditContext 的校验状态自动判定。", "Manually sets aria-invalid. When null, automatically determined from EditContext validation state.")
+                </ApiParameter>
+                <ApiParameter Name="FocusAsync()" Type="ValueTask">
+                    @L.T("让底层的输入元素获得焦点。用 @ref 捕获组件即可调用。", "Sets focus to the underlying input element. Capture the component with @ref to call it.")
+                </ApiParameter>
+                <ApiParameter Name="Element" Type="ElementReference">
+                    @L.T("底层输入元素的引用，例如用于进阶的 JS interop。", "The underlying input element reference, e.g. for advanced JS interop.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;input&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;input&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private Input? _focusTarget;
+    private string? boundValue;
+    private string? _immediateValue;
+    private string? _onChangeValue;
+    private string? _debouncedValue;
+    private InputFormModel formModel = new();
+    private string? formMessage;
+
+    private void HandleValidSubmit()
+    {
+        formMessage = L.IsChinese
+            ? $"表单已提交！姓名：{formModel.Name}，邮箱：{formModel.Email}"
+            : $"Form submitted! Name: {formModel.Name}, Email: {formModel.Email}";
+    }
+
+    private void ResetForm()
+    {
+        formModel = new();
+        formMessage = null;
+    }
+
+    private class InputFormModel
+    {
+        [Required(ErrorMessage = "Name is required.")]
+        [StringLength(50, MinimumLength = 2, ErrorMessage = "Name must be between 2 and 50 characters.")]
+        public string? Name { get; set; }
+
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Please enter a valid email address.")]
+        public string? Email { get; set; }
+    }
+}

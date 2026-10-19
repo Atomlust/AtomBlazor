@@ -1,0 +1,51 @@
+<section class="space-y-4">
+    <div class="space-y-2">
+        <h2 class="text-2xl font-semibold">@L.T("无障碍", "Accessibility")</h2>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-muted-foreground">
+                以无障碍为设计前提，包含 ARIA 属性与键盘支持。
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-muted-foreground">
+                Built with accessibility in mind — includes ARIA attributes and keyboard support.
+            </p>
+                </text>
+}
+    </div>
+
+    <div class="rounded-lg border p-6 space-y-6 bg-muted/50">
+        @if (AriaAttributes != null)
+        {
+            <div>
+                <h3 class="font-semibold mb-2">@L.T("ARIA 属性", "ARIA Attributes")</h3>
+                <ul class="space-y-2 text-sm text-muted-foreground">
+                    @AriaAttributes
+                </ul>
+            </div>
+        }
+
+        @if (KeyboardNavigation != null)
+        {
+            <div>
+                <h3 class="font-semibold mb-2">@L.T("键盘导航", "Keyboard Navigation")</h3>
+                <div class="grid gap-3">
+                    @KeyboardNavigation
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    [Parameter] public RenderFragment? AriaAttributes { get; set; }
+    [Parameter] public RenderFragment? KeyboardNavigation { get; set; }
+}

@@ -1,0 +1,52 @@
+@page "/components/section-header"
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("Section Header 区块标题 - Atom BlazorUI", "Section Header - Atom BlazorUI")</PageTitle>
+<div class="max-w-4xl space-y-8">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Section Header 区块标题", "Section Header")</h1>
+        <p class="text-xl text-muted-foreground">@L.T("带辅助文本、可选操作与分隔线的区块标题。", "A section title with supporting text, optional actions and a separator.")</p>
+    </div>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("标题与说明", "Title and description")</h2>
+        <div class="rounded-lg border p-6 space-y-4">
+            <SectionHeader HeadingLevel="3" Title="@(L.T("最近文档", "Recent documents"))" Description="@(L.T("本周团队编辑过的文件。", "Files edited by your team this week."))" />
+        </div>
+        <CodeBlock Source="Components/SectionHeader/basic.txt" />
+    </section>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("操作与分隔线", "Actions and separator")</h2>
+        <div class="rounded-lg border p-6 space-y-4">
+            <SectionHeader HeadingLevel="3" Title="@(L.T("已保存的集合", "Saved collections"))" Description="@(L.T("为下一个项目整理参考资料。", "Organize references for your next project."))" Separator="true">
+                <Actions><Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small" OnClick="@(() => collections++)">@L.T("新建集合", "New collection")</Button></Actions>
+            </SectionHeader>
+            <p role="status" class="text-sm text-muted-foreground">@collections @L.T("个集合", "collections")</p>
+        </div>
+        <CodeBlock Source="Components/SectionHeader/actions.txt" />
+    </section>
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("标题默认为二级标题。可设置 HeadingLevel 从 1 到 6 以适配页面层级；这些嵌套示例使用三级。", "Title defaults to a level-two heading. Set HeadingLevel from 1 to 6 to fit the page hierarchy; these nested examples use level three.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("分隔线仅为视觉效果。自定义操作保留其原生语义，并且必须具有无障碍名称。", "The separator is visual. Custom actions retain their native semantics and must have accessible names.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可交互控件间移动", "Move between interactive controls"))"><Kbd>Tab / Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("激活获得焦点的按钮", "Activate a focused button"))"><Kbd>Enter / Space</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+        <ApiReference Since="v4" ComponentName="SectionHeader">
+            <ApiParameter Name="HeadingLevel" Type="int" Default="2">@L.T("标题级别，取值 1 到 6。", "Heading level from 1 to 6.")</ApiParameter>
+            <ApiParameter Name="Title / Description / Actions / Separator" Type="string? / string? / RenderFragment? / bool">@L.T("标题文本、次要说明、右侧操作与底部分隔线。", "Heading text, secondary copy, trailing actions and bottom separator.")</ApiParameter>
+            <ApiParameter Name="Class / AdditionalAttributes" Type="string? / Dictionary&lt;string, object&gt;?">@L.T("追加到根元素的额外 CSS 类与 HTML 属性。", "Additional root CSS classes and HTML attributes.")</ApiParameter>
+        </ApiReference>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private int collections = 3;
+}

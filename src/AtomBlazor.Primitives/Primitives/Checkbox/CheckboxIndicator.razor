@@ -1,0 +1,80 @@
+@namespace AtomBlazor.Primitives
+
+@* CheckboxIndicator —— 依据上级 Checkbox 的状态自动渲染勾选/不确定图标 *@
+@if (ParentCheckbox != null && (ParentCheckbox.Checked || ParentCheckbox.Indeterminate))
+{
+    @if (ChildContent != null)
+    {
+        @ChildContent
+    }
+    else if (ParentCheckbox.Indeterminate)
+    {
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="@Size"
+             height="@Size"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="@StrokeWidth"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             @attributes="AdditionalAttributes">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+    }
+    else
+    {
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="@Size"
+             height="@Size"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="@StrokeWidth"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             @attributes="AdditionalAttributes">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+    }
+}
+
+@code {
+    [CascadingParameter]
+    private AtomBlazor.Primitives.CheckboxPrimitive? ParentCheckbox { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (ParentCheckbox == null)
+        {
+            throw new InvalidOperationException(
+                "CheckboxIndicator 必须用在 Checkbox 组件内部。");
+        }
+    }
+
+    /// <summary>
+    /// 获取或设置替代默认勾选/不确定图标的自定义内容。
+    /// 提供后，只要复选框处于选中或不确定状态就渲染该内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置默认 SVG 图标的像素尺寸。默认值：14。
+    /// </summary>
+    [Parameter]
+    public int Size { get; set; } = 14;
+
+    /// <summary>
+    /// 获取或设置默认 SVG 图标的描边宽度。默认值：3。
+    /// </summary>
+    [Parameter]
+    public int StrokeWidth { get; set; } = 3;
+
+    /// <summary>
+    /// 获取或设置应用到 SVG 图标元素的额外属性。
+    /// 仅在使用默认图标（未提供自定义 ChildContent）时生效。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}

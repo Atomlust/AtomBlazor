@@ -1,0 +1,33 @@
+@namespace AtomBlazor
+@inject ILocalizer Localizer
+
+@*
+    QrCode —— 以 SVG 绘制的二维码，纯 C# 编码，无需 JavaScript、无第三方依赖。
+
+    二维码是只有相机才读得懂的文本图像，因此该值也可通过 ShowValue
+    或无障碍名称以文本形式获取。若两者皆无，使用屏幕阅读器的人
+    便无从得知码中所含的内容。
+*@
+
+<div class="@RootClass" data-slot="qr-code" @attributes="AdditionalAttributes">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <Label Class="atom:mb-2 atom:block">@Label</Label>
+    }
+
+    @if (encodeError is not null)
+    {
+        <p role="alert" class="atom:text-sm atom:text-destructive">@encodeError</p>
+    }
+    else if (svg is not null)
+    {
+        @((MarkupString)svg)
+
+        @if (ShowValue)
+        {
+            <p class="atom:mt-2 atom:max-w-full atom:text-center atom:text-xs atom:break-all atom:text-muted-foreground">
+                @Value
+            </p>
+        }
+    }
+</div>

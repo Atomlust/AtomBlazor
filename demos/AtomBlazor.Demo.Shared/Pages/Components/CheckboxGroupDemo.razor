@@ -1,0 +1,266 @@
+@page "/components/checkbox-group"
+<PageTitle>@L.T("CheckboxGroup 组件 - Atom BlazorUI", "CheckboxGroup Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("CheckboxGroup 组件", "CheckboxGroup Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("共享状态管理的复选框组，可选支持全选。", "A group of checkboxes with shared state management and optional select-all support.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Basic Usage -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code class="text-xs bg-muted px-1 py-0.5 rounded">CheckboxGroup</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">CheckboxGroupItem</code> 统一管理多个共享状态的复选框。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">CheckboxGroup</code> and <code class="text-xs bg-muted px-1 py-0.5 rounded">CheckboxGroupItem</code> to manage multiple checkboxes with shared state.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-sm">
+            <CheckboxGroup AriaLabel="@(L.T("请选择选项", "Choose options"))" TValue="string" @bind-Values="basicValues">
+                <CheckboxGroupItem TValue="string" Value="@("email")" Label="@(L.T("邮件通知", "Email notifications"))" />
+                <CheckboxGroupItem TValue="string" Value="@("sms")" Label="@(L.T("短信通知", "SMS notifications"))" />
+                <CheckboxGroupItem TValue="string" Value="@("push")" Label="@(L.T("推送通知", "Push notifications"))" />
+            </CheckboxGroup>
+        </div>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                已选择：@(basicValues.Count > 0 ? string.Join("、", basicValues) : "未选择")
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Selected: @(basicValues.Count > 0 ? string.Join(", ", basicValues) : "None")
+            </p>
+                </text>
+}
+        <CodeBlock Source="Components/CheckboxGroup/basic.txt" />
+    </div>
+
+    <!-- Select All -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("全选与不确定态", "Select All with Indeterminate")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    开启 <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowSelectAll</code> 会加入一个总控复选框，自动处理勾选与不确定两种状态。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Enable <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowSelectAll</code> to add a master checkbox that automatically handles checked and indeterminate states.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-sm border rounded-lg p-4">
+            <CheckboxGroup TValue="string" @bind-Values="selectAllValues" ShowSelectAll SelectAllLabel="@(L.T("选择全部权限", "Select all permissions"))">
+                <CheckboxGroupItem TValue="string" Value="@("read")" Label="@(L.T("读取", "Read"))" />
+                <CheckboxGroupItem TValue="string" Value="@("write")" Label="@(L.T("写入", "Write"))" />
+                <CheckboxGroupItem TValue="string" Value="@("delete")" Label="@(L.T("删除", "Delete"))" />
+                <CheckboxGroupItem TValue="string" Value="@("admin")" Label="@(L.T("管理员", "Admin"))" />
+            </CheckboxGroup>
+        </div>
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                已选择：@(selectAllValues.Count > 0 ? string.Join("、", selectAllValues) : "未选择")
+            </p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm text-muted-foreground">
+                Selected: @(selectAllValues.Count > 0 ? string.Join(", ", selectAllValues) : "None")
+            </p>
+                </text>
+}
+        <CodeBlock Source="Components/CheckboxGroup/select-all.txt" />
+    </div>
+
+    <!-- Disabled Items -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用项", "Disabled Items")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("可以只禁用某个选项，也可以禁用整组。", "Disable individual items or the entire group.")
+            </p>
+        </div>
+        <div class="flex gap-8">
+            <div class="max-w-sm space-y-2">
+                <h3 class="text-sm font-medium">@L.T("部分选项被禁用", "Individual items disabled")</h3>
+                <CheckboxGroup TValue="string" @bind-Values="disabledValues">
+                    <CheckboxGroupItem TValue="string" Value="@("free")" Label="@(L.T("免费版", "Free tier"))" />
+                    <CheckboxGroupItem TValue="string" Value="@("pro")" Label="@(L.T("专业版", "Pro tier"))" Disabled />
+                    <CheckboxGroupItem TValue="string" Value="@("enterprise")" Label="@(L.T("企业版", "Enterprise tier"))" Disabled />
+                </CheckboxGroup>
+            </div>
+            <div class="max-w-sm space-y-2">
+                <h3 class="text-sm font-medium">@L.T("整组被禁用", "Entire group disabled")</h3>
+                <CheckboxGroup TValue="string" @bind-Values="groupDisabledValues" Disabled>
+                    <CheckboxGroupItem TValue="string" Value="@("a")" Label="@(L.T("选项 A", "Option A"))" />
+                    <CheckboxGroupItem TValue="string" Value="@("b")" Label="@(L.T("选项 B", "Option B"))" />
+                    <CheckboxGroupItem TValue="string" Value="@("c")" Label="@(L.T("选项 C", "Option C"))" />
+                </CheckboxGroup>
+            </div>
+        </div>
+        <CodeBlock Source="Components/CheckboxGroup/disabled.txt" />
+    </div>
+
+    <!-- API Reference -->
+
+
+        <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>容器使用 role="group"。请用 aria-label 或 aria-labelledby 为分组提供可读名称。</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>The container uses role="group". Supply an accessible group name with aria-label or aria-labelledby.</AccessibilityItem>
+                        </text>
+}
+            <AccessibilityItem>@L.T("每个复选框都有自己的标签与勾选状态。当只选中可用项的一部分时，全选项会显示不确定态。", "Each checkbox has its own label and checked state. The select-all option shows an indeterminate state when only part of the enabled group is selected.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("被禁用的选项依然可见，但无法切换。", "Disabled options remain visible but cannot be toggled.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可用的复选框之间移动", "Move between enabled checkboxes"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("切换获得焦点的复选框", "Toggle the focused checkbox"))"><Kbd>Space</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="CheckboxGroup">
+                <ApiParameter Name="AriaLabel" Type="string?" Default="null">@L.T("转发给交互控件或分组的无障碍名称。", "Accessible name forwarded to the interactive control or group.")</ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="Values" Type="IReadOnlyCollection&lt;TValue&gt;">
+                        当前已选中的值。可用 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Values</code> 实现双向绑定。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="Values" Type="IReadOnlyCollection&lt;TValue&gt;">
+                        The currently selected values. Supports two-way binding with <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Values</code>.
+                    </ApiParameter>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="ShowSelectAll" Type="bool" Default="false">
+                        为 true 时显示一个"全选"复选框，并自动处理不确定态。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="ShowSelectAll" Type="bool" Default="false">
+                        When true, shows a "Select all" checkbox with automatic indeterminate state.
+                    </ApiParameter>
+                                </text>
+}
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("禁用组内的全部选项。", "Disables all items in the group.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+
+            <ApiReference ComponentName="CheckboxGroupItem">
+                <ApiParameter Name="Value" Type="TValue">
+                    @L.T("该选项在组内代表的值。", "The value this item represents in the group.")
+                </ApiParameter>
+                <ApiParameter Name="Label" Type="string?">
+                    @L.T("显示在复选框旁边的文本标签。", "Text label displayed next to the checkbox.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("禁用这一单个选项。", "Disables this individual item.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+    </section>
+
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private IReadOnlyCollection<string> basicValues = Array.Empty<string>();
+    private IReadOnlyCollection<string> selectAllValues = new[] { "read" };
+    private IReadOnlyCollection<string> disabledValues = new[] { "free" };
+    private IReadOnlyCollection<string> groupDisabledValues = new[] { "a", "b" };
+}

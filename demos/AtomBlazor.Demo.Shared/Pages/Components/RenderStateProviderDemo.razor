@@ -1,0 +1,38 @@
+@page "/components/render-state-provider"
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("渲染状态提供者 - Atom BlazorUI", "Render State Provider - Atom BlazorUI")</PageTitle>
+<div class="max-w-4xl space-y-8">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("渲染状态提供者", "Render State Provider")</h1>
+        <p class="text-xl text-muted-foreground">@L.T("共享某个组件子树是处于预渲染状态还是交互状态。", "Share whether a component subtree is prerendered or interactive.")</p>
+    </div>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("观察渲染状态", "Observe render state")</h2>
+        <div class="rounded-lg border p-6 space-y-4">
+<RenderStateProvider>
+    <MotionRenderStateExample />
+</RenderStateProvider>
+<p class="text-sm text-muted-foreground">@L.T("子组件在预渲染期间最初收到 IsInteractive=false，在首次交互渲染后变为 true。", "The child initially receives IsInteractive=false during prerender, then true after the first interactive render.")</p>
+        </div>
+        <CodeBlock Source="Components/RenderStateProvider/basic.txt" />
+    </section>
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("该提供者不会增加任何可视包装、角色或 Tab 停靠点，其子元素自己负责可访问性语义。", "The provider adds no visual wrapper, role or tab stop. Its children own their accessibility semantics.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("预渲染期间保持核心内容可用；不要仅依赖交互状态来标注控件。", "Keep essential content available during prerender; do not rely on interaction state alone to label controls.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("导航可交互的后代元素（若其存在）", "Navigate interactive descendants, when provided"))"><Kbd>Tab / Shift + Tab</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+<ApiReference Since="v4" ComponentName="RenderStateProvider"><ApiParameter Name="ChildContent" Type="RenderFragment?">@L.T("接收级联 RenderState 的内容。", "Content receiving the cascading RenderState.")</ApiParameter><ApiParameter Name="RenderState.IsInteractive" Type="bool">@L.T("预渲染期间为 False，提供者首次交互渲染后为 True。", "False during prerender and true after the provider’s first interactive render.")</ApiParameter></ApiReference>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+}

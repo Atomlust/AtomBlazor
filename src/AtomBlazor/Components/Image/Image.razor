@@ -1,0 +1,41 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+
+@if (failed)
+{
+    @if (Fallback is not null)
+    {
+        <div class="@FallbackCssClass" data-slot="image-fallback" role="@(string.IsNullOrEmpty(Alt) ? null : "img")" aria-label="@Alt" aria-hidden="@(string.IsNullOrEmpty(Alt) ? "true" : null)" @attributes="AdditionalAttributes">
+            @Fallback
+        </div>
+    }
+    else if (FallbackSrc is not null)
+    {
+        @* 回退图片本身也是一张图片，因此回退再次损坏时不做重试。 *@
+        <img src="@FallbackSrc"
+             alt="@Alt"
+             class="@CssClass"
+             data-slot="image"
+             data-state="fallback"
+             @attributes="AdditionalAttributes" />
+    }
+    else
+    {
+        <div class="@FallbackCssClass" data-slot="image-fallback" role="@(string.IsNullOrEmpty(Alt) ? null : "img")" aria-label="@Alt" aria-hidden="@(string.IsNullOrEmpty(Alt) ? "true" : null)" @attributes="AdditionalAttributes">
+            <LucideIcon Name="image-off" Class="atom:h-6 atom:w-6 atom:text-muted-foreground" />
+        </div>
+    }
+}
+else
+{
+    <img src="@Src"
+         alt="@Alt"
+         loading="@(Lazy ? "lazy" : null)"
+         decoding="async"
+         class="@CssClass"
+         data-slot="image"
+         data-state="@(loaded ? "loaded" : "loading")"
+         @onload="HandleLoad"
+         @onerror="HandleError"
+         @attributes="AdditionalAttributes" />
+}

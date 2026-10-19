@@ -1,0 +1,272 @@
+@namespace AtomBlazor
+@typeparam TEvent
+@using AtomBlazor.Icons.Lucide
+@inject ILocalizer Localizer
+
+@*
+    事件日历——以月份网格、周列或议程（agenda）列表显示事件。
+*@
+
+<div class="@CssClass" @attributes="AdditionalAttributes">
+    @* 头部：导航、标题与视图切换器 *@
+    <div class="atom:flex atom:flex-wrap atom:items-center atom:justify-between atom:gap-2 atom:pb-4">
+        <div class="atom:flex atom:items-center atom:gap-1">
+            <Button Variant="ButtonVariant.Outline"
+                      Size="ButtonSize.Icon"
+                      Class="atom:h-8 atom:w-8"
+                      OnClick="@NavigatePreviousAsync"
+                      AriaLabel="@Localizer["EventCalendar.PreviousPeriod"]">
+                <LucideIcon Name="chevron-left" Class="atom:h-4 atom:w-4" />
+            </Button>
+            <Button Variant="ButtonVariant.Outline"
+                      Size="ButtonSize.Small"
+                      Class="atom:h-8"
+                      OnClick="@NavigateTodayAsync">
+                @Localizer["EventCalendar.Today"]
+            </Button>
+            <Button Variant="ButtonVariant.Outline"
+                      Size="ButtonSize.Icon"
+                      Class="atom:h-8 atom:w-8"
+                      OnClick="@NavigateNextAsync"
+                      AriaLabel="@Localizer["EventCalendar.NextPeriod"]">
+                <LucideIcon Name="chevron-right" Class="atom:h-4 atom:w-4" />
+            </Button>
+        </div>
+        <div class="atom:text-base atom:font-semibold" aria-live="polite">@HeaderTitle</div>
+        <div class="atom:inline-flex atom:items-center atom:gap-0.5 atom:rounded-md atom:border atom:border-border atom:bg-card atom:p-0.5"
+             role="group"
+             aria-label="@Localizer["EventCalendar.ViewSwitcher"]">
+            <button type="button"
+                    class="@GetViewSwitchClasses(EventCalendarView.Month)"
+                    aria-pressed="@(View == EventCalendarView.Month ? "true" : "false")"
+                    @onclick="@(() => SetViewAsync(EventCalendarView.Month))">
+                @Localizer["EventCalendar.Month"]
+            </button>
+            <button type="button"
+                    class="@GetViewSwitchClasses(EventCalendarView.Week)"
+                    aria-pressed="@(View == EventCalendarView.Week ? "true" : "false")"
+                    @onclick="@(() => SetViewAsync(EventCalendarView.Week))">
+                @Localizer["EventCalendar.Week"]
+            </button>
+            <button type="button"
+                    class="@GetViewSwitchClasses(EventCalendarView.Agenda)"
+                    aria-pressed="@(View == EventCalendarView.Agenda ? "true" : "false")"
+                    @onclick="@(() => SetViewAsync(EventCalendarView.Agenda))">
+                @Localizer["EventCalendar.Agenda"]
+            </button>
+        </div>
+    </div>
+
+    @if (View == EventCalendarView.Month)
+    {
+        @* 月视图：六周网格，每日附事件小条（chip） *@
+        <div role="grid" aria-label="@HeaderTitle" class="@GridCssClass">
+            <div role="row" class="atom:grid atom:grid-cols-7 atom:gap-px">
+                @foreach (var dayName in DayNames)
+                {
+                    <div role="columnheader" class="atom:bg-card atom:px-2 atom:py-1.5 atom:text-center atom:text-xs atom:font-medium atom:text-muted-foreground">
+                        @dayName
+                    </div>
+                }
+            </div>
+            @foreach (var week in MonthWeeks)
+            {
+                @* 跨日事件在每个周行渲染为一条横条，横跨其所覆盖的各列，而非
+                   每日各落一枚独立小条（chip）（#544）。行即为定位上下文；每条横条
+                   居于其起始日的单元之内，使其留在 gridcell 之中，
+                   并落于 Tab 键序的恰当位置。 *@
+                var layout = BuildWeekLayout(week, MaxEventsPerDay);
+                <div role="row" class="atom:relative atom:grid atom:grid-cols-7 atom:gap-px">
+                    @for (var index = 0; index < week.Length; index++)
+                    {
+                        var day = week[index];
+                        var column = index;
+                        var chips = GetSingleDayEvents(day);
+                        var chipBudget = Math.Max(0, MaxEventsPerDay - layout.BarsPerColumn[column]);
+                        var hiddenCount = layout.HiddenPerColumn[column] + Math.Max(0, chips.Count - chipBudget);
+                        <div role="gridcell" aria-label="@day.ToString("D", culture)" class="@GetMonthCellClasses(day)">
+                            <button type="button"
+                                    class="@GetDayNumberClasses(day)"
+                                    aria-label="@day.ToString("D", culture)"
+                                    @onclick="@(() => HandleDateClick(day))">
+                                @day.Day
+                            </button>
+                            @if (layout.VisibleLaneCount > 0 || chips.Count > 0 || hiddenCount > 0)
+                            {
+                                <div class="atom:mt-1 atom:space-y-0.5">
+                                    @if (layout.VisibleLaneCount > 0)
+                                    {
+                                        @* 横条悬浮于单元之上，故在此预留其占位高度。 *@
+                                        <div aria-hidden="true" style="@GetLaneSpacerStyle(layout.VisibleLaneCount)"></div>
+                                    }
+                                    @foreach (var item in chips.Take(chipBudget))
+                                    {
+                                        <button type="button"
+                                                class="@GetEventChipClasses(item)"
+                                                title="@EventTitle(item)"
+                                                @onclick="@(() => HandleEventClick(item))">
+                                            @if (EventTemplate is not null)
+                                            {
+                                                @EventTemplate(item)
+                                            }
+                                            else
+                                            {
+                                                <span class="atom:block atom:truncate">@EventTitle(item)</span>
+                                            }
+                                        </button>
+                                    }
+                                    @if (hiddenCount > 0)
+                                    {
+                                        <button type="button"
+                                                class="atom:block atom:w-full atom:truncate atom:rounded atom:px-1.5 atom:py-0.5 atom:text-start atom:text-xs atom:text-muted-foreground atom:hover:bg-accent atom:hover:text-accent-foreground atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring"
+                                                @onclick="@(() => ShowMoreAsync(day))">
+                                            @Localizer["EventCalendar.MoreEvents", hiddenCount]
+                                        </button>
+                                    }
+                                </div>
+                            }
+                            @foreach (var bar in layout.Bars)
+                            {
+                                @if (bar.StartColumn == column)
+                                {
+                                    <button type="button"
+                                            class="@GetEventBarClasses(bar)"
+                                            style="@GetEventBarStyle(bar, monthBarsTopPx)"
+                                            title="@EventTitle(bar.Event)"
+                                            aria-label="@GetEventBarAriaLabel(bar)"
+                                            @onclick="@(() => HandleEventClick(bar.Event))">
+                                        @if (EventTemplate is not null)
+                                        {
+                                            @EventTemplate(bar.Event)
+                                        }
+                                        else
+                                        {
+                                            <span class="atom:block atom:truncate">@EventTitle(bar.Event)</span>
+                                        }
+                                    </button>
+                                }
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+    else if (View == EventCalendarView.Week)
+    {
+        @* 周视图：七日列，事件按开始时间顺序纵向堆叠 *@
+        <div role="grid" aria-label="@HeaderTitle" class="@GridCssClass">
+            <div role="row" class="atom:grid atom:grid-cols-7 atom:gap-px">
+                @foreach (var day in WeekDays)
+                {
+                    <div role="columnheader" class="atom:bg-card atom:p-2 atom:text-center">
+                        <button type="button"
+                                class="atom:mx-auto atom:flex atom:flex-col atom:items-center atom:gap-0.5 atom:rounded-md atom:px-2 atom:py-0.5 atom:hover:bg-accent atom:hover:text-accent-foreground atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring"
+                                aria-label="@day.ToString("D", culture)"
+                                @onclick="@(() => HandleDateClick(day))">
+                            <span class="atom:text-xs atom:font-medium atom:text-muted-foreground">@culture.DateTimeFormat.GetAbbreviatedDayName(day.DayOfWeek)</span>
+                            <span class="@GetDayNumberClasses(day)">@day.Day</span>
+                        </button>
+                    </div>
+                }
+            </div>
+            @* 跨日事件横跨其所覆盖的各列、置于计时事件之上，一如桌历中的
+               全天条带。一周仅一行，故与月视图不同：内容永不裁切，
+               也不设泳道（lane）上限（#544）。 *@
+            @{
+                var weekDays = WeekDays;
+                var weekLayout = BuildWeekLayout(weekDays, int.MaxValue);
+            }
+            <div role="row" class="atom:relative atom:grid atom:grid-cols-7 atom:gap-px">
+                @for (var index = 0; index < weekDays.Length; index++)
+                {
+                    var day = weekDays[index];
+                    var column = index;
+                    <div role="gridcell" aria-label="@day.ToString("D", culture)" class="atom:min-h-48 atom:space-y-1 atom:bg-card atom:p-1.5">
+                        @if (weekLayout.VisibleLaneCount > 0)
+                        {
+                            @* 横条悬浮于单元之上，故在此预留其占位高度。 *@
+                            <div aria-hidden="true" style="@GetLaneSpacerStyle(weekLayout.VisibleLaneCount)"></div>
+                        }
+                        @foreach (var item in GetSingleDayEvents(day))
+                        {
+                            <button type="button"
+                                    class="@GetEventChipClasses(item)"
+                                    title="@EventTitle(item)"
+                                    @onclick="@(() => HandleEventClick(item))">
+                                @if (EventTemplate is not null)
+                                {
+                                    @EventTemplate(item)
+                                }
+                                else
+                                {
+                                    <span class="atom:block atom:text-[10px] atom:leading-tight atom:opacity-75">@GetEventTimeLabel(item)</span>
+                                    <span class="atom:block atom:truncate">@EventTitle(item)</span>
+                                }
+                            </button>
+                        }
+                        @foreach (var bar in weekLayout.Bars)
+                        {
+                            @if (bar.StartColumn == column)
+                            {
+                                <button type="button"
+                                        class="@GetEventBarClasses(bar)"
+                                        style="@GetEventBarStyle(bar, weekBarsTopPx)"
+                                        title="@EventTitle(bar.Event)"
+                                        aria-label="@GetEventBarAriaLabel(bar)"
+                                        @onclick="@(() => HandleEventClick(bar.Event))">
+                                    @if (EventTemplate is not null)
+                                    {
+                                        @EventTemplate(bar.Event)
+                                    }
+                                    else
+                                    {
+                                        <span class="atom:block atom:truncate">@EventTitle(bar.Event)</span>
+                                    }
+                                </button>
+                            }
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        @* 议程（agenda）视图：当前月事件按日分组、依时序陈列 *@
+        <div class="@AgendaCssClass">
+            @if (!AgendaDays.Any())
+            {
+                <p class="atom:p-6 atom:text-center atom:text-sm atom:text-muted-foreground">@Localizer["EventCalendar.NoEvents"]</p>
+            }
+            @foreach (var day in AgendaDays)
+            {
+                <div class="atom:p-4">
+                    <h3 class="@(day == DateTime.Today ? "atom:text-sm atom:font-semibold atom:text-primary" : "atom:text-sm atom:font-semibold")">
+                        @day.ToString("D", culture)
+                    </h3>
+                    <ul class="atom:mt-2 atom:space-y-1" role="list">
+                        @foreach (var item in GetEventsForDay(day))
+                        {
+                            <li>
+                                <button type="button"
+                                        class="@ClassNames.cn("atom:flex atom:w-full atom:items-center atom:gap-3 atom:rounded-md atom:px-2 atom:py-1.5 atom:text-start atom:text-sm atom:hover:bg-accent atom:hover:text-accent-foreground atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring", EventClass?.Invoke(item))"
+                                        @onclick="@(() => HandleEventClick(item))">
+                                    <span class="atom:w-28 atom:shrink-0 atom:text-xs atom:text-muted-foreground">@GetEventTimeLabel(item)</span>
+                                    @if (EventTemplate is not null)
+                                    {
+                                        @EventTemplate(item)
+                                    }
+                                    else
+                                    {
+                                        <span class="atom:truncate atom:font-medium">@EventTitle(item)</span>
+                                    }
+                                </button>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
+    }
+</div>

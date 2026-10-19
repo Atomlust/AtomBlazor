@@ -1,0 +1,26 @@
+<div class="relative">
+<SidebarProvider CollapsedMode="SidebarCollapsedMode.Pill" Open="pillOpen" OpenChanged="@(value => pillOpen = value)" CookieKey="@((string?)null)" HeightClass="min-h-72" EnableToggleShortcut="false">
+    <Sidebar Class="min-h-72">
+        <SidebarHeader><strong class="p-2">Workspace</strong><SidebarTrigger /></SidebarHeader>
+        <SidebarContent>
+            <SidebarMenu>
+                <SidebarMenuItem><SidebarMenuButton IsActive="@(pillPage == "Overview")" OnClick="@(() => pillPage = "Overview")"><LucideIcon Name="house" /><span>Overview</span></SidebarMenuButton></SidebarMenuItem>
+                <SidebarMenuItem><SidebarMenuButton IsActive="@(pillPage == "Projects")" OnClick="@(() => pillPage = "Projects")"><LucideIcon Name="folder" /><span>Projects</span></SidebarMenuButton></SidebarMenuItem>
+            </SidebarMenu>
+        </SidebarContent>
+    </Sidebar>
+    <SidebarPillNav Fixed="false">
+        <SidebarPillNavItem Label="Overview" IsActive="@(pillPage == "Overview")" OnClick="@(() => pillPage = "Overview")"><LucideIcon Name="house" /></SidebarPillNavItem>
+        <SidebarPillNavItem Label="Projects" IsActive="@(pillPage == "Projects")" OnClick="@(() => pillPage = "Projects")"><LucideIcon Name="folder" /></SidebarPillNavItem>
+        <SidebarPillNavItem Label="Unavailable" Disabled="true"><LucideIcon Name="lock" /></SidebarPillNavItem>
+    </SidebarPillNav>
+    <div class="min-w-0 flex-1 p-4">
+        <SidebarPillInset>
+            <h3 class="font-semibold">@pillPage</h3>
+            <p class="text-sm text-muted-foreground">Collapse the desktop sidebar to show compact navigation. On mobile, the pill opens the sidebar sheet.</p>
+            <SidebarTrigger />
+        </SidebarPillInset>
+    </div>
+</SidebarProvider>
+</div>
+@code { private bool pillOpen = true; private string pillPage = "Overview"; }

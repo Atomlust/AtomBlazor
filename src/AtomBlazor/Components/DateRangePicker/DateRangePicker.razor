@@ -1,0 +1,272 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+
+@*
+    DateRangePicker 日期范围选择器组件——按钮触发器加浮层，内含带快捷预设侧栏的双月历
+    。
+*@
+
+<Popover @bind-Open="_isOpen">
+    <AtomBlazor.PopoverTrigger AsChild="true">
+        <Button AriaLabel="@AriaLabel" Variant="ButtonVariant.Outline"
+                Class="@ButtonCssClass"
+                Disabled="@Disabled"
+                @attributes="AdditionalAttributes">
+            <LucideIcon Name="calendar" Class="atom:me-2 atom:h-4 atom:w-4" />
+            @if (Value != null)
+            {
+                <span>@FormatRange(Value)</span>
+            }
+            else
+            {
+                <span class="atom:text-muted-foreground">@EffectivePlaceholder</span>
+            }
+        </Button>
+    </AtomBlazor.PopoverTrigger>
+    <AtomBlazor.PopoverContent Class="atom:w-[calc(100vw-6rem)] atom:p-0" Align="@PopoverAlign.Start" data-drp>
+        <div class="atom:flex atom:flex-col">
+            @if (ShowPresets)
+            {
+                <div class="atom:flex atom:flex-col atom:border-b" data-drp-body>
+                    <div class="atom:p-3 atom:border-b" data-drp-presets>
+                        @* 移动端：原生 select *@
+                        <div data-drp-presets-select>
+                            <NativeSelect TValue="int?"
+                                          Value="SelectedPresetIndex"
+                                          ValueChanged="OnPresetSelectChanged"
+                                          AriaLabel="@Localizer["DateRangePicker.QuickSelect"]"
+                                          Placeholder="@Localizer[_selectionStart.HasValue || _selectionEnd.HasValue ? "DateRangePicker.Custom" : "DateRangePicker.Placeholder"]"
+                                          Size="NativeSelectSize.Small">
+                                @for (var i = 0; i < EffectivePresets.Count; i++)
+                                {
+                                    <option value="@i">@ResolveLabel(EffectivePresets[i])</option>
+                                }
+                            </NativeSelect>
+                        </div>
+                        @* 桌面端：按钮侧栏 *@
+                        <div class="atom:hidden" data-drp-presets-inner>
+                            <span class="atom:hidden atom:text-xs atom:font-medium atom:text-muted-foreground atom:mb-1" data-drp-presets-label>@Localizer["DateRangePicker.QuickSelect"]</span>
+                            @foreach (var quickPick in EffectivePresets)
+                            {
+                                var captured = quickPick;
+                                <Button Variant="ButtonVariant.Ghost"
+                                        Size="ButtonSize.Small"
+                                        Class="@GetPresetButtonClass(captured)"
+                                        data-drp-preset-btn
+                                        OnClick="@(() => ApplyPreset(captured))">
+                                    @ResolveLabel(captured)
+                                </Button>
+                            }
+                        </div>
+                    </div>
+                    <div class="atom:flex-1">
+                        @* 内联日历 *@
+                        <div class="@(ShowTwoMonths ? "atom:flex" : "")">
+                            @* 第一个日历 *@
+                            <div class="atom:flex-1 atom:px-5 atom:py-3" data-drp-calendar>
+                                <div class="atom:flex atom:items-center atom:justify-between atom:mb-3">
+                                    <button type="button"
+                                            class="atom:inline-flex atom:items-center atom:justify-center atom:h-7 atom:w-7 atom:rounded-md atom:border atom:border-input atom:bg-transparent atom:hover:bg-accent atom:hover:text-accent-foreground atom:opacity-50 atom:hover:opacity-100"
+                                            @onclick="PreviousMonth">
+                                        <LucideIcon Name="chevron-left" Class="atom:h-4 atom:w-4" />
+                                    </button>
+                                    <span class="atom:text-sm atom:font-medium">@GetMonthName(_displayMonth1.Month) @_displayMonth1.Year</span>
+                                    @if (!ShowTwoMonths)
+                                    {
+                                        <button type="button"
+                                                class="atom:inline-flex atom:items-center atom:justify-center atom:h-7 atom:w-7 atom:rounded-md atom:border atom:border-input atom:bg-transparent atom:hover:bg-accent atom:hover:text-accent-foreground atom:opacity-50 atom:hover:opacity-100"
+                                                @onclick="NextMonth">
+                                            <LucideIcon Name="chevron-right" Class="atom:h-4 atom:w-4" />
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button"
+                                                class="atom:inline-flex atom:items-center atom:justify-center atom:h-7 atom:w-7 atom:rounded-md atom:border atom:border-input atom:bg-transparent atom:hover:bg-accent atom:hover:text-accent-foreground atom:opacity-50 atom:hover:opacity-100"
+                                                data-drp-mobile-nav
+                                                @onclick="NextMonth">
+                                            <LucideIcon Name="chevron-right" Class="atom:h-4 atom:w-4" />
+                                        </button>
+                                        <div class="atom:hidden atom:w-7" data-drp-desktop-spacer></div>
+                                    }
+                                </div>
+                                @RenderMonthGridInline(_displayMonth1)
+                            </div>
+
+                            @if (ShowTwoMonths)
+                            {
+                                @* 第二个日历 *@
+                                <div class="atom:hidden atom:flex-1 atom:border-s" data-drp-calendar-2>
+                                    <div class="atom:flex atom:items-center atom:justify-between atom:mb-3">
+                                        <div class="atom:w-7"></div>
+                                        <span class="atom:text-sm atom:font-medium">@GetMonthName(_displayMonth2.Month) @_displayMonth2.Year</span>
+                                        <button type="button"
+                                                class="atom:inline-flex atom:items-center atom:justify-center atom:h-7 atom:w-7 atom:rounded-md atom:border atom:border-input atom:bg-transparent atom:hover:bg-accent atom:hover:text-accent-foreground atom:opacity-50 atom:hover:opacity-100"
+                                                @onclick="NextMonth">
+                                            <LucideIcon Name="chevron-right" Class="atom:h-4 atom:w-4" />
+                                        </button>
+                                    </div>
+                                    @RenderMonthGridInline(_displayMonth2)
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                @* 无预设侧栏的日历区 *@
+                <div class="@(ShowTwoMonths ? "atom:flex" : "")">
+                    @* 第一个日历 *@
+                    <div class="atom:flex-1 atom:px-5 atom:py-3" data-drp-calendar>
+                        <div class="atom:flex atom:items-center atom:justify-between atom:mb-3">
+                            <button type="button"
+                                    class="atom:inline-flex atom:items-center atom:justify-center atom:h-7 atom:w-7 atom:rounded-md atom:border atom:border-input atom:bg-transparent atom:hover:bg-accent atom:hover:text-accent-foreground atom:opacity-50 atom:hover:opacity-100"
+                                    @onclick="PreviousMonth">
+                                <LucideIcon Name="chevron-left" Class="atom:h-4 atom:w-4" />
+                            </button>
+                            <span class="atom:text-sm atom:font-medium">@GetMonthName(_displayMonth1.Month) @_displayMonth1.Year</span>
+                            @if (!ShowTwoMonths)
+                            {
+                                <button type="button"
+                                        class="atom:inline-flex atom:items-center atom:justify-center atom:h-7 atom:w-7 atom:rounded-md atom:border atom:border-input atom:bg-transparent atom:hover:bg-accent atom:hover:text-accent-foreground atom:opacity-50 atom:hover:opacity-100"
+                                        @onclick="NextMonth">
+                                    <LucideIcon Name="chevron-right" Class="atom:h-4 atom:w-4" />
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button"
+                                        class="atom:inline-flex atom:items-center atom:justify-center atom:h-7 atom:w-7 atom:rounded-md atom:border atom:border-input atom:bg-transparent atom:hover:bg-accent atom:hover:text-accent-foreground atom:opacity-50 atom:hover:opacity-100"
+                                        data-drp-mobile-nav
+                                        @onclick="NextMonth">
+                                    <LucideIcon Name="chevron-right" Class="atom:h-4 atom:w-4" />
+                                </button>
+                                <div class="atom:hidden atom:w-7" data-drp-desktop-spacer></div>
+                            }
+                        </div>
+                        @RenderMonthGridInline(_displayMonth1)
+                    </div>
+
+                    @if (ShowTwoMonths)
+                    {
+                        @* 第二个日历 *@
+                        <div class="atom:hidden atom:flex-1 atom:border-s" data-drp-calendar-2>
+                            <div class="atom:flex atom:items-center atom:justify-between atom:mb-3">
+                                <div class="atom:w-7"></div>
+                                <span class="atom:text-sm atom:font-medium">@GetMonthName(_displayMonth2.Month) @_displayMonth2.Year</span>
+                                <button type="button"
+                                        class="atom:inline-flex atom:items-center atom:justify-center atom:h-7 atom:w-7 atom:rounded-md atom:border atom:border-input atom:bg-transparent atom:hover:bg-accent atom:hover:text-accent-foreground atom:opacity-50 atom:hover:opacity-100"
+                                        @onclick="NextMonth">
+                                    <LucideIcon Name="chevron-right" Class="atom:h-4 atom:w-4" />
+                                </button>
+                            </div>
+                            @RenderMonthGridInline(_displayMonth2)
+                        </div>
+                    }
+                </div>
+            }
+
+            <div class="atom:flex atom:items-center atom:justify-between atom:p-3 atom:border-t">
+                <div class="atom:text-sm atom:text-muted-foreground">
+                    @if (_selectionStart.HasValue && !_selectionEnd.HasValue)
+                    {
+                        <span>@Localizer["DateRangePicker.SelectEndDate"]</span>
+                    }
+                    else if (_selectionStart.HasValue && _selectionEnd.HasValue)
+                    {
+                        var days = CountSelectedDays(_selectionStart.Value, _selectionEnd.Value);
+                        <span>@Localizer["DateRangePicker.DaysSelected", days]</span>
+                    }
+                </div>
+                @if (ShowButtons)
+                {
+                    <div class="atom:flex atom:gap-2">
+                        <button type="button"
+                                class="atom:inline-flex atom:items-center atom:justify-center atom:whitespace-nowrap atom:rounded-md atom:text-sm atom:font-medium atom:ring-offset-background atom:transition-colors atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2 atom:disabled:pointer-events-none atom:disabled:opacity-50 atom:border atom:border-input atom:bg-background atom:hover:bg-accent atom:hover:text-accent-foreground atom:h-8 atom:px-3"
+                                disabled="@(Value == null && !_selectionStart.HasValue)"
+                                @onclick="Clear">
+                            @Localizer["DateRangePicker.Clear"]
+                        </button>
+                        <button type="button"
+                                class="atom:inline-flex atom:items-center atom:justify-center atom:whitespace-nowrap atom:rounded-md atom:text-sm atom:font-medium atom:ring-offset-background atom:transition-colors atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2 atom:disabled:pointer-events-none atom:disabled:opacity-50 atom:bg-primary atom:text-primary-foreground atom:hover:bg-primary/90 atom:h-8 atom:px-3"
+                                disabled="@(!CanApply)"
+                                @onclick="Apply">
+                            @Localizer["DateRangePicker.Apply"]
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </AtomBlazor.PopoverContent>
+</Popover>
+
+@code {
+    private RenderFragment RenderMonthGridInline(DateTime monthDate) => __builder =>
+    {
+        var weeks = monthDate == _displayMonth1 ? GetWeeksInMonth1() : GetWeeksInMonth2();
+        <table class="atom:w-full atom:border-collapse">
+            <thead>
+                <tr class="atom:flex">
+                    @foreach (var dayName in DayNames)
+                    {
+                        <th class="atom:text-muted-foreground atom:w-9 atom:flex-1 atom:font-normal atom:text-[0.8rem]" data-drp-cell>@dayName</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var week in weeks)
+                {
+                    <tr class="atom:flex atom:w-full atom:mt-2">
+                        @foreach (var day in week)
+                        {
+                            @if (day.HasValue)
+                            {
+                                var dateValue = day.Value;
+                                var isDisabled = IsDateDisabled(dateValue) || dateValue.Month != monthDate.Month;
+                                var isInRange = !isDisabled && IsInRange(dateValue);
+                                var isRangeStart = !isDisabled && IsRangeStart(dateValue);
+                                var isRangeEnd = !isDisabled && IsRangeEnd(dateValue);
+                                var isToday = dateValue.Date == DateTime.Today;
+
+                                <td class="@GetCellClass(day, isInRange, isRangeStart, isRangeEnd)" data-drp-cell>
+                                    <button type="button"
+                                            class="@GetDayClass(dateValue, isDisabled, isInRange, isRangeStart, isRangeEnd, isToday)"
+                                            data-drp-day-btn
+                                            disabled="@isDisabled"
+                                            @onclick="@(() => HandleDateClick(dateValue))">
+                                        @if (DayTemplate != null)
+                                        {
+                                            @DayTemplate(new CalendarDayContext
+                                            {
+                                                Date = dateValue,
+                                                IsSelected = isRangeStart || isRangeEnd,
+                                                IsDisabled = isDisabled,
+                                                IsOutsideMonth = false,
+                                                IsToday = isToday,
+                                                IsInRange = isInRange
+                                            })
+                                        }
+                                        else
+                                        {
+                                            @dateValue.Day
+                                        }
+                                    </button>
+                                </td>
+                            }
+                            else
+                            {
+                                <td class="atom:h-9 atom:w-9 atom:flex-1 atom:text-center atom:text-sm atom:p-0" data-drp-cell></td>
+                            }
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    };
+
+    private async Task HandleDateClick(DateTime date)
+    {
+        await SelectDate(date);
+    }
+}

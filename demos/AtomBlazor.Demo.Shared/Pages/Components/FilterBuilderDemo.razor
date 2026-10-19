@@ -1,0 +1,959 @@
+@page "/components/filterbuilder"
+@using AtomBlazor.Demo.Services
+
+<PageTitle>@L.T("Filter Builder 筛选构建器 - Atom BlazorUI", "Filter Builder - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-7xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">Filter Builder</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("可视化的查询构建器，用来搭建数据筛选表达式：支持 AND/OR 逻辑、嵌套分组，以及按类型匹配的值输入框。", "A visual query builder for constructing data filter expressions with AND/OR logic, nested groups, and type-aware value inputs.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Overview -->
+    <div class="rounded-lg border border-dashed bg-muted/30 p-6 space-y-5">
+        <h2 class="text-lg font-semibold">@L.T("工作原理", "How it works")</h2>
+        <div class="space-y-2 text-sm text-muted-foreground">
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p>
+                    筛选构建器让用户通过直观的界面搭建结构化的筛选表达式。
+                    每个筛选条件都是一棵由<strong>条件</strong>（字段 + 运算符 + 值）与
+                    <strong>AND/OR 分组</strong>组成的树，分组可以嵌套到任意可配置的深度。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p>
+                    The Filter Builder lets users construct structured filter expressions through an intuitive UI.
+                    Each filter is a tree of <strong>conditions</strong> (field + operator + value) combined with
+                    <strong>AND/OR groups</strong> that can be nested to any configurable depth.
+                </p>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p>
+                    <strong>定义字段</strong> —— 提供一组 <code>FilterField</code> 定义，描述可筛选的列、
+                    它们的数据类型以及可选的枚举选项。组件会为每种类型自动挑选正确的运算符与值输入框
+                    （文本搜索、数值比较、日期选择、多选等）。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p>
+                    <strong>Define fields</strong> — Provide an array of <code>FilterField</code> definitions describing the
+                    filterable columns, their data types, and any enum options. The component automatically selects the
+                    correct operators and value inputs for each type (text search, numeric comparison, date pickers, multi-select, etc.).
+                </p>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p>
+                    <strong>绑定与响应</strong> —— 用 <code>@@bind-Filter</code> 双向绑定到 <code>FilterDefinition</code>
+                    模型。订阅 <code>OnFilterChanged</code>，在用户编辑条件时应用筛选。
+                    变更默认会做防抖（300 毫秒），也可以启用显式的 Apply 按钮来应对开销较大的查询。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p>
+                    <strong>Bind and react</strong> — Use <code>@@bind-Filter</code> for two-way binding to a <code>FilterDefinition</code>
+                    model. Subscribe to <code>OnFilterChanged</code> to apply filters whenever the user edits a condition.
+                    Changes are debounced by default (300ms), or you can enable an explicit Apply button for expensive queries.
+                </p>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p>
+                    <strong>随处求值</strong> —— 把筛选树转换成 <code>Func&lt;T, bool&gt;</code>
+                    做客户端内存过滤，或转换成 <code>Expression&lt;Func&lt;T, bool&gt;&gt;</code>
+                    供 EF Core 及其他 IQueryable 提供程序做服务端查询。筛选还可以序列化为 JSON，用于存储或传输。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p>
+                    <strong>Evaluate anywhere</strong> — Convert the filter tree into a <code>Func&lt;T, bool&gt;</code>
+                    for client-side in-memory filtering, or an <code>Expression&lt;Func&lt;T, bool&gt;&gt;</code>
+                    for server-side queries with EF Core and other IQueryable providers. Filters can also be serialized
+                    to JSON for storage or transmission.
+                </p>
+                        </text>
+}
+        </div>
+
+        <h3 class="text-base font-semibold">@L.T("理解分组", "Understanding groups")</h3>
+        <div class="space-y-3 text-sm text-muted-foreground">
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p>
+                    一个 <code>FilterDefinition</code> 就是一个<strong>分组</strong> —— 它持有逻辑运算符
+                    （<code>AND</code> 或 <code>OR</code>）、一份条件列表，以及一份嵌套的子分组列表。
+                    这种递归结构让你能搭建任意复杂的查询。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p>
+                    A <code>FilterDefinition</code> is a <strong>group</strong> — it holds a logical operator
+                    (<code>AND</code> or <code>OR</code>), a list of conditions, and a list of nested child groups.
+                    This recursive structure lets you build arbitrarily complex queries.
+                </p>
+                        </text>
+}
+
+            <div class="space-y-2">
+                <p class="font-medium text-foreground">@L.T("扁平筛选（不含分组）", "Flat filter (no groups)")</p>
+                <p>@L.T("所有条件都位于根分组，并共用同一个运算符。", "All conditions live in the root group and share the same operator.")</p>
+                <pre class="rounded-lg border bg-muted p-4 text-xs leading-relaxed overflow-x-auto"><code>Name contains "Smith" <strong>AND</strong> Age greater than 25 <strong>AND</strong> Status equals "Active"</code></pre>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p>每个条件都必须为真。等价于：<br />
+                    <code class="text-xs">(Name ∧ Age ∧ Status)</code></p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p>Every condition must be true. This is equivalent to:<br />
+                    <code class="text-xs">(Name ∧ Age ∧ Status)</code></p>
+                                </text>
+}
+            </div>
+
+            <div class="space-y-2">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="font-medium text-foreground">嵌套分组 —— 混合 AND 与 OR</p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="font-medium text-foreground">Nested group — mixing AND &amp; OR</p>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p>
+                        要表达<em>“Name 包含 Smith，并且（Status 是 Active 或 Status 是 Pending）”</em>，就需要一个嵌套分组。
+                        根分组用 <code>AND</code>，子分组用 <code>OR</code> 来组合这些状态条件：
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p>
+                        To express <em>"Name contains Smith AND (Status is Active OR Status is Pending)"</em>, you need a nested group.
+                        The root group uses <code>AND</code>, and a child group uses <code>OR</code> for the status conditions:
+                    </p>
+                                </text>
+}
+                <pre class="rounded-lg border bg-muted p-4 text-xs leading-relaxed overflow-x-auto"><code>WHERE <strong>AND</strong>
+├─ Name contains "Smith"
+└─ GROUP <strong>OR</strong>
+   ├─ Status equals "Active"
+   └─ Status equals "Pending"</code></pre>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p>它的求值结果是：<br />
+                    <code class="text-xs">(Name) AND (Status = Active OR Status = Pending)</code></p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p>This evaluates as:<br />
+                    <code class="text-xs">(Name) AND (Status = Active OR Status = Pending)</code></p>
+                                </text>
+}
+            </div>
+
+            <div class="space-y-2">
+                <p class="font-medium text-foreground">@L.T("更深层的嵌套", "Deeper nesting")</p>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p>
+                        分组可以嵌套多层。例如<em>“找出姓名含 Smith 的活跃用户，他们要么是 30 岁以上的 Admin，
+                        要么是 40 岁以上的 Manager”</em>：
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p>
+                        Groups can be nested multiple levels deep. For example, <em>"find active users named Smith who are either
+                        Admins over 30 or Managers over 40"</em>:
+                    </p>
+                                </text>
+}
+                <pre class="rounded-lg border bg-muted p-4 text-xs leading-relaxed overflow-x-auto"><code>WHERE <strong>AND</strong>
+├─ Name contains "Smith"
+├─ Status equals "Active"
+└─ GROUP <strong>OR</strong>
+   ├─ GROUP <strong>AND</strong>
+   │  ├─ Role equals "Admin"
+   │  └─ Age greater than 30
+   └─ GROUP <strong>AND</strong>
+      ├─ Role equals "Manager"
+      └─ Age greater than 40</code></pre>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p>它的求值结果是：<br />
+                    <code class="text-xs">(Name ∧ Status) AND ((Role = Admin ∧ Age &gt; 30) OR (Role = Manager ∧ Age &gt; 40))</code></p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p>This evaluates as:<br />
+                    <code class="text-xs">(Name ∧ Status) AND ((Role = Admin ∧ Age &gt; 30) OR (Role = Manager ∧ Age &gt; 40))</code></p>
+                                </text>
+}
+            </div>
+
+            <div class="space-y-2">
+                <p class="font-medium text-foreground">@L.T("控制嵌套深度", "Controlling depth")</p>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p>
+                        用 <code>MaxDepth</code> 参数限制分组可以嵌套的深度。
+                        设 <code>MaxDepth="0"</code> 只做扁平筛选（不显示 “Add group” 按钮），
+                        或调大它以允许更复杂的查询。每一层深度都会用一条彩色的左边框标示出来，方便用户看清结构。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p>
+                        Use the <code>MaxDepth</code> parameter to limit how deeply groups can nest.
+                        Set <code>MaxDepth="0"</code> for flat-only filters (no "Add group" button),
+                        or increase it to allow more complex queries. Each depth level is visually indicated with a
+                        colored left border so users can easily see the structure.
+                    </p>
+                                </text>
+}
+            </div>
+        </div>
+    </div>
+
+    <!-- Basic Example -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("基础筛选构建器", "Basic Filter Builder")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("用字符串、数字、日期、枚举与布尔字段搭建扁平筛选。", "Build flat filters with string, number, date, enum, and boolean fields.")
+            </p>
+        </div>
+        <FilterBuilder @bind-Filter="basicFilter"
+                         Fields="@basicFields"
+                         MaxDepth="0"
+                         OnFilterChanged="@(_ => StateHasChanged())" />
+        <div class="flex items-start gap-4">
+            <CodeBlock Source="Components/FilterBuilder/basic.txt" />
+            <FilterJsonViewer Filter="basicFilter" />
+        </div>
+    </div>
+
+    <!-- Nested Groups -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("嵌套 AND/OR 分组", "Nested AND/OR Groups")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用嵌套分组搭建复杂查询。点击 “Add group” 即可创建拥有自己 AND/OR 逻辑的子分组。
+                    每一层深度都会用彩色的左边框区分，最大嵌套深度可以配置。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Create complex queries with nested groups. Click "Add group" to create sub-groups with their own AND/OR logic.
+                    Each depth level is visually distinguished with a colored left border. Maximum nesting depth is configurable.
+                </p>
+                        </text>
+}
+        </div>
+        <FilterBuilder @bind-Filter="nestedFilter"
+                         Fields="@basicFields"
+                         MaxDepth="3"
+                         OnFilterChanged="@(_ => StateHasChanged())" />
+        <div class="flex items-start gap-4">
+            <CodeBlock Source="Components/FilterBuilder/nested-groups.txt" />
+            <FilterJsonViewer Filter="nestedFilter" />
+        </div>
+    </div>
+
+    <!-- With Apply Button -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("Apply 按钮模式", "Apply Button Mode")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    设 <code>ShowApplyButton="true"</code> 后，只有用户点击 Apply 按钮才会应用变更。
+                    适合开销较大的服务端查询，可以避免每次按键都触发一次请求。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    With <code>ShowApplyButton="true"</code>, changes are only applied when the user clicks the Apply button.
+                    Useful for expensive server-side queries where you want to avoid triggering a request on every keystroke.
+                </p>
+                        </text>
+}
+        </div>
+        <FilterBuilder @bind-Filter="applyFilter"
+                         Fields="@basicFields"
+                         ShowApplyButton="true"
+                         OnFilterChanged="HandleApplyFilterChanged" />
+
+        @if (applyFilterApplied)
+        {
+            <Badge Variant="BadgeVariant.Default">
+                @L.F("已应用筛选，共 {0} 个条件。", "Filter applied with {0} condition(s)", applyFilter.TotalConditionCount)
+            </Badge>
+        }
+        <div class="flex items-start gap-4">
+            <CodeBlock Source="Components/FilterBuilder/apply-button.txt" />
+            <FilterJsonViewer Filter="applyFilter" />
+        </div>
+    </div>
+
+    <!-- DataTable Integration -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("与 DataTable 集成", "DataTable Integration")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    把筛选构建器与 DataTable 搭配起来，实现可交互的数据浏览。
+                    筛选条件会用 <code>ToFunc&lt;T&gt;()</code> 编译成 <code>Func&lt;T, bool&gt;</code>，
+                    并在用户修改条件时于客户端侧应用。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Pair the filter builder with a DataTable for interactive data exploration.
+                    The filter is compiled to a <code>Func&lt;T, bool&gt;</code> using <code>ToFunc&lt;T&gt;()</code>
+                    and applied client-side as users modify conditions.
+                </p>
+                        </text>
+}
+        </div>
+        <FilterBuilder @bind-Filter="tableFilter"
+                         Fields="@personFields"
+                         OnFilterChanged="HandleTableFilterChanged" />
+
+        <div class="flex items-center gap-2">
+            <Badge Variant="BadgeVariant.Secondary">
+                @L.F("共 {0} 条记录（总计 {1} 条）。", "{0} of {1} records", filteredPeople.Count, allPeople.Count)
+            </Badge>
+        </div>
+
+        <DataTable TData="Person" Data="@filteredPeople" InitialPageSize="10">
+            <Columns>
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Name)" Header="@(L.T("姓名", "Name"))" Sortable />
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Email)" Header="@(L.T("邮箱", "Email"))" />
+                <DataTableColumn TData="Person" TValue="int" Property="@(p => p.Age)" Header="@(L.T("年龄", "Age"))" Sortable />
+                <DataTableColumn TData="Person" TValue="DateTime" Property="@(p => p.JoinDate)" Header="@(L.T("加入日期", "Join Date"))" Sortable>
+                    <CellTemplate Context="person">
+                        @person.JoinDate.ToString("dd MMM yyyy")
+                    </CellTemplate>
+                </DataTableColumn>
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Role)" Header="@(L.T("角色", "Role"))" />
+                <DataTableColumn TData="Person" TValue="string" Property="@(p => p.Status)" Header="@(L.T("状态", "Status"))">
+                    <CellTemplate Context="person">
+                        <Badge Variant="@(person.Status == "Active" ? BadgeVariant.Default : BadgeVariant.Outline)">
+                            @person.Status
+                        </Badge>
+                    </CellTemplate>
+                </DataTableColumn>
+                <DataTableColumn TData="Person" TValue="bool" Property="@(p => p.IsActive)" Header="@(L.T("是否启用", "Active"))">
+                    <CellTemplate Context="person">
+                        @(person.IsActive ? L.T("是", "Yes") : L.T("否", "No"))
+                    </CellTemplate>
+                </DataTableColumn>
+            </Columns>
+        </DataTable>
+        <div class="flex items-start gap-4">
+            <CodeBlock Source="Components/FilterBuilder/datatable-integration.txt" />
+            <FilterJsonViewer Filter="tableFilter" />
+        </div>
+    </div>
+
+    <!-- LINQ & EF Core Integration -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <h2 class="text-2xl font-semibold">LINQ 与 EF Core 集成</h2>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <h2 class="text-2xl font-semibold">LINQ &amp; EF Core Integration</h2>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code>FilterDefinition</code> 模型可以转换成可执行代码，客户端与服务端场景都能用。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    The <code>FilterDefinition</code> model can be converted to executable code for both client-side and server-side scenarios.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="rounded-lg border border-dashed bg-muted/30 p-6 space-y-4">
+            <div class="space-y-2">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <h3 class="text-base font-semibold">客户端侧 —— <code>ToFunc&lt;T&gt;()</code></h3>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <h3 class="text-base font-semibold">Client-side — <code>ToFunc&lt;T&gt;()</code></h3>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        通过反射把筛选树编译成 <code>Func&lt;T, bool&gt;</code> 委托。
+                        适合用 LINQ-to-Objects 过滤内存中的集合。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        Compiles the filter tree into a <code>Func&lt;T, bool&gt;</code> delegate using reflection.
+                        Ideal for filtering in-memory collections with LINQ-to-Objects.
+                    </p>
+                                </text>
+}
+                <pre class="rounded-lg border bg-muted p-4 text-xs leading-relaxed overflow-x-auto"><code>var predicate = filter.ToFunc&lt;Person&gt;(fields);
+var results = people.Where(predicate).ToList();</code></pre>
+            </div>
+            <div class="space-y-2">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <h3 class="text-base font-semibold">服务端侧 —— <code>ToExpression&lt;T&gt;()</code></h3>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <h3 class="text-base font-semibold">Server-side — <code>ToExpression&lt;T&gt;()</code></h3>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        构建一个 LINQ <code>Expression&lt;Func&lt;T, bool&gt;&gt;</code>，可以传给
+                        EF Core 的 <code>Where()</code> 方法。这棵表达式树会由数据库提供程序翻译成 SQL，
+                        因此过滤发生在数据库层，而不是应用内存里。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        Builds a LINQ <code>Expression&lt;Func&lt;T, bool&gt;&gt;</code> that can be passed to
+                        EF Core's <code>Where()</code> method. The expression tree is translated to SQL by the database provider,
+                        so filtering happens at the database level rather than in application memory.
+                    </p>
+                                </text>
+}
+                <pre class="rounded-lg border bg-muted p-4 text-xs leading-relaxed overflow-x-auto"><code>var expression = filter.ToExpression&lt;Person&gt;(fields);
+var results = await dbContext.People
+    .Where(expression)
+    .ToListAsync();</code></pre>
+            </div>
+            <div class="space-y-2">
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <h3 class="text-base font-semibold">序列化 —— <code>ToJson()</code> / <code>FromJson()</code></h3>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <h3 class="text-base font-semibold">Serialization — <code>ToJson()</code> / <code>FromJson()</code></h3>
+                                </text>
+}
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        把整棵筛选树序列化成 JSON 以便持久化（例如把用户自定义的筛选存进数据库，
+                        或在 API 请求里于客户端与服务端之间传递筛选）。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-sm text-muted-foreground">
+                        Serialize the entire filter tree to JSON for persistence (e.g., saving user-defined filters to a database
+                        or transmitting filters between client and server in an API request).
+                    </p>
+                                </text>
+}
+                <pre class="rounded-lg border bg-muted p-4 text-xs leading-relaxed overflow-x-auto"><code>// Save
+var json = filter.ToJson();
+
+// Restore
+var restored = FilterDefinitionExtensions.FromJson(json);</code></pre>
+            </div>
+        </div>
+        <CodeBlock Source="Components/FilterBuilder/linq-expression.txt" />
+    </div>
+
+    <!-- Compact Mode -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("紧凑模式", "Compact Mode")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    设 <code>Compact="true"</code> 得到更小的布局，适合放在工具栏或内联位置。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Use <code>Compact="true"</code> for a smaller layout suitable for toolbars and inline placement.
+                </p>
+                        </text>
+}
+        </div>
+        <FilterBuilder @bind-Filter="compactFilter"
+                         Fields="@basicFields"
+                         Compact="true"
+                         MaxDepth="1"
+                         OnFilterChanged="@(_ => StateHasChanged())" />
+        <div class="flex items-start gap-4">
+            <CodeBlock Source="Components/FilterBuilder/compact.txt" />
+            <FilterJsonViewer Filter="compactFilter" />
+        </div>
+    </div>
+
+    <!-- Max Conditions -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("条件数量上限", "Max Conditions Limit")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    用 <code>MaxConditions</code> 限制条件总数。这个示例最多允许 5 个条件。
+                    达到上限后，“Add condition” 与 “Add group” 按钮会被禁用。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    Limit the total number of conditions with <code>MaxConditions</code>. This example allows a maximum of 5 conditions.
+                    Once the limit is reached, the "Add condition" and "Add group" buttons are disabled.
+                </p>
+                        </text>
+}
+        </div>
+        <FilterBuilder @bind-Filter="limitedFilter"
+                         Fields="@basicFields"
+                         MaxConditions="5"
+                         OnFilterChanged="@(_ => StateHasChanged())" />
+        <p class="text-sm text-muted-foreground">
+            @L.F("条件数：{0} / 5。", "Conditions: {0} / 5", limitedFilter.TotalConditionCount)
+        </p>
+        <div class="flex items-start gap-4">
+            <CodeBlock Source="Components/FilterBuilder/max-conditions.txt" />
+            <FilterJsonViewer Filter="limitedFilter" />
+        </div>
+    </div>
+
+    <!-- Accessibility Notes -->
+
+    <!-- API Reference -->
+
+
+    <LocalizationSection
+        Description="@(L.T("筛选构建器的文案可配置，包括字段占位符、操作按钮、日期预设与时长单位。", "Filter builder labels including field placeholders, action buttons, date presets, and period names are configurable."))"
+        Labels="@(new LocalizationSection.LabelInfo[]
+        {
+            new("SelectField", "Select field...", L.T("字段选择器的占位文本。", "Placeholder for the field selector")),
+            new("FilterBuilderAriaLabel", "Filter builder", L.T("筛选构建器区域的 aria 标签。", "Aria label for the filter builder region")),
+            new("RemoveCondition", "Remove condition", L.T("移除某个条件的 aria 标签。", "Aria label for removing a condition")),
+            new("RemoveGroup", "Remove group", L.T("移除某个分组的 aria 标签。", "Aria label for removing a group")),
+            new("AddCondition", "Add condition", L.T("添加条件按钮的文案。", "Label for the add condition button")),
+            new("AddGroup", "Add group", L.T("添加分组按钮的文案。", "Label for the add group button")),
+            new("EnterValue", "Enter value...", L.T("值输入框的占位文本。", "Placeholder for value inputs")),
+            new("Today/Yesterday/...", "today, yesterday, ...", L.T("日期预设的文案（Today、Yesterday、Tomorrow、ThisWeek 等）。", "Date preset labels (Today, Yesterday, Tomorrow, ThisWeek, etc.)")),
+            new("Days/Weeks/Months/...", "days, weeks, months, ...", L.T("InLast/InNext 筛选使用的时长单位文案。", "Period labels for InLast/InNext filters")),
+        })"
+        CodeExample="@(@"builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set(""FilterBuilder.AddCondition"", ""Bedingung hinzufügen"");
+    localizer.Set(""FilterBuilder.AddGroup"", ""Gruppe hinzufügen"");
+    localizer.Set(""FilterBuilder.Today"", ""heute"");
+    localizer.Set(""FilterBuilder.Days"", ""Tage"");
+});")" />
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("预设与自定义标签编辑器", "Presets and custom chip editors")</h2>
+        <p class="text-sm text-muted-foreground">@L.T("挑选预设、搜索字段，或用标签编辑 Status。已保存的定义保持不变，绑定的筛选只会在 Apply 之后改变。自定义编辑器必须为它暴露的每个运算符提供合适的值。", "Choose a preset, search for a field, or edit Status with chips. The saved definitions remain unchanged, and the bound filter changes only after Apply. Custom editors must provide suitable values for every operator they expose.")</p>
+<FilterBuilder @bind-Filter="presetFilter" Fields="basicFields" Presets="savedFilters"
+                 PresetDisplay="FilterPresetDisplay.Buttons" SearchableFields="true"
+                 ValueEditors="customEditors" ShowApplyButton="true" />
+        @if (L.IsChinese)
+        {
+                <text>
+                    <p class="text-sm">已应用条件：@presetFilter.TotalConditionCount</p>
+                </text>
+}
+        else
+        {
+                <text>
+                    <p class="text-sm">Applied conditions: @presetFilter.TotalConditionCount</p>
+                </text>
+}
+        <CodeBlock Source="Components/FilterBuilder/presets.txt" />
+
+    </section>
+
+    <AccessibilityList>
+        <AriaAttributes>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    根容器使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="region"</code>，并带上 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label="Filter builder"</code>
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Root container uses <code class="text-xs bg-muted px-1 py-0.5 rounded">role="region"</code> with <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label="Filter builder"</code>
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    筛选分组使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="group"</code>，并配有描述性的 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code>
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Filter groups use <code class="text-xs bg-muted px-1 py-0.5 rounded">role="group"</code> with descriptive <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code>
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    每个筛选条件都使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">role="group"</code>，并带上 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label="Filter condition"</code>
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Each filter condition uses <code class="text-xs bg-muted px-1 py-0.5 rounded">role="group"</code> with <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label="Filter condition"</code>
+                </AccessibilityItem>
+                        </text>
+}
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem>
+                    移除按钮都带有供屏幕阅读器使用的描述性 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code>
+                </AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem>
+                    Remove buttons include descriptive <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> for screen readers
+                </AccessibilityItem>
+                        </text>
+}
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在筛选控件之间移动", "Navigate between filter controls"))">
+                <Kbd>Tab</Kbd>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="FilterBuilder">
+                <ApiParameter Name="Filter" Type="FilterDefinition">
+                    @L.T("当前的筛选状态。与 @@bind-Filter 搭配可实现双向绑定。", "The current filter state. Use with @bind-Filter for two-way binding.")
+                </ApiParameter>
+                <ApiParameter Name="Fields" Type="IEnumerable&lt;FilterField&gt;">
+                    @L.T("可供筛选的字段。每个字段定义名称、标签、类型，枚举字段还可以提供选项。", "The available fields to filter on. Each field defines a name, label, type, and optional options for enum fields.")
+                </ApiParameter>
+                <ApiParameter Name="OnFilterChanged" Type="EventCallback&lt;FilterDefinition&gt;">
+                    @L.T("筛选发生变化时调用的回调。可用于把筛选应用到数据这类副作用。", "Callback invoked when the filter changes. Use for side effects like applying filters to data.")
+                </ApiParameter>
+                <ApiParameter Name="MaxDepth" Type="int" Default="3">
+                    @L.T("分组的最大嵌套深度。设为 0 可完全禁用分组。", "Maximum nesting depth for filter groups. Set to 0 to disable grouping entirely.")
+                </ApiParameter>
+                <ApiParameter Name="MaxConditions" Type="int?" Default="null">
+                    @L.T("所有分组内允许的条件总数上限。为 null 表示不限制。", "Maximum total conditions allowed across all groups. Null for unlimited.")
+                </ApiParameter>
+                <ApiParameter Name="DefaultOperator" Type="LogicalOperator" Default="And">
+                    @L.T("新建分组默认使用的逻辑运算符（AND/OR）。", "Default logical operator (AND/OR) for new groups.")
+                </ApiParameter>
+                <ApiParameter Name="ShowApplyButton" Type="bool" Default="false">
+                    @L.T("显示显式的 Apply 按钮，而不是每次编辑后自动应用变更。", "Show an explicit Apply button instead of auto-applying changes on each edit.")
+                </ApiParameter>
+                <ApiParameter Name="Compact" Type="bool" Default="false">
+                    @L.T("紧凑布局模式，输入框更小，适合内联或工具栏摆放。", "Compact layout mode for inline/toolbar placement with smaller inputs.")
+                </ApiParameter>
+                <ApiParameter Name="Class" Type="string?">
+                    @L.T("追加到容器元素上的额外 CSS 类。", "Additional CSS classes for the container element.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            应用到底层 <code>&lt;div&gt;</code> 元素上的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            Additional HTML attributes applied to the root <code>&lt;div&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                                        </text>
+}
+                </ApiParameter>
+
+            <ApiParameter Since="v4" Name="Presets / PresetDisplay" Type="IReadOnlyList&lt;FilterPreset&gt; / FilterPresetDisplay" Default="[] / Buttons">@L.T("以按钮或下拉形式展示的可复用定义。每个预设包含 Id、Label 与 Filter；被选中的定义会被克隆一份。", "Reusable definitions shown as buttons or a Dropdown. Each preset has Id, Label and Filter; selected definitions are cloned.")</ApiParameter>
+            <ApiParameter Name="ApplyPresetAsync(id)" Type="Task">@L.T("在渲染器的调度线程上载入某个预设，并遵守显式 Apply 模式与已配置的深度/条件数上限。未知的 ID 会抛出 ArgumentException。", "Loads a preset on the renderer dispatcher, respecting explicit Apply mode and configured depth/condition limits. Unknown IDs throw ArgumentException.")</ApiParameter>
+            <ApiParameter Since="v4" Name="SearchableFields" Type="bool" Default="false">@L.T("为每个字段选择器使用可搜索的组合框。", "Uses a searchable combobox for each field selector.")</ApiParameter>
+            <ApiParameter Since="v4" Name="ValueEditors" Type="IReadOnlyDictionary&lt;string, RenderFragment&lt;FilterValueEditorContext&gt;&gt;?">@L.T("按字段名提供的可选值编辑器。未列出的字段使用内置编辑器。上下文暴露 Field、Operator、Value、ValueEnd 以及 SetValueAsync(value, valueEnd)。", "Optional value editors by field name. Unlisted fields use built-in editors. Context exposes Field, Operator, Value, ValueEnd and SetValueAsync(value, valueEnd).")</ApiParameter>
+
+        </ApiReference>
+        </div>
+
+
+    </section>
+
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private FilterDefinition presetFilter = new();
+    private readonly FilterPreset[] savedFilters =
+    [
+        new("all", "All people", new()),
+        new("active", "Active people", new() { Conditions = [new() { Field = "Status", Operator = FilterOperator.Equals, Value = "Active" }] }),
+        new("pending", "Pending people", new() { Conditions = [new() { Field = "Status", Operator = FilterOperator.Equals, Value = "Pending" }] })
+    ];
+    private IReadOnlyDictionary<string, RenderFragment<FilterValueEditorContext>> customEditors =>
+        new Dictionary<string, RenderFragment<FilterValueEditorContext>> { ["Status"] = StatusEditor };
+    private RenderFragment<FilterValueEditorContext> StatusEditor => context => __builder =>
+    {
+        <div class="flex flex-wrap gap-1" role="group" aria-label="Status">
+            @foreach (var status in new[] { "Active", "Inactive", "Pending", "Suspended" })
+            {
+                <Button Size="ButtonSize.Small" Variant="@(StatusSelected(context, status) ? ButtonVariant.Secondary : ButtonVariant.Outline)"
+                          OnClick="@(() => SetStatusAsync(context, status))" aria-pressed="@StatusSelected(context, status).ToString().ToLowerInvariant()">@status</Button>
+            }
+        </div>
+    };
+
+    private static bool StatusSelected(FilterValueEditorContext context, string status) =>
+        context.Operator is FilterOperator.In or FilterOperator.NotIn
+            ? context.Value is IEnumerable<string> values && values.Contains(status)
+            : Equals(context.Value, status);
+
+    private static Task SetStatusAsync(FilterValueEditorContext context, string status)
+    {
+        if (context.Operator is not (FilterOperator.In or FilterOperator.NotIn)) { return context.SetValueAsync(status); }
+        var values = context.Value is IEnumerable<string> selected ? selected.ToList() : new List<string>();
+        if (!values.Remove(status)) { values.Add(status); }
+        return context.SetValueAsync(values.ToArray());
+    }
+
+    // Data
+    private List<Person> allPeople = new();
+    private List<Person> filteredPeople = new();
+
+    // Filters
+    private FilterDefinition basicFilter = new();
+    private FilterDefinition nestedFilter = new();
+    private FilterDefinition applyFilter = new();
+    private FilterDefinition tableFilter = new();
+    private FilterDefinition compactFilter = new();
+    private FilterDefinition limitedFilter = new();
+
+    // State
+    private bool applyFilterApplied;
+
+    // Field definitions for basic demos
+    private readonly FilterField[] basicFields = new[]
+    {
+        new FilterField { Name = "Name", Label = "Name", Type = FilterFieldType.Text },
+        new FilterField { Name = "Email", Label = "Email", Type = FilterFieldType.Text },
+        new FilterField { Name = "Age", Label = "Age", Type = FilterFieldType.Number },
+        new FilterField { Name = "JoinDate", Label = "Join Date", Type = FilterFieldType.Date },
+        new FilterField
+        {
+            Name = "Status", Label = "Status", Type = FilterFieldType.Enum,
+            Options = new SelectOption<string>[]
+            {
+                new("Active", "Active"),
+                new("Inactive", "Inactive"),
+                new("Pending", "Pending"),
+                new("Suspended", "Suspended")
+            }
+        },
+        new FilterField { Name = "IsActive", Label = "Active", Type = FilterFieldType.Boolean }
+    };
+
+    // Extended field definitions for DataTable integration
+    private readonly FilterField[] personFields = new[]
+    {
+        new FilterField { Name = "Name", Label = "Name", Type = FilterFieldType.Text },
+        new FilterField { Name = "Email", Label = "Email", Type = FilterFieldType.Text },
+        new FilterField { Name = "Age", Label = "Age", Type = FilterFieldType.Number },
+        new FilterField { Name = "JoinDate", Label = "Join Date", Type = FilterFieldType.Date },
+        new FilterField
+        {
+            Name = "Role", Label = "Role", Type = FilterFieldType.Enum,
+            Options = new SelectOption<string>[]
+            {
+                new("Admin", "Admin"),
+                new("User", "User"),
+                new("Guest", "Guest"),
+                new("Moderator", "Moderator"),
+                new("Manager", "Manager"),
+                new("Developer", "Developer"),
+                new("Designer", "Designer"),
+                new("Analyst", "Analyst")
+            }
+        },
+        new FilterField
+        {
+            Name = "Status", Label = "Status", Type = FilterFieldType.Enum,
+            Options = new SelectOption<string>[]
+            {
+                new("Active", "Active"),
+                new("Inactive", "Inactive"),
+                new("Pending", "Pending"),
+                new("Suspended", "Suspended")
+            }
+        },
+        new FilterField { Name = "IsActive", Label = "Active", Type = FilterFieldType.Boolean }
+    };
+
+    protected override void OnInitialized()
+    {
+        allPeople = MockDataService.GeneratePersons(100);
+        filteredPeople = new List<Person>(allPeople);
+    }
+
+    private void HandleApplyFilterChanged(FilterDefinition filter)
+    {
+        applyFilterApplied = !filter.IsEmpty;
+    }
+
+    private void HandleTableFilterChanged(FilterDefinition filter)
+    {
+        if (filter.IsEmpty)
+        {
+            filteredPeople = new List<Person>(allPeople);
+        }
+        else
+        {
+            var predicate = filter.ToFunc<Person>(personFields);
+            filteredPeople = allPeople.Where(predicate).ToList();
+        }
+    }
+
+}

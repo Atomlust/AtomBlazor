@@ -1,0 +1,48 @@
+@namespace AtomBlazor
+
+@*
+    带样式的 HoverCardTrigger 组件。
+    以 shadcn/ui 样式包裹 HoverCardTrigger 基元。
+*@
+
+<AtomBlazor.Primitives.HoverCardTrigger AsChild="@AsChild" class="@CssClass" @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.HoverCardTrigger>
+
+@code {
+    /// <summary>
+    /// 触发器内渲染的子内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 为 true（默认）时触发器不渲染自己的元素，只级联 <c>TriggerContext</c>，
+    /// 由子组件负责消费该上下文并完成接线：把触发器 id 与 aria 特性挂到自己的元素上，
+    /// 并调用上下文的悬停、聚焦与 <c>SetTriggerElement</c> 回调。
+    /// <c>Button</c> 正是这样做的，因此它可以直接放进触发器里。
+    /// </summary>
+    /// <remarks>
+    /// 此模式下既不渲染元素也不挂处理器，因此忽略该上下文的子组件将没有任何东西
+    /// 监听悬停或聚焦，卡片永远不会展开。纯标记、纯文本或裸图标（例如 <c>LucideIcon</c>）
+    /// 因此需要 <c>AsChild="false"</c>，它会把内容包进一个携带处理器的 <c>div</c>。
+    /// 未消费的上下文会在 Development 环境下经 <c>ILogger</c> 报告为警告，
+    /// 因此这种情况不再静默失败。
+    /// </remarks>
+    [Parameter]
+    public bool AsChild { get; set; } = true;
+
+    /// <summary>
+    /// 追加到触发器上的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的其他 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CssClass => ClassNames.cn(Class);
+}

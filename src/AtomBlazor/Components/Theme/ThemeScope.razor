@@ -1,0 +1,41 @@
+@namespace AtomBlazor
+
+@* 局部主题作用域：为后代内容（包括其浮动层）应用外观设置，
+   颜色调色板与暗色模式仍从文档继承。data-atom-* 属性与
+   Primitives 的 theme-scope.js、theme.js 守卫所使用的名称保持一致。 *@
+<div @attributes="AdditionalAttributes" data-atom-theme-scope
+     data-atom-density="@Design.Density.ToString().ToLowerInvariant()"
+     data-atom-font="@Design.Font.ToString().ToLowerInvariant()"
+     data-atom-surface="@Design.Surface.ToString().ToLowerInvariant()"
+     data-atom-menu-color="@Design.MenuColor.ToString().ToLowerInvariant()"
+     data-atom-menu-accent="@Design.MenuAccent.ToString().ToLowerInvariant()"
+     class="@ClassNames.cn("atom:font-sans", Class)" style="@ScopeStyle">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>后代内容（包括其浮动层）的外观设置。</summary>
+    [Parameter] public ThemeDesign Design { get; set; } = new();
+    /// <summary>可选的本地圆角半径（rem）。为 null 时继承外层主题。</summary>
+    [Parameter] public double? Radius { get; set; }
+    /// <summary>被主题化的内容。颜色调色板与暗色模式从文档继承。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>附加 CSS 类。</summary>
+    [Parameter] public string? Class { get; set; }
+    /// <summary>附加 HTML 属性。</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? ScopeStyle => Radius.HasValue
+        ? FormattableString.Invariant($"--radius: {Radius.Value}rem") : null;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        ArgumentNullException.ThrowIfNull(Design);
+        Design.Validate();
+        if (Radius.HasValue && (!double.IsFinite(Radius.Value) || Radius < 0 || Radius > 4))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Radius), "半径必须在 0 到 4 rem 之间。");
+        }
+    }
+}

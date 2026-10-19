@@ -1,0 +1,424 @@
+@page "/primitives/signature-pad"
+<PageTitle>@L.T("Signature Pad 签名板原语 - Atom BlazorUI", "Signature Pad Primitive - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Signature Pad 签名板原语", "Signature Pad Primitive")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("用于手写签名的无头、无样式绘制面板。墨迹引擎在浏览器里运行，因此一笔完成时 C# 只收到一次调用，正在绘制时一次也没有。", "Headless, unstyled drawing surface for a handwritten signature. The ink engine runs in the browser, so C# hears one call when a stroke finishes and nothing while one is being drawn.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+                <p class="text-muted-foreground">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            画板渲染出一个光秃秃的 <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;canvas&gt;</code>。
+                            给它一个尺寸、一个边框和一个颜色；除非你另行设置，墨迹会使用该元素自身的 CSS
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">color</code>。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            The pad renders a bare <code class="text-xs bg-muted px-1 py-0.5 rounded">&lt;canvas&gt;</code>.
+                            Give it a size, a border and a colour; the ink uses the element's own CSS
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">color</code> unless you set one.
+                        </text>
+                    }
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <AtomBlazor.Primitives.SignaturePadPrimitive @ref="basicPad"
+                                OnChange="@(empty => { basicEmpty = empty; return Task.CompletedTask; })"
+                                class="w-full h-40 rounded-md border border-dashed bg-muted/30 cursor-crosshair text-foreground" />
+                <div class="flex flex-wrap items-center gap-2">
+                    <Button Size="ButtonSize.Small" Variant="ButtonVariant.Outline"
+                              Disabled="@basicEmpty" OnClick="@(() => basicPad!.UndoAsync())">
+                        @L.T("撤销", "Undo")
+                    </Button>
+                    <Button Size="ButtonSize.Small" Variant="ButtonVariant.Ghost"
+                              Disabled="@basicEmpty" OnClick="@(() => basicPad!.ClearAsync())">
+                        @L.T("清空", "Clear")
+                    </Button>
+                    <span class="text-sm text-muted-foreground">
+                        @(basicEmpty ? L.T("空", "Empty") : L.T("已签名", "Signed"))
+                    </span>
+                </div>
+            </div>
+
+            <CodeBlock Source="Primitives/SignaturePad/basic.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("画笔", "The Pen")</h2>
+                <p class="text-muted-foreground">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            笔速越快，线条越细，这正是它看起来像墨迹而不像鼠标轨迹的原因。
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">VelocityWeight</code> 决定最新一次速度读数的权重：
+                            取值低时在整个笔画上取平均，线条均匀；取值高时每一次轻扫都会即时响应，收笔更利落。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            The stroke thins as the pen speeds up, which is what makes it read as ink rather
+                            than as a mouse track.
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">VelocityWeight</code> decides how
+                            much the newest speed reading counts: low averages over the stroke for an even
+                            line, high reacts to every flick for a sharper taper.
+                        </text>
+                    }
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <div class="flex flex-wrap items-center gap-4 text-sm">
+                    <label class="flex items-center gap-2">
+                        <span class="text-muted-foreground">@L.T("最大宽度", "Max width")</span>
+                        <input type="range" min="1" max="8" step="0.5" @bind="penMaxWidth" @bind:event="oninput" />
+                        <span class="font-mono w-8">@penMaxWidth</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <span class="text-muted-foreground">@L.T("速度权重", "Velocity weight")</span>
+                        <input type="range" min="0" max="1" step="0.1" @bind="penVelocityWeight" @bind:event="oninput" />
+                        <span class="font-mono w-8">@penVelocityWeight</span>
+                    </label>
+                </div>
+                <AtomBlazor.Primitives.SignaturePadPrimitive @ref="penPad"
+                                MinWidth="0.5"
+                                MaxWidth="@penMaxWidth"
+                                VelocityWeight="@penVelocityWeight"
+                                class="w-full h-40 rounded-md border border-dashed bg-muted/30 cursor-crosshair text-foreground" />
+                <Button Size="ButtonSize.Small" Variant="ButtonVariant.Ghost" OnClick="@(() => penPad!.ClearAsync())">
+                    @L.T("清空", "Clear")
+                </Button>
+                <p class="text-xs text-muted-foreground">
+                    @L.T("设置只作用于其后画出的笔画。清空画板即可在整段签名上看到效果。", "A setting applies to strokes drawn after it changes. Clear the pad to see it across the whole signature.")
+                </p>
+            </div>
+
+            <CodeBlock Source="Primitives/SignaturePad/pen.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("获取签名结果", "Getting the Signature Out")</h2>
+                <p class="text-muted-foreground">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            共有三种形式。要存储的就存 SVG：它可以缩放、体积也小，而且它的墨色是
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">currentColor</code>，所以颜色取自它被渲染到的位置。
+                            PNG 无法把这个决定推迟，因此除非你另行指定，它一律以黑色绘制。这三种形式都是流式返回而不是直接返回，
+                            因为一段细致的签名比 Blazor Server 线路单条消息所能承载的更大。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Three forms. SVG is the one to store: it scales, it stays small, and its ink is
+                            <code class="text-xs bg-muted px-1 py-0.5 rounded">currentColor</code>, so it takes
+                            its colour from wherever it is rendered. A PNG cannot defer that decision, so it is
+                            drawn in black unless you say otherwise. All three are streamed rather than returned,
+                            because a detailed signature is larger than a Blazor Server circuit will carry in one
+                            message.
+                        </text>
+                    }
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <AtomBlazor.Primitives.SignaturePadPrimitive @ref="exportPad"
+                                OnChange="@(empty => { exportEmpty = empty; return Task.CompletedTask; })"
+                                class="w-full h-40 rounded-md border border-dashed bg-muted/30 cursor-crosshair text-foreground" />
+                <div class="flex flex-wrap gap-2">
+                    <Button Size="ButtonSize.Small" Disabled="@exportEmpty" OnClick="InspectAsync">
+                        @L.T("查看输出结果", "Inspect the output")
+                    </Button>
+                    <Button Size="ButtonSize.Small" Variant="ButtonVariant.Ghost"
+                              Disabled="@exportEmpty" OnClick="@(() => exportPad!.ClearAsync())">
+                        @L.T("清空", "Clear")
+                    </Button>
+                </div>
+                @if (exportReport is not null)
+                {
+                    <dl class="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-1 text-sm">
+                        @foreach (var (name, detail) in exportReport)
+                        {
+                            <dt class="text-muted-foreground">@name</dt>
+                            <dd class="font-mono truncate">@detail</dd>
+                        }
+                    </dl>
+                }
+            </div>
+
+            <CodeBlock Source="Primitives/SignaturePad/export.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("保存与回放", "Save and Replay")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("原始采样点是最小的形式，也是唯一可以重新绘制出来的形式。时间信息随它们一同保存，这正是事后核查一段签名是如何写成的所需要的前提。", "The raw samples are the smallest form and the only one that can be drawn again. The timings come with them, which is what a later check of how a signature was written needs.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <AtomBlazor.Primitives.SignaturePadPrimitive @ref="replayPad"
+                                class="w-full h-40 rounded-md border border-dashed bg-muted/30 cursor-crosshair text-foreground" />
+                <div class="flex flex-wrap items-center gap-2">
+                    <Button Size="ButtonSize.Small" Variant="ButtonVariant.Outline" OnClick="SaveStrokesAsync">
+                        @L.T("保存", "Save")
+                    </Button>
+                    <Button Size="ButtonSize.Small" Variant="ButtonVariant.Outline"
+                              Disabled="@(savedStrokes is null)" OnClick="@(() => replayPad!.SetStrokesAsync(savedStrokes))">
+                        @L.T("回放", "Replay")
+                    </Button>
+                    <Button Size="ButtonSize.Small" Variant="ButtonVariant.Ghost" OnClick="@(() => replayPad!.ClearAsync())">
+                        @L.T("清空", "Clear")
+                    </Button>
+                    <span class="text-sm text-muted-foreground">
+                        @if (L.IsChinese)
+                        {
+                            <text>@(savedStrokes is null ? "尚未保存任何内容" : $"已保存 {savedStrokes.Count} 笔。")</text>
+                        }
+                        else
+                        {
+                            <text>@(savedStrokes is null ? "Nothing saved" : $"{savedStrokes.Count} stroke(s) saved")</text>
+                        }
+                    </span>
+                </div>
+            </div>
+
+            <CodeBlock Source="Primitives/SignaturePad/replay.txt" />
+        </section>
+
+    <!-- Accessibility Notes -->
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        <strong>手绘签名无法通过键盘、开关设备或屏幕阅读器完成。</strong>
+                        这个原语不提供任何替代方案。请像
+                        <a href="/components/signature" class="underline">Signature</a> 那样，配上一条输入签名的途径。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <strong>A drawn signature cannot be given with a keyboard, a switch or a screen reader.</strong>
+                        This primitive offers no substitute. Pair it with a typed route, as
+                        <a href="/components/signature" class="underline">Signature</a> does.
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        画布自身不带任何角色或标签。请给它加上
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">role="img"</code> 和一个
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code>，让它被宣告为一个区域，
+                        而不是被读作一块空白画布。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        The canvas carries no role or label of its own. Give it
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">role="img"</code> and an
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-label</code> so it is announced
+                        as a region rather than read as an empty canvas.
+                    </text>
+                }
+            </AccessibilityItem>
+            <AccessibilityItem>
+                @if (L.IsChinese)
+                {
+                    <text>
+                        画布上设置了 <code class="text-xs bg-muted px-1 py-0.5 rounded">touch-action: none</code>，
+                        因为绘制面板必须接管整个触摸操作。在面板内部页面不会滚动；请把面板保持得足够小，以免这变成一个陷阱。
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">touch-action: none</code> is set on the
+                        canvas, because a drawing surface has to take the whole touch. The page does not scroll
+                        from inside the pad; keep the pad small enough that this is not a trap.
+                    </text>
+                }
+            </AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("无。请为无法手绘的用户提供一条输入签名的途径。", "None. Provide a typed route for anyone who cannot draw."))">
+                <span class="text-muted-foreground">&mdash;</span>
+            </KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <!-- API Reference -->
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件的属性与参数。", "Component properties and parameters.")</p>
+        </div>
+        <div class="space-y-4">
+            <ApiReference ComponentName="SignaturePad">
+                <ApiParameter Name="OnChange" Type="EventCallback&lt;bool&gt;">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            一笔完成时调用，<code class="text-xs bg-muted px-1 py-0.5 rounded">ClearAsync</code> 或 <code class="text-xs bg-muted px-1 py-0.5 rounded">UndoAsync</code> 之后也会调用。参数表示画板此刻是否为空。笔画正在绘制时不上报任何内容。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Invoked after a stroke finishes, and after <code class="text-xs bg-muted px-1 py-0.5 rounded">ClearAsync</code> or <code class="text-xs bg-muted px-1 py-0.5 rounded">UndoAsync</code>. The argument is whether the pad is now empty. Nothing is reported while a stroke is being drawn.
+                        </text>
+                    }
+                </ApiParameter>
+                <ApiParameter Name="StrokeColor" Type="string?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            墨迹颜色，取 CSS 颜色值。未设置时，画板按自身计算出的 <code class="text-xs bg-muted px-1 py-0.5 rounded">color</code> 绘制，因此签名会跟随主题。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            The ink colour as a CSS colour. When unset, the pad draws in its own computed <code class="text-xs bg-muted px-1 py-0.5 rounded">color</code>, so the signature follows the theme.
+                        </text>
+                    }
+                </ApiParameter>
+                <ApiParameter Name="MinWidth" Type="double" Default="0.5">
+                    @L.T("线条收细到的最细值，单位为 CSS 像素。", "The thinnest the line tapers to, in CSS pixels.")
+                </ApiParameter>
+                <ApiParameter Name="MaxWidth" Type="double" Default="2.5">
+                    @L.T("线条达到的最粗值，单位为 CSS 像素。", "The thickest the line gets, in CSS pixels.")
+                </ApiParameter>
+                <ApiParameter Name="VelocityWeight" Type="double" Default="0.7">
+                    @L.T("最新一次速度读数对线宽的计入程度，取值介于 0 与 1 之间。", "How much the newest speed reading counts towards the line width, between 0 and 1.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool" Default="false">
+                    @L.T("是否忽略绘制。已经画好的内容保持可见。", "Whether drawing is ignored. Whatever is already drawn stays visible.")
+                </ApiParameter>
+                <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            应用到 <code>&lt;canvas&gt;</code> 的额外 HTML 属性。此处传入的 <code class="text-xs bg-muted px-1 py-0.5 rounded">style</code> 会与画板自身的样式合并，而不是替换它。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Additional HTML attributes applied to the <code>&lt;canvas&gt;</code>. A <code class="text-xs bg-muted px-1 py-0.5 rounded">style</code> passed here is merged with the pad's own, rather than replacing it.
+                        </text>
+                    }
+                </ApiParameter>
+            </ApiReference>
+
+            <ApiReference ComponentName="@(L.T("方法", "Methods"))">
+                <ApiParameter Name="GetSvgAsync()" Type="Task&lt;string?&gt;">
+                    @if (L.IsChinese)
+                    {
+                        <text>
+                            以 SVG 标记形式返回的签名，墨色为 <code class="text-xs bg-muted px-1 py-0.5 rounded">currentColor</code>。没有任何绘制内容时返回 null。
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            The signature as SVG markup, drawn in <code class="text-xs bg-muted px-1 py-0.5 rounded">currentColor</code>. Null when nothing is drawn.
+                        </text>
+                    }
+                </ApiParameter>
+                <ApiParameter Name="GetPngAsync(background, ink)" Type="Task&lt;string?&gt;">
+                    @L.T("以 PNG 数据 URL 形式返回的签名。笔画会按给定的颜色重绘，该颜色默认是黑色而不是主题的墨色。若直接复制实时画布，深色主题下近乎白色的笔画会被烧录进去，放到白纸上就会消失。", "The signature as a PNG data URL. The strokes are redrawn at the given colour, which defaults to black rather than to the theme's ink. Copying the live canvas would bake in a near-white stroke from a dark theme and lose it on white paper.")
+                </ApiParameter>
+                <ApiParameter Name="GetPngBytesAsync(background, ink)" Type="Task&lt;byte[]?&gt;">
+                    @L.T("同一张 PNG 的原始字节。若用于保存或上传而不是展示，请优先使用它。", "The same PNG as raw bytes. Prefer it when saving or uploading rather than showing.")
+                </ApiParameter>
+                <ApiParameter Name="GetStrokesAsync()" Type="Task&lt;IReadOnlyList&lt;SignatureStroke&gt;&gt;">
+                    @L.T("原始采样点，含时间信息。", "The raw samples, timings included.")
+                </ApiParameter>
+                <ApiParameter Name="SetStrokesAsync(strokes)" Type="Task">
+                    @L.T("用此前捕获的采样点替换当前绘制内容。", "Replaces the drawing with previously captured samples.")
+                </ApiParameter>
+                <ApiParameter Name="ClearAsync()" Type="Task">
+                    @L.T("擦除所有笔画。", "Erases every stroke.")
+                </ApiParameter>
+                <ApiParameter Name="UndoAsync()" Type="Task&lt;bool&gt;">
+                    @L.T("移除最近的一笔。返回是否存在可移除的笔画。", "Removes the most recent stroke. Returns whether there was one to remove.")
+                </ApiParameter>
+                <ApiParameter Name="IsEmptyAsync()" Type="Task&lt;bool&gt;">
+                    @L.T("是否尚未绘制任何内容。", "Whether nothing has been drawn.")
+                </ApiParameter>
+            </ApiReference>
+        </div>
+    </section>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    // SignaturePad 基元演示页仅维护四块画板引用、钢笔参数滑块与导出/回放状态。
+    private AtomBlazor.Primitives.SignaturePadPrimitive? basicPad;
+    private bool basicEmpty = true;
+
+    private AtomBlazor.Primitives.SignaturePadPrimitive? penPad;
+    private double penMaxWidth = 2.5;
+    private double penVelocityWeight = 0.7;
+
+    private AtomBlazor.Primitives.SignaturePadPrimitive? exportPad;
+    private bool exportEmpty = true;
+    private List<(string Name, string Detail)>? exportReport;
+
+    private AtomBlazor.Primitives.SignaturePadPrimitive? replayPad;
+    private IReadOnlyList<SignatureStroke>? savedStrokes;
+
+    private async Task InspectAsync()
+    {
+        if (exportPad is null)
+        {
+            return;
+        }
+
+        var svg = await exportPad.GetSvgAsync();
+        var png = await exportPad.GetPngAsync("#ffffff");
+        var strokes = await exportPad.GetStrokesAsync();
+
+        exportReport =
+        [
+            ("SVG", L.IsChinese ? $"{svg?.Length ?? 0} 字节" : $"{svg?.Length ?? 0} bytes"),
+            ("PNG", L.IsChinese ? $"数据 URL 共 {png?.Length ?? 0} 字节" : $"{png?.Length ?? 0} bytes as a data URL"),
+            ("Strokes", L.IsChinese ? $"{strokes.Count} 笔，共 {strokes.Sum(s => s.Points.Count)} 个采样点" : $"{strokes.Count} stroke(s), {strokes.Sum(s => s.Points.Count)} sample(s)")
+        ];
+    }
+
+    private async Task SaveStrokesAsync()
+    {
+        if (replayPad is not null)
+        {
+            savedStrokes = await replayPad.GetStrokesAsync();
+        }
+    }
+}

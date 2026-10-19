@@ -1,0 +1,32 @@
+<Button OnClick="SaveState">Save Layout</Button>
+<Button OnClick="RestoreState" Disabled="@(savedSnapshot == null)">Restore Layout</Button>
+<Button OnClick="ResetState">Reset</Button>
+
+<DashboardGrid @bind-State="persistState">
+    <DashboardWidget Id="persist-1" Column="1" Row="1"
+                       ColumnSpan="8" RowSpan="6" Title="Widget 1">
+        ...
+    </DashboardWidget>
+    ...
+</DashboardGrid>
+
+@code {
+    private DashboardGridState persistState = new();
+    private DashboardGridStateSnapshot? savedSnapshot;
+
+    private void SaveState() => savedSnapshot = persistState.Save();
+
+    private void RestoreState()
+    {
+        if (savedSnapshot != null)
+        {
+            persistState.Restore(savedSnapshot);
+        }
+    }
+
+    private void ResetState()
+    {
+        persistState.Reset();
+        savedSnapshot = null;
+    }
+}

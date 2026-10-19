@@ -1,0 +1,14 @@
+@* TagInputTrigger.Blur is the only trigger that is not a key. Add it and half-typed
+   text is committed when the user clicks or tabs away, instead of being thrown away.
+
+   It commits what was typed, not a highlighted suggestion — clicking a suggestion
+   adds that suggestion and cancels the blur, so a tag is never added twice. Text
+   that fails Validate, MaxTags, MaxTagLength or the duplicate check stays in the
+   input and is reported through OnTagRejected, exactly as it is on Enter. *@
+<TagInput @bind-Tags="tags"
+            AddTrigger="TagInputTrigger.Enter | TagInputTrigger.Comma | TagInputTrigger.Blur"
+            Placeholder="Type a tag, then click somewhere else..." />
+
+@code {
+    private IReadOnlyList<string>? tags;
+}

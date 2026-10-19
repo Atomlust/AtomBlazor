@@ -1,0 +1,84 @@
+@namespace AtomBlazor
+
+@* 带样式的 TooltipTrigger——附加 contents 类以保持布局 *@
+@if (AsChild)
+{
+    <AtomBlazor.Primitives.TooltipTrigger AsChild="true"
+                                                      Focusable="@Focusable"
+                                                      OnMouseEnter="@OnMouseEnter"
+                                                      OnMouseLeave="@OnMouseLeave"
+                                                      @attributes="AdditionalAttributes">
+        @ChildContent
+    </AtomBlazor.Primitives.TooltipTrigger>
+}
+else
+{
+    <span class="@WrapperClass">
+        <AtomBlazor.Primitives.TooltipTrigger Focusable="@Focusable"
+                                                          OnMouseEnter="@OnMouseEnter"
+                                                          OnMouseLeave="@OnMouseLeave"
+                                                          @attributes="AdditionalAttributes">
+            @ChildContent
+        </AtomBlazor.Primitives.TooltipTrigger>
+    </span>
+}
+
+@code {
+    /// <summary>
+    /// 触发器内显示的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 追加到包裹层上的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 为 true 时触发器不渲染自己的元素，只级联 <c>TriggerContext</c>，
+    /// 由子组件负责消费该上下文并完成接线：把触发器 id 与 aria 特性挂到自己的元素上，
+    /// 并调用上下文的悬停、聚焦与 <c>SetTriggerElement</c> 回调。
+    /// <c>Button</c> 正是这样做的，因此它可以直接放进触发器里。
+    /// </summary>
+    /// <remarks>
+    /// 此模式下既不渲染元素也不挂处理器，因此忽略该上下文的子组件将没有任何东西
+    /// 监听悬停或聚焦，气泡永远不会展开。纯标记、纯文本或裸图标（例如 <c>LucideIcon</c>）
+    /// 需要默认的 <c>false</c>，它会把内容包进一个携带处理器的 <c>span</c>。
+    /// 未消费的上下文会在 Development 环境下经 <c>ILogger</c> 报告为警告。
+    /// <para>
+    /// <b>v4 起的变化：</b>该值在 v3 中默认为 <c>true</c>，这导致最自然的用法——
+    /// 裸图标或纯标记——静默失效，而可用的用法反而要求知道有一个 opt-out。
+    /// 子组件会消费上下文时（例如 <c>Button</c>）请显式写 <c>AsChild="true"</c>。
+    /// </para>
+    /// </remarks>
+    [Parameter]
+    public bool AsChild { get; set; }
+
+    /// <summary>
+    /// 触发器是否可被键盘聚焦，默认 true。子内容本身已可聚焦时请设为 false。
+    /// </summary>
+    [Parameter]
+    public bool Focusable { get; set; } = true;
+
+    /// <summary>
+    /// 自定义 mouseenter 处理器。
+    /// </summary>
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnMouseEnter { get; set; }
+
+    /// <summary>
+    /// 自定义 mouseleave 处理器。
+    /// </summary>
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnMouseLeave { get; set; }
+
+    /// <summary>
+    /// 追加到触发器元素上的附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string WrapperClass => ClassNames.cn("atom:contents", Class);
+}

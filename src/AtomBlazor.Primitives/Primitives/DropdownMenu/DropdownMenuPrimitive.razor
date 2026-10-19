@@ -1,0 +1,149 @@
+@namespace AtomBlazor.Primitives
+@implements IDisposable
+
+@* DropdownMenu 基元根组件 —— 仅提供无样式的行为逻辑（headless）。 *@
+<div dir="@Dir" style="display:contents">
+<CascadingValue Value="@_context" IsFixed="false">
+    @ChildContent
+</CascadingValue>
+</div>
+
+@code {
+    private DropdownMenuContext _context = new();
+    private UseControllableState<bool> _state = null!;
+
+    /// <summary>
+    /// 我们最后一次向使用者上报的打开状态。
+    /// <para>
+    /// 此处有意不读取 <c>_state.Value</c>，因为在受控模式下它会返回
+    /// <c>ControlledValue</c> —— 该值仅由 <see cref="OnParametersSet"/> 刷新，
+    /// 因此只在使用者重新渲染时才会更新。若使用者抑制了重新渲染
+    /// （任何 <c>ShouldRender</c> 重写）使其过时，则下一次真正的状态变化与之相等，
+    /// <c>OpenChanged</c> 永远不会触发，使用者自身的打开标志会一直保持 <c>true</c>
+    /// —— 与上下文永久失步（#437）。
+    /// </para>
+    /// </summary>
+    private bool lastNotifiedOpen;
+
+    /// <summary>
+    /// 在 DropdownMenu 上下文中渲染的子内容。
+    /// 通常包含 DropdownMenuTrigger 和 DropdownMenuContent。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 控制 DropdownMenu 是否处于打开状态（受控模式）。
+    /// 为 null 时，DropdownMenu 自行管理自身状态（非受控模式）。
+    /// </summary>
+    [Parameter]
+    public bool? Open { get; set; }
+
+    /// <summary>
+    /// 打开状态发生变化时触发的事件回调。
+    /// 配合 @bind-Open 可实现双向绑定。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>
+    /// 非受控模式下的默认打开状态。
+    /// </summary>
+    [Parameter]
+    public bool DefaultOpen { get; set; } = false;
+
+    /// <summary>
+    /// DropdownMenu 打开状态发生变化时触发的事件回调。
+    /// 接收新的打开状态作为参数。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OnOpenChange { get; set; }
+
+    /// <summary>
+    /// DropdownMenu 是否可通过点击外部区域或按下 Escape 键来关闭。
+    /// 默认值为 true。
+    /// </summary>
+    [Parameter]
+    public bool Modal { get; set; } = true;
+
+    /// <summary>
+    /// 菜单内容的布局方向。
+    /// 可为 "ltr"（从左到右）或 "rtl"（从右到左）。
+    /// 未设置时，继承周围的方向。
+    /// </summary>
+    [Parameter]
+    public string? Dir { get; set; }
+
+    /// <summary>
+    /// 应用于所有 DropdownMenuItem 子项的默认 CSS 类。
+    /// 通过上下文向下传递，以便子项能将其与自身的类合并。
+    /// </summary>
+    [Parameter]
+    public string? ItemClass { get; set; }
+
+    protected override void OnInitialized()
+    {
+        // Initialize controllable state
+        _state = new UseControllableState<bool>(DefaultOpen)
+        {
+            ControlledValue = Open ?? DefaultOpen,
+            OnValueChanged = OpenChanged,
+            IsControlled = Open.HasValue
+        };
+
+        // Sync initial state to context
+        _context.State.IsOpen = _state.Value;
+        lastNotifiedOpen = _state.Value;
+
+        // Subscribe to context state changes
+        _context.OnStateChanged += HandleContextStateChanged;
+    }
+
+    protected override void OnParametersSet()
+    {
+        _context.Dir = Dir;
+        // Update controlled value if it changed
+        if (_state.IsControlled && Open.HasValue)
+        {
+            _state.ControlledValue = Open.Value;
+            _context.State.IsOpen = Open.Value;
+
+            // The consumer is authoritative here, so treat its value as reported — otherwise the
+            // next change would be measured against a state we never actually sent.
+            lastNotifiedOpen = Open.Value;
+        }
+
+        // Sync ItemClass to context
+        _context.ItemClass = ItemClass;
+    }
+
+    private void HandleContextStateChanged()
+    {
+        // When context state changes (e.g., from DropdownMenuTrigger or click outside),
+        // update the controllable state
+        var newOpenState = _context.State.IsOpen;
+
+        if (lastNotifiedOpen != newOpenState)
+        {
+            lastNotifiedOpen = newOpenState;
+
+            _ = _state.SetValueAsync(newOpenState);
+
+            // Invoke additional callback if provided
+            if (OnOpenChange.HasDelegate)
+            {
+                _ = OnOpenChange.InvokeAsync(newOpenState);
+            }
+        }
+
+        // Unconditional — the trigger's aria-expanded and pointer-events guard, and whether the
+        // content is mounted, all derive from context state, so this subtree must repaint
+        // whenever that state moves even if the consumer's controlled value did not (#437).
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        _context.OnStateChanged -= HandleContextStateChanged;
+    }
+}

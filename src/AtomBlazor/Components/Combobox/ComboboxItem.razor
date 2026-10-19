@@ -1,0 +1,40 @@
+@namespace AtomBlazor
+@typeparam TValue
+
+@* 在父组件的隐藏注册通道里，我们只注册文本（靠生命周期），不产出任何 DOM——
+   CommandItem 需要 CommandContext，而它只在弹层内部的 Command 里存在。
+
+   data-atom-current 写在属性展开之后，所以总是它胜出。aria-selected 在命令项上表示
+   "键盘聚焦"，因此被选中的值需要自己的标记，供重开时的滚动定位寻找——
+   与 Combobox 的 Options 分支渲染的是同一个标记。 *@
+@if (!RegistrationOnly)
+{
+    <CommandItem Value="@Value?.ToString()"
+                   OnSelect="@HandleSelect"
+                   SearchText="@Text"
+                   Disabled="@Disabled"
+                   @attributes="AdditionalAttributes"
+                   data-atom-current="@(IsSelected ? "true" : null)">
+        @if (ChildContent is not null)
+        {
+            @ChildContent
+        }
+        else
+        {
+            @Text
+        }
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="16"
+             height="16"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             class="@($"atom:ms-auto atom:h-4 atom:w-4 atom:shrink-0 {(IsSelected ? "atom:opacity-100" : "atom:opacity-0")}")"
+             aria-label="@(IsSelected ? "Selected" : "")">
+            <path d="M20 6 9 17l-5-5" />
+        </svg>
+    </CommandItem>
+}

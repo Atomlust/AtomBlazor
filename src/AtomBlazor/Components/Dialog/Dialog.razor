@@ -1,0 +1,76 @@
+@namespace AtomBlazor
+@using AtomBlazor.Primitives.Services
+
+@*
+    带样式的对话框组件包装器。
+    使用 shadcn/ui 样式封装对话框基元。
+*@
+
+<AtomBlazor.Primitives.DialogPrimitive Open="@Open"
+                                         OpenChanged="@OpenChanged"
+                                         DefaultOpen="@DefaultOpen"
+                                         OnOpenChange="@OnOpenChange"
+                                         Modal="@Modal"
+                                         @attributes="AdditionalAttributes"
+                                         RenderingStrategy="@RenderingStrategy">
+    @ChildContent
+</AtomBlazor.Primitives.DialogPrimitive>
+
+@code {
+    /// <summary>
+    /// 在对话框内渲染的子内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 控制对话框是否打开（受控模式）。
+    /// 为 null 时，对话框自行管理其状态（非受控模式）。
+    /// </summary>
+    [Parameter]
+    public bool? Open { get; set; }
+
+    /// <summary>
+    /// 对话框打开状态变化时触发的事件回调。
+    /// 配合 @bind-Open 使用可实现双向绑定。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>
+    /// 非受控模式下的默认打开状态。
+    /// </summary>
+    [Parameter]
+    public bool DefaultOpen { get; set; } = false;
+
+    /// <summary>
+    /// 对话框打开状态变化时触发的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OnOpenChange { get; set; }
+
+    /// <summary>
+    /// 对话框是否可通过点击外部或按下 Esc 键关闭。
+    /// 默认值为 true。
+    /// </summary>
+    [Parameter]
+    public bool Modal { get; set; } = true;
+
+    /// <summary>
+    /// 获取或设置应用到根元素的附加 HTML 特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 覆盖此对话框的渲染方式。为 null 时，应用通过
+    /// <c>AddAtomBlazorPrimitives(configureOverlays)</c> 配置的全局默认值。
+    /// <see cref="OverlayRenderingStrategy.Native"/> 通过浏览器内置的
+    /// <c>&lt;dialog&gt;</c> 元素进行渲染，可跨 Blazor 渲染模式边界
+    /// （例如 InteractiveWebAssembly）工作，无需门户宿主。
+    /// 默认值为 null（使用全局默认值，即 <see cref="OverlayRenderingStrategy.JavaScript"/>）。
+    /// 该策略在首次渲染时解析一次；之后更改不会生效。
+    /// </summary>
+    [Parameter]
+    public OverlayRenderingStrategy? RenderingStrategy { get; set; }
+}

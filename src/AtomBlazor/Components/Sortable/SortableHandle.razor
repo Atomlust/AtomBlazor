@@ -1,0 +1,32 @@
+@namespace AtomBlazor
+@inject ILocalizer Localizer
+
+<button @attributes="AdditionalAttributes" type="button" data-atom-sortable-handle disabled="@Disabled"
+        aria-label="@(AriaLabel ?? Localizer["Sortable.Handle"])" class="@CssClass" @onclick:stopPropagation="true">
+    @if (ChildContent is not null)
+    {
+        @ChildContent
+    }
+    else
+    {
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="9" cy="5" r="1.5" /><circle cx="15" cy="5" r="1.5" />
+            <circle cx="9" cy="12" r="1.5" /><circle cx="15" cy="12" r="1.5" />
+            <circle cx="9" cy="19" r="1.5" /><circle cx="15" cy="19" r="1.5" />
+        </svg>
+    }
+</button>
+
+@code {
+    /// <summary>可选的句柄内容。默认为抓手（grip）图标。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>句柄的可访问标签。</summary>
+    [Parameter] public string? AriaLabel { get; set; }
+    /// <summary>禁用该句柄。</summary>
+    [Parameter] public bool Disabled { get; set; }
+    /// <summary>额外的 CSS 类。</summary>
+    [Parameter] public string? Class { get; set; }
+    /// <summary>额外的 HTML 属性。</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    private string CssClass => ClassNames.cn("atom:inline-flex atom:shrink-0 atom:cursor-grab atom:touch-none atom:items-center atom:justify-center atom:rounded-sm atom:p-1 atom:text-muted-foreground atom:active:cursor-grabbing atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:disabled:pointer-events-none atom:disabled:opacity-50", Class);
+}

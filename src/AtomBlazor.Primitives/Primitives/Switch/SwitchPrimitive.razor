@@ -1,0 +1,76 @@
+@namespace AtomBlazor.Primitives
+
+<CascadingValue Value="this" IsFixed="false">
+    <button type="button"
+            role="switch"
+            aria-checked="@Checked.ToString().ToLower()"
+            aria-disabled="@Disabled.ToString().ToLower()"
+            data-state="@(Checked ? "checked" : "unchecked")"
+            disabled="@Disabled"
+            tabindex="@(Disabled ? -1 : 0)"
+            @onclick="HandleClick"
+            @attributes="AdditionalAttributes">
+        @ChildContent
+    </button>
+</CascadingValue>
+
+@code {
+    /// <summary>
+    /// 获取或设置开关是否处于打开（checked）状态。
+    /// </summary>
+    [Parameter]
+    public bool Checked { get; set; }
+
+    /// <summary>
+    /// 获取或设置选中状态变化时调用的回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> CheckedChanged { get; set; }
+
+    /// <summary>
+    /// 获取或设置开关是否禁用。
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// 获取或设置的子内容（通常就是 thumb 元素）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到开关元素的额外属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 处理开关点击事件——键盘也走这条路。
+    /// </summary>
+    /// <remarks>
+    /// 开关是一个真正的 <c>&lt;button&gt;</c>，浏览器本来就会在 Space 与 Enter 时激活它并
+    /// 各派发一次 click。因此一个额外拨动状态的 key-down 处理器，对同一次 Space 按下会跑两遍：
+    /// 处理器拨动一次，浏览器自己的 click 又拨回来。
+    /// <c>@onkeydown:preventDefault</c> 也拦不住，
+    /// 因为 Blazor 是在元素渲染时求值这个标记的，
+    /// 第一次按下时它仍是 <c>false</c>。
+    /// 聚焦的按钮上的 Space 不会滚动页面，所以这里已没有按键处理器需要做的事。
+    /// </remarks>
+    private async Task HandleClick(MouseEventArgs args)
+    {
+        if (!Disabled)
+        {
+            await ToggleChecked();
+        }
+    }
+
+    /// <summary>
+    /// 拨动选中状态并通知监听方。
+    /// </summary>
+    private async Task ToggleChecked()
+    {
+        Checked = !Checked;
+        await CheckedChanged.InvokeAsync(Checked);
+    }
+}

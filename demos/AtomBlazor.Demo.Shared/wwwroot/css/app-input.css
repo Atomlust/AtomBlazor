@@ -1,0 +1,109 @@
+/* 文档站样式入口（自源 Demo.Shared/wwwroot/css/app-input.css）。 */
+
+/* 引入 Tailwind CSS */
+@import 'tailwindcss';
+
+/* 引入 OKLCH 单主题配色文件 */
+@import '../styles/theme.css';
+
+/* 配置 Razor 文件扫描路径。
+   路径相对于本文件（demos/AtomBlazor.Demo.Shared/wwwroot/css）。只扫描 Demo 自己的页面：
+   库的工具类以前缀形式（`atom:`）随 atomblazor.css 交付，消费方构建不会重复发射它们（源问题 #496）。
+   在这里扫描 src/ 是死重量——会破坏 Demo 作为真实消费方的回归价值。 */
+@source "../../Pages";
+@source "../../Shared";
+
+/* 组件结构性变量（不属于可替换主题） */
+@layer base {
+  :root {
+    --sidebar-width: 16rem;
+    --sidebar-width-mobile: 18rem;
+    --sidebar-width-icon: 3rem;
+  }
+}
+
+/* 隐藏 number 输入的上下调节箭头——必须在 base 层以获得正确特异度 */
+@layer base {
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield !important;
+    appearance: textfield !important;
+  }
+}
+
+/* 文档页标签保持单行；过长的名称以省略号截断，完整文本仍可从行的 title 属性读到。 */
+.demo-component-link[data-sidebar="menu-sub-button"] {
+  height: var(--sidebar-sub-button-height);
+  gap: 0.5rem;
+}
+
+.demo-component-link > .demo-component-label {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 标签上的 `flex: 1` 已把徽章推到行的尾缘；`margin-inline-start: auto` 为标签稍后被替换的 行显式声明同一意图。 */
+.demo-component-link > .demo-version-badge {
+  margin-inline-start: auto;
+}
+
+/* 子菜单两侧都收进，嵌套一级再收一次，徽章会参差地缩在离侧栏尾缘很远的地方。 每一层都取消尾部缩进：行与顶层行对齐收尾，徽章落在同一条垂直线上。用逻辑属性， 这样从右到左的侧栏仍保留显示分组关系的前导缩进——清零物理 right 会把它压平。 */
+.demo-component-menu[data-sidebar="menu-sub"] {
+  margin-inline-end: 0;
+  padding-inline-end: 0;
+}
+
+/* ---------------------------------------------------------------------------------------------
+   占位：侧栏降级样式。
+   源侧栏的视觉由家族组件与其 CSS 承担；外壳阶段（见 DemoSidebar.razor 的降级说明）
+   用这两个最小类维持可读的层级。TODO(组件)：Sidebar 交付后删除，恢复源组件树。
+   ------------------------------------------------------------------------------------------- */
+@layer components {
+  .side-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.5rem;
+    border-radius: var(--radius, 0.5rem);
+    font-size: 0.875rem;
+    color: var(--sidebar-foreground, var(--foreground));
+  }
+
+  .side-nav-item:hover,
+  .side-nav-item.active {
+    background-color: var(--sidebar-accent);
+    color: var(--sidebar-accent-foreground);
+  }
+
+  .side-sub-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius, 0.5rem);
+    font-size: 0.8125rem;
+    color: var(--sidebar-foreground, var(--foreground));
+  }
+
+  .side-sub-item:hover,
+  .side-sub-item.active {
+    background-color: var(--sidebar-accent);
+    color: var(--sidebar-accent-foreground);
+  }
+}
+
+/* ---------------------------------------------------------------------------------------------
+   Blazor Server 重连对话框样式归组件库。
+   完整实现现随 atomblazor.css 的 @layer components 段交付（#components-reconnect-modal 与
+   atom-reconnect-* 全套状态、spinner、keyframes）；本消费方外壳不再重复声明，
+   恢复与源一致的"样式归库、标记归消费方"分工。
+   ------------------------------------------------------------------------------------------- */
+
+/* （注：原 / 占位的 demo-degraded-button* 降级按钮样式已随 Button 家族交付、 页面恢复组件形态后整节删除。） */

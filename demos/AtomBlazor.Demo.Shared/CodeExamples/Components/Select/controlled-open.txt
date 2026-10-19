@@ -1,0 +1,20 @@
+@* @bind-Open drives the list from outside, and reports the user's own opens and closes back. *@
+<Button Variant="ButtonVariant.Outline" OnClick="@(() => listOpen = !listOpen)">
+    @(listOpen ? "Close the list" : "Open the list")
+</Button>
+
+<Select TValue="string"
+        Options="@fruits"
+        @bind-Value="fruit"
+        @bind-Open="listOpen"
+        Placeholder="Select a fruit..."
+        Class="w-[240px]" />
+
+<p>The list is @(listOpen ? "open" : "closed").</p>
+
+@code {
+    private bool listOpen;
+    private string? fruit;
+    private readonly SelectOption<string>[] fruits =
+        [new("apple", "Apple"), new("banana", "Banana"), new("cherry", "Cherry")];
+}

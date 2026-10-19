@@ -1,0 +1,267 @@
+@namespace AtomBlazor.Primitives
+@using System.ComponentModel
+@inject IFocusManager FocusManager
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+@*
+    SheetContent 是 Sheet 的主内容容器。
+    负责焦点陷阱、Esc 键、滚动锁定、按侧定位以及 ARIA 属性。
+*@
+
+@if (Context.IsOpen)
+{
+    <div @ref="_contentRef"
+         id="@Context.ContentId"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="@Context.TitleId"
+         aria-describedby="@Context.DescriptionId"
+         tabindex="-1"
+         @attributes="AdditionalAttributes"
+         data-state="open"
+         data-side="@Context.Side.ToString().ToLower()">
+        @ChildContent
+    </div>
+}
+
+@code {
+    [CascadingParameter]
+    private SheetContext Context { get; set; } = null!;
+
+    /// <summary>
+    /// 要在 Sheet 内渲染的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用到内容容器的附加特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 按下 Esc 键时是否关闭 Sheet。
+    /// 默认值为 true。
+    /// </summary>
+    [Parameter]
+    public bool CloseOnEscape { get; set; } = true;
+
+    /// <summary>
+    /// 是否在 Sheet 内捕获焦点（焦点陷阱）。
+    /// 模态 Sheet 默认为 true。
+    /// </summary>
+    [Parameter]
+    public bool TrapFocus { get; set; } = true;
+
+    /// <summary>
+    /// 焦点陷阱建立时应当聚焦的元素。默认聚焦第一个可聚焦的后代元素。
+    /// </summary>
+    /// <remarks>
+    /// 当第一个可聚焦子元素在聚焦时存在副作用时，请将此项设为 <see cref="FocusTrapInitialFocus.Container"/>，
+    /// 或使用 <see cref="InitialFocusElement"/> 指定目标元素。
+    /// 携带 <c>data-autofocus</c> 的元素优先级高于此设置。
+    /// </remarks>
+    [Parameter]
+    public FocusTrapInitialFocus InitialFocus { get; set; } = FocusTrapInitialFocus.FirstFocusable;
+
+    /// <summary>
+    /// 焦点陷阱建立时显式聚焦的元素，优先级高于 <see cref="InitialFocus"/> 以及任何
+    /// 携带 <c>data-autofocus</c> 的元素。当该元素不在 Sheet 内部时将被忽略。
+    /// </summary>
+    [Parameter]
+    public ElementReference? InitialFocusElement { get; set; }
+
+    /// <summary>
+    /// Sheet 打开时是否锁定页面滚动。
+    /// 模态 Sheet 默认为 true。
+    /// </summary>
+    [Parameter]
+    public bool LockScroll { get; set; } = true;
+
+    /// <summary>
+    /// 按下 Esc 键时触发的事件回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback<KeyboardEventArgs> OnEscapeKeyDown { get; set; }
+
+    private ElementReference _contentRef;
+    private IAsyncDisposable? _focusTrap;
+    private IJSObjectReference? _portalModule;
+    private IJSObjectReference? _scrollLockCleanup;
+    private IJSObjectReference? _escapeModule;
+    private DotNetObjectReference<SheetContent>? _dotNetRef;
+    private string _instanceId = Guid.NewGuid().ToString("N");
+    private bool _isInitialized = false;
+    private bool _disposed;
+
+    protected override void OnInitialized()
+    {
+        if (Context == null)
+        {
+            throw new InvalidOperationException(
+                "SheetContent must be used within a Sheet component. " +
+                "Ensure SheetContent is a child of a Sheet component.");
+        }
+
+        // Subscribe to context changes
+        Context.OnStateChanged += HandleContextStateChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Context.IsOpen && !_isInitialized)
+        {
+            _isInitialized = true;
+
+            // Set up focus trap
+            if (TrapFocus)
+            {
+                try
+                {
+                    _focusTrap = await FocusManager.TrapFocus(_contentRef, InitialFocus, InitialFocusElement);
+                }
+                catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+                {
+                    // Expected during circuit disconnect in Blazor Server
+                }
+                catch (InvalidOperationException)
+                {
+                    // JS interop not available during prerendering
+                }
+            }
+
+            // Lock body scroll
+            if (LockScroll)
+            {
+                try
+                {
+                    _portalModule = await PrimitiveModules.GetAsync(JSRuntime);
+                    _scrollLockCleanup = await _portalModule.InvokeAsync<IJSObjectReference>("portal.lockBodyScroll");
+                }
+                catch (Exception ex) when (ex is JSDisconnectedException or JSException or TaskCanceledException or ObjectDisposedException)
+                {
+                    // Expected during circuit disconnect or module loading failure
+                }
+                catch (InvalidOperationException)
+                {
+                    // JS interop not available during prerendering
+                }
+            }
+
+            // Set up escape key detection in JS (avoids C# round-trip on every keystroke)
+            try
+            {
+                _escapeModule = await PrimitiveModules.GetAsync(JSRuntime);
+                _dotNetRef = DotNetObjectReference.Create(this);
+                await _escapeModule.InvokeVoidAsync("escapeKeydown.initialize", _dotNetRef, _instanceId);
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or JSException or TaskCanceledException or ObjectDisposedException)
+            {
+                // Expected during circuit disconnect or module loading failure
+            }
+            catch (InvalidOperationException)
+            {
+                // JS interop not available during prerendering
+            }
+        }
+        else if (!Context.IsOpen && _isInitialized)
+        {
+            await CleanupAsync();
+        }
+    }
+
+    private void HandleContextStateChanged()
+    {
+        if (!Context.IsOpen && _isInitialized)
+        {
+            // Sheet closed, clean up on the Blazor sync context
+            _ = InvokeAsync(async () =>
+            {
+                await CleanupAsync();
+                StateHasChanged();
+            });
+            return;
+        }
+
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public async Task JsOnEscapeKey()
+    {
+        if (_disposed) { return; }
+
+        // Invoke custom handler if provided
+        if (OnEscapeKeyDown.HasDelegate)
+        {
+            await OnEscapeKeyDown.InvokeAsync(new KeyboardEventArgs { Key = "Escape" });
+        }
+
+        // Close sheet if configured (both CloseOnEscape and the sheet's Modal must allow it)
+        if (CloseOnEscape && Context.Modal)
+        {
+            Context.Close();
+        }
+    }
+
+    private async Task CleanupAsync()
+    {
+        // Dispose focus trap
+        if (_focusTrap != null)
+        {
+            await _focusTrap.DisposeAsync();
+            _focusTrap = null;
+        }
+
+        // Unlock body scroll
+        if (_scrollLockCleanup != null)
+        {
+            try
+            {
+                await _scrollLockCleanup.InvokeVoidAsync("apply");
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or JSException or TaskCanceledException or ObjectDisposedException)
+            {
+                // Cleanup may already be disposed or circuit disconnected
+            }
+            _scrollLockCleanup = null;
+        }
+
+        // Remove escape key listener
+        if (_escapeModule != null)
+        {
+            try
+            {
+                await _escapeModule.InvokeVoidAsync("escapeKeydown.dispose", _instanceId);
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or JSException or TaskCanceledException or ObjectDisposedException)
+            {
+                // Cleanup may already be disposed or circuit disconnected
+            }
+        }
+
+        _dotNetRef?.Dispose();
+        _dotNetRef = null;
+
+        _isInitialized = false;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _disposed = true;
+
+        await CleanupAsync();
+
+
+
+        _dotNetRef?.Dispose();
+
+        if (Context != null)
+        {
+            Context.OnStateChanged -= HandleContextStateChanged;
+        }
+    }
+}

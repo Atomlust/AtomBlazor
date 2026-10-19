@@ -1,0 +1,35 @@
+@namespace AtomBlazor.Primitives
+
+@* SwitchThumb —— 从上级 Switch 自动同步 data-state *@
+<span data-state="@DataState"
+      @attributes="AdditionalAttributes">
+    @ChildContent
+</span>
+
+@code {
+    [CascadingParameter]
+    private AtomBlazor.Primitives.SwitchPrimitive? ParentSwitch { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (ParentSwitch == null)
+        {
+            throw new InvalidOperationException(
+                "SwitchThumb 必须用在 Switch 组件内部。");
+        }
+    }
+
+    /// <summary>
+    /// 获取或设置在 thumb 内部渲染的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到 thumb 元素的额外属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string DataState => ParentSwitch?.Checked == true ? "checked" : "unchecked";
+}

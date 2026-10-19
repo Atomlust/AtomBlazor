@@ -1,0 +1,22 @@
+@* Debounced rather than Immediate: the code is cheap to build, but a Blazor Server
+ round trip per keystroke is not. *@
+<Input @bind-Value="value"
+ UpdateTiming="UpdateTiming.Debounced"
+ DebounceInterval="250" />
+
+@* OnEncoded, not @ref and Matrix: a parent builds its markup before its children
+ re-render, so reading Matrix here would show the previous grid. *@
+<QrCode Value="@value" OnEncoded="@(m => matrix = m)" Size="14rem" />
+
+@if (matrix is { } code)
+{
+ <p>
+ @code.Mode, version @code.Version
+ (@code.Size &times; @code.Size modules), mask @code.Mask
+ </p>
+}
+
+@code {
+ private string value = "https://example.com";
+ private QrMatrix? matrix;
+}

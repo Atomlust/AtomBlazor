@@ -1,0 +1,14 @@
+<PivotValue TItem="Sale" Title="Per unit" Format="C2"
+              Aggregate="@(items => PerUnit(items))" />
+
+@code {
+    // Called once per cell and once per total. A total is handed every item under it,
+    // so this comes out as total money over total units rather than as an average of
+    // per-unit rates - which is a different, wrong number.
+    private static object? PerUnit(IEnumerable<Sale> items)
+    {
+        var list = items.ToList();
+        var units = list.Sum(s => s.Units);
+        return units == 0 ? null : (double)list.Sum(s => s.Amount) / units;
+    }
+}

@@ -1,0 +1,696 @@
+@namespace AtomBlazor.Primitives
+@inherits AtomBlazor.Primitives.PrimitiveBase
+@using AtomBlazor.Primitives.Services
+@using Microsoft.Extensions.Logging
+@using System.Text.Json
+@using System.ComponentModel
+@inject IPositioningService PositioningService
+@inject IPortalService PortalService
+@inject IJSRuntime JSRuntime
+@inject ILogger<FloatingPortal> Logger
+@implements IAsyncDisposable
+
+@*
+    FloatingPortal——浮动内容的统一基础设施。
+    只负责：门户注册、定位与生命周期管理。
+    不负责：点击外部、键盘导航或任何行为逻辑。
+
+    ForceMount 为 true（默认）时，门户内容在关闭后仍注册在 DOM 里——用 CSS 隐藏，
+    而不是卸载。这消除了重新挂载的开销，并让 CSS 退场动画可以经由 data-state 属性驱动。
+
+    把它作为 Select、Popover、DropdownMenu、Tooltip 等的底层基座使用。
+*@
+
+@code {
+    /// <summary>
+    /// 要在浮动门户中渲染的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 浮动内容当前是否可见。
+    /// </summary>
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    /// <summary>
+    /// 关闭时是否让门户内容继续挂载在 DOM 里。
+    /// 为 true 时，内容用 CSS 隐藏而非卸载，省掉每个开关周期的重新挂载开销。
+    /// 内容 div 上的 <c>data-state</c> 属性（<c>"open"</c> / <c>"closed"</c>）供 CSS 动画使用。
+    /// 默认为 true。
+    /// </summary>
+    [Parameter]
+    public bool ForceMount { get; set; } = true;
+
+    /// <summary>
+    /// 浮动内容要相对定位的锚元素。
+    /// </summary>
+    [Parameter]
+    public ElementReference? AnchorElement { get; set; }
+
+    /// <summary>
+    /// 要监听哪些关闭手势，与打开浮层的 interop 调用在同一次接线中完成。
+    /// 留 null 则由使用者自己负责挂监听。
+    /// </summary>
+    /// <remarks>
+    /// 门户只通过 <see cref="OnDismiss"/> 上报手势，除此之外不做任何处理——
+    /// 一次关闭意味着什么，是使用者的决定。
+    /// </remarks>
+    [Parameter]
+    public FloatingDismissOptions? Dismiss { get; set; }
+
+    /// <summary>
+    /// 当 <see cref="Dismiss"/> 声明的手势之一发生时触发。
+    /// </summary>
+    [Parameter]
+    public EventCallback<FloatingDismissReason> OnDismiss { get; set; }
+
+    /// <summary>
+    /// 本门户实例的唯一标识。
+    /// 必须提供，防止多个浮动元素相互冲突。
+    /// </summary>
+    [Parameter]
+    public string PortalId { get; set; } = "";
+
+    /// <summary>
+    /// 首选方位。默认为 Bottom。
+    /// </summary>
+    [Parameter]
+    public PopoverSide Side { get; set; } = PopoverSide.Bottom;
+
+    /// <summary>
+    /// 相对锚元素的对齐方式。默认为 Center。
+    /// </summary>
+    [Parameter]
+    public PopoverAlign Align { get; set; } = PopoverAlign.Center;
+
+    /// <summary>
+    /// 与锚元素的偏移距离（像素）。默认为 4。
+    /// </summary>
+    [Parameter]
+    public int Offset { get; set; } = 4;
+
+    /// <summary>
+    /// 是否让浮动内容宽度与锚元素一致。默认为 false。
+    /// </summary>
+    [Parameter]
+    public bool MatchAnchorWidth { get; set; } = false;
+
+    /// <summary>
+    /// CSS 定位策略。
+    /// 需要逃出堆叠上下文的下拉菜单请使用 <see cref="PositioningStrategy.Fixed"/>。
+    /// 默认为 <see cref="PositioningStrategy.Absolute"/>。
+    /// </summary>
+    [Parameter]
+    public PositioningStrategy Strategy { get; set; } = PositioningStrategy.Absolute;
+
+    /// <summary>
+    /// 浮动内容的 CSS z-index。默认为 50。
+    /// </summary>
+    [Parameter]
+    public int ZIndex { get; set; } = 50;
+
+    /// <summary>
+    /// 浮动内容已定位并可见时触发的回调。
+    /// 用于建立键盘导航、焦点管理等。
+    /// 每次打开都会触发，包括 ForceMount 为 true 时的重新打开。
+    /// </summary>
+    [Parameter]
+    public EventCallback OnReady { get; set; }
+
+    /// <summary>
+    /// 实际方位发生变化时（例如从 bottom 翻转成 top）触发的回调。
+    /// 参数为最终方位字符串（例如 "top"、"bottom-start"、"left-end"）。
+    /// </summary>
+    /// <remarks>
+    /// 设置这个参数会让每次打开多付出一次电路往返，因为 JS 必须回调进 .NET 汇报测量结果。
+    /// 如果只想要一个供样式使用的 <c>data-side</c> 属性，请优先用 <see cref="SideElementId"/>——
+    /// 那个由 JS 直接写入，分文不花。无论哪种方式，回调都在浮层上屏之后才触发，绝不拖累揭示。
+    /// </remarks>
+    [Parameter]
+    public EventCallback<string> OnPlacementChanged { get; set; }
+
+    /// <summary>
+    /// 应由 JS 写入解析后 <c>data-side</c> 属性的元素 <c>id</c>：
+    /// 浮层定位完成即写入，滚动导致翻转时保持最新。
+    /// </summary>
+    /// <remarks>
+    /// 浮层最终落在哪个方位是浏览器的测量结果，而带样式的层要从 DOM 里读它。
+    /// 把它绕道 C# 意味着一次渲染批次——在 Blazor Server 上即一次往返——
+    /// 只为写一个浏览器本来就知道的属性，还卡在算完位置与揭示元素之间：
+    /// 翻转过的浮层因此在任何东西出现之前先付了一次重渲染的代价。
+    /// </remarks>
+    [Parameter]
+    public string? SideElementId { get; set; }
+
+    /// <summary>
+    /// 请求门户在打开浮层的那一次 interop 调用里接好内容的键盘行为，
+    /// 并在关闭的那一次里释放它。
+    /// </summary>
+    [Parameter]
+    public FloatingKeyboardOptions? Keyboard { get; set; }
+
+    /// <summary>
+    /// 要在其中查找"当前选中项"的元素 <c>id</c>；命中的元素会在浮层揭示之前滚动进视野。
+    /// </summary>
+    /// <remarks>
+    /// 供那些用图标而非 <c>aria-selected</c> 标记选中值的内容使用。
+    /// 组合框把 <c>aria-selected</c> 读作"键盘聚焦"，所以它必须用自己的方式标记选中项，
+    /// 并通过 <see cref="ScrollToCurrentSelector"/> 说出这个标记。
+    /// </remarks>
+    [Parameter]
+    public string? ScrollToCurrentIn { get; set; }
+
+    /// <summary>
+    /// 在 <see cref="ScrollToCurrentIn"/> 内查找选中项的 CSS 选择器。
+    /// 默认沿用列表框惯例，<c>[role="option"][aria-selected="true"]</c>。
+    /// </summary>
+    [Parameter]
+    public string ScrollToCurrentSelector { get; set; } = "[role=\"option\"][aria-selected=\"true\"]";
+
+    /// <summary>
+    /// 浮层揭示后一帧之内要聚焦的元素 <c>id</c>——例如搜索框。
+    /// </summary>
+    /// <remarks>
+    /// 在打开调用之内完成，因此免费。改在 ready 回调里聚焦的话，
+    /// 在 Blazor Server 上回调运行前就是一次往返，FocusAsync 又是一次。
+    /// </remarks>
+    [Parameter]
+    public string? AutoFocusId { get; set; }
+
+    /// <summary>
+    /// 浮层关闭时要把焦点归还到的元素 <c>id</c>——通常是触发元素。
+    /// 仅当关闭发生时 <see cref="RestoreFocusOnClose"/> 为 true 才使用。
+    /// </summary>
+    [Parameter]
+    public string? RestoreFocusToId { get; set; }
+
+    /// <summary>
+    /// 正在进行的这次关闭是否要把焦点归还给 <see cref="RestoreFocusToId"/>。
+    /// 用户主动要求的关闭（Escape、选中项）为 true；点击外部的关闭为 false——
+    /// 那种情况下焦点留在用户点击的位置。
+    /// </summary>
+    [Parameter]
+    public bool RestoreFocusOnClose { get; set; }
+
+    private static readonly Action<ILogger, string, string, Exception?> logOpenFailed =
+        LoggerMessage.Define<string, string>(LogLevel.Warning, new EventId(3, "FloatingPortalOpenFailed"),
+            "FloatingPortal '{PortalId}' 打开失败：{ErrorMessage}");
+
+    private static readonly Action<ILogger, string, Exception?> logMissingAnchor =
+        LoggerMessage.Define<string>(LogLevel.Warning, new EventId(4, "FloatingPortalMissingAnchor"),
+            "FloatingPortal '{PortalId}' 没有 AnchorElement，无法定位。");
+
+    /// <summary>门户内容是否已注册到宿主。</summary>
+    private bool isRegistered;
+
+    /// <summary>overlay.open 是否已为本门户派发、且 overlay.close 尚未派发。</summary>
+    private bool isOverlayOpen;
+
+    /// <summary>
+    /// overlay.close 是否已带着请求 <see cref="JsOnClosed"/> 回调派发、而回调尚未到达。
+    /// 回调在退场动画结束后才触发；在这段窗口里被释放的组件——比如关闭过程中发生了导航——
+    /// 会把 .NET 引用一并带走，让 JS 从此回调向一片虚无。
+    /// </summary>
+    private bool closeCallbackPending;
+
+    /// <summary>上一次的 <c>IsOpen</c>，用于区分打开沿与关闭沿。</summary>
+    private bool wasOpen;
+
+    /// <summary>
+    /// 基元 bundle 尚未导入、导致某一沿无法派发时置位。
+    /// <see cref="OnAfterRenderAsync"/> 会接手处理，并为此付一次导入的往返。
+    /// </summary>
+    private bool openPending;
+    private bool closePending;
+
+    /// <summary>交给 JS 的引用，供关闭手势、方位变化与关闭完成三类回调回调用。</summary>
+    private DotNetObjectReference<FloatingPortal>? selfRef;
+
+    private bool disposed;
+
+    protected override void OnInitialized()
+    {
+        if (string.IsNullOrEmpty(PortalId))
+        {
+            throw new InvalidOperationException(
+                "FloatingPortal 要求指定 PortalId。每个浮动元素都必须有唯一标识。");
+        }
+    }
+
+    /// <summary>
+    /// 在渲染它的同步过程里，一次性派发整个打开或整个关闭。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 本方法是"一个浮层只花一次电路往返而不是五次"的原因。打开的两半——注册内容让宿主渲染，
+    /// 以及告诉 JS 定位并揭示——都在这里、在用户点击发起的那个渲染周期内同步完成。
+    /// 注册让宿主变脏的时机恰好赶上同一个渲染批次；interop 调用不经 await 直接派发，
+    /// 与那个批次同批送达。服务器两样都发出去，一样也不等。
+    /// </para>
+    /// <para>
+    /// 这些过去都在 <c>OnAfterRenderAsync</c> 里做——那正是低效的根源。在 Blazor Server 上，
+    /// 那个回调要等浏览器确认了渲染批次才运行，于是它做的任何事都落后渲染一个往返；
+    /// 它再 await 的东西又落在再一个往返之后。打开过去要付的五个往返里有四个是这种连锁。
+    /// </para>
+    /// <para>
+    /// 在此派发的代价，是 interop 消息会<em>先于</em>承载内容的渲染批次到达浏览器——因为服务器
+    /// 先发了它。JS 因此不是接过一个元素，而是等元素出现；详见 <c>overlay.js</c>。
+    /// </para>
+    /// </remarks>
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        var opening = IsOpen && !wasOpen;
+        var closing = !IsOpen && wasOpen;
+        wasOpen = IsOpen;
+
+        // ForceMount 让内容跨关闭留在 DOM 里，因此首帧注册后就一直保留。
+        // 没有它，内容在打开的途中注册，并在退场动画结束后释放。
+        var justRegistered = (ForceMount || IsOpen) && EnsureRegistered();
+
+        if (opening)
+        {
+            BeginOpen();
+        }
+        else if (closing)
+        {
+            BeginClose();
+        }
+
+        // 挂载期间内容的变化——data-state 的改变、子内容的更新——靠刷新而非重新注册送达宿主，
+        // 重新注册会替换 RenderFragment 委托。现有委托捕获的就是 this，宿主从中读到当前状态。
+        // 宿主会忽略发生在自己渲染周期内的刷新，这正是防止嵌套在别的门户里的 FloatingPortal
+        // 成环的原因。
+        //
+        // 打开沿同样需要这一步——曾漏掉它，把每个 ForceMount 浮层都弄坏了。它们的内容首帧注册后
+        // 就再不重新注册，用户打开时注册时的那次通知早已用完：没有刷新，宿主不会重渲染，
+        // data-state 停在 "closed"，提示永远出不来。只有本轮刚刚发生的注册才能顶替它。
+        if (isRegistered && !justRegistered)
+        {
+            PortalService.RefreshPortal(PortalId);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // 预热 bundle，让第一次打开也能像之后每次一样从 OnParametersSet 派发。
+            // 没有这一步，页面上的第一个浮层就会跌进下面的慢路径，当着用户的面
+            // 为导入多付一次往返。
+            await WarmModuleAsync();
+        }
+
+        // 慢路径——只有 bundle 没来得及加载时才会走到。它把 OnParametersSet 费心避开的那次
+        // 往返付掉一次，同时把缓存焐热，下次就快了。
+        if (openPending || closePending)
+        {
+            var wantedOpen = openPending;
+            openPending = false;
+            closePending = false;
+
+            var module = await TryLoadModuleAsync();
+            if (module is not null)
+            {
+                if (wantedOpen && IsOpen)
+                {
+                    DispatchOpen(module);
+                }
+                else if (!wantedOpen && !IsOpen)
+                {
+                    DispatchClose(module);
+                }
+            }
+        }
+
+        // 刻意放在这里，而不是派发调用的旁边。OnReady 的含义是"内容已存在"，使用者可以自由地
+        // 从中发起自己的 interop——那是要 ack 的，一次往返起步。走快路径的使用者改为通过
+        // Dismiss 和 Listbox 声明需求，那些都在打开浮层的那一次调用里接好。
+        if (IsOpen && isOverlayOpen && !readyRaised && OnReady.HasDelegate)
+        {
+            readyRaised = true;
+            await OnReady.InvokeAsync();
+        }
+        else if (!IsOpen)
+        {
+            readyRaised = false;
+        }
+    }
+
+    private bool readyRaised;
+
+    /// <summary>
+    /// 内容尚未注册时把它注册到宿主。
+    /// </summary>
+    /// <returns>若在本次调用中完成注册（因而自己发出过通知）则为 <c>true</c>。</returns>
+    private bool EnsureRegistered()
+    {
+        if (isRegistered || string.IsNullOrEmpty(PortalId))
+        {
+            return false;
+        }
+
+        isRegistered = true;
+
+        // 刻意同步：在当前渲染周期还开着的时候把门户宿主弄脏，
+        // 宿主的输出于是加入本批次而不是另起一个。
+        PortalService.RegisterPortal(PortalId, RenderPortalContent(), PortalCategory.Overlay);
+        return true;
+    }
+
+    private void BeginOpen()
+    {
+        readyRaised = false;
+
+        if (AnchorElement is null || !AnchorElement.HasValue)
+        {
+            logMissingAnchor(Logger, PortalId, null);
+            return;
+        }
+
+        isOverlayOpen = true;
+
+        if (PrimitiveModules.TryGetLoaded(JSRuntime, out var module))
+        {
+            DispatchOpen(module);
+        }
+        else
+        {
+            openPending = true;
+        }
+    }
+
+    private void BeginClose()
+    {
+        if (!isOverlayOpen)
+        {
+            return;
+        }
+
+        isOverlayOpen = false;
+
+        if (PrimitiveModules.TryGetLoaded(JSRuntime, out var module))
+        {
+            DispatchClose(module);
+        }
+        else
+        {
+            closePending = true;
+        }
+    }
+
+    private void DispatchOpen(IJSObjectReference module)
+    {
+        if (AnchorElement is null || !AnchorElement.HasValue)
+        {
+            return;
+        }
+
+        var placement = Align == PopoverAlign.Center ? Side.ToValue() : $"{Side.ToValue()}-{Align.ToValue()}";
+
+        var options = new
+        {
+            placement,
+            offset = Offset,
+            matchReferenceWidth = MatchAnchorWidth,
+            strategy = Strategy.ToValue(),
+            zIndex = ZIndex,
+            flip = true,   // 空间不足时翻转到对面方位
+            shift = true,  // 平移以保持内容留在视口内
+            sideElementId = SideElementId,
+
+            // 需显式选择才开启，因为它是一次回调进 .NET、也就是一次往返。它发生在浮层
+            // 已经上屏之后，不拖累任何用户能看见的东西——但只按方位做样式的使用者
+            // 应当声明 SideElementId，让 JS 来写。
+            reportPlacement = OnPlacementChanged.HasDelegate,
+
+            dismiss = WantsDismissListeners()
+                ? new
+                {
+                    contentId = Dismiss!.ContentId,
+                    triggerId = Dismiss.TriggerId,
+                    onOutsideInteraction = Dismiss.OnOutsideInteraction,
+                    onEscapeKey = Dismiss.OnEscapeKey
+                }
+                : null,
+
+            scrollToCurrent = ScrollToCurrentIn is not null
+                ? new { containerId = ScrollToCurrentIn, selector = ScrollToCurrentSelector }
+                : null,
+
+            autoFocusId = AutoFocusId,
+
+            keyboard = Keyboard is not null
+                ? new
+                {
+                    kind = Keyboard.Kind.ToString(),
+                    contentId = Keyboard.ContentId,
+                    callbackRef = Keyboard.CallbackRef,
+                    selectedValue = Keyboard.SelectedValue,
+                    loop = Keyboard.Loop,
+                    mode = Keyboard.Mode,
+                    initialFocus = Keyboard.InitialFocus
+                }
+                : null
+        };
+
+        Dispatch(module, "overlay.open", PortalId, AnchorElement.Value, options, SelfRef());
+    }
+
+    private void DispatchClose(IJSObjectReference module)
+    {
+        // ForceMount 的内容留在 DOM 里，动画结束无人需要被告知。
+        // 没有它，内容将被卸载，而这必须等动画完成——否则元素还没来得及演就没了。
+        var options = new
+        {
+            notifyClosed = !ForceMount,
+
+            // 与隐藏元素的调用同批释放。使用者过去要 await 自己的 interop 来摘掉这些处理器，
+            // 等于花一次往返，去移除一个用户早已关掉的浮层上的事件监听器。
+            keyboard = Keyboard is not null
+                ? new { kind = Keyboard.Kind.ToString(), contentId = Keyboard.ContentId }
+                : null,
+
+            // 就在现在、关闭渲染进行中时读取——使用者的状态此刻正说明这是哪一种关闭。
+            // 过去使用者在关闭渲染之后自己 await FocusAsync：每次 Escape、每次选中，
+            // 都是一次往返。
+            restoreFocusToId = RestoreFocusOnClose ? RestoreFocusToId : null,
+            // 组合式触发元素可以提供自己的 ID。把它的真实元素留作兜底。
+            restoreFocusToElement = RestoreFocusOnClose ? AnchorElement : null
+        };
+
+        closeCallbackPending = !ForceMount;
+        Dispatch(module, "overlay.close", PortalId, options, SelfRef());
+    }
+
+    /// <summary>
+    /// 不经等待地发出一次 interop 调用，吞掉拆退场过程必然产生的那些失败。
+    /// </summary>
+    /// <remarks>
+    /// 不 await 正是全部意义——await 就是往返。代价是失败没有调用方可以汇报，
+    /// 所以每一类失败都在这里就地记日志。
+    /// </remarks>
+    private void Dispatch(IJSObjectReference module, string identifier, params object?[] args)
+        => _ = DispatchAsync(module, identifier, args);
+
+    private async Task DispatchAsync(IJSObjectReference module, string identifier, object?[] args)
+    {
+        try
+        {
+            await module.InvokeVoidAsync(identifier, args);
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or JSException or TaskCanceledException or ObjectDisposedException)
+        {
+            // 电路已断，或元素在调用送达前已被拆掉。无事可报。
+        }
+        catch (Exception ex)
+        {
+            logOpenFailed(Logger, PortalId, ex.Message, ex);
+        }
+    }
+
+    private async Task WarmModuleAsync()
+    {
+        try
+        {
+            await PrimitiveModules.GetAsync(JSRuntime);
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or JSException or TaskCanceledException or ObjectDisposedException or InvalidOperationException)
+        {
+            // 预渲染，或电路已断。下一次打开会重试。
+        }
+    }
+
+    private async Task<IJSObjectReference?> TryLoadModuleAsync()
+    {
+        try
+        {
+            return await PrimitiveModules.GetAsync(JSRuntime);
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or JSException or TaskCanceledException or ObjectDisposedException or InvalidOperationException)
+        {
+            return null;
+        }
+    }
+
+    private RenderFragment RenderPortalContent() => __builder =>
+    {
+        <div @attributes="FilteredAttributes"
+             data-portal-content="true"
+             data-atom-portal="@PortalId"
+             data-state="@(IsOpen ? "open" : "closed")"
+             style="@GetMergedStyle()">
+            @ChildContent
+        </div>
+    };
+
+    private bool WantsDismissListeners()
+        => Dismiss is not null && (Dismiss.OnOutsideInteraction || Dismiss.OnEscapeKey);
+
+    private DotNetObjectReference<FloatingPortal> SelfRef()
+        => selfRef ??= DotNetObjectReference.Create(this);
+
+    /// <summary>
+    /// 由 JavaScript 调用：用户在内容与触发元素之外发生了交互。
+    /// </summary>
+    [JSInvokable]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public Task JsOnDismissOutside() => RaiseDismissAsync(FloatingDismissReason.OutsideInteraction);
+
+    /// <summary>
+    /// 由 JavaScript 调用：document 任意位置按下了 Escape。
+    /// </summary>
+    [JSInvokable]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public Task JsOnDismissEscape() => RaiseDismissAsync(FloatingDismissReason.EscapeKey);
+
+    /// <summary>
+    /// 由 JavaScript 调用：浮层定位完成，携带它最终落在的方位。
+    /// </summary>
+    [JSInvokable]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public Task JsOnPlacementChanged(string placement)
+    {
+        if (disposed || !OnPlacementChanged.HasDelegate)
+        {
+            return Task.CompletedTask;
+        }
+
+        return OnPlacementChanged.InvokeAsync(placement);
+    }
+
+    /// <summary>
+    /// 由 JavaScript 调用：退场动画已结束、内容已隐藏。
+    /// </summary>
+    /// <remarks>
+    /// 只服务于非 <see cref="ForceMount"/> 的情形——那种情况下内容是被卸载而非隐藏。
+    /// 卸载不能与关闭的那次渲染同行——元素得活到动画演完——所以它落在回调这里，
+    /// 晚一个往返，但用户此刻早已看不见这个浮层。
+    /// </remarks>
+    [JSInvokable]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public Task JsOnClosed()
+    {
+        closeCallbackPending = false;
+
+        if (disposed || IsOpen || ForceMount || !isRegistered)
+        {
+            return Task.CompletedTask;
+        }
+
+        isRegistered = false;
+        PortalService.UnregisterPortal(PortalId);
+        return Task.CompletedTask;
+    }
+
+    private Task RaiseDismissAsync(FloatingDismissReason reason)
+    {
+        // 监听器比关闭活得久——久到 overlay.close 跑完为止——手势可能姗姗落在
+        // 一个已经在退场的浮层上。
+        if (disposed || !IsOpen || !OnDismiss.HasDelegate)
+        {
+            return Task.CompletedTask;
+        }
+
+        return OnDismiss.InvokeAsync(reason);
+    }
+
+    /// <summary>
+    /// 内容停放所用的样式：离屏、不可见、不响应指针。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 它永远不变，而这正是重点。JS 靠直接书写样式来定位和揭示元素，而 Blazor 对 <c>style</c>
+    /// 属性的 diff 对照的是它上次<em>渲染</em>出的内容而非 DOM 里的实际内容——只要这个字符串恒定，
+    /// Blazor 就不会为它发出任何更新，也就永远不会和 JS 写下的值打架。关闭则是它的镜像：
+    /// <c>hidePosition</c> 把这些同样的值显式写回去，因为渲染出它们不会产生 diff，也就毫无变化。
+    /// </para>
+    /// <para>
+    /// 这里过去存放计算出的坐标，好让 C# 重渲染元素时不丢位置。那要求 C# 先知道位置，
+    /// 而知道就得 await 计算它的那次调用——一次往返，每次打开都要在浮层出现之前付掉。
+    /// </para>
+    /// <para>
+    /// 用 <c>position: fixed</c> 配离屏坐标，而不是 <c>display: none</c>：
+    /// 内容在放置之前必须是可测量的，而隐藏的元素测出来是零。
+    /// <c>visibility</c> 让它不碍事、浏览器也不会为它滚动，
+    /// <c>pointer-events: none</c> 让它进出时都吞不掉点击。
+    /// </para>
+    /// </remarks>
+    private string GetParkedStyle()
+        => FormattableString.Invariant(
+            $"position: fixed; z-index: {ZIndex}; top: -9999px; left: -9999px; visibility: hidden; opacity: 0; pointer-events: none;");
+
+    private string GetMergedStyle()
+    {
+        var baseStyle = GetParkedStyle();
+
+        if (AdditionalAttributes != null && AdditionalAttributes.TryGetValue("style", out var userStyle))
+        {
+            return $"{userStyle}; {baseStyle}";
+        }
+
+        return baseStyle;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (disposed)
+        {
+            return;
+        }
+
+        disposed = true;
+
+        // 关闭动画还在浏览器里跑的时候（组件被释放）同样要发这条。overlay.close 会让上一次
+        // 调用的令牌作废，其 JsOnClosed 回调因此被丢弃，而不是回调向一个即将释放的引用
+        // （过去每次从开着的浮层导航离开，它都会记一条 "close callback failed"）。
+        if ((isOverlayOpen || closeCallbackPending) && PrimitiveModules.TryGetLoaded(JSRuntime, out var module))
+        {
+            isOverlayOpen = false;
+            closeCallbackPending = false;
+
+            try
+            {
+                // 只有这里是 await 的，与其他关闭不同：释放这条路径上已经没有东西要渲染，
+                // 不存在可省的往返，而监听器必须赶在组件之前消失。
+                await module.InvokeVoidAsync("overlay.close", PortalId, new { notifyClosed = false }, null);
+            }
+            catch (Exception ex) when (ex is JSDisconnectedException or JSException or TaskCanceledException or ObjectDisposedException)
+            {
+                // 电路已断或元素已拆——没什么可藏的了。
+            }
+        }
+
+        if (isRegistered && !string.IsNullOrEmpty(PortalId))
+        {
+            isRegistered = false;
+            PortalService.UnregisterPortal(PortalId);
+        }
+
+        selfRef?.Dispose();
+        selfRef = null;
+    }
+}

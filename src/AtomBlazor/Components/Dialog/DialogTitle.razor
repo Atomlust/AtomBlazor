@@ -1,0 +1,41 @@
+@namespace AtomBlazor
+
+@*
+    带 shadcn/ui 样式的 DialogTitle 组件。
+*@
+
+<AtomBlazor.Primitives.DialogTitle As="@As" class="@CssClass" @attributes="AdditionalAttributes">
+    @ChildContent
+</AtomBlazor.Primitives.DialogTitle>
+
+@code {
+    /// <summary>
+    /// 要显示的标题内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 应用到标题上的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 应用到标题元素的附加特性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// 用于标题的 HTML 元素标签。
+    /// 默认值为 "h2"。
+    /// </summary>
+    [Parameter]
+    public string As { get; set; } = "h2";
+
+    private string CssClass => ClassNames.cn(
+        "atom:text-lg atom:font-semibold atom:leading-none atom:tracking-tight",
+        Class
+    );
+}

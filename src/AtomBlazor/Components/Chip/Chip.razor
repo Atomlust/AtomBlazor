@@ -1,0 +1,51 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+@inject ILocalizer Localizer
+
+@{
+    RenderFragment body =
+        @<text>
+            @if (Icon is not null)
+            {
+                <span class="atom:inline-flex atom:shrink-0 atom:items-center">@Icon</span>
+            }
+            @if (EffectiveShowCheckMark && IsSelected)
+            {
+                <LucideIcon Name="check" Class="@CheckMarkCssClass" />
+            }
+            @ChildContent
+        </text>;
+}
+
+<span class="@RootCssClass" data-slot="chip" data-state="@StateAttribute" @attributes="AdditionalAttributes">
+    @if (IsInteractive)
+    {
+        <button type="button"
+                class="@BodyCssClass"
+                disabled="@IsDisabled"
+                aria-disabled="@(IsDisabled ? "true" : null)"
+                aria-pressed="@PressedAttribute"
+                @onclick="HandleActivateAsync">
+            @body
+        </button>
+    }
+    else
+    {
+        <span class="@BodyCssClass">
+            @body
+        </span>
+    }
+
+    @if (EffectiveDismissible)
+    {
+        <button type="button"
+                class="@DismissCssClass"
+                disabled="@IsDisabled"
+                aria-disabled="@(IsDisabled ? "true" : null)"
+                aria-label="@EffectiveDismissLabel"
+                @onclick="HandleDismissAsync"
+                @onclick:stopPropagation="true">
+            <LucideIcon Name="x" Class="@DismissIconCssClass" />
+        </button>
+    }
+</span>

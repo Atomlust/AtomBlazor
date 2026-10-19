@@ -1,0 +1,52 @@
+@* 1. Derive from SchedulerEvent to carry your own data. *@
+public sealed class AgendaEvent : SchedulerEvent
+{
+    public string? Agenda { get; set; }
+
+    // Override Clone or your fields are dropped on the first edit, drag or resize.
+    // CopyTo handles every field the base type owns, so you only write your own.
+    public override SchedulerEvent Clone()
+    {
+        var copy = new AgendaEvent { Agenda = Agenda };
+        CopyTo(copy);
+        return copy;
+    }
+}
+
+@* 2. Collect it in the editor, and tell the scheduler how to make a blank one. *@
+<Scheduler @bind-Events="events"
+             NewEventFactory="@(() => new AgendaEvent())">
+
+    <EditorContent>
+        @* Render DefaultContent to keep the built-in fields; leave it out to replace them. *@
+        @context.DefaultContent
+
+        @if (context.Draft is AgendaEvent agenda)
+        {
+            <div class="space-y-2">
+                <Label For="agenda">Agenda</Label>
+                <Textarea id="agenda" @bind-Value="agenda.Agenda" Rows="3" />
+            </div>
+        }
+    </EditorContent>
+
+    @* 3. Optionally show it on the event itself. *@
+    <EventTemplate>
+        <span class="font-medium">@context.Event.Title</span>
+        @if (context.Event is AgendaEvent { Agenda.Length: > 0 } withAgenda)
+        {
+            <span class="block truncate opacity-70">@withAgenda.Agenda</span>
+        }
+    </EventTemplate>
+
+</Scheduler>
+
+@* SchedulerEditorContext carries:
+     Draft          the event being edited — an independent copy, so writes are
+                    discarded on Cancel. Cast it to your own type.
+     IsNew          true when creating rather than editing.
+     Scope          Occurrence or Series, for a recurring event.
+     DefaultContent the built-in fields.
+
+   Without NewEventFactory a newly created event is the base SchedulerEvent, and
+   your fields have nowhere to live. *@

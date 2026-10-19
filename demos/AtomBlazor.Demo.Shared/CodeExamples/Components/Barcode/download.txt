@@ -1,0 +1,30 @@
+<Barcode @ref="code" Value="BB-2026-0917" />
+
+<a download="barcode.svg" href="@DownloadHref">Download the SVG</a>
+
+@code {
+    private Barcode? code;
+
+    // GetSvg() returns a standalone document: bars and printed line together, in fixed
+    // proportions with the colours baked in. Not the markup on the page - that one
+    // stretches to Height and keeps its text as HTML.
+    private string DownloadHref
+    {
+        get
+        {
+            var markup = code?.GetSvg();
+            return markup is null
+                ? "#"
+                : "data:image/svg+xml;base64,"
+                    + Convert.ToBase64String(Encoding.UTF8.GetBytes(markup));
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            StateHasChanged();
+        }
+    }
+}

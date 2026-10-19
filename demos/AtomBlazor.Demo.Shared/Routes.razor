@@ -1,0 +1,36 @@
+@inject DemoCultureService CultureService
+
+<Router AppAssembly="@typeof(Routes).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+    </Found>
+    <NotFound>
+        <PageTitle>@L.T("页面未找到", "Not found")</PageTitle>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <p role="alert">@L.T("抱歉，此地址没有任何内容。", "Sorry, there's nothing at this address.")</p>
+        </LayoutView>
+    </NotFound>
+</Router>
+
+@code {
+    /// <summary>
+    /// 预渲染帧已定下的语言码，宿主 App.razor 以交互根组件参数的形式随组件描述符下发。
+    /// 电路/WebAssembly 侧作用域里的语言状态默认是中文，若不在此取回，库组件会在首帧
+    /// 按中文解析并缓存文案（Sidebar 触发器、向导步骤指示），等 MainLayout 首屏后读
+    /// cookie 纠正已来不及。纯客户端宿主（Wasm）没有预渲染帧，参数为空即跳过。
+    /// </summary>
+    [Parameter]
+    public string? InitialLanguage { get; set; }
+
+    /// <summary>显示语言快照（随 <see cref="CultureService"/> 同步）。</summary>
+    private DemoCultureState L => CultureService.Snapshot;
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        if (!string.IsNullOrEmpty(InitialLanguage))
+        {
+            CultureService.InitializeFromCookie(InitialLanguage);
+        }
+    }
+}

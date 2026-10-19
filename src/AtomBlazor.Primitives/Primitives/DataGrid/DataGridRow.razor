@@ -1,0 +1,227 @@
+@namespace AtomBlazor.Primitives
+@typeparam TData where TData : class
+@inject IJSRuntime JSRuntime
+
+<tr @ref="elementRef"
+    role="row"
+    aria-selected="@(IsSelected ? "true" : "false")"
+    tabindex="@(IsKeyboardNavigable ? 0 : -1)"
+    class="@ComputedClass"
+    data-editing="@(IsRowEditing ? "true" : null)"
+    data-atom-row-keys="@((IsKeyboardNavigable || IsEditable) ? "true" : null)"
+    data-atom-row-click="@(NeedsClickIntercept ? "true" : null)"
+    @onclick="HandleClick"
+    @oncontextmenu="HandleContextMenu"
+    @oncontextmenu:preventDefault="@HasContextMenuHandler"
+    @onkeydown="HandleKeyDown"
+    @attributes="AdditionalAttributes">
+    @ChildContent
+</tr>
+
+@code {
+    private ElementReference elementRef;
+
+    [CascadingParameter]
+    private DataGridContext<TData> Context { get; set; } = default!;
+
+    /// <summary>
+    /// The data item for this row.
+    /// </summary>
+    [Parameter]
+    public TData? Item { get; set; }
+
+    /// <summary>
+    /// Child content for the row (typically cells).
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes.
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private bool IsSelected => Item != null && Context != null && Context.IsSelected(Item);
+
+    private bool IsSelectable => Context != null && Context.SelectionMode != SelectionMode.None;
+
+    private bool IsRowEditing => Item != null && Context?.IsRowEditing?.Invoke(Item) == true;
+
+    private bool IsExpandable => Context?.OnToggleExpand != null;
+
+    private bool IsDataRow => Item != null;
+
+    private bool NeedsClickIntercept => IsDataRow && (IsSelectable || Context?.OnRowClick != null);
+
+    private bool IsEditable => IsDataRow && Context?.IsRowEditing != null;
+
+    private bool IsKeyboardNavigable => IsDataRow && Context != null && Context.EnableKeyboardNavigation;
+
+    private const string focusRingClasses = "atom:focus:outline-none";
+
+    private string ComputedClass => IsKeyboardNavigable ? $"{focusRingClasses} {Class}" : Class ?? "";
+
+    // No OnAfterRenderAsync here on purpose. Each row used to register its own key and click
+    // listeners, which cost one interop call — one circuit round trip on Blazor Server — per row:
+    // a 465-row grid sent 240 client-to-server messages on load against 23 for a page with no
+    // grid. The listeners now live on the grid container, and a row opts in with the
+    // data-atom-row-keys and data-atom-row-click attributes above, which costs nothing.
+
+    private bool HasContextMenuHandler => Context?.OnRowContextMenu != null;
+
+    private async Task HandleClick(MouseEventArgs e)
+    {
+        if (Item != null && Context != null)
+        {
+            // When the click interceptor is active, check whether the click
+            // targeted an interactive child (user-provided button/link/input
+            // inside a cell template).  If so, skip row-level handling.
+            if (NeedsClickIntercept)
+            {
+                var wasInteractive = false;
+                try
+                {
+                    var navModule = await PrimitiveModules.GetAsync(JSRuntime);
+                    wasInteractive = await navModule.InvokeAsync<bool>(
+                        "tableRowNav.consumeInteractiveClickFlag", elementRef);
+                }
+                catch
+                {
+                    wasInteractive = false;
+                }
+
+                if (wasInteractive)
+                {
+                    return;
+                }
+            }
+
+            Context.OnRowClick?.Invoke(Item);
+
+            if (IsSelectable)
+            {
+                // MetaKey covers Cmd on macOS, where Ctrl+Click opens the context menu instead.
+                Context.ApplyRowSelectionInput(
+                    Item, new RowSelectionModifiers(e.ShiftKey, e.CtrlKey || e.MetaKey));
+            }
+        }
+    }
+
+    private void HandleContextMenu(MouseEventArgs e)
+    {
+        if (Item != null)
+        {
+            Context?.OnRowContextMenu?.Invoke(Item, e.ClientX, e.ClientY);
+        }
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        // Interactive child interception is handled entirely in JS.
+        // The bubble-phase handler in preventSpaceKeyScroll calls
+        // stopPropagation() for interactive targets, so this method
+        // is only invoked for row-level keyboard events.
+
+        if (IsKeyboardNavigable && !IsRowEditing)
+        {
+            switch (e.Key)
+            {
+                case "ArrowUp":
+                    await MoveFocus("moveFocusToPreviousRow");
+                    return;
+                case "ArrowDown":
+                    await MoveFocus("moveFocusToNextRow");
+                    return;
+            }
+        }
+
+        if (Item != null)
+        {
+            // A row being edited owns Enter and Escape: they commit and discard. The row's
+            // selection and expansion shortcuts would otherwise fire while the user is typing.
+            if (IsRowEditing)
+            {
+                if (e.Key == "Escape" && Context?.OnCancelEdit != null)
+                {
+                    await Context.OnCancelEdit();
+                }
+                else if (e.Key == "Enter" && !e.ShiftKey && Context?.OnCommitEdit != null)
+                {
+                    // An input that only writes its value back on change has not done so yet:
+                    // this handler runs before the browser fires that change. Blurring it forces
+                    // the value through, so Enter does not drop the field the user was in.
+                    if (await BlurFocusedInput())
+                    {
+                        await Context.OnCommitEdit();
+                    }
+                }
+
+                return;
+            }
+
+            if (e.Key == " ")
+            {
+                if (IsSelectable)
+                {
+                    Context!.ToggleRowSelection(Item);
+                }
+                else if (IsExpandable)
+                {
+                    Context!.OnToggleExpand!(Item);
+                }
+            }
+            else if (e.Key == "Enter")
+            {
+                if (IsExpandable)
+                {
+                    Context!.OnToggleExpand!(Item);
+                }
+                else if (IsSelectable)
+                {
+                    Context!.ToggleRowSelection(Item);
+                }
+            }
+        }
+    }
+
+    private async Task<bool> BlurFocusedInput()
+    {
+        try
+        {
+            var navModule = await PrimitiveModules.GetAsync(JSRuntime);
+
+            if (await navModule.InvokeAsync<bool>("tableRowNav.blurFocusedInput", elementRef))
+            {
+                // Let the change event the blur just fired reach Blazor and update the model
+                // before the commit reads it.
+                await Task.Yield();
+                return true;
+            }
+        }
+        catch
+        {
+            // No browser to blur in — prerendering, or a circuit that has gone away.
+        }
+        return false;
+    }
+
+    private async Task MoveFocus(string method)
+    {
+        try
+        {
+            var navModule = await PrimitiveModules.GetAsync(JSRuntime);
+            await navModule.InvokeVoidAsync(method, elementRef);
+        }
+        catch
+        {
+            // Ignore JS interop errors
+        }
+    }
+}

@@ -1,0 +1,37 @@
+@namespace AtomBlazor
+
+@*
+    SidebarMenuBadge 组件：在菜单项内显示徽标/计数。
+*@
+
+<div class="@GetClasses()" data-sidebar="menu-badge" @attributes="AdditionalAttributes">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// 徽标内容（通常是数字或文本）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string GetClasses()
+    {
+        return ClassNames.cn(
+            "atom:pointer-events-none atom:absolute atom:flex atom:select-none atom:items-center atom:justify-center atom:tabular-nums atom:text-sidebar-foreground atom:peer-hover/menu-button:text-sidebar-accent-foreground atom:peer-data-[size=sm]/menu-button:top-1 atom:peer-data-[size=default]/menu-button:top-1.5 atom:peer-data-[size=lg]/menu-button:top-2.5 atom:group-data-[collapsible=icon]:hidden",
+            Class
+        );
+    }
+}

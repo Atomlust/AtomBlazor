@@ -1,0 +1,742 @@
+@page "/components/barcode"
+@using System.Text
+@using AtomBlazor.Primitives.Barcode
+<PageTitle>@L.T("Barcode 条形码 - Atom BlazorUI", "Barcode - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("Barcode 条形码", "Barcode")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("十四种一维码制，一律以 SVG 绘制。编码器由 C# 写成 —— 不用 JavaScript，不发图片请求，也不依赖任何第三方库，所以标签能按打印机力所能及的精度清晰输出，无论最终是多大尺寸。", "Fourteen linear symbologies drawn as SVG. The encoders are written in C# — no JavaScript, no image request and no dependency — so a label prints as sharp as the printer can manage, at whatever size it turns out to be.")
+            </p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("基本用法", "Basic Usage")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        给 <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code> 赋值即可。
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Code128</code> 既是默认码制，也是正确的首选，
+                        除非链路上的某一端另有要求：它能承载任意 ASCII 文本，而且数字的密度是这里其他码制的两倍。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        Set <code class="text-xs bg-muted px-1 py-0.5 rounded">Value</code>.
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Code128</code> is the default
+                        and the right answer unless something on the other end demands otherwise: it takes
+                        any ASCII text and packs digits twice as tightly as anything else here.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 flex justify-center">
+                <Barcode Value="BB-2026-0917" />
+            </div>
+
+            <CodeBlock Source="Components/Barcode/basic.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("试一试", "Try It")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("选一种码制，再输入一个值。每种码制接受的字符集和长度都不同；值超出承载范围时，它会直接在图形位置说明原因，而不是抛出异常。", "Pick a symbology and type a value. Each one accepts a different alphabet and a different length; a value it cannot carry says so in place of the bars rather than throwing.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <Select TValue="BarcodeType"
+                            Label="@(L.T("码制", "Symbology"))"
+                            Options="typeOptions"
+                            Value="@liveType"
+                            ValueChanged="OnTypeChanged" />
+                    <Input Label="@(L.T("内容", "Value"))"
+                           @bind-Value="liveValue"
+                           UpdateTiming="UpdateTiming.Debounced"
+                           DebounceInterval="250" />
+                </div>
+
+                <p class="text-sm text-muted-foreground">
+                    @BarcodeEncoder.DescribeInput(liveType)
+                </p>
+
+                <div class="flex flex-col items-center gap-3 overflow-x-auto">
+                    <Barcode Value="@liveValue" Type="liveType" OnEncoded="@(s => liveSymbol = s)" />
+                    @if (liveSymbol is { } live)
+                    {
+                        <dl class="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-1 text-sm">
+                            <dt class="text-muted-foreground">@L.T("已编码内容", "Encoded")</dt>
+                            <dd class="font-mono">@live.Value</dd>
+                            <dt class="text-muted-foreground">@L.T("宽度", "Width")</dt>
+                            @if (L.IsChinese)
+                            {
+                                                        <text>
+                                                            <dd class="font-mono">@live.ModuleCount 个模块，@live.Bars.Count 条黑条</dd>
+                                                        </text>
+}
+                            else
+                            {
+                                                        <text>
+                                                            <dd class="font-mono">@live.ModuleCount modules, @live.Bars.Count bars</dd>
+                                                        </text>
+}
+                            <dt class="text-muted-foreground">@L.T("静区", "Quiet zone")</dt>
+                            <dd class="font-mono">@live.QuietZoneModules @L.T("个模块", "modules")</dd>
+                        </dl>
+                    }
+                </div>
+            </div>
+
+            <CodeBlock Source="Components/Barcode/inspect.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("零售码", "The Retail Codes")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("EAN-13、EAN-8 与 UPC-A 就是印在商品上的那串数字。少给最后一位校验位时它会替你算出来；连着校验位一起给出时它会顺手核对。护栏条比数字更长、向下超出，数字围绕着它们排布 —— 这套排布是标准的一部分，不是为了好看。", "EAN-13, EAN-8 and UPC-A are the numbers on a product. Give the code without its final check digit and it is worked out; give it with one and it is verified. The guard bars run past the digits and the digits sit around them — that placement is part of the standard, not decoration.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <div class="grid gap-8 sm:grid-cols-3 justify-items-center">
+                    <div class="flex flex-col items-center gap-2">
+                        <Barcode Value="590123412345" Type="BarcodeType.Ean13" Height="3.5rem" />
+                        <p class="text-sm font-medium">EAN-13</p>
+                    </div>
+                    <div class="flex flex-col items-center gap-2">
+                        <Barcode Value="9638507" Type="BarcodeType.Ean8" Height="3.5rem" />
+                        <p class="text-sm font-medium">EAN-8</p>
+                    </div>
+                    <div class="flex flex-col items-center gap-2">
+                        <Barcode Value="03600029145" Type="BarcodeType.UpcA" Height="3.5rem" />
+                        <p class="text-sm font-medium">UPC-A</p>
+                    </div>
+                </div>
+            </div>
+
+            <CodeBlock Source="Components/Barcode/retail.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("图书与期刊", "Books and Serials")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("ISBN 与 ISSN 骨子里都是 EAN-13，只是挂在 978、979、977 这几个前缀之下。按它们各自的形式给出，带不带连字符都可以：人们引用的那串编号会印在条形的上方，商品码则留在下方。", "An ISBN and an ISSN are both EAN-13 underneath, under the 978, 979 and 977 prefixes. Give either in its own form, with or without hyphens, and the number people quote is printed above the bars while the product code sits below them.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <div class="grid gap-8 sm:grid-cols-2 justify-items-center">
+                    <div class="flex flex-col items-center gap-2">
+                        <Barcode Value="978-0-306-40615-7" Type="BarcodeType.Isbn" Height="3.5rem" />
+                        <p class="text-sm font-medium">ISBN</p>
+                    </div>
+                    <div class="flex flex-col items-center gap-2">
+                        <Barcode Value="0378-5955" Type="BarcodeType.Issn" Height="3.5rem" />
+                        <p class="text-sm font-medium">ISSN</p>
+                    </div>
+                </div>
+            </div>
+
+            <CodeBlock Source="Components/Barcode/books.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("数据在高度里", "Height, Not Width")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        POSTNET 与 Royal Mail 4-state 把每根条放在相同的间距上，改由条的形状来承载数据。
+                        这样能扛住分拣传送带造成的拖影 —— 也意味着压扁这类码会直接毁掉数据，而不只是让人更难对准。
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">IsHeightModulated</code>
+                        会告诉你手上拿的是哪一种。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        POSTNET and the Royal Mail 4-state code put every bar on the same pitch and carry
+                        the data in the bar shapes instead. That survives the smearing a sorting conveyor
+                        causes — and it means squashing one of these destroys the data rather than just
+                        making it harder to aim at. <code class="text-xs bg-muted px-1 py-0.5 rounded">IsHeightModulated</code>
+                        tells you which you are holding.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-6">
+                <div class="flex flex-col items-center gap-2">
+                    <Barcode Value="555551237" Type="BarcodeType.Postnet" Height="2rem" ModuleWidth="3px" />
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <p class="text-sm font-medium">POSTNET —— 一个 ZIP+4 邮编</p>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <p class="text-sm font-medium">POSTNET &mdash; a ZIP+4</p>
+                                        </text>
+}
+                </div>
+                <div class="flex flex-col items-center gap-2">
+                    <Barcode Value="SN34RD1A" Type="BarcodeType.Rm4scc" Height="2rem" ModuleWidth="3px" />
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <p class="text-sm font-medium">Royal Mail 4-state —— 四种条形，而非两种宽度</p>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <p class="text-sm font-medium">Royal Mail 4-state &mdash; four bar shapes, not two widths</p>
+                                        </text>
+}
+                </div>
+            </div>
+
+            <CodeBlock Source="Components/Barcode/postal.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("全部码制", "Every Symbology")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("同一个想法的十四种写法。每一种留在这里，都是因为仍有什么地方在要求它。", "The same idea fourteen ways. Each one is here because something still demands it.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-6">
+                @foreach (var (type, sample, note, noteZh) in gallery)
+                {
+                    <div class="space-y-2 border-b pb-6 last:border-0 last:pb-0">
+                        <div class="flex flex-wrap items-baseline gap-x-3">
+                            <h3 class="font-semibold">@type</h3>
+                            @if (L.IsChinese)
+                            {
+                                                        <text>
+                                                            <p class="text-sm text-muted-foreground">@noteZh</p>
+                                                        </text>
+}
+                            else
+                            {
+                                                        <text>
+                                                            <p class="text-sm text-muted-foreground">@note</p>
+                                                        </text>
+}
+                        </div>
+                        <div class="overflow-x-auto">
+                            <Barcode Value="@sample" Type="type" Height="@(type is BarcodeType.Postnet or BarcodeType.Rm4scc ? "2rem" : "3rem")" />
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <CodeBlock Source="Components/Barcode/gallery.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("尺寸与静区", "Size and Quiet Zone")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        条码的宽度由数据决定，所以要设的是
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">ModuleWidth</code>，而不是总宽度。
+                        静区是两侧的浅色留白，也是印出来的条码读不出来的头号原因 ——
+                        默认值就是该码制自己要求的那一档。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        A barcode's width is fixed by its data, so
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">ModuleWidth</code> rather than a
+                        total width is what you set. The quiet zone is the light margin either side, and
+                        it is the most common reason a printed barcode will not read — the default is
+                        whatever the symbology asks for.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-6">
+                <div class="space-y-2">
+                    <p class="text-sm font-medium">@L.T("ModuleWidth 取 1px、2px 与 3px", "ModuleWidth 1px, 2px and 3px")</p>
+                    <div class="flex flex-wrap items-end gap-6">
+                        @foreach (var width in new[] { "1px", "2px", "3px" })
+                        {
+                            <Barcode Value="BB-2026-0917" ModuleWidth="@width" Height="3rem" />
+                        }
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <p class="text-sm font-medium">@L.T("静区取 0 与 10 个模块，放在有色底上对照", "Quiet zone 0 and 10 modules, shown against a tinted page")</p>
+                    <div class="flex flex-wrap items-end gap-6 rounded-md bg-amber-100 p-4">
+                        <Barcode Value="BB-2026-0917" QuietZone="0" Height="3rem" />
+                        <Barcode Value="BB-2026-0917" QuietZone="10" Height="3rem" />
+                    </div>
+                </div>
+            </div>
+
+            <CodeBlock Source="Components/Barcode/sizing.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("校验字符", "Check Characters")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        Code 39、ITF、Codabar 与 MSI 都支持可选的校验字符。
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AddChecksum</code>
+                        用来加上它，默认是关的，因为没预期到校验位的扫码枪会把它当成数据的一部分。
+                        除非
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowChecksum</code>
+                        另有说明，打印出来的那一行文字里不会带上它。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        Code 39, ITF, Codabar and MSI have an optional check character.
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AddChecksum</code> adds it and it
+                        is off by default, because a scanner that is not expecting one reports it as part
+                        of the data. It is left out of the printed line unless
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">ShowChecksum</code> says otherwise.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <div class="grid gap-8 sm:grid-cols-3 justify-items-center">
+                    <div class="flex flex-col items-center gap-2">
+                        <Barcode Value="ABC-123" Type="BarcodeType.Code39" Height="3rem" />
+                        <p class="text-xs text-muted-foreground text-center">@L.T("不带校验字符", "No check character")</p>
+                    </div>
+                    <div class="flex flex-col items-center gap-2">
+                        <Barcode Value="ABC-123" Type="BarcodeType.Code39" AddChecksum="true" Height="3rem" />
+                        <p class="text-xs text-muted-foreground text-center">@L.T("已加上，但不打印", "Added, not printed")</p>
+                    </div>
+                    <div class="flex flex-col items-center gap-2">
+                        <Barcode Value="ABC-123" Type="BarcodeType.Code39" AddChecksum="true" ShowChecksum="true" Height="3rem" />
+                        <p class="text-xs text-muted-foreground text-center">@L.T("已加上并一并打印", "Added and printed")</p>
+                    </div>
+                </div>
+            </div>
+
+            <CodeBlock Source="Components/Barcode/checksum.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("颜色", "Colour")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("深色的条配白色的底，两套主题都是如此；和二维码相比，这里可发挥的余地要小得多。扫码枪测量的是黑条与它旁边那段空白的对比度，而反色的条码在大多数硬件上会被直接读成没有条码。只有在结果不会被扫描、或者你已经把扫码枪测过的场合，才去改这两个颜色。", "Dark on white, in both themes, and there is less room to play here than with a QR code. A scanner measures the contrast between a bar and the space beside it, and an inverted symbol reads as no symbol at all on most hardware. Change these only where the result will not be scanned, or where you have tested the scanner.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6">
+                <div class="grid gap-8 sm:grid-cols-2 justify-items-center">
+                    <div class="flex flex-col items-center gap-2">
+                        <Barcode Value="BB-2026-0917" Height="3rem" />
+                        <p class="text-xs text-muted-foreground">@L.T("默认配色", "Default")</p>
+                    </div>
+                    <div class="flex flex-col items-center gap-2">
+                        <Barcode Value="BB-2026-0917" Height="3rem" Foreground="#1e3a8a" Background="#eff6ff" />
+                        @if (L.IsChinese)
+                        {
+                                                <text>
+                                                    <p class="text-xs text-muted-foreground">深蓝条配极浅蓝底 —— 对比度依然很高</p>
+                                                </text>
+}
+                        else
+                        {
+                                                <text>
+                                                    <p class="text-xs text-muted-foreground">Dark blue on very light blue &mdash; still high contrast</p>
+                                                </text>
+}
+                    </div>
+                </div>
+            </div>
+
+            <CodeBlock Source="Components/Barcode/colour.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("存成文件", "Saving It")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">GetSvg()</code> 返回的是一份独立的文档
+                        —— 黑条与打印出来的那一行文字合在一起，比例固定，颜色也已经写死在里面。
+                        它和页面上那份标记并不是一回事：在页面上，黑条会拉伸成
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">Height</code>
+                        所说的那个高度，而打印的那行文字是排在它们旁边的 HTML，正是这一点让这段文字在任何形状下都清楚可读。
+                        文件周围没有 CSS，所以它得自带一份。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">GetSvg()</code> returns a
+                        standalone document &mdash; bars and printed line together, in fixed proportions
+                        with the colours baked in. It is not the markup on the page: on the page the bars
+                        stretch to whatever <code class="text-xs bg-muted px-1 py-0.5 rounded">Height</code>
+                        says and the printed line is HTML beside them, which is what keeps that text
+                        legible at any shape. A file has no CSS around it, so it gets its own.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 flex flex-col items-center gap-4">
+                <Barcode @ref="downloadCode" Value="BB-2026-0917" Height="3rem" />
+                <a class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                   download="barcode.svg"
+                   href="@DownloadHref">
+                    @L.T("下载 SVG", "Download the SVG")
+                </a>
+            </div>
+
+            <CodeBlock Source="Components/Barcode/download.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("值放不下时", "A Value That Will Not Fit")</h2>
+                <p class="text-muted-foreground">
+                    @L.T("每种码制都有一套字符集和一条长度规则。违反其中任一条，组件都会说明是哪一条，而不是抛出异常；提示里会点出具体的那个字符，或者它期望的长度。", "Every symbology has an alphabet and a length rule. Break either and the component says which rather than throwing, and the message names the problem character or the expected length.")
+                </p>
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-4">
+                <Barcode Value="hello world" Type="BarcodeType.Ean13" />
+                <Barcode Value="ABC!" Type="BarcodeType.Code39" />
+                <Barcode Value="123456" Type="BarcodeType.Postnet" />
+            </div>
+
+            <CodeBlock Source="Components/Barcode/errors.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("不带界面", "Headless")</h2>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AtomBlazor.Primitives</code>
+                        里的 <code class="text-xs bg-muted px-1 py-0.5 rounded">BarcodeEncoder</code>
+                        可以只把黑条交给你 —— 位置与宽度以模块计，高度以比例表示。
+                        怎么画由你决定：画到 canvas 上、画进 PDF 里，或者直接送进标签打印机。
+                    </p>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <p class="text-muted-foreground">
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">BarcodeEncoder</code> in
+                        <code class="text-xs bg-muted px-1 py-0.5 rounded">AtomBlazor.Primitives</code>
+                        returns the bars on their own — positions and widths in modules, heights as
+                        fractions. Draw them however suits: to a canvas, into a PDF, or straight to a
+                        label printer.
+                    </p>
+                                </text>
+}
+            </div>
+
+            <div class="rounded-lg border bg-card p-6 space-y-3">
+                <pre class="overflow-x-auto rounded-md bg-muted p-3 text-xs"><code>@BarsDump</code></pre>
+            </div>
+
+            <CodeBlock Source="Components/Barcode/headless.txt" />
+        </section>
+
+        <section class="space-y-4">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            </div>
+            <div class="space-y-4">
+                <ApiReference ComponentName="Barcode">
+                    <ApiParameter Name="Value" Type="string?">
+                        @L.T("要编码的内容。为空时什么都不渲染。", "The value to encode. Nothing renders while this is empty.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="Type" Type="BarcodeType" Default="Code128">
+                            码制：<code class="text-xs bg-muted px-1 py-0.5 rounded">Code128</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Code39</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Ean13</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Ean8</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">UpcA</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Itf</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Codabar</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Postnet</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Pharmacode</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Rm4scc</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Isbn</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Issn</code>、<code class="text-xs bg-muted px-1 py-0.5 rounded">Msi</code> 或 <code class="text-xs bg-muted px-1 py-0.5 rounded">Telepen</code>。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="Type" Type="BarcodeType" Default="Code128">
+                            The symbology: <code class="text-xs bg-muted px-1 py-0.5 rounded">Code128</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Code39</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Ean13</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Ean8</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">UpcA</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Itf</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Codabar</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Postnet</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Pharmacode</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Rm4scc</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Isbn</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Issn</code>, <code class="text-xs bg-muted px-1 py-0.5 rounded">Msi</code> or <code class="text-xs bg-muted px-1 py-0.5 rounded">Telepen</code>.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="AddChecksum" Type="bool" Default="false">
+                        @L.T("在 Code 39、ITF、Codabar 与 MSI 上加上可选的校验字符。凡是标准规定必须带校验位的地方，一律会加上。", "Adds the optional check character on Code 39, ITF, Codabar and MSI. Where the standard makes it mandatory it is always added.")
+                    </ApiParameter>
+                    <ApiParameter Name="ModuleWidth" Type="string" Default="2px">
+                        @L.T("一个模块的宽度，取 CSS 长度值。条码的总宽度正是由它决定，因为宽度是由数据本身定下来的。", "The width of one module, as a CSS length. This is what sets the overall width, because a barcode's width is fixed by its data.")
+                    </ApiParameter>
+                    <ApiParameter Name="Height" Type="string" Default="4rem">
+                        @L.T("黑条的高度，取 CSS 长度值。", "The height of the bars, as a CSS length.")
+                    </ApiParameter>
+                    <ApiParameter Name="Foreground" Type="string" Default="#18181b">
+                        @L.T("黑条的颜色，取 CSS 颜色值。", "The colour of the bars, as a CSS colour.")
+                    </ApiParameter>
+                    <ApiParameter Name="Background" Type="string" Default="#ffffff">
+                        @L.T("条码背后的颜色，静区也算在内。", "The colour behind the symbol, including the quiet zone.")
+                    </ApiParameter>
+                    <ApiParameter Name="QuietZone" Type="int?">
+                        @L.T("两侧的浅色留白，以模块计。默认就是该码制自己要求的那一档。", "The light margin each side, in modules. Defaults to what the symbology asks for.")
+                    </ApiParameter>
+                    <ApiParameter Name="ShowValue" Type="bool" Default="true">
+                        @L.T("黑条下方是否打印出内容。", "Whether the value is printed under the bars.")
+                    </ApiParameter>
+                    <ApiParameter Name="ShowChecksum" Type="bool" Default="false">
+                        @L.T("可选的校验字符是否出现在打印的那一行里。零售码总是会把它打印出来。", "Whether an optional check character appears in the printed line. The retail codes always print theirs.")
+                    </ApiParameter>
+                    <ApiParameter Name="Label" Type="string?">
+                        @L.T("显示在条码上方的标签。", "A label shown above the barcode.")
+                    </ApiParameter>
+                    <ApiParameter Name="AriaLabel" Type="string?">
+                        @L.T("无障碍名称。默认为码制加上已编码内容。", "The accessible name. Defaults to the symbology and the encoded value.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="OnEncoded" Type="EventCallback&lt;BarcodeSymbol?&gt;">
+                            已编码的符号发生变化时触发。在标记里请使用它，而不是 <code class="text-xs bg-muted px-1 py-0.5 rounded">Symbol</code>。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="OnEncoded" Type="EventCallback&lt;BarcodeSymbol?&gt;">
+                            Fires whenever the encoded symbol changes. Use this rather than <code class="text-xs bg-muted px-1 py-0.5 rounded">Symbol</code> in markup.
+                        </ApiParameter>
+                                        </text>
+}
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="Symbol" Type="BarcodeSymbol?">
+                            只读。已编码的符号，在事件处理程序中或 <code class="text-xs bg-muted px-1 py-0.5 rounded">OnAfterRender</code> 里是最新的。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="Symbol" Type="BarcodeSymbol?">
+                            Read-only. The encoded symbol, current in an event handler or in <code class="text-xs bg-muted px-1 py-0.5 rounded">OnAfterRender</code>.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="GetSvg()" Type="string?">
+                        @L.T("方法。把渲染出来的 SVG 作为一份独立文档返回。", "Method. The rendered SVG as a standalone document.")
+                    </ApiParameter>
+                    <ApiParameter Name="Class" Type="string?">
+                        @L.T("追加到根元素上的 CSS 类。", "Additional CSS classes for the root element.")
+                    </ApiParameter>
+                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        @L.T("应用到根元素上的额外 HTML 属性。", "Additional HTML attributes applied to the root element.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="BarcodeEncoder">
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="Encode(value, type, addChecksum)" Type="BarcodeSymbol">
+                            编码一个值。当码制承载不了它时抛出 <code class="text-xs bg-muted px-1 py-0.5 rounded">ArgumentException</code>。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="Encode(value, type, addChecksum)" Type="BarcodeSymbol">
+                            Encodes a value. Throws <code class="text-xs bg-muted px-1 py-0.5 rounded">ArgumentException</code> when the symbology cannot carry it.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="DescribeInput(type)" Type="string">
+                        @L.T("用一句话说明某种码制接受什么样的输入，可用作表单提示。", "A sentence describing what a symbology accepts, for a form hint.")
+                    </ApiParameter>
+                </ApiReference>
+
+                <ApiReference ComponentName="BarcodeSymbol">
+                    <ApiParameter Name="Value" Type="string">
+                        @L.T("编码之后的值，包含推算出来的校验位。它不一定就是传进来的那一串。", "The value as encoded, including any check digit worked out. Not always what was passed in.")
+                    </ApiParameter>
+                    @if (L.IsChinese)
+                    {
+                                        <text>
+                                            <ApiParameter Name="Bars" Type="IReadOnlyList&lt;BarcodeBar&gt;">
+                            从左到右排列的黑条。每一条都带有以模块计的 <code class="text-xs bg-muted px-1 py-0.5 rounded">Start</code> 与 <code class="text-xs bg-muted px-1 py-0.5 rounded">Width</code>，以及以条形区域比例表示的 <code class="text-xs bg-muted px-1 py-0.5 rounded">Top</code> 和 <code class="text-xs bg-muted px-1 py-0.5 rounded">Bottom</code>。
+                        </ApiParameter>
+                                        </text>
+}
+                    else
+                    {
+                                        <text>
+                                            <ApiParameter Name="Bars" Type="IReadOnlyList&lt;BarcodeBar&gt;">
+                            The dark bars, left to right. Each carries <code class="text-xs bg-muted px-1 py-0.5 rounded">Start</code> and <code class="text-xs bg-muted px-1 py-0.5 rounded">Width</code> in modules, and <code class="text-xs bg-muted px-1 py-0.5 rounded">Top</code> and <code class="text-xs bg-muted px-1 py-0.5 rounded">Bottom</code> as fractions of the bar area.
+                        </ApiParameter>
+                                        </text>
+}
+                    <ApiParameter Name="ModuleCount" Type="int">
+                        @L.T("符号的宽度，以模块计，不含静区。", "The width of the symbol in modules, excluding the quiet zone.")
+                    </ApiParameter>
+                    <ApiParameter Name="QuietZoneModules" Type="int">
+                        @L.T("该码制要求的浅色留白，以模块计。", "The light margin the symbology asks for, in modules.")
+                    </ApiParameter>
+                    <ApiParameter Name="TextGroups" Type="IReadOnlyList&lt;BarcodeTextGroup&gt;">
+                        @L.T("给人阅读的那几段文字，以及各自对应符号的哪一段跨度。", "The human-readable runs and the span of the symbol each belongs under.")
+                    </ApiParameter>
+                    <ApiParameter Name="IsHeightModulated" Type="bool">
+                        @L.T("数据是放在条的高度里而不是宽度里。POSTNET 与皇家邮政码为真 —— 这类码压扁了就被毁了。", "Whether the data is in the bar heights rather than the widths. True for POSTNET and the Royal Mail code, where squashing the symbol destroys it.")
+                    </ApiParameter>
+                </ApiReference>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private readonly (BarcodeType Type, string Sample, string Note, string NoteZh)[] gallery =
+    [
+        (BarcodeType.Code128, "BB-2026-0917", "Any ASCII. The default, and the densest.", "任意 ASCII 字符。默认码制，密度也是这里最高的。"),
+        (BarcodeType.Code39, "ABC-123", "Digits, letters and a few symbols. Wide, but still mandated in places.", "数字、字母和少量符号。偏宽，但某些场合仍是硬性要求。"),
+        (BarcodeType.Ean13, "590123412345", "The retail product code outside North America.", "北美之外地区的零售商品码。"),
+        (BarcodeType.Ean8, "9638507", "The short retail code, for small packages.", "短版零售码，用于小件包装。"),
+        (BarcodeType.UpcA, "03600029145", "The North American retail code.", "北美地区的零售码。"),
+        (BarcodeType.Itf, "1234567890", "Digits in pairs, one in the bars and one in the spaces.", "数字成对编码，一位藏在黑条里，一位藏在空白里。"),
+        (BarcodeType.Codabar, "A123456A", "Blood banks, libraries and photo labs.", "血库、图书馆与照相馆仍在使用。"),
+        (BarcodeType.Isbn, "978-0-306-40615-7", "A book number, printed above its EAN-13.", "图书编号，印在对应 EAN-13 的上方。"),
+        (BarcodeType.Issn, "0378-5955", "A serial number, printed above its EAN-13.", "期刊编号，印在对应 EAN-13 的上方。"),
+        (BarcodeType.Msi, "1234567", "Shelf-edge labels in stock rooms.", "仓库货架标签条在用。"),
+        (BarcodeType.Telepen, "Telepen 123", "Any ASCII, sixteen modules a character.", "任意 ASCII，每个字符占十六个模块。"),
+        (BarcodeType.Pharmacode, "1234", "One number, readable on a fast packaging line.", "只是一个数字，在高速包装线上也能读准。"),
+        (BarcodeType.Postnet, "555551237", "A ZIP code in bar heights.", "用条的高矮表示一个 ZIP 邮编。"),
+        (BarcodeType.Rm4scc, "SN34RD1A", "A Royal Mail code in four bar shapes.", "以四种条形形状表示的皇家邮政码。"),
+    ];
+
+    private readonly SelectOption<BarcodeType>[] typeOptions =
+    [
+        new(BarcodeType.Code128, "Code 128"),
+        new(BarcodeType.Code39, "Code 39"),
+        new(BarcodeType.Ean13, "EAN-13"),
+        new(BarcodeType.Ean8, "EAN-8"),
+        new(BarcodeType.UpcA, "UPC-A"),
+        new(BarcodeType.Itf, "Interleaved 2 of 5"),
+        new(BarcodeType.Codabar, "Codabar"),
+        new(BarcodeType.Isbn, "ISBN"),
+        new(BarcodeType.Issn, "ISSN"),
+        new(BarcodeType.Msi, "MSI"),
+        new(BarcodeType.Telepen, "Telepen"),
+        new(BarcodeType.Pharmacode, "Pharmacode"),
+        new(BarcodeType.Postnet, "POSTNET"),
+        new(BarcodeType.Rm4scc, "Royal Mail 4-state"),
+    ];
+
+    private BarcodeType liveType = BarcodeType.Code128;
+    private string liveValue = "BB-2026-0917";
+    private BarcodeSymbol? liveSymbol;
+    private Barcode? downloadCode;
+
+    private string DownloadHref
+    {
+        get
+        {
+            var markup = downloadCode?.GetSvg();
+            return markup is null
+                ? "#"
+                : "data:image/svg+xml;base64," + Convert.ToBase64String(Encoding.UTF8.GetBytes(markup));
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        // The @ref behind the download link is only populated after the first render.
+        if (firstRender)
+        {
+            StateHasChanged();
+        }
+    }
+
+    private void OnTypeChanged(BarcodeType type)
+    {
+        liveType = type;
+
+        // Switching symbology all but guarantees the old value is invalid for the new one, so the
+        // sample moves with it rather than leaving an error on screen.
+        liveValue = gallery.First(g => g.Type == type).Sample;
+    }
+
+    private static string BarsDump
+    {
+        get
+        {
+            var symbol = BarcodeEncoder.Encode("BB-42", BarcodeType.Code128);
+            var builder = new StringBuilder();
+
+            builder.Append(System.Globalization.CultureInfo.InvariantCulture,
+                $"Code128 \"{symbol.Value}\": {symbol.ModuleCount} modules, {symbol.Bars.Count} bars, quiet zone {symbol.QuietZoneModules}\n\n");
+
+            foreach (var bar in symbol.Bars.Take(8))
+            {
+                builder.Append(System.Globalization.CultureInfo.InvariantCulture,
+                    $"  start {bar.Start,3}  width {bar.Width}  top {bar.Top:0.##}  bottom {bar.Bottom:0.##}\n");
+            }
+
+            builder.Append(System.Globalization.CultureInfo.InvariantCulture,
+                $"  ... {symbol.Bars.Count - 8} more\n");
+
+            return builder.ToString();
+        }
+    }
+}

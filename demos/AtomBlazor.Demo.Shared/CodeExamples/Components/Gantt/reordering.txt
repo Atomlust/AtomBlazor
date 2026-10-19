@@ -1,0 +1,65 @@
+<Gantt TItem="PlanTask"
+         Data="@plan"
+         IdSelector="@(t => t.Id)"
+         ParentIdSelector="@(t => t.Parent)"
+         TextSelector="@(t => t.Name)"
+         StartSelector="@(t => t.Start)"
+         EndSelector="@(t => t.End)"
+         AllowRowDrag="true"
+         OnTaskMove="@MoveTask"
+         Height="26rem">
+    <Columns>
+        @* A column's content is your markup over your own task, so renaming needs nothing
+           from the chart. The tree column hands the template the whole cell. *@
+        <GanttColumn TItem="PlanTask" Title="Task" Width="250" IsTree="true">
+            <Input Value="@context.Item.Name"
+                     ValueChanged="@(value => context.Item.Name = value ?? string.Empty)"
+                     UpdateTiming="UpdateTiming.Debounced" />
+        </GanttColumn>
+
+        <GanttColumn TItem="PlanTask" Title="" Width="56" Align="GanttColumnAlign.Center">
+            <Button Variant="ButtonVariant.Ghost"
+                      Size="ButtonSize.Icon"
+                      OnClick="@(() => Delete(context.Item))"
+                      aria-label="@($"Delete {context.Text}")">
+                <LucideIcon Name="trash-2" Size="14" />
+            </Button>
+        </GanttColumn>
+    </Columns>
+</Gantt>
+
+@code {
+    private void MoveTask(GanttMoveContext<PlanTask> move)
+    {
+        var item = move.Item;
+        plan.Remove(item);
+
+        // NewParentId is already worked out from where it landed: the target's own parent for a
+        // drop between two rows, the target itself for a drop onto the middle of one.
+        item.Parent = move.NewParentId;
+
+        var target = plan.IndexOf(move.Target.Item);
+        var at = move.Position == GanttDropPosition.Before ? target : target + 1;
+        plan.Insert(Math.Clamp(at, 0, plan.Count), item);
+    }
+
+    private void Delete(PlanTask task)
+    {
+        // Everything under it goes too, or its children reappear at the top level: a parent
+        // identifier naming a task that is not there is treated as no parent.
+        var doomed = new HashSet<string> { task.Id };
+        for (var pass = 0; pass < plan.Count; pass++)
+        {
+            foreach (var child in plan.Where(t => t.Parent is not null && doomed.Contains(t.Parent)))
+            {
+                doomed.Add(child.Id);
+            }
+        }
+
+        plan = [.. plan.Where(t => !doomed.Contains(t.Id))];
+    }
+}
+
+@* Adding is the same shape: put a new task in the collection and the chart draws it on the
+   next render. A task cannot be dropped into its own branch; the chart refuses that itself
+   rather than handing you a tree that is no longer a tree. *@

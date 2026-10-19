@@ -1,0 +1,386 @@
+@page "/components/masked-input"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>@L.T("MaskedInput 掩码输入 - Atom BlazorUI", "MaskedInput Component - Atom BlazorUI")</PageTitle>
+
+<div class="space-y-8 max-w-4xl">
+    <div>
+        <div class="space-y-3">
+            <h1 class="text-4xl font-bold tracking-tight">@L.T("MaskedInput 掩码输入组件", "MaskedInput Component")</h1>
+            <p class="text-xl text-muted-foreground">
+                @L.T("使用预设掩码或自定义模式，按结构化格式输入。", "Input with structured formats using preset masks or custom patterns.")
+            </p>
+        </div>
+    </div>
+
+    <!-- Phone Number -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("电话号码", "Phone Number")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("美国电话格式：(999) 999-9999", "US phone format: (999) 999-9999")
+            </p>
+        </div>
+        <div class="w-64">
+            <MaskedInput @ref="_phoneRef" @bind-Value="_phone" Preset="MaskPreset.Phone" />
+        </div>
+        <p class="text-sm text-muted-foreground">
+            @L.T("去掩码：", "Unmasked: ")@_phone | @L.T("掩码：", "Masked: ")@(_phoneRef?.MaskedValue ?? "")
+        </p>
+        <CodeBlock Source="Components/MaskedInput/phone.txt" />
+    </div>
+
+    <!-- Social Security Number -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("社会安全号码", "Social Security Number")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("SSN 格式：999-99-9999", "SSN format: 999-99-9999")
+            </p>
+        </div>
+        <div class="w-48">
+            <MaskedInput @bind-Value="_ssn" Preset="MaskPreset.SSN" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("去掩码：", "Unmasked: ")@_ssn</p>
+    </div>
+
+    <!-- Credit Card -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("信用卡", "Credit Card")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("卡号格式：9999 9999 9999 9999", "Card number format: 9999 9999 9999 9999")
+            </p>
+        </div>
+        <div class="w-72">
+            <MaskedInput @bind-Value="_creditCard" Preset="MaskPreset.CreditCard" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("去掩码：", "Unmasked: ")@_creditCard</p>
+    </div>
+
+    <!-- Date -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("日期", "Date")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("日期格式：MM/DD/YYYY", "Date format: MM/DD/YYYY")
+            </p>
+        </div>
+        <div class="w-40">
+            <MaskedInput @bind-Value="_date" Preset="MaskPreset.Date" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("去掩码：", "Unmasked: ")@_date</p>
+    </div>
+
+    <!-- Time -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("时间", "Time")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("时间格式：HH:MM", "Time format: HH:MM")
+            </p>
+        </div>
+        <div class="w-32">
+            <MaskedInput @bind-Value="_time" Preset="MaskPreset.Time" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("去掩码：", "Unmasked: ")@_time</p>
+    </div>
+
+    <!-- Time with Seconds -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("时间（24 小时制，含秒）", "Time (24-hour with seconds)")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("时间格式：HH:MM:SS", "Time format: HH:MM:SS")
+            </p>
+        </div>
+        <div class="w-36">
+            <MaskedInput @bind-Value="_time24" Preset="MaskPreset.Time24" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("去掩码：", "Unmasked: ")@_time24</p>
+    </div>
+
+    <!-- ZIP Code -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("邮政编码（ZIP）", "ZIP Code")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("美国 ZIP+4 格式：99999-9999", "US ZIP+4 format: 99999-9999")
+            </p>
+        </div>
+        <div class="w-40">
+            <MaskedInput @bind-Value="_zipCode" Preset="MaskPreset.ZipCode" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("去掩码：", "Unmasked: ")@_zipCode</p>
+    </div>
+
+    <!-- EIN -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("雇主识别号（EIN）", "Employer ID (EIN)")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("EIN 格式：99-9999999", "EIN format: 99-9999999")
+            </p>
+        </div>
+        <div class="w-40">
+            <MaskedInput @bind-Value="_ein" Preset="MaskPreset.EIN" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("去掩码：", "Unmasked: ")@_ein</p>
+    </div>
+
+    <!-- Custom Mask -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义掩码", "Custom Mask")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("产品编码：AAA-9999（3 个字母、短横线、4 个数字）", "Product code: AAA-9999 (3 letters, dash, 4 digits)")
+            </p>
+        </div>
+        <div class="w-40">
+            <MaskedInput @bind-Value="_custom" Preset="MaskPreset.Custom" Mask="AAA-9999" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("去掩码：", "Unmasked: ")@_custom</p>
+        <CodeBlock Source="Components/MaskedInput/custom-mask.txt" />
+    </div>
+
+    <!-- License Plate -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("车牌号", "License Plate")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("格式：AAA-9999 或 999-AAA（* 表示字母或数字）", "Format: AAA-9999 or 999-AAA (alphanumeric with *)")
+            </p>
+        </div>
+        <div class="w-40">
+            <MaskedInput @bind-Value="_plate" Preset="MaskPreset.Custom" Mask="***-****" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("去掩码：", "Unmasked: ")@_plate</p>
+    </div>
+
+    <!-- Without Mask Display -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("不显示掩码", "Without Mask Display")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("掩码占位符在为空时隐藏（聚焦时显示）。", "Mask placeholders are hidden when empty (shown on focus).")
+            </p>
+        </div>
+        <div class="w-64">
+            <MaskedInput @bind-Value="_hiddenMask" Preset="MaskPreset.Phone" ShowMask="false" Placeholder="@(L.T("请输入电话号码", "Enter phone number"))" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("去掩码：", "Unmasked: ")@_hiddenMask</p>
+        <CodeBlock Source="Components/MaskedInput/without-mask-display.txt" />
+    </div>
+
+    <!-- Custom Placeholder Char -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("自定义占位符字符", "Custom Placeholder Character")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("未填充的位置用'#'而不是'_'。", "Using '#' instead of '_' for unfilled positions.")
+            </p>
+        </div>
+        <div class="w-64">
+            <MaskedInput @bind-Value="_customPlaceholder" Preset="MaskPreset.Phone" PlaceholderChar="@('#')" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("去掩码：", "Unmasked: ")@_customPlaceholder</p>
+    </div>
+
+    <!-- Pre-filled Value -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("预填值", "Pre-filled Value")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("初始化时就带有一个值。", "Initialized with a value.")
+            </p>
+        </div>
+        <div class="w-64">
+            <MaskedInput @bind-Value="_prefilled" Preset="MaskPreset.Phone" />
+        </div>
+        <p class="text-sm text-muted-foreground">@L.T("去掩码：", "Unmasked: ")@_prefilled</p>
+    </div>
+
+    <!-- Disabled -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("禁用", "Disabled")</h2>
+        </div>
+        <div class="w-64">
+            <MaskedInput Value="5551234567" Preset="MaskPreset.Phone" Disabled="true" />
+        </div>
+    </div>
+
+    <!-- Form Validation with EditForm -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("表单校验", "Form Validation")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    MaskedInput 与 Blazor 的 EditForm、EditContext 集成，参与模型校验。
+                    在 EditForm 内使用 <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code>，
+                    校验错误会通过 <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code> 自动应用错误样式。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    MaskedInput integrates with Blazor's EditForm and EditContext for model validation.
+                    Use <code class="text-xs bg-muted px-1 py-0.5 rounded">@@bind-Value</code> within an EditForm and
+                    validation errors will automatically apply error styling via <code class="text-xs bg-muted px-1 py-0.5 rounded">aria-invalid</code>.
+                </p>
+                        </text>
+}
+        </div>
+        <EditForm Model="maskedFormModel" OnValidSubmit="HandleMaskedFormSubmit" class="max-w-md space-y-4">
+            <DataAnnotationsValidator />
+
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("电话号码", "Phone Number")</label>
+                <MaskedInput @bind-Value="maskedFormModel.Phone" Preset="MaskPreset.Phone" />
+                <ValidationMessage For="@(() => maskedFormModel.Phone)" class="text-sm text-destructive" />
+            </div>
+
+            <div class="flex gap-4">
+                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Default">@L.T("提交", "Submit")</Button>
+                <Button Type="ButtonType.Button" Variant="ButtonVariant.Outline" OnClick="ResetMaskedForm">@L.T("重置", "Reset")</Button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(maskedFormMessage))
+            {
+                <div class="p-4 bg-card rounded-lg border">
+                    <p class="text-sm">@maskedFormMessage</p>
+                </div>
+            }
+        </EditForm>
+        <CodeBlock Source="Components/MaskedInput/form-validation.txt" />
+    </div>
+
+    <!-- API Reference -->
+
+
+        <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("用 Id 关联可见的 Label，或提供 AriaLabel；占位文本不能替代标签。", "Use Id with a visible Label or provide AriaLabel; placeholder text is not a replacement for a label.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("AriaDescribedBy 关联格式说明，AriaInvalid 传达校验错误。绑定的 ValueExpression 把控件接入 EditContext。", "AriaDescribedBy associates format guidance, and AriaInvalid communicates validation errors. Bound ValueExpression connects the control to EditContext.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("掩码用于引导文本输入。请在帮助文本中描述期望的格式；禁用与只读状态会阻止编辑。", "The mask guides text entry. Describe the expected format in help text; disabled and read-only states prevent editing.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("聚焦或离开输入框", "Focus or leave the input"))"><Kbd>Tab</Kbd> / <Kbd>Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("移动文本光标", "Move the text cursor"))"><Kbd>ArrowLeft</Kbd> / <Kbd>ArrowRight</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("按掩码规则删除文本", "Delete text using the mask rules"))"><Kbd>Backspace</Kbd> / <Kbd>Delete</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+
+    <section class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+            <p class="text-muted-foreground">@L.T("组件的属性与参数。", "Component properties and parameters.")</p>
+        </div>
+
+        <div class="space-y-4">
+            <ApiReference ComponentName="MaskedInput">
+                <ApiParameter Name="Value" Type="string">
+                    @L.T("去掩码后的值（原始输入）。", "Unmasked value (raw input).")
+                </ApiParameter>
+                <ApiParameter Name="Preset" Type="MaskPreset">
+                    @L.T("预设掩码（Phone、SSN、CreditCard、Date、Time、Time24、ZipCode、EIN、Custom）。", "Predefined mask (Phone, SSN, CreditCard, Date, Time, Time24, ZipCode, EIN, Custom).")
+                </ApiParameter>
+                <ApiParameter Name="Mask" Type="string?">
+                    @L.T("自定义掩码模式（当 Preset 为 Custom 时）。", "Custom mask pattern (when Preset is Custom).")
+                </ApiParameter>
+                <ApiParameter Name="PlaceholderChar" Type="char" Default="_">
+                    @L.T("未填充位置显示的字符。", "Character for unfilled positions.")
+                </ApiParameter>
+                <ApiParameter Name="ShowMask" Type="bool" Default="true">
+                    @L.T("为空时是否显示掩码。", "Show mask when empty.")
+                </ApiParameter>
+                <ApiParameter Name="Disabled" Type="bool">
+                    @L.T("禁用输入框。", "Disables the input.")
+                </ApiParameter>
+                @if (L.IsChinese)
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        应用到根 <code>&lt;input&gt;</code> 元素的额外 HTML 属性（例如 <code>data-testid</code>、<code>aria-label</code>）。
+                    </ApiParameter>
+                                </text>
+}
+                else
+                {
+                                <text>
+                                    <ApiParameter Name="AdditionalAttributes" Type="Dictionary&lt;string, object&gt;?">
+                        Additional HTML attributes applied to the root <code>&lt;input&gt;</code> element (e.g. <code>data-testid</code>, <code>aria-label</code>).
+                    </ApiParameter>
+                                </text>
+}
+            </ApiReference>
+        </div>
+
+        <div class="border rounded-lg p-6 space-y-4">
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">@L.T("掩码字符", "Mask Characters")</h3>
+                <div class="space-y-2 text-sm">
+                    <p><strong>9:</strong> @L.T("数字（0-9）", "Digit (0-9)")</p>
+                    <p><strong>A:</strong> @L.T("字母（a-z、A-Z）", "Letter (a-z, A-Z)")</p>
+                    <p><strong>*:</strong> @L.T("字母或数字", "Alphanumeric (letter or digit)")</p>
+                    <p><strong>@L.T("其他任意字符：", "Any other character:")</strong> @L.T("字面量（原样显示）", "Literal (displayed as-is)")</p>
+                </div>
+            </div>
+            <div>
+                <h3 class="font-mono text-sm font-semibold mb-2">@L.T("属性", "Properties")</h3>
+                <div class="space-y-2 text-sm">
+                    <p><strong>MaskedValue:</strong> <code class="bg-muted px-1 py-0.5 rounded">string</code> - @L.T("带掩码的格式化值", "The formatted value with mask")</p>
+                    <p><strong>UnmaskedValue:</strong> <code class="bg-muted px-1 py-0.5 rounded">string</code> - @L.T("不带格式化的原始值", "The raw value without formatting")</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private string _phone = "";
+    private string _ssn = "";
+    private string _creditCard = "";
+    private string _date = "";
+    private string _time = "";
+    private string _time24 = "";
+    private string _zipCode = "";
+    private string _ein = "";
+    private string _custom = "";
+    private string _plate = "";
+    private string _hiddenMask = "";
+    private string _customPlaceholder = "";
+    private string _prefilled = "5551234567";
+
+    private MaskedInput? _phoneRef;
+    private MaskedFormModel maskedFormModel = new();
+    private string? maskedFormMessage;
+
+    private void HandleMaskedFormSubmit()
+    {
+        maskedFormMessage = L.IsChinese
+            ? $"表单已提交！电话：{maskedFormModel.Phone}"
+            : $"Form submitted! Phone: {maskedFormModel.Phone}";
+    }
+
+    private void ResetMaskedForm()
+    {
+        maskedFormModel = new();
+        maskedFormMessage = null;
+    }
+
+    private class MaskedFormModel
+    {
+        [Required(ErrorMessage = "Phone number is required.")]
+        [MinLength(10, ErrorMessage = "Please enter a complete phone number.")]
+        public string? Phone { get; set; }
+    }
+}

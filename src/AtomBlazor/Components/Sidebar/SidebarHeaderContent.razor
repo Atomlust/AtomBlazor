@@ -1,0 +1,39 @@
+@namespace AtomBlazor
+
+@*
+    SidebarHeaderContent 组件：响应图标模式的页眉布局。
+    自动处理内边距、居中与布局调整。
+*@
+
+<div class="@GetClasses()" data-sidebar="header-content" @attributes="AdditionalAttributes">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// 要渲染的内容（通常是 SidebarHeaderIcon 与 SidebarHeaderInfo）。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 附加属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string GetClasses()
+    {
+        return ClassNames.cn(
+            "atom:flex atom:items-center",
+            "atom:group-data-[collapsible=icon]:justify-center",
+            Class
+        );
+    }
+}

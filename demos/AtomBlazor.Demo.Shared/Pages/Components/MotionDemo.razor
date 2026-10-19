@@ -1,0 +1,53 @@
+@page "/components/motion"
+@using AtomBlazor.Icons.Lucide
+
+<PageTitle>@L.T("Motion 动效 - Atom BlazorUI", "Motion - Atom BlazorUI")</PageTitle>
+<div class="max-w-4xl space-y-8">
+    <div class="space-y-3">
+        <h1 class="text-4xl font-bold tracking-tight">@L.T("Motion 动效", "Motion")</h1>
+        <p class="text-xl text-muted-foreground">@L.T("通过预设、可见性切换与指针或键盘触发器为内容播放动画。遵循用户的减弱动态效果偏好设置。", "Animate content with presets, visibility changes and pointer or keyboard triggers. Reduced-motion preferences are respected.")</p>
+    </div>
+<section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("预设与触发器", "Presets and triggers")</h2>
+        <p class="text-sm text-muted-foreground">@L.T("点击卡片重放动画，或将鼠标悬停/聚焦到按钮上。Visibility 会保留子组件挂载状态；隐藏中的内容处于惰性状态。预渲染的内容默认可见，除非 Visible=false，入场动画需要显式开启。", "Replay the cards or hover/focus the button. Visibility retains child components; hidden content is inert. Prerendered content is visible unless Visible=false, and entrance animation is opt-in.")</p>
+        <Button OnClick="@(() => replay++)">@L.T("重放预设", "Replay presets")</Button>
+        <div @key="replay" class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            @foreach (var preset in Enum.GetValues<MotionPreset>())
+            {
+                <Motion Preset="preset" AnimateOnFirstRender="true" Duration="450">
+                    <div class="rounded-lg border bg-card p-5 text-center text-sm">@preset</div>
+                </Motion>
+            }
+        </div>
+        <Motion Trigger="MotionTrigger.Hover" Preset="MotionPreset.Pulse" Class="inline-block"><Button Variant="ButtonVariant.Outline">@L.T("悬停或聚焦到我", "Hover or focus me")</Button></Motion>
+        <CodeBlock Source="Components/Motion/presets.txt" />
+    </section>
+    <AccessibilityList>
+        <AriaAttributes>
+            <AccessibilityItem>@L.T("隐藏的内容仍保持挂载，但处于惰性状态，对辅助技术不可见。", "Hidden content remains mounted but is inert and hidden from assistive technology.")</AccessibilityItem>
+            <AccessibilityItem>@L.T("Motion 遵循 prefers-reduced-motion。它不新增 Tab 停靠点；可交互子元素保留自身的键盘行为。", "Motion honors prefers-reduced-motion. It adds no tab stop; interactive children retain their keyboard behavior.")</AccessibilityItem>
+        </AriaAttributes>
+        <KeyboardNavigation>
+            <KeyboardShortcutItem Description="@(L.T("在可交互控件之间移动", "Move between interactive controls"))"><Kbd>Tab / Shift + Tab</Kbd></KeyboardShortcutItem>
+            <KeyboardShortcutItem Description="@(L.T("激活获得焦点的按钮", "Activate a focused button"))"><Kbd>Enter / Space</Kbd></KeyboardShortcutItem>
+        </KeyboardNavigation>
+    </AccessibilityList>
+    <section class="space-y-4">
+        <h2 class="text-2xl font-semibold">@L.T("API 参考", "API Reference")</h2>
+<ApiReference Since="v4" ComponentName="Motion">
+        <ApiParameter Name="Visible / Preset / Trigger" Type="bool / MotionPreset / MotionTrigger" Default="true / Fade / Visibility">@L.T("预设包含方向性滑动、Scale、Bounce、Pulse、ShakeX/Y 以及弹簧形态的入场效果。触发器：Visibility、InView、Hover（也响应聚焦）、Press（也响应 Enter/Space）、Manual。", "Presets include directional slides, Scale, Bounce, Pulse, ShakeX/Y and a spring-shaped entrance. Triggers: Visibility, InView, Hover (also focus), Press (also Enter/Space), Manual.")</ApiParameter>
+        <ApiParameter Name="Duration / Delay / Easing / Distance" Type="int / int / string / double" Default="250 / 0 / ease-out / 16">@L.T("时长单位为毫秒，另含 CSS 缓动函数与滑动/抖动距离（像素）。Delay 支持交错入场。对减弱动态效果的尊重始终启用。", "Milliseconds, CSS easing and slide/shake distance in pixels. Delay supports staggered items. Respect for reduced motion is always enabled.")</ApiParameter>
+        <ApiParameter Name="AnimateOnFirstRender / Once / Threshold" Type="bool / bool / double" Default="false / true / 0.1">@L.T("首次可交互入场动画；InView 的重复策略与相交比例（0–1）。", "First interactive entrance; InView repeat policy and intersection fraction (0–1).")</ApiParameter>
+        <ApiParameter Name="Keyframes" Type="IReadOnlyList&lt;IReadOnlyDictionary&lt;string, object&gt;&gt;?">@L.T("自定义 Web Animations 关键帧可替代预设。动画结束后，最终呈现回归常规样式。", "Custom Web Animations frames replace the preset. Final presentation comes from the normal styles when animation finishes.")</ApiParameter>
+        <ApiParameter Name="PlayAsync()" Type="Task">@L.T("在渲染器调度线程上重放；Manual 触发器使用该方法。", "Replays on the renderer dispatcher; Manual triggers use this method.")</ApiParameter>
+        <ApiParameter Name="ChildContent / Class / Style / AdditionalAttributes" Type="RenderFragment / string? / string? / Dictionary">@L.T("内容与包裹元素的定制项。隐藏期间内容仍被保留。", "Content and wrapper customization. Content is retained while hidden.")</ApiParameter>
+    </ApiReference>
+    </section>
+</div>
+
+@code {
+    /// <summary>显示语言快照（MainLayout 级联下发；缺省回落中文）。</summary>
+    [CascadingParameter] public DemoCultureState L { get; set; } = DemoCultureState.Default;
+
+    private int replay;
+}

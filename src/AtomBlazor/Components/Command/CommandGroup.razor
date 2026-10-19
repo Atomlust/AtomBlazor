@@ -1,0 +1,93 @@
+@namespace AtomBlazor
+@implements IDisposable
+
+<CascadingValue Value="Id" Name="CommandGroupId">
+    <div class="@CssClass"
+         style="@MergedGroupStyle"
+         role="group"
+         aria-labelledby="@(string.IsNullOrWhiteSpace(Heading) ? null : $"command-group-{Id}")"
+         @attributes="@InlineStyleMerge.WithoutStyle(AdditionalAttributes)">
+        @if (!string.IsNullOrWhiteSpace(Heading))
+        {
+            <div id="@($"command-group-{Id}")"
+                 class="atom:px-2 atom:py-1.5 atom:text-xs atom:font-medium atom:text-muted-foreground">
+                @Heading
+            </div>
+        }
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    [CascadingParameter]
+    public CommandContext? Context { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到分组的额外 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的额外 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? MergedGroupStyle => InlineStyleMerge.Merge(_isVisible ? null : "display: none", AdditionalAttributes);
+
+    /// <summary>
+    /// 获取或设置本分组的标题文本（可选）。
+    /// </summary>
+    [Parameter]
+    public string? Heading { get; set; }
+
+    /// <summary>
+    /// 获取或设置在分组内部渲染的内容。
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 获取本分组的唯一标识符。
+    /// </summary>
+    private string Id { get; } = Guid.NewGuid().ToString("N");
+
+    private bool _isVisible = true;
+
+    /// <summary>
+    /// 获取分组容器计算后的 CSS 类。
+    /// </summary>
+    private string CssClass => ClassNames.cn(
+        "atom:overflow-hidden atom:p-1 atom:text-foreground",
+        "atom:[&_[data-command-group-heading]]:px-2 atom:[&_[data-command-group-heading]]:py-1.5",
+        "atom:[&_[data-command-group-heading]]:text-xs atom:[&_[data-command-group-heading]]:font-medium",
+        "atom:[&_[data-command-group-heading]]:text-muted-foreground",
+        Class
+    );
+
+    protected override void OnInitialized()
+    {
+        if (Context != null)
+        {
+            Context.OnStateChanged += HandleContextStateChanged;
+        }
+    }
+
+    private void HandleContextStateChanged()
+    {
+        if (Context == null) return;
+
+        // 仅当分组有可见项（通过当前过滤的项）时才显示
+        _isVisible = Context.GroupHasVisibleItems(Id);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        if (Context != null)
+        {
+            Context.OnStateChanged -= HandleContextStateChanged;
+        }
+    }
+}

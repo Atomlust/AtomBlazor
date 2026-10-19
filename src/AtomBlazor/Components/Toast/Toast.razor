@@ -1,0 +1,212 @@
+@namespace AtomBlazor
+@using AtomBlazor.Icons.Lucide
+
+@*
+    单个 Toast 组件——渲染一枚 toast 通知。
+*@
+
+<div class="@CssClass" role="alert"
+     data-state="open"
+     @onmouseenter="HandleMouseEnter"
+     @onmouseleave="HandleMouseLeave"
+     @attributes="AdditionalAttributes">
+
+    @if (ShouldShowIcon)
+    {
+        <div class="atom:shrink-0">
+            <LucideIcon Name="@IconName" Class="@IconCssClass" />
+        </div>
+    }
+
+    <div class="@ContentCssClass">
+        @if (!string.IsNullOrEmpty(Data.Title))
+        {
+            <div class="@TitleCssClass">@Data.Title</div>
+        }
+        @if (!string.IsNullOrEmpty(Data.Description))
+        {
+            <div class="@DescriptionCssClass">@Data.Description</div>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(Data.ActionText) && Data.OnAction != null)
+    {
+        <button type="button"
+                class="@ActionCssClass"
+                @onclick="HandleAction">
+            @Data.ActionText
+        </button>
+    }
+
+    @if (Data.ShowClose)
+    {
+        <button type="button"
+                class="@CloseCssClass"
+                @onclick="HandleClose">
+            <LucideIcon Name="x" Class="atom:h-4 atom:w-4" />
+            <span class="atom:sr-only">Close</span>
+        </button>
+    }
+
+    @if (ShouldShowCountdown)
+    {
+        <div class="atom:absolute atom:bottom-0 atom:inset-x-0 atom:h-0.5 atom:bg-current/20">
+            <div class="atom:h-full atom:bg-current/40"
+                 style="animation: atom-alert-countdown @(Data.Duration)ms linear forwards; animation-play-state: @(isPaused ? "paused" : "running");"></div>
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// 要显示的 toast 数据。
+    /// </summary>
+    [Parameter, EditorRequired]
+    public ToastData Data { get; set; } = default!;
+
+    /// <summary>
+    /// toast 应当被关闭时的回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback OnDismiss { get; set; }
+
+    /// <summary>
+    /// 自动关闭应当暂停时（鼠标进入）的回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback OnPause { get; set; }
+
+    /// <summary>
+    /// 自动关闭应当恢复时（鼠标离开）的回调。
+    /// </summary>
+    [Parameter]
+    public EventCallback OnResume { get; set; }
+
+    /// <summary>
+    /// 是否在 toast 底部显示倒计时进度条。
+    /// </summary>
+    [Parameter]
+    public bool ShowCountdown { get; set; }
+
+    /// <summary>
+    /// 应用到 toast 的附加 CSS 类。
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用到根元素的附加 HTML 属性。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private bool isPaused;
+
+    private async Task HandleClose()
+    {
+        await OnDismiss.InvokeAsync();
+    }
+
+    private async Task HandleAction()
+    {
+        Data.OnAction?.Invoke();
+        await OnDismiss.InvokeAsync();
+    }
+
+    private async Task HandleMouseEnter()
+    {
+        isPaused = true;
+        if (OnPause.HasDelegate)
+        {
+            await OnPause.InvokeAsync();
+        }
+    }
+
+    private async Task HandleMouseLeave()
+    {
+        isPaused = false;
+        if (OnResume.HasDelegate)
+        {
+            await OnResume.InvokeAsync();
+        }
+    }
+
+    private bool ShouldShowIcon => Data.ShowIcon && Data.Variant != ToastVariant.Default;
+
+    private string IconName => Data.Variant switch
+    {
+        ToastVariant.Success => "circle-check",
+        ToastVariant.Info => "info",
+        ToastVariant.Warning => "triangle-alert",
+        ToastVariant.Destructive => "circle-x",
+        _ => ""
+    };
+
+    private bool IsCompact => Data.Size == ToastSize.Compact;
+
+    /// <summary>
+    /// 获取 toast 计算出的 CSS 类。
+    /// </summary>
+    private bool ShouldShowCountdown => ShowCountdown && Data.Duration > 0;
+
+    private string CssClass => ClassNames.cn(
+        "atom:group atom:pointer-events-auto atom:relative atom:flex atom:w-full atom:items-center atom:justify-between atom:space-x-4 atom:overflow-hidden atom:rounded-md atom:border atom:shadow-lg atom:transition-all",
+        "atom:data-[state=open]:animate-in atom:data-[state=closed]:animate-out atom:data-[state=closed]:fade-out-80",
+        "atom:data-[state=closed]:slide-out-to-right-full atom:data-[state=open]:slide-in-from-top-full",
+        "atom:data-[state=open]:sm:slide-in-from-bottom-full",
+        IsCompact
+            ? Data.ShowClose ? "atom:p-3 atom:pe-6" : "atom:p-3"
+            : Data.ShowClose ? "atom:p-6 atom:pe-8" : "atom:p-6",
+        Data.Variant switch
+        {
+            ToastVariant.Default => "atom:border atom:bg-background atom:text-foreground",
+            ToastVariant.Success => "atom:border-alert-success/30 atom:bg-alert-success-bg atom:text-alert-success-foreground",
+            ToastVariant.Info => "atom:border-alert-info/30 atom:bg-alert-info-bg atom:text-alert-info-foreground",
+            ToastVariant.Warning => "atom:border-alert-warning/30 atom:bg-alert-warning-bg atom:text-alert-warning-foreground",
+            ToastVariant.Destructive => "destructive atom:group atom:border-destructive atom:bg-destructive atom:text-destructive-foreground",
+            _ => "atom:border atom:bg-background atom:text-foreground"
+        },
+        Class
+    );
+
+    private string IconCssClass => ClassNames.cn(
+        IsCompact ? "atom:h-4 atom:w-4" : "atom:h-5 atom:w-5",
+        Data.Variant switch
+        {
+            ToastVariant.Success => "atom:text-alert-success",
+            ToastVariant.Info => "atom:text-alert-info",
+            ToastVariant.Warning => "atom:text-alert-warning",
+            ToastVariant.Destructive => "atom:text-destructive-foreground",
+            _ => ""
+        }
+    );
+
+    private string ContentCssClass => ClassNames.cn(
+        "atom:grid atom:flex-1",
+        IsCompact ? "atom:gap-0.5" : "atom:gap-1"
+    );
+
+    private string TitleCssClass => IsCompact ? "atom:text-xs atom:font-semibold" : "atom:text-sm atom:font-semibold";
+
+    private string DescriptionCssClass => ClassNames.cn(
+        IsCompact ? "atom:text-xs" : "atom:text-sm",
+        "atom:opacity-90"
+    );
+
+    private string ActionCssClass => ClassNames.cn(
+        "atom:inline-flex atom:shrink-0 atom:items-center atom:justify-center atom:rounded-md atom:border atom:bg-transparent atom:font-medium atom:ring-offset-background atom:transition-colors atom:hover:bg-secondary atom:focus:outline-none atom:focus:ring-2 atom:focus:ring-ring atom:focus:ring-offset-2 atom:disabled:pointer-events-none atom:disabled:opacity-50",
+        IsCompact ? "atom:h-7 atom:px-2 atom:text-xs" : "atom:h-8 atom:px-3 atom:text-sm"
+    );
+
+    /// <summary>
+    /// 获取关闭按钮计算出的 CSS 类。
+    /// </summary>
+    private string CloseCssClass => ClassNames.cn(
+        "atom:absolute atom:rounded-md atom:p-1 atom:opacity-0 atom:transition-opacity",
+        "atom:hover:text-foreground atom:focus:opacity-100 atom:focus:outline-none atom:focus:ring-2 atom:group-hover:opacity-100",
+        IsCompact ? "atom:end-1 atom:top-1" : "atom:end-2 atom:top-2",
+        Data.Variant == ToastVariant.Destructive
+            ? "atom:text-red-300 atom:hover:text-red-50 atom:focus:ring-red-400 atom:focus:ring-offset-red-600"
+            : "atom:text-foreground/50 atom:hover:text-foreground atom:focus:ring-ring"
+    );
+}

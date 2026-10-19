@@ -1,0 +1,38 @@
+            <div class="flex flex-wrap items-end gap-4">
+                <div class="space-y-2 w-44">
+                    <Label For="scheduler-slot-size">Slot size</Label>
+                    <Select TValue="int" @bind-Value="slotMinutes" DisplayTextSelector="SlotLabel">
+                        <SelectTrigger id="scheduler-slot-size"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem Value="15" Text="15 minutes" />
+                            <SelectItem Value="30" Text="30 minutes" />
+                            <SelectItem Value="60" Text="1 hour" />
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div class="flex items-center gap-2 pb-2">
+                    <Checkbox Id="scheduler-allow-drag" @bind-Checked="allowDrag" />
+                    <Label For="scheduler-allow-drag">Allow moving</Label>
+                </div>
+                <div class="flex items-center gap-2 pb-2">
+                    <Checkbox Id="scheduler-allow-resize" @bind-Checked="allowResize" />
+                    <Label For="scheduler-allow-resize">Allow resizing</Label>
+                </div>
+            </div>
+            <Scheduler @bind-Events="interactiveEvents" Date="@(new DateOnly(2026, 9, 14))" View="SchedulerView.Day"
+                         SlotMinutes="@slotMinutes" AllowDrag="@allowDrag" AllowResize="@allowResize"
+                         EnableTimeZones="false" TimeZoneId="UTC" StartHour="0" EndHour="24" InitialScrollHour="8" AriaLabel="Drag and resize appointments" />
+
+
+@code {
+    private int slotMinutes = 30;
+    private bool allowDrag = true;
+    private bool allowResize = true;
+    private static string SlotLabel(int value) => value == 60 ? "1 hour" : $"{value} minutes";
+    private IReadOnlyList<SchedulerEvent> interactiveEvents =
+    [
+        new() { Id = "workshop", Title = "Workshop", Start = new(2026, 9, 14, 9, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 10, 0, 0, TimeSpan.Zero) },
+        new() { Id = "review", Title = "Review", Start = new(2026, 9, 14, 11, 0, 0, TimeSpan.Zero), End = new(2026, 9, 14, 12, 0, 0, TimeSpan.Zero) }
+    ];
+
+}

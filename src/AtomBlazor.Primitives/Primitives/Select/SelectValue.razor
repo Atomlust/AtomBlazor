@@ -1,0 +1,65 @@
+@typeparam TValue
+@namespace AtomBlazor.Primitives
+@implements IDisposable
+
+@* SelectValue——展示选中值的展示文本，或占位符 *@
+@if (ChildContent != null)
+{
+    @ChildContent(DisplayText ?? "")
+}
+else if (!string.IsNullOrEmpty(DisplayText))
+{
+    <span @attributes="AdditionalAttributes">@DisplayText</span>
+}
+else
+{
+    <span @attributes="AdditionalAttributes" style="opacity: 0.5">@Placeholder</span>
+}
+
+@code {
+    [CascadingParameter]
+    private SelectContext<TValue>? Context { get; set; }
+
+    /// <summary>
+    /// 未选中任何值时展示的占位文本。
+    /// </summary>
+    [Parameter]
+    public string? Placeholder { get; set; }
+
+    /// <summary>
+    /// 可选的自定义展示模板。
+    /// 展示文本作为上下文参数传入。
+    /// </summary>
+    [Parameter]
+    public RenderFragment<string>? ChildContent { get; set; }
+
+    /// <summary>
+    /// 要应用到默认 span 元素的附加特性。
+    /// 仅在 ChildContent 为 null 时使用。
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? DisplayText => Context?.DisplayText;
+
+    protected override void OnInitialized()
+    {
+        if (Context != null)
+        {
+            Context.OnStateChanged += HandleStateChanged;
+        }
+    }
+
+    private void HandleStateChanged()
+    {
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        if (Context != null)
+        {
+            Context.OnStateChanged -= HandleStateChanged;
+        }
+    }
+}
