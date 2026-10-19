@@ -200,9 +200,9 @@ public class NativeSelectTests
     }
 
     [Theory]
-    [InlineData(NativeSelectSize.Small, "atom:h-8 atom:text-xs atom:px-2")]
-    [InlineData(NativeSelectSize.Default, "atom:h-10 atom:text-sm atom:px-3")]
-    [InlineData(NativeSelectSize.Large, "atom:h-12 atom:text-base atom:px-4")]
+    [InlineData(NativeSelectSize.Small, "atom:h-8 atom:text-xs atom:ps-2")]
+    [InlineData(NativeSelectSize.Default, "atom:h-10 atom:text-sm atom:ps-3")]
+    [InlineData(NativeSelectSize.Large, "atom:h-12 atom:text-base atom:ps-4")]
     public async Task 尺寸变体应切换到对应的高度内边距与字号(NativeSelectSize size, string expected)
     {
         var renderer = CreateRenderer();

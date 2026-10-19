@@ -222,12 +222,20 @@
 
     private string EffectiveId => Id ?? (_generatedId ??= $"select-{Guid.NewGuid().ToString("N")[..8]}");
 
+    /// <summary>
+    /// 尺寸变体类。
+    /// </summary>
+    /// <remarks>
+    /// 左侧内边距用 <c>ps-*</c> 而非 <c>px-*</c>：基础类里的 <c>pe-8</c>要为右侧下拉箭头留位，
+    /// 而 TailwindMerge 会让同一冲突组里靠后的类胜出——用 <c>px-*</c> 会把 <c>pe-8</c> 整个合并掉，
+    /// 箭头就会压住文本。两者错开各自负责一侧，合并器新旧版本下都稳定。
+    /// </remarks>
     private string SizeClasses => Size switch
     {
-        NativeSelectSize.Small => "atom:h-8 atom:text-xs atom:px-2",
-        NativeSelectSize.Default => "atom:h-10 atom:text-sm atom:px-3",
-        NativeSelectSize.Large => "atom:h-12 atom:text-base atom:px-4",
-        _ => "atom:h-10 atom:text-sm atom:px-3"
+        NativeSelectSize.Small => "atom:h-8 atom:text-xs atom:ps-2",
+        NativeSelectSize.Default => "atom:h-10 atom:text-sm atom:ps-3",
+        NativeSelectSize.Large => "atom:h-12 atom:text-base atom:ps-4",
+        _ => "atom:h-10 atom:text-sm atom:ps-3"
     };
 
     private string CssClass => ClassNames.cn(
