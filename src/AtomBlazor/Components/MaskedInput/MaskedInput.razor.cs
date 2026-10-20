@@ -230,7 +230,7 @@ public partial class MaskedInput : ComponentBase, IAsyncDisposable
                 // 在内——推迟到输入法上屏之后再执行。
                 _guardModule = await ComponentModules.GetCoreAsync(JSRuntime);
                 await _guardModule.InvokeVoidAsync(
-                    "compositionGuard.attach", _inputRef, _guardId, new { suppress = guardSuppressedEvents });
+                    "compositionGuard.attach", _inputRef, _guardId, new CompositionGuardJsConfig { suppress = guardSuppressedEvents });
             }
             catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
             {

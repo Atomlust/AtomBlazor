@@ -411,9 +411,12 @@
 
         var placement = Align == PopoverAlign.Center ? Side.ToValue() : $"{Side.ToValue()}-{Align.ToValue()}";
 
-        var options = new
+        // 具名 record 载荷而非匿名类型：消费方开启 PublishTrimmed 时，匿名类型只能走
+        // 构造函数绑定的 STJ 序列化，而裁剪管线会剥掉构造函数参数名，运行时抛
+        // ConstructorContainsNullParameterNames，浮层从此打不开。见 Internal/InteropPayloads.cs。
+        var options = new FloatingOpenJsConfig
         {
-            placement,
+            placement = placement,
             offset = Offset,
             matchReferenceWidth = MatchAnchorWidth,
             strategy = Strategy.ToValue(),
@@ -428,7 +431,7 @@
             reportPlacement = OnPlacementChanged.HasDelegate,
 
             dismiss = WantsDismissListeners()
-                ? new
+                ? new FloatingDismissJsConfig
                 {
                     contentId = Dismiss!.ContentId,
                     triggerId = Dismiss.TriggerId,
@@ -438,13 +441,13 @@
                 : null,
 
             scrollToCurrent = ScrollToCurrentIn is not null
-                ? new { containerId = ScrollToCurrentIn, selector = ScrollToCurrentSelector }
+                ? new FloatingScrollToCurrentJsConfig { containerId = ScrollToCurrentIn, selector = ScrollToCurrentSelector }
                 : null,
 
             autoFocusId = AutoFocusId,
 
             keyboard = Keyboard is not null
-                ? new
+                ? new FloatingKeyboardJsConfig
                 {
                     kind = Keyboard.Kind.ToString(),
                     contentId = Keyboard.ContentId,
@@ -464,14 +467,14 @@
     {
         // ForceMount 的内容留在 DOM 里，动画结束无人需要被告知。
         // 没有它，内容将被卸载，而这必须等动画完成——否则元素还没来得及演就没了。
-        var options = new
+        var options = new FloatingCloseJsConfig
         {
             notifyClosed = !ForceMount,
 
             // 与隐藏元素的调用同批释放。使用者过去要 await 自己的 interop 来摘掉这些处理器，
             // 等于花一次往返，去移除一个用户早已关掉的浮层上的事件监听器。
             keyboard = Keyboard is not null
-                ? new { kind = Keyboard.Kind.ToString(), contentId = Keyboard.ContentId }
+                ? new FloatingKeyboardReleaseJsConfig { kind = Keyboard.Kind.ToString(), contentId = Keyboard.ContentId }
                 : null,
 
             // 就在现在、关闭渲染进行中时读取——使用者的状态此刻正说明这是哪一种关闭。
@@ -676,7 +679,7 @@
             {
                 // 只有这里是 await 的，与其他关闭不同：释放这条路径上已经没有东西要渲染，
                 // 不存在可省的往返，而监听器必须赶在组件之前消失。
-                await module.InvokeVoidAsync("overlay.close", PortalId, new { notifyClosed = false }, null);
+                await module.InvokeVoidAsync("overlay.close", PortalId, new FloatingNotifyClosedJsConfig { notifyClosed = false }, null);
             }
             catch (Exception ex) when (ex is JSDisconnectedException or JSException or TaskCanceledException or ObjectDisposedException)
             {

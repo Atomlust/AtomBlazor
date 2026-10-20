@@ -26,6 +26,6 @@
     private MotionInterop? interop;
     protected override void OnParametersSet() => ArgumentOutOfRangeException.ThrowIfNegative(Duration);
     protected override Task OnAfterRenderAsync(bool firstRender) => (interop ??= new(JS)).InvokeAsync("height", element,
-        new { expanded = Expanded, enabled = Enabled, duration = Duration, easing = Easing });
+        new HeightAnimationJsConfig { expanded = Expanded, enabled = Enabled, duration = Duration, easing = Easing });
     public async ValueTask DisposeAsync() { if (interop is not null) { await interop.DisposeAsync(); } }
 }

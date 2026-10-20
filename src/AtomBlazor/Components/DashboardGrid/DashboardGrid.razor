@@ -328,26 +328,33 @@ else
     {
         try
         {
-            await _jsModule!.InvokeVoidAsync("updateGridOptions", _instanceId, new
-            {
-                columns = Columns,
-                rowHeight = RowHeight,
-                gap = Gap,
-                allowDrag = AllowDrag && Editable,
-                allowResize = AllowResize && Editable,
-                editable = Editable,
-                compact = Compact,
-                showGridGuide = ShowGridGuide,
-                mediumBreakpoint = MediumBreakpoint,
-                smallBreakpoint = SmallBreakpoint,
-                mediumColumns = EffectiveCellWidth > 0 ? Columns : MediumColumns,
-                smallColumns = EffectiveCellWidth > 0 ? Columns : SmallColumns
-            });
+            await _jsModule!.InvokeVoidAsync("updateGridOptions", _instanceId, BuildGridJsConfig());
         }
         catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
         {
         }
     }
+
+    /// <summary>
+    /// 构建发给 JS 的网格配置。具名 record 载荷而非匿名类型：消费方开启 PublishTrimmed 时，
+    /// 匿名类型只能走构造函数绑定的 STJ 序列化，而裁剪管线会剥掉构造函数参数名，
+    /// 运行时抛 ConstructorContainsNullParameterNames。见 Internal/ComponentInteropPayloads.cs。
+    /// </summary>
+    private DashboardGridJsConfig BuildGridJsConfig() => new()
+    {
+        columns = Columns,
+        rowHeight = RowHeight,
+        gap = Gap,
+        allowDrag = AllowDrag && Editable,
+        allowResize = AllowResize && Editable,
+        editable = Editable,
+        compact = Compact,
+        showGridGuide = ShowGridGuide,
+        mediumBreakpoint = MediumBreakpoint,
+        smallBreakpoint = SmallBreakpoint,
+        mediumColumns = EffectiveCellWidth > 0 ? Columns : MediumColumns,
+        smallColumns = EffectiveCellWidth > 0 ? Columns : SmallColumns
+    };
 
     private void SyncContextParameters()
     {
@@ -404,21 +411,7 @@ else
             _dotNetRef?.Dispose();
             _dotNetRef = DotNetObjectReference.Create(this);
 
-            await _jsModule.InvokeVoidAsync("initializeDashboardGrid", _dotNetRef, _instanceId, new
-            {
-                columns = Columns,
-                rowHeight = RowHeight,
-                gap = Gap,
-                allowDrag = AllowDrag && Editable,
-                allowResize = AllowResize && Editable,
-                editable = Editable,
-                compact = Compact,
-                showGridGuide = ShowGridGuide,
-                mediumBreakpoint = MediumBreakpoint,
-                smallBreakpoint = SmallBreakpoint,
-                mediumColumns = EffectiveCellWidth > 0 ? Columns : MediumColumns,
-                smallColumns = EffectiveCellWidth > 0 ? Columns : SmallColumns
-            });
+            await _jsModule.InvokeVoidAsync("initializeDashboardGrid", _dotNetRef, _instanceId, BuildGridJsConfig());
             _jsInitialized = true;
         }
         catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)

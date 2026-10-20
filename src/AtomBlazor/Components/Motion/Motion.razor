@@ -52,7 +52,20 @@
     protected override Task OnAfterRenderAsync(bool firstRender) => ConfigureAsync();
 
     private Task ConfigureAsync() => (interop ??= new(JS)).InvokeAsync("motion", element,
-        new { visible = Visible, preset = Preset.ToString(), trigger = Trigger.ToString(), duration = Duration, delay = Delay, easing = Easing, distance = Distance, first = AnimateOnFirstRender, once = Once, threshold = Threshold, keyframes = Keyframes });
+        new MotionJsConfig
+        {
+            visible = Visible,
+            preset = Preset.ToString(),
+            trigger = Trigger.ToString(),
+            duration = Duration,
+            delay = Delay,
+            easing = Easing,
+            distance = Distance,
+            first = AnimateOnFirstRender,
+            once = Once,
+            threshold = Threshold,
+            keyframes = Keyframes
+        });
 
     /// <summary>在渲染器调度线程上播放动画；用户减弱动效偏好始终优先。</summary>
     public Task PlayAsync() => InvokeAsync(async () => { await ConfigureAsync(); await interop!.InvokeAsync("play", element); });

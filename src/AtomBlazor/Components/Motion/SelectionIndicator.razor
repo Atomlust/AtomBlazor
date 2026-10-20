@@ -18,6 +18,6 @@
     private MotionInterop? interop;
     protected override void OnParametersSet() => ArgumentOutOfRangeException.ThrowIfNegative(Duration);
     protected override Task OnAfterRenderAsync(bool firstRender) => (interop ??= new(JS)).InvokeAsync("indicator", element,
-        new { selector = Selector, hoverSelector = HoverSelector, duration = Duration });
+        new SelectionIndicatorJsConfig { selector = Selector, hoverSelector = HoverSelector, duration = Duration });
     public async ValueTask DisposeAsync() { if (interop is not null) { await interop.DisposeAsync(); } }
 }

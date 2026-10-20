@@ -129,7 +129,16 @@
             module ??= await JsModules.GetAsync(JS, JsModules.Versioned("./_content/AtomBlazor/js/carousel.js", typeof(Carousel).Assembly));
             if (disposed) { return; }
             reference ??= DotNetObjectReference.Create(this);
-            await module.InvokeVoidAsync("configure", element, reference, new { index = CurrentIndex, vertical = Orientation == CarouselOrientation.Vertical, draggable = Draggable, autoplay = Autoplay, interval = AutoplayInterval, paused = Paused, loop = Loop });
+            await module.InvokeVoidAsync("configure", element, reference, new CarouselJsConfig
+            {
+                index = CurrentIndex,
+                vertical = Orientation == CarouselOrientation.Vertical,
+                draggable = Draggable,
+                autoplay = Autoplay,
+                interval = AutoplayInterval,
+                paused = Paused,
+                loop = Loop
+            });
         }
         catch (Exception ex) when (ex is JSDisconnectedException or JSException or TaskCanceledException or ObjectDisposedException or InvalidOperationException) { }
     }

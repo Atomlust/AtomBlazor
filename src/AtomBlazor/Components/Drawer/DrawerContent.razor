@@ -208,10 +208,12 @@
             }
             snapModule ??= await JsModules.GetAsync(JS, JsModules.Versioned("./_content/AtomBlazor/js/drawer-snaps.js", typeof(DrawerContent).Assembly));
             _dotNetRef ??= DotNetObjectReference.Create(this);
-            await snapModule.InvokeVoidAsync("configure", _contentRef, _dotNetRef, new
+            await snapModule.InvokeVoidAsync("configure", _contentRef, _dotNetRef, new DrawerSnapsJsConfig
             {
-                direction = Context.Direction.ToString().ToLowerInvariant(), points = Context.SnapPoints,
-                index = Context.SnapIndex, dismiss = Context.DismissOnDrag
+                direction = Context.Direction.ToString().ToLowerInvariant(),
+                points = Context.SnapPoints,
+                index = Context.SnapIndex,
+                dismiss = Context.DismissOnDrag
             });
         }
         catch (Exception ex) when (ex is JSDisconnectedException or JSException or TaskCanceledException or ObjectDisposedException or InvalidOperationException)
