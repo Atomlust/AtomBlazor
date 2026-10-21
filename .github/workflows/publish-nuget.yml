@@ -86,8 +86,16 @@ jobs:
       - name: 还原 npm 依赖
         run: npm ci
 
-      - name: 还原 NuGet 依赖
-        run: dotnet restore AtomBlazor.slnx
+      # 只还原待打包的库：解决方案里的 MAUI 宿主声明了 net11.0-android，
+      # 在 Ubuntu runner 上要求 maui-android 工作负载，而发布流程并不需要它。
+      - name: 还原 NuGet 依赖（仅 src 下的库项目）
+        run: |
+          set -euo pipefail
+          for csproj in $(find src -name "*.csproj" | sort); do
+            echo "::group::restore $csproj"
+            dotnet restore "$csproj"
+            echo "::endgroup::"
+          done
 
       - name: 打包全部库项目
         run: |
