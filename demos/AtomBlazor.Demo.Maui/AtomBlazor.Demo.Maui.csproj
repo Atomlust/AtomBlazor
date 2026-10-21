@@ -4,9 +4,12 @@
  <!-- MAUI Blazor Hybrid 宿主——多目标声明与 maui-blazor 模板一致（android/ios/maccatalyst/windows）。
          本机仅装 maui-windows 工作负载、无 JDK/Mac，故实测路径为 -f net11.0-windows10.0.19041.0；
          其余目标声明保留以兑现跨平台承诺，构建验证归各自平台环境。 -->
-    <TargetFrameworks>net11.0-android</TargetFrameworks>
-    <TargetFrameworks Condition="!$([MSBuild]::IsOSPlatform('linux'))">$(TargetFrameworks);net11.0-ios;net11.0-maccatalyst</TargetFrameworks>
-    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net11.0-windows10.0.19041.0</TargetFrameworks>
+    <!-- 可用 -p:MauiTargetFrameworks=<tfm> 显式收窄目标：多目标工程的隐式还原会评估全部
+         目标并校验各自的工作负载，CI 只装 maui-windows 时需要借此跳过 android/ios。 -->
+    <MauiTargetFrameworks Condition="'$(MauiTargetFrameworks)' == ''">net11.0-android</MauiTargetFrameworks>
+    <MauiTargetFrameworks Condition="'$(MauiTargetFrameworks)' == '' and !$([MSBuild]::IsOSPlatform('linux'))">$(MauiTargetFrameworks);net11.0-ios;net11.0-maccatalyst</MauiTargetFrameworks>
+    <MauiTargetFrameworks Condition="'$(MauiTargetFrameworks)' == '' and $([MSBuild]::IsOSPlatform('windows'))">$(MauiTargetFrameworks);net11.0-windows10.0.19041.0</MauiTargetFrameworks>
+    <TargetFrameworks>$(MauiTargetFrameworks)</TargetFrameworks>
 
     <OutputType>Exe</OutputType>
     <RootNamespace>AtomBlazor.Demo.Maui</RootNamespace>

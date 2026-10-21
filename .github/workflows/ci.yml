@@ -177,10 +177,10 @@ jobs:
       - name: 安装 MAUI Windows 工作负载
         run: dotnet workload install maui-windows
 
-      # -f 让还原与构建都只落在 Windows 目标：工程默认声明的
-      # android/ios/maccatalyst 需要各自的平台工作负载与 Mac 构建主机，
-      # 不属于本 job 的验证范围。
+      # -f 只决定构建目标，隐式还原仍会评估工程声明的全部 TFM 并要求对应工作负载；
+      # 因此同时用 MauiTargetFrameworks 收窄目标，避免为 android/ios 安装工具链。
       - name: 构建 MAUI 宿主（Windows 目标）
         run: >-
           dotnet build demos/AtomBlazor.Demo.Maui/AtomBlazor.Demo.Maui.csproj
           -c Release -f net11.0-windows10.0.19041.0
+          -p:MauiTargetFrameworks=net11.0-windows10.0.19041.0
