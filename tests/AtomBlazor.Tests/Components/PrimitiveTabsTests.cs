@@ -229,6 +229,32 @@ public class PrimitiveTabsTests
     }
 
     [Fact]
+    public async Task 受控父级把Value置空应清空激活标签()
+    {
+        var callback = EventCallback.Factory.Create<string?>(new object(), _ => { });
+        var (renderer, _) = await MountAsync(new Dictionary<string, object?>
+        {
+            [nameof(PTabs.Value)] = "one",
+            [nameof(PTabs.ValueChanged)] = callback,
+        });
+
+        Assert.Contains(">内容-one<", renderer.Markup());
+
+        await renderer.Dispatcher.InvokeAsync(() => renderer.RerenderRootAsync(0, new Dictionary<string, object?>
+        {
+            [nameof(PTabs.Value)] = null,
+            [nameof(PTabs.ValueChanged)] = callback,
+            [nameof(PTabs.ChildContent)] = TwoTabs(),
+        }));
+        await renderer.Dispatcher.InvokeAsync(() => { });
+
+        var markup = renderer.Markup();
+        Assert.DoesNotContain(">内容-one<", markup);
+        Assert.DoesNotContain(">内容-two<", markup);
+        Assert.Equal(0, Regex.Count(markup, "aria-selected=\"true\""));
+    }
+
+    [Fact]
     public async Task 仅有Value而无ValueChanged时按非受控处理()
     {
         // 行为（Tabs.OnInitialized ）：IsControlled 仅以 ValueChanged.HasDelegate

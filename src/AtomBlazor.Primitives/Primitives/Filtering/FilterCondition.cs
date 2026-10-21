@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace AtomBlazor.Primitives.Filtering;
 
 /// <summary>
@@ -18,17 +20,20 @@ public class FilterCondition
     /// <summary>
     /// 获取或设置此条件的比较运算符。
     /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter<FilterOperator>))]
     public FilterOperator Operator { get; set; }
 
     /// <summary>
     /// 获取或设置主筛选值。
     /// 类型取决于字段类型（string、double、DateTime、bool，In/NotIn 使用 string[]）。
     /// </summary>
+    [JsonConverter(typeof(FilterValueJsonConverter))]
     public object? Value { get; set; }
 
     /// <summary>
     /// 获取或设置次筛选值，供 <see cref="FilterOperator.Between"/> 之类的区间运算符使用。
     /// </summary>
+    [JsonConverter(typeof(FilterValueJsonConverter))]
     public object? ValueEnd { get; set; }
 
     /// <summary>

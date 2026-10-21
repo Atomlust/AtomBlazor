@@ -15,9 +15,11 @@ public partial class FilterBuilder : ComponentBase, IDisposable
     private FilterBuilderContext? context;
     private Timer? debounceTimer;
     private int debounceVersion;
-    private bool disposed;
+    private volatile bool disposed;
     private FilterDefinition? draftFilter;
     private FilterDefinition? lastFilter;
+    private FilterDefinition? publishedFilter;
+    private int version;
     private string? selectedPresetId;
 
     /// <summary>可复用的筛选定义，使用前会被克隆。</summary>
@@ -40,9 +42,9 @@ public partial class FilterBuilder : ComponentBase, IDisposable
         }
         if (FilterDepth(preset.Filter) > MaxDepth) { throw new InvalidOperationException("The preset exceeds MaxDepth."); }
         debounceTimer?.Dispose();
-        debounceVersion++;
+        Interlocked.Increment(ref debounceVersion);
         var copy = preset.Filter.Clone();
-        var target = draftFilter ?? Filter;
+        var target = draftFilter ??= Filter.Clone();
         target.Conditions = copy.Conditions;
         target.Groups = copy.Groups;
         target.Operator = copy.Operator;
@@ -137,22 +139,20 @@ public partial class FilterBuilder : ComponentBase, IDisposable
 
     protected override void OnParametersSet()
     {
-        // When ShowApplyButton is true, work on a draft copy so the bound Filter
-        // is not mutated until the user explicitly clicks Apply.
-        // Re-clone when the Filter parameter reference changes (e.g., loading a saved filter).
+        // 始终在克隆出的草稿上编辑，[Parameter] Filter 只读不写。
+        // 父级绑定把 FilterChanged 的快照回传时（引用即 publishedFilter），
+        // 不能重置草稿，否则会吞掉回传窗口期内用户继续做的编辑。
         var filterChanged = !ReferenceEquals(lastFilter, Filter);
         lastFilter = Filter;
 
-        if (ShowApplyButton && (draftFilter == null || filterChanged))
+        if (draftFilter is null || (filterChanged && !ReferenceEquals(Filter, publishedFilter)))
         {
             draftFilter = Filter.Clone();
-        }
-        else if (!ShowApplyButton)
-        {
-            draftFilter = null;
+            publishedFilter = null;
+            version = Filter.Version;
         }
 
-        var activeFilter = draftFilter ?? Filter;
+        var activeFilter = draftFilter;
 
         context = new FilterBuilderContext
         {
@@ -178,7 +178,7 @@ public partial class FilterBuilder : ComponentBase, IDisposable
         }
 
         debounceTimer?.Dispose();
-        var capturedVersion = ++debounceVersion;
+        var capturedVersion = Interlocked.Increment(ref debounceVersion);
         debounceTimer = new Timer(
             _ => _ = HandleDebouncedChangeAsync(capturedVersion),
             null,
@@ -190,13 +190,13 @@ public partial class FilterBuilder : ComponentBase, IDisposable
     {
         try
         {
-            if (disposed || capturedVersion != debounceVersion)
+            if (disposed || Volatile.Read(ref debounceVersion) != capturedVersion)
             {
                 return;
             }
             await InvokeAsync(async () =>
             {
-                if (capturedVersion != debounceVersion)
+                if (capturedVersion != Volatile.Read(ref debounceVersion))
                 {
                     return;
                 }
@@ -210,49 +210,35 @@ public partial class FilterBuilder : ComponentBase, IDisposable
         }
     }
 
-    private async Task HandleApply()
-    {
-        if (draftFilter != null)
-        {
-            // Deep-clone draft state into Filter so the two remain independent.
-            // Without cloning, subsequent draft edits would mutate Filter directly.
-            var snapshot = draftFilter.Clone();
-            Filter.Conditions = snapshot.Conditions;
-            Filter.Groups = snapshot.Groups;
-            Filter.Operator = snapshot.Operator;
-        }
-        await NotifyFilterChanged();
-    }
+    private Task HandleApply() => NotifyFilterChanged();
 
     private async Task HandleClear()
     {
         selectedPresetId = null;
-        var activeFilter = draftFilter ?? Filter;
-        activeFilter.Conditions.Clear();
-        activeFilter.Groups.Clear();
-        activeFilter.Operator = DefaultOperator;
+        var target = draftFilter ??= Filter.Clone();
+        target.Conditions.Clear();
+        target.Groups.Clear();
+        target.Operator = DefaultOperator;
 
-        if (draftFilter != null)
-        {
-            // Also clear the bound Filter on explicit Clear
-            Filter.Conditions.Clear();
-            Filter.Groups.Clear();
-            Filter.Operator = DefaultOperator;
-        }
         await NotifyFilterChanged();
     }
 
+    /// <summary>
+    /// 把草稿的独立快照通过绑定回调发布出去；父级模型（Filter 参数）不被改写。
+    /// </summary>
     private async Task NotifyFilterChanged()
     {
-        Filter.Version++;
+        var snapshot = (draftFilter ?? Filter).Clone();
+        snapshot.Version = ++version;
+        publishedFilter = snapshot;
 
         if (FilterChanged.HasDelegate)
         {
-            await FilterChanged.InvokeAsync(Filter);
+            await FilterChanged.InvokeAsync(snapshot);
         }
         if (OnFilterChanged.HasDelegate)
         {
-            await OnFilterChanged.InvokeAsync(Filter);
+            await OnFilterChanged.InvokeAsync(snapshot);
         }
     }
 
@@ -268,8 +254,9 @@ public partial class FilterBuilder : ComponentBase, IDisposable
     {
         if (!disposed)
         {
-            debounceTimer?.Dispose();
             disposed = true;
+            Interlocked.Increment(ref debounceVersion);
+            debounceTimer?.Dispose();
         }
         GC.SuppressFinalize(this);
     }

@@ -35,7 +35,7 @@ internal sealed class MotionInterop(IJSRuntime js) : IAsyncDisposable
             if (disposed) { return; }
             await module.InvokeVoidAsync(method, new object?[] { target }.Concat(options).ToArray());
         }
-        catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException or InvalidOperationException) { }
+        catch (Exception ex) when (ex is JSException or TaskCanceledException or ObjectDisposedException or InvalidOperationException) { }
     }
 
     /// <summary>

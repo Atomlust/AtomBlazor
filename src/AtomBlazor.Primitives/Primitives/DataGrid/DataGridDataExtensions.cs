@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Linq.Expressions;
 
 namespace AtomBlazor.Primitives;
 
@@ -11,7 +10,8 @@ public static class DataGridDataExtensions
 {
     /// <summary>
     /// 对 IQueryable 数据源应用多列排序。
-    /// 组合 OrderBy/ThenBy LINQ 表达式，可经 EF Core 翻译为 SQL。
+    /// 优先使用列提供的强类型排序，使 EF Core 等提供程序仍能翻译为 SQL。
+    /// 列不提供强类型排序时回退到内存排序。
     /// </summary>
     /// <typeparam name="TData">数据项的类型。</typeparam>
     /// <param name="query">可查询数据源。</param>
@@ -33,30 +33,42 @@ public static class DataGridDataExtensions
         foreach (var sortDef in sortDefinitions)
         {
             var column = columns.FirstOrDefault(c => c.ColumnId == sortDef.ColumnId);
-            var sortExpression = column?.GetSortExpression();
-            if (sortExpression == null)
+            if (column?.GetSortExpression() == null)
             {
                 continue;
             }
 
-            sortExpression = NormalizeKeySelector(sortExpression);
+            var descending = sortDef.Direction == SortDirection.Descending;
+            var next = orderedQuery == null
+                ? column.ApplyOrderBy(query, descending)
+                : column.ApplyThenBy(orderedQuery, descending);
 
-            if (orderedQuery == null)
+            if (next == null)
             {
-                orderedQuery = sortDef.Direction == SortDirection.Ascending
-                    ? ApplyOrderBy(query, sortExpression)
-                    : ApplyOrderByDescending(query, sortExpression);
+                // 列只提供 LambdaExpression（例如模板列的装箱选择器），无法在
+                // 编译期还原强类型键。此时整体回退到内存排序，保持结果正确；
+                // 代价是该查询的后续 Count/Skip/Take 不再由数据库执行。
+                var sorted = query
+                    .AsEnumerable()
+                    .ApplyMultiSort(sortDefinitions, columns)
+                    .ToList();
+                return ToInMemoryQuery(sorted);
             }
-            else
-            {
-                orderedQuery = sortDef.Direction == SortDirection.Ascending
-                    ? ApplyThenBy(orderedQuery, sortExpression)
-                    : ApplyThenByDescending(orderedQuery, sortExpression);
-            }
+
+            orderedQuery = next;
         }
 
         return orderedQuery ?? query;
     }
+
+    // EnumerableQuery 的构造被框架标注为可能依赖动态代码。此回退路径不会
+    // 构造泛型方法或编译表达式，只承载标准 LINQ 操作符；NativeAOT 探针覆盖该路径。
+    [UnconditionalSuppressMessage("Trimming", "IL2026: EnumerableQuery 可能使 Queryable 操作符回落到被裁剪的 Enumerable 扩展方法",
+        Justification = "回退仅发生在列未提供强类型排序时；结果仅用于标准 Count/Skip/Take/ToList，不承载用户自定义 Queryable 表达式。")]
+    [UnconditionalSuppressMessage("AOT", "IL3050: EnumerableQuery 构造被标注 RequiresDynamicCode",
+        Justification = "该路径不调用 MakeGenericMethod 或 Expression.Compile；由 NativeAOT 探针验证。")]
+    private static EnumerableQuery<TData> ToInMemoryQuery<TData>(List<TData> data) =>
+        new(data);
 
     /// <summary>
     /// 对内存中的集合应用多列排序。
@@ -111,87 +123,5 @@ public static class DataGridDataExtensions
         });
 
         return list;
-    }
-
-    /// <summary>
-    /// 从声明返回 <see cref="object"/> 的键选择器中剥离装箱用的 <c>Convert</c>
-    /// 节点，并用底层类型重建 lambda 表达式。
-    /// </summary>
-    /// <remarks>
-    /// 列的 <c>SortAndFilterBy</c> 类型为 <c>Expression&lt;Func&lt;TData, object&gt;&gt;</c>，
-    /// 以便能从中返回任意值类型。按 <c>object</c> 排序是不可翻译的——EF Core
-    /// 无法为其生成 <c>ORDER BY</c>，内存中的 <c>OrderBy</c> 又会比较装箱后的引用。
-    /// 还原真实类型后两者都能工作。
-    /// </remarks>
-    [UnconditionalSuppressMessage("AOT", "IL3050: 表达式树构建在 AOT 下需动态生成代码，本方法是受控的排序键规范化入口，仅在内存/EF Core 排序路径内使用",
-        Justification = "Expression.Lambda 仅用于剥离装箱 Convert 节点以还原真实排序类型，调用链受控，不暴露给未知表达式输入。")]
-    private static LambdaExpression NormalizeKeySelector(LambdaExpression selector)
-    {
-        if (selector.Body is UnaryExpression { NodeType: ExpressionType.Convert or ExpressionType.ConvertChecked } unary
-            && unary.Type == typeof(object))
-        {
-            return Expression.Lambda(unary.Operand, selector.Parameters);
-        }
-
-        return selector;
-    }
-
-    // Helper methods to call OrderBy/ThenBy with a runtime LambdaExpression
-    // These use Expression.Call to build the LINQ method call dynamically
-
-    [UnconditionalSuppressMessage("AOT", "IL3050: 表达式树构建在 AOT 下需动态生成代码，本方法是受控的 OrderBy 动态调用入口",
-        Justification = "Expression.Call 仅用于以运行时 LambdaExpression 构建 LINQ OrderBy 调用，列表达式来自已注册的 SortAndFilterBy，调用链受控。")]
-    private static IOrderedQueryable<TData> ApplyOrderBy<TData>(
-        IQueryable<TData> query, LambdaExpression keySelector)
-    {
-        return (IOrderedQueryable<TData>)query.Provider.CreateQuery<TData>(
-            Expression.Call(
-                typeof(Queryable),
-                nameof(Queryable.OrderBy),
-                new[] { typeof(TData), keySelector.ReturnType },
-                query.Expression,
-                Expression.Quote(keySelector)));
-    }
-
-    [UnconditionalSuppressMessage("AOT", "IL3050: 表达式树构建在 AOT 下需动态生成代码，本方法是受控的 OrderByDescending 动态调用入口",
-        Justification = "Expression.Call 仅用于以运行时 LambdaExpression 构建 LINQ OrderByDescending 调用，列表达式来自已注册的 SortAndFilterBy，调用链受控。")]
-    private static IOrderedQueryable<TData> ApplyOrderByDescending<TData>(
-        IQueryable<TData> query, LambdaExpression keySelector)
-    {
-        return (IOrderedQueryable<TData>)query.Provider.CreateQuery<TData>(
-            Expression.Call(
-                typeof(Queryable),
-                nameof(Queryable.OrderByDescending),
-                new[] { typeof(TData), keySelector.ReturnType },
-                query.Expression,
-                Expression.Quote(keySelector)));
-    }
-
-    [UnconditionalSuppressMessage("AOT", "IL3050: 表达式树构建在 AOT 下需动态生成代码，本方法是受控的 ThenBy 动态调用入口",
-        Justification = "Expression.Call 仅用于以运行时 LambdaExpression 构建 LINQ ThenBy 调用，列表达式来自已注册的 SortAndFilterBy，调用链受控。")]
-    private static IOrderedQueryable<TData> ApplyThenBy<TData>(
-        IOrderedQueryable<TData> query, LambdaExpression keySelector)
-    {
-        return (IOrderedQueryable<TData>)query.Provider.CreateQuery<TData>(
-            Expression.Call(
-                typeof(Queryable),
-                nameof(Queryable.ThenBy),
-                new[] { typeof(TData), keySelector.ReturnType },
-                query.Expression,
-                Expression.Quote(keySelector)));
-    }
-
-    [UnconditionalSuppressMessage("AOT", "IL3050: 表达式树构建在 AOT 下需动态生成代码，本方法是受控的 ThenByDescending 动态调用入口",
-        Justification = "Expression.Call 仅用于以运行时 LambdaExpression 构建 LINQ ThenByDescending 调用，列表达式来自已注册的 SortAndFilterBy，调用链受控。")]
-    private static IOrderedQueryable<TData> ApplyThenByDescending<TData>(
-        IOrderedQueryable<TData> query, LambdaExpression keySelector)
-    {
-        return (IOrderedQueryable<TData>)query.Provider.CreateQuery<TData>(
-            Expression.Call(
-                typeof(Queryable),
-                nameof(Queryable.ThenByDescending),
-                new[] { typeof(TData), keySelector.ReturnType },
-                query.Expression,
-                Expression.Quote(keySelector)));
     }
 }

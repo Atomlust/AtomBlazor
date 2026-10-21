@@ -63,55 +63,87 @@
     private IJSObjectReference? escapeModule;
     private DotNetObjectReference<DialogProvider>? dotNetRef;
     private readonly string instanceId = Guid.NewGuid().ToString("N");
+    private readonly SemaphoreSlim lifecycleGate = new(1, 1);
     private bool isInitialized;
     private bool disposed;
 
     protected override void OnInitialized()
         => DialogService.OnChange += HandleChange;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override Task OnAfterRenderAsync(bool firstRender) => SynchronizeAsync();
+
+    /// <summary>
+    /// 串行化初始化与清理。JS 往返期间对话框可能已被关闭甚至重新打开；
+    /// 两段异步流程若交错，后完成的一段会把另一段刚建立的资源留成孤儿
+    /// （例如背景滚动锁没解锁、DotNetObjectReference 泄漏）。
+    /// 进入临界区后重新读取当前对话框栈，保证按最新状态决定初始化还是清理。
+    /// </summary>
+    private async Task SynchronizeAsync()
     {
-        if (DialogService.Dialogs.Count > 0 && !isInitialized)
+        if (disposed)
         {
-            isInitialized = true;
+            return;
+        }
 
-            // Focus trap on the topmost dialog
-            await TrapFocusOnTopmostAsync();
-
-            // Scroll lock
-            try
+        await lifecycleGate.WaitAsync();
+        try
+        {
+            if (disposed)
             {
-                portalModule = await PrimitiveModules.GetAsync(JSRuntime);
-                scrollLockCleanup = await portalModule.InvokeAsync<IJSObjectReference>("portal.lockBodyScroll");
-            }
-            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException or InvalidOperationException)
-            {
+                return;
             }
 
-            // Escape key
-            try
+            var dialogs = DialogService.Dialogs;
+            if (dialogs.Count > 0)
             {
-                escapeModule = await PrimitiveModules.GetAsync(JSRuntime);
-                dotNetRef = DotNetObjectReference.Create(this);
-                await escapeModule.InvokeVoidAsync("escapeKeydown.initialize", dotNetRef, instanceId);
+                if (!isInitialized)
+                {
+                    await InitializeJsAsync();
+                }
+
+                var topmostId = dialogs[^1].Id;
+                if (focusTrapDialogId != topmostId)
+                {
+                    await TrapFocusOnTopmostAsync();
+                }
             }
-            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException or InvalidOperationException)
+            else
             {
+                await CleanupJsAsync();
             }
         }
-        else if (DialogService.Dialogs.Count > 0 && isInitialized)
+        finally
         {
-            // Re-trap focus on the topmost dialog when the stack changes
-            var topmostId = DialogService.Dialogs[^1].Id;
-            if (focusTrapDialogId != topmostId)
-            {
-                await TrapFocusOnTopmostAsync();
-            }
+            lifecycleGate.Release();
         }
-        else if (DialogService.Dialogs.Count == 0 && isInitialized)
+    }
+
+    private async Task InitializeJsAsync()
+    {
+        // 焦点陷阱不参与 isInitialized 判定：它按顶层对话框逐个重建。
+        await TrapFocusOnTopmostAsync();
+
+        try
         {
-            await CleanupJsAsync();
+            portalModule = await PrimitiveModules.GetAsync(JSRuntime);
+            scrollLockCleanup = await portalModule.InvokeAsync<IJSObjectReference>("portal.lockBodyScroll");
         }
+        catch (Exception ex) when (ex is JSException or TaskCanceledException or ObjectDisposedException or InvalidOperationException)
+        {
+        }
+
+        try
+        {
+            escapeModule = await PrimitiveModules.GetAsync(JSRuntime);
+            dotNetRef = DotNetObjectReference.Create(this);
+            await escapeModule.InvokeVoidAsync("escapeKeydown.initialize", dotNetRef, instanceId);
+        }
+        catch (Exception ex) when (ex is JSException or TaskCanceledException or ObjectDisposedException or InvalidOperationException)
+        {
+        }
+
+        // 至少一项资源建成才算初始化成功；全部失败时保持 false，下轮渲染可重试。
+        isInitialized = scrollLockCleanup is not null || escapeModule is not null;
     }
 
     private async Task TrapFocusOnTopmostAsync()
@@ -123,14 +155,20 @@
             {
                 await focusTrap.DisposeAsync();
             }
-            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            catch (Exception ex) when (ex is JSException or TaskCanceledException or ObjectDisposedException)
             {
             }
             focusTrap = null;
             focusTrapDialogId = null;
         }
 
-        var topmostDialog = DialogService.Dialogs[^1];
+        var dialogs = DialogService.Dialogs;
+        if (dialogs.Count == 0)
+        {
+            return;
+        }
+
+        var topmostDialog = dialogs[^1];
         if (contentRefs.TryGetValue(topmostDialog.Id, out var elementRef))
         {
             try
@@ -138,7 +176,7 @@
                 focusTrap = await FocusManager.TrapFocus(elementRef);
                 focusTrapDialogId = topmostDialog.Id;
             }
-            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException or InvalidOperationException)
+            catch (Exception ex) when (ex is JSException or TaskCanceledException or ObjectDisposedException or InvalidOperationException)
             {
             }
         }
@@ -147,17 +185,33 @@
     [JSInvokable]
     public void JsOnEscapeKey()
     {
-        if (disposed || DialogService.Dialogs.Count == 0)
+        var dialogs = DialogService.Dialogs;
+        if (disposed || dialogs.Count == 0)
         {
             return;
         }
 
-        var topmost = DialogService.Dialogs[^1];
-        InvokeAsync(() => TryBackdropClose(topmost));
+        var topmost = dialogs[^1];
+        _ = InvokeAsync(() => TryBackdropClose(topmost));
     }
 
     private void HandleChange()
-        => InvokeAsync(StateHasChanged);
+    {
+        if (disposed)
+        {
+            return;
+        }
+
+        // 服务事件可能来自任何线程；渲染必须回到渲染器线程。
+        try
+        {
+            _ = InvokeAsync(StateHasChanged);
+        }
+        catch (ObjectDisposedException)
+        {
+            // 事件与注销之间渲染器被销毁：没有可更新的界面。
+        }
+    }
 
     private void TryBackdropClose(DialogData dialog)
     {
@@ -199,7 +253,7 @@
             {
                 await focusTrap.DisposeAsync();
             }
-            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            catch (Exception ex) when (ex is JSException or TaskCanceledException or ObjectDisposedException)
             {
             }
             focusTrap = null;
@@ -212,7 +266,7 @@
             {
                 await scrollLockCleanup.InvokeVoidAsync("apply");
             }
-            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            catch (Exception ex) when (ex is JSException or TaskCanceledException or ObjectDisposedException)
             {
             }
             scrollLockCleanup = null;
@@ -224,7 +278,7 @@
             {
                 await escapeModule.InvokeVoidAsync("escapeKeydown.dispose", instanceId);
             }
-            catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
+            catch (Exception ex) when (ex is JSException or TaskCanceledException or ObjectDisposedException)
             {
             }
             escapeModule = null;
@@ -246,7 +300,18 @@
 
         disposed = true;
         DialogService.OnChange -= HandleChange;
-        await CleanupJsAsync();
+
+        // 等待可能仍在进行中的初始化，避免它在清理之后才把资源挂上。
+        await lifecycleGate.WaitAsync();
+        try
+        {
+            await CleanupJsAsync();
+        }
+        finally
+        {
+            lifecycleGate.Release();
+        }
+
         DialogService.CancelAll();
     }
 }

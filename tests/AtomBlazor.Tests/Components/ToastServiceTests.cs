@@ -166,6 +166,51 @@ public class ToastServiceTests
     }
 
     // ------------------------------------------------------------------
+    // 线程面：通知在锁外、并发入队不丢
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void OnChange回调应可安全回读与再入服务()
+    {
+        var service = Create();
+        var reports = 0;
+        service.OnChange += () =>
+        {
+            // 通知若在锁内触发，跨线程回调就可能阻塞；这里同时验证同线程回读/再入。
+            _ = service.Toasts.Count;
+            _ = service.Position;
+            reports++;
+        };
+
+        service.Show(new ToastData { Description = "锁外通知" });
+        service.SetPosition(ToastPosition.TopLeft);
+        service.ResetPosition();
+        service.DismissAll();
+
+        Assert.Equal(4, reports);
+        Assert.Empty(service.Toasts);
+        Assert.Null(service.Position);
+    }
+
+    [Fact]
+    public async Task 并发Show应完整入队且每枚各播报一次()
+    {
+        var service = Create();
+        var reports = 0;
+        service.OnChange += () => Interlocked.Increment(ref reports);
+
+        await Parallel.ForEachAsync(Enumerable.Range(0, 200), (i, _) =>
+        {
+            service.Show(new ToastData { Id = $"t{i}", Description = $"第{i}条" });
+            return ValueTask.CompletedTask;
+        });
+
+        Assert.Equal(200, service.Toasts.Count);
+        Assert.Equal(200, service.Toasts.Select(t => t.Id).Distinct().Count());
+        Assert.Equal(200, reports);
+    }
+
+    // ------------------------------------------------------------------
     // 位置面：SetPosition / ResetPosition 与优先级语义
     // ------------------------------------------------------------------
 

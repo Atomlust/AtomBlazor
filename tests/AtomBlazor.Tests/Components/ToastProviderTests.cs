@@ -439,6 +439,24 @@ public class ToastProviderTests
     }
 
     [Fact]
+    public async Task 后台线程入队的toast应经分发器渲染且计时器仍生效()
+    {
+        var (renderer, service, provider) = await MountAsync();
+
+        await Task.Run(() => service.Show(new ToastData { Description = "后台来的", Duration = 150 }));
+
+        Assert.True(
+            await WaitUntilAsync(renderer, m => m.Contains("后台来的", StringComparison.Ordinal)),
+            "后台线程触发的 OnChange 未在渲染器线程上兑现");
+        Assert.True(
+            await WaitUntilAsync(renderer, m => !m.Contains("后台来的", StringComparison.Ordinal)),
+            "后台入队的 toast 自动关闭计时器未生效");
+        Assert.Empty(service.Toasts);
+
+        await DisposeProviderAsync(renderer, provider);
+    }
+
+    [Fact]
     public async Task 正时长toast应在容差内自动关闭()
     {
         var (renderer, service, provider) = await MountAsync();

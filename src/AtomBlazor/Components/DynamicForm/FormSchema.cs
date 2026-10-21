@@ -1,4 +1,5 @@
 using AtomBlazor.Primitives;
+using System.Text.Json.Serialization;
 
 namespace AtomBlazor;
 
@@ -155,6 +156,21 @@ public class FormFieldDefinition
     /// 获取或设置此字段的验证规则。
     /// </summary>
     public List<FieldValidation>? Validations { get; set; }
+
+    /// <summary>
+    /// 获取或设置自定义同步校验器：返回非 null 错误消息表示校验失败。
+    /// 仅在 <see cref="Validations"/> 含 <see cref="ValidationType.Custom"/> 规则时执行，
+    /// 且优先于 <see cref="Metadata"/> 中的 <c>customValidator</c>。
+    /// </summary>
+    [JsonIgnore]
+    public Func<object?, string?>? CustomValidator { get; set; }
+
+    /// <summary>
+    /// 获取或设置自定义异步校验器：返回非 null 错误消息表示校验失败。
+    /// 仅在 <see cref="Validations"/> 含 <see cref="ValidationType.Custom"/> 规则时执行。
+    /// </summary>
+    [JsonIgnore]
+    public Func<object?, CancellationToken, ValueTask<string?>>? AsyncValidator { get; set; }
 
     /// <summary>
     /// 获取或设置字段类型专属配置的附加元数据。

@@ -10,7 +10,7 @@ namespace AtomBlazor;
 /// 为每行渲染一个箭头（chevron）按钮，用于切换明细内容的可见性。
 /// </summary>
 /// <typeparam name="TData">表格中数据项的类型。</typeparam>
-public partial class DataGridExpandColumn<TData> : ComponentBase, IDataGridColumn<TData>
+public partial class DataGridExpandColumn<TData> : ComponentBase, IDataGridColumn<TData>, IDisposable
     where TData : class
 {
     /// <summary>
@@ -92,5 +92,12 @@ public partial class DataGridExpandColumn<TData> : ComponentBase, IDataGridColum
         }
 
         ParentGrid.RegisterColumn(this);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        ParentGrid?.UnregisterColumn(this);
+        GC.SuppressFinalize(this);
     }
 }

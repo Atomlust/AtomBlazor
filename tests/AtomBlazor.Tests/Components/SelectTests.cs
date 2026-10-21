@@ -588,6 +588,37 @@ public class SelectTests
     }
 
     [Fact]
+    public async Task 受控父级把Value置空应回到占位符()
+    {
+        var (renderer, _) = CreateRenderer();
+        var callback = EventCallback.Factory.Create<string?>(new object(), _ => { });
+        Func<string, string> displayText = value => value == "b" ? "香蕉" : "苹果";
+
+        await renderer.MountAsync<CSelect>(new Dictionary<string, object?>
+        {
+            [nameof(CSelect.Value)] = "b",
+            [nameof(CSelect.ValueChanged)] = callback,
+            [nameof(CSelect.DisplayTextSelector)] = displayText,
+            [nameof(CSelect.ChildContent)] = StyledFamily(),
+        });
+        await SettleAsync(renderer);
+        Assert.Contains("香蕉", renderer.Markup());
+
+        await renderer.Dispatcher.InvokeAsync(() => renderer.RerenderRootAsync(0, new Dictionary<string, object?>
+        {
+            [nameof(CSelect.Value)] = null,
+            [nameof(CSelect.ValueChanged)] = callback,
+            [nameof(CSelect.DisplayTextSelector)] = displayText,
+            [nameof(CSelect.ChildContent)] = StyledFamily(),
+        }));
+        await SettleAsync(renderer);
+
+        var markup = renderer.Markup();
+        Assert.Contains("请选择", markup);
+        Assert.DoesNotContain("香蕉", markup);
+    }
+
+    [Fact]
     public async Task 禁用态应吞掉触发点击并播报aria禁用()
     {
         var (renderer, _) = CreateRenderer();

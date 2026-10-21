@@ -14,7 +14,7 @@ namespace AtomBlazor;
 /// 原因与选择列、展开列相同：它是一个控件，而非数据。
 /// </remarks>
 /// <typeparam name="TData">表格中数据项的类型。</typeparam>
-public partial class DataGridEditColumn<TData> : ComponentBase, IDataGridColumn<TData>
+public partial class DataGridEditColumn<TData> : ComponentBase, IDataGridColumn<TData>, IDisposable
     where TData : class
 {
     /// <summary>
@@ -95,5 +95,12 @@ public partial class DataGridEditColumn<TData> : ComponentBase, IDataGridColumn<
         }
 
         ParentGrid.RegisterColumn(this);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        ParentGrid?.UnregisterColumn(this);
+        GC.SuppressFinalize(this);
     }
 }

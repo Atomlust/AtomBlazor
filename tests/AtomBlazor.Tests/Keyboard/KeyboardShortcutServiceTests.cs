@@ -183,17 +183,92 @@ public class KeyboardShortcutServiceTests
     }
 
     [Fact]
-    public async Task 同键串重复注册应覆盖旧登记且新回调生效()
+    public async Task 同键串多次注册应各自生效且释放其一不影响其余()
     {
-        var (service, _) = CreateService();
+        var (service, js) = CreateService();
+        var calls = new List<string>();
+
+        var oldRegistration = await service.RegisterAsync(
+            "Ctrl+S", () => { calls.Add("old"); return Task.CompletedTask; }, "old");
+        var newRegistration = await service.RegisterAsync(
+            "Ctrl+S", () => { calls.Add("new"); return Task.CompletedTask; }, "new");
+
+        // 同一组合键只向 JS 登记一次。
+        Assert.Single(js.Invocations, i => i.Identifier == "keyboardShortcuts.registerShortcut");
+
+        await service.HandleShortcutAsync("ctrl+s");
+        Assert.Equal(["old", "new"], calls);
+
+        oldRegistration.Dispose();
+        Assert.DoesNotContain(js.Invocations, i => i.Identifier == "keyboardShortcuts.unregisterShortcut");
+
+        calls.Clear();
+        await service.HandleShortcutAsync("ctrl+s");
+        Assert.Equal(["new"], calls);
+
+        newRegistration.Dispose();
+        var unregister = Assert.Single(js.Invocations, i => i.Identifier == "keyboardShortcuts.unregisterShortcut");
+        Assert.Equal("ctrl+s", unregister.Args![0]);
+
+        calls.Clear();
+        await service.HandleShortcutAsync("ctrl+s");
+        Assert.Empty(calls);
+    }
+
+    [Fact]
+    public async Task Unregister按ID只移除对应登记()
+    {
+        var (service, js) = CreateService();
         var calls = new List<string>();
 
         await service.RegisterAsync("Ctrl+S", () => { calls.Add("old"); return Task.CompletedTask; }, "old");
         await service.RegisterAsync("Ctrl+S", () => { calls.Add("new"); return Task.CompletedTask; }, "new");
 
-        await service.HandleShortcutAsync("ctrl+s");
+        service.Unregister("old");
+        Assert.DoesNotContain(js.Invocations, i => i.Identifier == "keyboardShortcuts.unregisterShortcut");
 
+        await service.HandleShortcutAsync("ctrl+s");
         Assert.Equal(["new"], calls);
+
+        service.Unregister("new");
+        Assert.Single(js.Invocations, i => i.Identifier == "keyboardShortcuts.unregisterShortcut");
+    }
+
+    [Fact]
+    public async Task 相同ID重新注册应替换旧键串登记()
+    {
+        var (service, js) = CreateService();
+        var calls = new List<string>();
+
+        await service.RegisterAsync("Ctrl+S", () => { calls.Add("s"); return Task.CompletedTask; }, "same");
+        await service.RegisterAsync("Ctrl+K", () => { calls.Add("k"); return Task.CompletedTask; }, "same");
+
+        var register = Assert.Single(
+            js.Invocations,
+            i => i.Identifier == "keyboardShortcuts.registerShortcut" && (string?)i.Args![0] == "ctrl+k");
+        Assert.Equal("ctrl+k", register.Args![0]);
+        var unregister = Assert.Single(js.Invocations, i => i.Identifier == "keyboardShortcuts.unregisterShortcut");
+        Assert.Equal("ctrl+s", unregister.Args![0]);
+
+        await service.HandleShortcutAsync("ctrl+s");
+        Assert.Empty(calls);
+
+        await service.HandleShortcutAsync("ctrl+k");
+        Assert.Equal(["k"], calls);
+    }
+
+    [Fact]
+    public async Task 同键多个回调中单个抛错不应阻止其余回调()
+    {
+        var (service, _) = CreateService();
+        var hit = 0;
+
+        await service.RegisterAsync("Ctrl+N", () => throw new InvalidOperationException("boom"), "throwing");
+        await service.RegisterAsync("Ctrl+N", () => { hit++; return Task.CompletedTask; }, "healthy");
+
+        await service.HandleShortcutAsync("ctrl+n");
+
+        Assert.Equal(1, hit);
     }
 
     // ------------------------------------------------------------------

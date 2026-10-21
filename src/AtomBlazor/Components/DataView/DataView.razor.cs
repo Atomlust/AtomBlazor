@@ -790,14 +790,12 @@ public partial class DataView<TItem> : ComponentBase, IAsyncDisposable where TIt
     {
         _paginationVersion++;
         await ProcessDataAsync();
-        StateHasChanged();
     }
 
     private async Task HandlePageSizeChanged(int newPageSize)
     {
         _paginationVersion++;
         await ProcessDataAsync();
-        StateHasChanged();
     }
 
     /// <summary>
@@ -828,7 +826,6 @@ public partial class DataView<TItem> : ComponentBase, IAsyncDisposable where TIt
         }
 
         _isLoadingMore = false;
-        StateHasChanged();
     }
 
     private void SetLayout(DataViewLayout layout)

@@ -41,19 +41,13 @@ public class UseControllableState<T>
 
     /// <summary>
     /// 获取当前值（受控或非受控）。
-    /// 若受控值与非受控值均为 null，则回退到默认值。
     /// </summary>
-    public T Value
-    {
-        get
-        {
-            if (IsControlled)
-            {
-                return ControlledValue ?? _defaultValue;
-            }
-            return _uncontrolledValue ?? _defaultValue;
-        }
-    }
+    /// <remarks>
+    /// 默认值只用于初始化非受控状态，绝不是 null 的兜底：受控模式下
+    /// <see langword="null"/> 是父级明确要求的值（例如清空选择），必须原样返回；
+    /// 非受控模式下 <see cref="SetValueAsync"/> 写入的 null 同样生效。
+    /// </remarks>
+    public T Value => IsControlled ? ControlledValue! : _uncontrolledValue!;
 
     /// <summary>
     /// 设置取值，更新受控或非受控状态。
@@ -99,7 +93,11 @@ public static class UseControllableStateExtensions
     /// <param name="controlledValue">受控值参数。</param>
     /// <param name="onValueChanged">值变化回调。</param>
     /// <param name="defaultValue">非受控模式下的默认值。</param>
-    /// <param name="isControlled">组件是否处于受控模式（通常是：controlledValue != null）。</param>
+    /// <param name="isControlled">
+    /// 组件是否处于受控模式。未显式指定时仅依据是否绑定了变化回调推断；
+    /// 绝不能依据 <paramref name="controlledValue"/> 是否为 null 推断——
+    /// null 是合法的受控值（例如清空选择）。
+    /// </param>
     /// <returns>配置完成的受控状态管理器。</returns>
     public static UseControllableState<T> Create<T>(
         T? controlledValue,
@@ -111,8 +109,7 @@ public static class UseControllableStateExtensions
         {
             ControlledValue = controlledValue,
             OnValueChanged = onValueChanged,
-            // 未显式指定时，依据回调是否携带委托来推断
-            IsControlled = isControlled ?? (onValueChanged.HasDelegate && controlledValue != null)
+            IsControlled = isControlled ?? onValueChanged.HasDelegate
         };
     }
 }

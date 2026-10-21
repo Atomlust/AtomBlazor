@@ -16,7 +16,7 @@ namespace AtomBlazor;
 /// </summary>
 /// <typeparam name="TData">表格中数据项的类型。</typeparam>
 /// <typeparam name="TProp">本列所绑定属性的类型。</typeparam>
-public partial class DataGridPropertyColumn<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] TData, TProp> : ComponentBase, IDataGridColumn<TData>, IFilterableColumn
+public partial class DataGridPropertyColumn<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] TData, TProp> : ComponentBase, IDataGridColumn<TData>, IFilterableColumn, IDisposable
     where TData : class
 {
     private string? resolvedTitle;
@@ -392,6 +392,26 @@ public partial class DataGridPropertyColumn<[DynamicallyAccessedMembers(Dynamica
 
     public LambdaExpression? GetSortExpression() => SortAndFilterBy ?? (LambdaExpression)Property;
 
+    public IOrderedQueryable<TData>? ApplyOrderBy(IQueryable<TData> source, bool descending)
+    {
+        if (SortAndFilterBy != null)
+        {
+            return null;
+        }
+
+        return descending ? source.OrderByDescending(Property) : source.OrderBy(Property);
+    }
+
+    public IOrderedQueryable<TData>? ApplyThenBy(IOrderedQueryable<TData> source, bool descending)
+    {
+        if (SortAndFilterBy != null)
+        {
+            return null;
+        }
+
+        return descending ? source.ThenByDescending(Property) : source.ThenBy(Property);
+    }
+
     public LambdaExpression? GetFilterExpression() =>
         Filterable ? SortAndFilterBy ?? (LambdaExpression)Property : null;
 
@@ -474,6 +494,13 @@ public partial class DataGridPropertyColumn<[DynamicallyAccessedMembers(Dynamica
         }
 
         ParentGrid.RegisterColumn(this);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        ParentGrid?.UnregisterColumn(this);
+        GC.SuppressFinalize(this);
     }
 
     private string GetColumnId()

@@ -200,13 +200,6 @@
     /// 比一张图像更小，且可经 <see cref="SetStrokesAsync"/> 回放。时间戳一并随行——
     /// 事后核查签名是如何写下时，需要的正是这些时间。
     /// </remarks>
-    // IL2026/IL3050（IsAotCompatible，沿 FormFieldBase 先例）：反序列化目标为已知的
-    // SignatureStroke/SignaturePoint 记录类型，裁剪与 AOT 下均可静态分析保活，
-    // 仅为反射式 JsonSerializer 泛形入口的保守标注所阻。
-    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026: 与反射相关的标注可能导致运行时缺失项",
-        Justification = "目标类型为已知的 SignatureStroke 记录，随程序集保活。")]
-    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("AOT", "IL3050: 调用标注了 RequiresDynamicCode 的方法",
-        Justification = "目标类型为已知的 SignatureStroke 记录，随程序集保活。")]
     public async Task<IReadOnlyList<SignatureStroke>> GetStrokesAsync()
     {
         var bytes = await ReadStreamAsync("signaturePad.toStrokesStream");
@@ -215,7 +208,7 @@
             return Array.Empty<SignatureStroke>();
         }
 
-        return JsonSerializer.Deserialize<IReadOnlyList<SignatureStroke>>(bytes, strokeJson)
+        return JsonSerializer.Deserialize(bytes, SignaturePadJsonContext.Default.Strokes)
             ?? Array.Empty<SignatureStroke>();
     }
 
@@ -255,9 +248,6 @@
             return false;
         }
     }
-
-    private static readonly JsonSerializerOptions strokeJson =
-        new(JsonSerializerDefaults.Web);
 
     /// <summary>
     /// 本组件接受的导出内容大小上限，以字节计。足以容纳大画板上一份细节丰富的签名，

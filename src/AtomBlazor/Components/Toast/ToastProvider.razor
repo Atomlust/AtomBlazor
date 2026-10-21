@@ -40,6 +40,7 @@
 
 @code {
     private readonly Dictionary<string, ToastTimerState> timerStates = new();
+    private IReadOnlyList<ToastData> toastSnapshot = Array.Empty<ToastData>();
     private bool disposed;
 
     /// <summary>
@@ -90,12 +91,40 @@
     protected override void OnInitialized()
     {
         ToastService.OnChange += HandleToastsChanged;
+        toastSnapshot = ToastService.Toasts;
     }
 
     private void HandleToastsChanged()
     {
+        if (disposed)
+        {
+            return;
+        }
+
+        // 事件可能来自任意线程（后台任务、并发的服务调用）；计时器表与渲染
+        // 都只能落在渲染器线程上，因此在入口处整体派发，而不是改动之后再补一次重渲染。
+        try
+        {
+            _ = InvokeAsync(SynchronizeToasts);
+        }
+        catch (ObjectDisposedException)
+        {
+            // 事件与注销之间渲染器被销毁：没有可更新的界面。
+        }
+    }
+
+    private void SynchronizeToasts()
+    {
+        if (disposed)
+        {
+            return;
+        }
+
+        var current = ToastService.Toasts;
+        toastSnapshot = current;
+
         // 为新到的 toast 启动计时器
-        foreach (var toast in ToastService.Toasts)
+        foreach (var toast in current)
         {
             if (!timerStates.ContainsKey(toast.Id) && toast.Duration > 0)
             {
@@ -106,79 +135,127 @@
         }
 
         // 清理陈旧条目（已被外部移除的 toast）
-        var activeIds = new HashSet<string>(ToastService.Toasts.Select(t => t.Id));
+        var activeIds = new HashSet<string>(current.Select(t => t.Id));
         var staleIds = timerStates.Keys.Where(id => !activeIds.Contains(id)).ToList();
         foreach (var id in staleIds)
         {
-            if (timerStates.TryGetValue(id, out var state))
-            {
-                state.Dismissed = true;
-                state.Cts?.Cancel();
-                state.ResumeSignal?.TrySetResult();
-            }
-            timerStates.Remove(id);
+            RemoveTimerState(id);
         }
 
-        InvokeAsync(StateHasChanged);
+        StateHasChanged();
     }
 
-    private async Task RunDismissTimerAsync(string id, ToastTimerState state)
+    private void RemoveTimerState(string id)
     {
-        while (state.RemainingMs > 0 && !state.Dismissed && !disposed)
+        if (!timerStates.TryGetValue(id, out var state))
         {
-            state.Cts?.Dispose();
-            state.Cts = new CancellationTokenSource();
-            var segmentStart = DateTime.UtcNow;
-
-            try
-            {
-                await Task.Delay(state.RemainingMs, state.Cts.Token);
-                state.RemainingMs = 0;
-            }
-            catch (OperationCanceledException)
-            {
-                var elapsed = (int)(DateTime.UtcNow - segmentStart).TotalMilliseconds;
-                state.RemainingMs = Math.Max(0, state.RemainingMs - elapsed);
-
-                if (state.Dismissed || disposed)
-                {
-                    return;
-                }
-
-                var tcs = new TaskCompletionSource();
-                state.ResumeSignal = tcs;
-
-                if (!state.IsPaused)
-                {
-                    state.ResumeSignal = null;
-                    continue;
-                }
-
-                await tcs.Task;
-                state.ResumeSignal = null;
-
-                if (state.Dismissed || disposed)
-                {
-                    return;
-                }
-            }
+            return;
         }
 
-        if (!state.Dismissed && !disposed)
-        {
-            state.Dismissed = true;
-            await InvokeAsync(() => ToastService.Dismiss(id));
-        }
-    }
-
-    private void HandleDismiss(string id)
-    {
-        if (timerStates.TryGetValue(id, out var state))
+        timerStates.Remove(id);
+        lock (state.Gate)
         {
             state.Dismissed = true;
             state.Cts?.Cancel();
             state.ResumeSignal?.TrySetResult();
         }
+    }
+
+    private async Task RunDismissTimerAsync(string id, ToastTimerState state)
+    {
+        while (true)
+        {
+            CancellationTokenSource cts;
+            int delayMs;
+            lock (state.Gate)
+            {
+                if (state.Dismissed || disposed || state.RemainingMs <= 0)
+                {
+                    break;
+                }
+
+                state.Cts?.Dispose();
+                state.Cts = new CancellationTokenSource();
+                cts = state.Cts;
+                delayMs = state.RemainingMs;
+            }
+
+            var segmentStart = DateTime.UtcNow;
+            try
+            {
+                await Task.Delay(delayMs, cts.Token).ConfigureAwait(false);
+                lock (state.Gate)
+                {
+                    state.RemainingMs = 0;
+                }
+            }
+            catch (OperationCanceledException) when (cts.IsCancellationRequested)
+            {
+                var elapsed = (int)(DateTime.UtcNow - segmentStart).TotalMilliseconds;
+                TaskCompletionSource? resume = null;
+
+                lock (state.Gate)
+                {
+                    state.RemainingMs = Math.Max(0, state.RemainingMs - elapsed);
+
+                    if (state.Dismissed || disposed)
+                    {
+                        return;
+                    }
+
+                    if (state.IsPaused)
+                    {
+                        resume = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                        state.ResumeSignal = resume;
+                    }
+                }
+
+                if (resume is null)
+                {
+                    continue;
+                }
+
+                await resume.Task.ConfigureAwait(false);
+                lock (state.Gate)
+                {
+                    if (ReferenceEquals(state.ResumeSignal, resume))
+                    {
+                        state.ResumeSignal = null;
+                    }
+
+                    if (state.Dismissed || disposed)
+                    {
+                        return;
+                    }
+                }
+            }
+        }
+
+        bool shouldDismiss;
+        lock (state.Gate)
+        {
+            shouldDismiss = !state.Dismissed && !disposed;
+            state.Dismissed = true;
+        }
+
+        if (!shouldDismiss)
+        {
+            return;
+        }
+
+        try
+        {
+            await InvokeAsync(() => ToastService.Dismiss(id));
+        }
+        catch (ObjectDisposedException)
+        {
+            // 渲染器在计时器到点与关闭之间被销毁。
+        }
+    }
+
+    private void HandleDismiss(string id)
+    {
+        RemoveTimerState(id);
         ToastService.Dismiss(id);
     }
 
@@ -191,8 +268,11 @@
 
         if (timerStates.TryGetValue(id, out var state))
         {
-            state.IsPaused = true;
-            state.Cts?.Cancel();
+            lock (state.Gate)
+            {
+                state.IsPaused = true;
+                state.Cts?.Cancel();
+            }
         }
     }
 
@@ -205,8 +285,11 @@
 
         if (timerStates.TryGetValue(id, out var state))
         {
-            state.IsPaused = false;
-            state.ResumeSignal?.TrySetResult();
+            lock (state.Gate)
+            {
+                state.IsPaused = false;
+                state.ResumeSignal?.TrySetResult();
+            }
         }
     }
 
@@ -214,7 +297,7 @@
 
     private IEnumerable<ToastPosition> GetCustomPositions()
     {
-        return ToastService.Toasts
+        return toastSnapshot
             .Where(t => t.Position.HasValue)
             .Select(t => t.Position!.Value)
             .Distinct();
@@ -223,8 +306,8 @@
     private IEnumerable<ToastData> GetToastsForPosition(ToastPosition? position)
     {
         var forPosition = position.HasValue
-            ? ToastService.Toasts.Where(t => t.Position == position)
-            : ToastService.Toasts.Where(t => !t.Position.HasValue);
+            ? toastSnapshot.Where(t => t.Position == position)
+            : toastSnapshot.Where(t => !t.Position.HasValue);
 
         // 服务按追加顺序存放，所以最新的那些排在末尾——要显示的就是它们。
         return MaxToasts > 0 ? forPosition.TakeLast(MaxToasts) : forPosition;
@@ -255,12 +338,16 @@
 
         foreach (var state in timerStates.Values)
         {
-            state.Dismissed = true;
-            state.Cts?.Cancel();
-            state.Cts?.Dispose();
-            state.ResumeSignal?.TrySetResult();
+            lock (state.Gate)
+            {
+                state.Dismissed = true;
+                state.Cts?.Cancel();
+                state.Cts?.Dispose();
+                state.ResumeSignal?.TrySetResult();
+            }
         }
         timerStates.Clear();
+        toastSnapshot = Array.Empty<ToastData>();
 
         GC.SuppressFinalize(this);
         return ValueTask.CompletedTask;
@@ -268,6 +355,8 @@
 
     private class ToastTimerState
     {
+        /// <summary>计时器循环可能在任意线程恢复，状态字段统一由该锁保护。</summary>
+        public object Gate { get; } = new();
         public CancellationTokenSource? Cts { get; set; }
         public TaskCompletionSource? ResumeSignal { get; set; }
         public int RemainingMs { get; set; }

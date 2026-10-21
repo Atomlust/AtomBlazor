@@ -89,6 +89,23 @@ public class LocalizerTests
     }
 
     [Fact]
+    public void 并发Set与读取不应破坏本地化器()
+    {
+        var localizer = new DefaultLocalizer();
+
+        Parallel.For(0, 2000, i =>
+        {
+            var key = $"Concurrent.Key{i % 64}";
+            localizer.Set(key, $"v{i}");
+            _ = localizer[key];
+            _ = localizer["Alert.Dismiss"];
+        });
+
+        Assert.StartsWith("v", localizer["Concurrent.Key0"]);
+        Assert.Equal("Dismiss", localizer["Alert.Dismiss"]);
+    }
+
+    [Fact]
     public void 格式化应遵循当前区域文化()
     {
         // string.Format(CurrentCulture) 语义：断言与进程文化一致即可

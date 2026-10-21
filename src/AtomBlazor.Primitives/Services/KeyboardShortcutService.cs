@@ -7,15 +7,22 @@ namespace AtomBlazor.Primitives.Services;
 /// <summary>
 /// 使用 JavaScript interop 做全局键盘处理的全局快捷键服务实现。
 /// </summary>
+/// <remarks>
+/// 同一组合键可以同时被多个注册占用。服务按组合键维护引用计数，
+/// 只有最后一个注册释放时才通知 JavaScript 注销该键。
+/// </remarks>
 public class KeyboardShortcutService : IKeyboardShortcutService
 {
     private readonly IJSRuntime _jsRuntime;
-    private readonly Dictionary<string, ShortcutRegistration> _shortcuts = new();
+    private readonly object _stateLock = new();
+    private readonly Dictionary<string, List<ShortcutRegistration>> _registrationsByKey = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, ShortcutRegistration> _registrationsById = new(StringComparer.Ordinal);
     private readonly SemaphoreSlim _moduleLock = new(1, 1);
+    private readonly SemaphoreSlim _registrationLock = new(1, 1);
     private IJSObjectReference? _module;
     private DotNetObjectReference<KeyboardShortcutService>? _dotNetRef;
-    private bool _suspended;
-    private bool _disposed;
+    private volatile bool _suspended;
+    private volatile bool _disposed;
     private int _registrationCounter;
 
     /// <summary>
@@ -40,6 +47,8 @@ public class KeyboardShortcutService : IKeyboardShortcutService
     /// <inheritdoc />
     public async Task<IDisposable> RegisterAsync(string shortcut, Func<Task> callback, string id)
     {
+        ArgumentNullException.ThrowIfNull(callback);
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ObjectDisposedException.ThrowIf(_disposed, nameof(KeyboardShortcutService));
 
         var parsed = KeyboardShortcut.Parse(shortcut);
@@ -47,29 +56,97 @@ public class KeyboardShortcutService : IKeyboardShortcutService
 
         await EnsureInitializedAsync();
 
- // 在服务侧登记
-        var registration = new ShortcutRegistration(id, parsed, callback);
-        _shortcuts[normalizedKey] = registration;
-
- // 在 JavaScript 侧登记
-        if (_module != null)
+        // 串行化注册：JS 侧的登记/注销顺序与引用计数保持一致。
+        await _registrationLock.WaitAsync();
+        try
         {
-            // BL0016（.NET 11）：断线/预渲染守卫留给调用方组件，服务只做转发
-#pragma warning disable BL0016
-            await _module.InvokeVoidAsync("keyboardShortcuts.registerShortcut", normalizedKey);
-#pragma warning restore BL0016
-        }
+            ObjectDisposedException.ThrowIf(_disposed, nameof(KeyboardShortcutService));
 
-        return new ShortcutHandle(this, normalizedKey, id);
+            var registration = new ShortcutRegistration(id, normalizedKey, callback);
+            ShortcutRegistration? previous;
+            bool isFirstForKey;
+            bool keyChanged;
+
+            lock (_stateLock)
+            {
+                _registrationsById.TryGetValue(id, out previous);
+                if (previous is not null)
+                {
+                    RemoveRegistration(previous);
+                }
+
+                keyChanged = previous is null || previous.NormalizedKey != normalizedKey;
+                isFirstForKey = !_registrationsByKey.ContainsKey(normalizedKey);
+                AddRegistration(registration);
+            }
+
+            try
+            {
+                if (keyChanged && previous is not null && IsKeyUnregistered(previous.NormalizedKey))
+                {
+                    await InvokeUnregisterAsync(previous.NormalizedKey);
+                }
+
+                if (isFirstForKey)
+                {
+                    await InvokeRegisterAsync(normalizedKey);
+                }
+            }
+            catch
+            {
+                // 恢复注册表，避免 JS 调用失败后留下无法释放的登记。
+                lock (_stateLock)
+                {
+                    if (_registrationsById.TryGetValue(id, out var current) && ReferenceEquals(current, registration))
+                    {
+                        RemoveRegistration(registration);
+                    }
+
+                    if (previous is not null)
+                    {
+                        AddRegistration(previous);
+                    }
+                }
+
+                throw;
+            }
+
+            return new ShortcutHandle(this, id);
+        }
+        finally
+        {
+            _registrationLock.Release();
+        }
     }
 
     /// <inheritdoc />
     public void Unregister(string id)
     {
-        var toRemove = _shortcuts.FirstOrDefault(kvp => kvp.Value.Id == id);
-        if (toRemove.Key != null)
+        if (_disposed || string.IsNullOrEmpty(id))
         {
-            UnregisterInternal(toRemove.Key);
+            return;
+        }
+
+        string? keyToUnregister = null;
+
+        lock (_stateLock)
+        {
+            if (!_registrationsById.TryGetValue(id, out var registration))
+            {
+                return;
+            }
+
+            RemoveRegistration(registration);
+            if (!_registrationsByKey.ContainsKey(registration.NormalizedKey))
+            {
+                keyToUnregister = registration.NormalizedKey;
+            }
+        }
+
+        if (keyToUnregister is not null)
+        {
+            // 从 JS 侧注销采用发后即忘；断线时随电路一并消散。
+            UnregisterFromJs(keyToUnregister);
         }
     }
 
@@ -80,7 +157,7 @@ public class KeyboardShortcutService : IKeyboardShortcutService
     public void Resume() => _suspended = false;
 
     /// <summary>
- /// 由 JavaScript 在已登记的快捷键被按下时调用。
+    /// 由 JavaScript 在已登记的快捷键被按下时调用。
     /// </summary>
     /// <param name="normalizedKey">规范化后的组合键（例如 "ctrl+n"）。</param>
     [JSInvokable]
@@ -98,7 +175,20 @@ public class KeyboardShortcutService : IKeyboardShortcutService
             return;
         }
 
-        if (_shortcuts.TryGetValue(normalizedKey, out var registration))
+        ShortcutRegistration[] registrations;
+        lock (_stateLock)
+        {
+            if (!_registrationsByKey.TryGetValue(normalizedKey, out var keyRegistrations) ||
+                keyRegistrations.Count == 0)
+            {
+                return;
+            }
+
+            registrations = keyRegistrations.ToArray();
+        }
+
+        // 回调在锁外执行：允许回调内注册/注销或打开对话框。
+        foreach (var registration in registrations)
         {
             try
             {
@@ -106,7 +196,7 @@ public class KeyboardShortcutService : IKeyboardShortcutService
             }
             catch (Exception ex)
             {
-                // 记录并吞下异常——不让它传播回 JS
+                // 记录并吞下异常——不让它传播回 JS，也不阻断同键的其他回调。
                 Console.Error.WriteLine($"处理键盘快捷键 '{normalizedKey}' 时出错：{ex.Message}");
             }
         }
@@ -122,7 +212,12 @@ public class KeyboardShortcutService : IKeyboardShortcutService
 
         GC.SuppressFinalize(this);
         _disposed = true;
-        _shortcuts.Clear();
+
+        lock (_stateLock)
+        {
+            _registrationsByKey.Clear();
+            _registrationsById.Clear();
+        }
 
         if (_module != null)
         {
@@ -138,6 +233,7 @@ public class KeyboardShortcutService : IKeyboardShortcutService
 
         _dotNetRef?.Dispose();
         _moduleLock.Dispose();
+        _registrationLock.Dispose();
     }
 
     private async Task EnsureInitializedAsync()
@@ -150,17 +246,30 @@ public class KeyboardShortcutService : IKeyboardShortcutService
         await _moduleLock.WaitAsync();
         try
         {
-            if (_module == null)
+            if (_module != null)
             {
-                _dotNetRef = DotNetObjectReference.Create(this);
-                _module = await PrimitiveModules.GetAsync(_jsRuntime);
+                return;
+            }
 
+            var module = await PrimitiveModules.GetAsync(_jsRuntime);
+            var dotNetRef = DotNetObjectReference.Create(this);
+            try
+            {
                 // BL0016（.NET 11）：初始化失败必须抛回调用方（注册即失败），
                 // 断线恢复语义由组件决定
 #pragma warning disable BL0016
-                await _module.InvokeVoidAsync("keyboardShortcuts.initialize", _dotNetRef);
+                await module.InvokeVoidAsync("keyboardShortcuts.initialize", dotNetRef);
 #pragma warning restore BL0016
             }
+            catch
+            {
+                // 初始化失败时不发布半初始化的模块，允许后续注册重试。
+                dotNetRef.Dispose();
+                throw;
+            }
+
+            _dotNetRef = dotNetRef;
+            _module = module;
         }
         finally
         {
@@ -168,27 +277,88 @@ public class KeyboardShortcutService : IKeyboardShortcutService
         }
     }
 
-    private void UnregisterInternal(string normalizedKey)
+    private bool IsKeyUnregistered(string normalizedKey)
     {
-        if (_shortcuts.Remove(normalizedKey) && _module != null)
+        lock (_stateLock)
         {
-            // 从 JS 侧注销采用发后即忘
-#pragma warning disable BL0016 // 同上：注销尽力而为，断线时随电路一并消散
-            _ = _module.InvokeVoidAsync("keyboardShortcuts.unregisterShortcut", normalizedKey).AsTask();
+            return !_registrationsByKey.ContainsKey(normalizedKey);
+        }
+    }
+
+    private async Task InvokeRegisterAsync(string normalizedKey)
+    {
+        if (_module is null)
+        {
+            return;
+        }
+
+        // BL0016（.NET 11）：断线/预渲染守卫留给调用方组件，服务只做转发
+#pragma warning disable BL0016
+        await _module.InvokeVoidAsync("keyboardShortcuts.registerShortcut", normalizedKey);
 #pragma warning restore BL0016
+    }
+
+    private async Task InvokeUnregisterAsync(string normalizedKey)
+    {
+        if (_module is null)
+        {
+            return;
+        }
+
+#pragma warning disable BL0016
+        await _module.InvokeVoidAsync("keyboardShortcuts.unregisterShortcut", normalizedKey);
+#pragma warning restore BL0016
+    }
+
+    private void UnregisterFromJs(string normalizedKey)
+    {
+        if (_module == null)
+        {
+            return;
+        }
+
+#pragma warning disable BL0016 // 同上：注销尽力而为，断线时随电路一并消散
+        _ = _module.InvokeVoidAsync("keyboardShortcuts.unregisterShortcut", normalizedKey).AsTask();
+#pragma warning restore BL0016
+    }
+
+    // 以下两个方法必须在 _stateLock 内调用。
+    private void AddRegistration(ShortcutRegistration registration)
+    {
+        if (!_registrationsByKey.TryGetValue(registration.NormalizedKey, out var keyRegistrations))
+        {
+            keyRegistrations = [];
+            _registrationsByKey[registration.NormalizedKey] = keyRegistrations;
+        }
+
+        keyRegistrations.Add(registration);
+        _registrationsById[registration.Id] = registration;
+    }
+
+    private void RemoveRegistration(ShortcutRegistration registration)
+    {
+        _registrationsById.Remove(registration.Id);
+
+        if (_registrationsByKey.TryGetValue(registration.NormalizedKey, out var keyRegistrations))
+        {
+            keyRegistrations.Remove(registration);
+            if (keyRegistrations.Count == 0)
+            {
+                _registrationsByKey.Remove(registration.NormalizedKey);
+            }
         }
     }
 
     private sealed class ShortcutRegistration
     {
         public string Id { get; }
-        public KeyboardShortcut Shortcut { get; }
+        public string NormalizedKey { get; }
         public Func<Task> Callback { get; }
 
-        public ShortcutRegistration(string id, KeyboardShortcut shortcut, Func<Task> callback)
+        public ShortcutRegistration(string id, string normalizedKey, Func<Task> callback)
         {
             Id = id;
-            Shortcut = shortcut;
+            NormalizedKey = normalizedKey;
             Callback = callback;
         }
     }
@@ -196,14 +366,12 @@ public class KeyboardShortcutService : IKeyboardShortcutService
     private sealed class ShortcutHandle : IDisposable
     {
         private readonly KeyboardShortcutService _service;
-        private readonly string _normalizedKey;
         private readonly string _id;
         private bool _disposed;
 
-        public ShortcutHandle(KeyboardShortcutService service, string normalizedKey, string id)
+        public ShortcutHandle(KeyboardShortcutService service, string id)
         {
             _service = service;
-            _normalizedKey = normalizedKey;
             _id = id;
         }
 
@@ -215,11 +383,7 @@ public class KeyboardShortcutService : IKeyboardShortcutService
             }
 
             _disposed = true;
-
-            if (!_service._disposed)
-            {
-                _service.UnregisterInternal(_normalizedKey);
-            }
+            _service.Unregister(_id);
         }
     }
 }

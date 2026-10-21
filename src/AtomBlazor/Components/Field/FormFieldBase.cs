@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using System.Reflection;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 
@@ -167,9 +168,23 @@ public abstract class FormFieldBase : ComponentBase, IDisposable
         var expression = GetFieldExpression();
         if (CascadedEditContext is not null && expression is not null)
         {
-            // 仅在表达式引用变化时重新计算，避免每个渲染周期都调用 Expression.Compile()。
-            if (!ReferenceEquals(expression, _cachedExpression))
+            // 典型写法 ValueExpression="@(() => Model.Name)" 每次渲染都会新建表达式树，
+            // 按引用缓存命中不了。直接解析成员链取出模型与字段名，只有两者变化时才
+            // 重建标识符——既避免逐帧 Expression.Compile()，也不会把校验错误留在旧模型上。
+            if (TryGetFieldTarget(expression, out var model, out var fieldName))
             {
+                if (!_fieldIdentifier.HasValue
+                    || !ReferenceEquals(_fieldIdentifier.Value.Model, model)
+                    || _fieldIdentifier.Value.FieldName != fieldName)
+                {
+                    _fieldIdentifier = new FieldIdentifier(model, fieldName);
+                }
+
+                _cachedExpression = expression;
+            }
+            else if (!ReferenceEquals(expression, _cachedExpression))
+            {
+                // 非成员访问表达式无法无编译求值，保留原有的引用缓存回退路径。
                 _cachedExpression = expression;
                 _fieldIdentifier = CreateFieldIdentifier(expression);
             }
@@ -179,6 +194,69 @@ public abstract class FormFieldBase : ComponentBase, IDisposable
             _cachedExpression = null;
             _fieldIdentifier = null;
         }
+    }
+
+    /// <summary>
+    /// 解析成员访问表达式，取出其所属模型实例与字段名。
+    /// 对闭包链（如 <c>() =&gt; component.Model.Name</c>）只用反射读取，
+    /// 不编译表达式树。
+    /// </summary>
+    private static bool TryGetFieldTarget(
+        LambdaExpression expression,
+        out object model,
+        out string fieldName)
+    {
+        fieldName = string.Empty;
+        model = null!;
+
+        var body = expression.Body;
+        if (body is UnaryExpression { NodeType: ExpressionType.Convert or ExpressionType.ConvertChecked } unary)
+        {
+            body = unary.Operand;
+        }
+
+        if (body is not MemberExpression member
+            || member.Expression is null
+            || !TryEvaluateModel(member.Expression, out var value)
+            || value is null)
+        {
+            return false;
+        }
+
+        fieldName = member.Member.Name;
+        model = value;
+        return true;
+    }
+
+    /// <summary>
+    /// 在不编译表达式树的前提下求出模型表达式：仅支持常量与闭包字段/属性链。
+    /// 任何带方法调用或索引器的写法都返回 false，交由编译回退处理。
+    /// </summary>
+    private static bool TryEvaluateModel(Expression? expression, out object? value)
+    {
+        if (expression is ConstantExpression constant)
+        {
+            value = constant.Value;
+            return true;
+        }
+
+        if (expression is MemberExpression { Expression: not null } member
+            && TryEvaluateModel(member.Expression, out var target)
+            && target is not null)
+        {
+            switch (member.Member)
+            {
+                case FieldInfo field:
+                    value = field.GetValue(target);
+                    return true;
+                case PropertyInfo property when property.GetIndexParameters().Length == 0:
+                    value = property.GetValue(target);
+                    return true;
+            }
+        }
+
+        value = null;
+        return false;
     }
 
     private static FieldIdentifier CreateFieldIdentifier(LambdaExpression expression)

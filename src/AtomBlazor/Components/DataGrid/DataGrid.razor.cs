@@ -87,6 +87,7 @@ public partial class DataGrid<[DynamicallyAccessedMembers(DynamicallyAccessedMem
     private string? _groupByColumnTitle;
     private bool _groupsCollapsedByDefault;
     private RenderFragment<DataGridGroupContext<TData>>? _groupColumnHeaderTemplate;
+    private object? _groupColumnSource;
     private Expression<Func<TData, object>>? _lastGroupBy;
     /// <summary>
     /// 上一次构建出的树中在所有层级上的每一条分组路径。供“全部折叠”使用。
@@ -129,7 +130,7 @@ public partial class DataGrid<[DynamicallyAccessedMembers(DynamicallyAccessedMem
     // no cancellation token to hold here.
     private string? _searchInputValue;
 
-    // Virtualized provider state
+    // 扁平（内存/提供者）虚拟化实例；分组虚拟化的项类型不同，无法共用此引用。
     private Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize<TData>? _virtualizeRef;
 
     // Context menu state
@@ -153,10 +154,9 @@ public partial class DataGrid<[DynamicallyAccessedMembers(DynamicallyAccessedMem
     private int _lastGridStateVersion;
 
     /// <summary>
-    /// 表格是否处于服务器端虚拟滚动模式
-    /// （同时设置了 Virtualize 与 ItemsProvider，且 ItemSize 有效）。
+    /// 表格是否处于服务器端虚拟滚动模式（同时设置了 Virtualize 与 ItemsProvider）。
     /// </summary>
-    private bool IsVirtualizedProvider => Virtualize && ItemSize > 0 && ItemsProvider != null;
+    private bool IsVirtualizedProvider => Virtualize && ItemsProvider != null;
 
     [Inject]
     private IJSRuntime Js { get; set; } = null!;
@@ -282,10 +282,17 @@ public partial class DataGrid<[DynamicallyAccessedMembers(DynamicallyAccessedMem
     public bool Virtualize { get; set; }
 
     /// <summary>
-    /// 虚拟化使用的行高（像素）。默认为 48。
+    /// 虚拟化使用的行高（像素）。默认为 48，且必须为正数。
     /// </summary>
     [Parameter]
     public float ItemSize { get; set; } = 48f;
+
+    /// <summary>
+    /// 虚拟化时首次交互渲染应滚动到的行索引。默认值 0 表示不滚动。
+    /// 仅在首次获知行数时应用一次；后续以代码滚动请调用 <see cref="ScrollToItemAsync"/>。
+    /// </summary>
+    [Parameter]
+    public int InitialItemIndex { get; set; }
 
     /// <summary>
     /// 滚动时保持表头行可见。对置于固定高度滚动容器内的虚拟化表格很有用。
@@ -339,6 +346,48 @@ public partial class DataGrid<[DynamicallyAccessedMembers(DynamicallyAccessedMem
     /// </summary>
     [Parameter]
     public int OverscanCount { get; set; } = 5;
+
+    /// <summary>
+    /// 虚拟化时用于判定两行是否代表同一项的相等比较器。
+    /// 默认为 <see cref="EqualityComparer{T}.Default"/>；按主键复用行时提供自定义比较器。
+    /// </summary>
+    [Parameter]
+    public IEqualityComparer<TData>? ItemComparer { get; set; }
+
+    private IEqualityComparer<TData>? _effectiveItemComparer;
+    private Func<TData, object>? _comparerItemKey;
+
+    // ItemsProvider 会反复返回新实例；按 ItemKey 比较才能识别“同一行”，
+    // 否则默认引用相等会把重叠窗口误判成在顶部插入了新行。
+    private IEqualityComparer<TData> EffectiveItemComparer
+    {
+        get
+        {
+            if (ItemComparer is not null)
+            {
+                return ItemComparer;
+            }
+
+            if (!ReferenceEquals(_comparerItemKey, ItemKey) || _effectiveItemComparer is null)
+            {
+                _comparerItemKey = ItemKey;
+                _effectiveItemComparer = ItemKey is null
+                    ? EqualityComparer<TData>.Default
+                    : new ItemKeyEqualityComparer(ItemKey);
+            }
+
+            return _effectiveItemComparer!;
+        }
+    }
+
+    private sealed class ItemKeyEqualityComparer(Func<TData, object> keySelector) : IEqualityComparer<TData>
+    {
+        public bool Equals(TData? x, TData? y) =>
+            ReferenceEquals(x, y)
+            || (x is not null && y is not null && Equals(keySelector(x), keySelector(y)));
+
+        public int GetHashCode(TData obj) => keySelector(obj).GetHashCode();
+    }
 
     /// <summary>
     /// 使用虚拟化服务器端模式（同时设置了 <see cref="Virtualize"/> 与 <see cref="ItemsProvider"/>）时，
@@ -1052,11 +1101,6 @@ public partial class DataGrid<[DynamicallyAccessedMembers(DynamicallyAccessedMem
     internal void RegisterColumn(DataGridSelectColumn<TData> column) => AddColumn(column);
 
     /// <summary>
-    /// 注册一个层级列（它同时充当一个带展开/折叠的属性列）。
-    /// </summary>
-    internal void RegisterHierarchyColumnDef(IDataGridColumn<TData> column) => AddColumn(column);
-
-    /// <summary>
     /// 注册一个展开列。排在选择列之后（若存在），
     /// 没有选择列时排在最前。
     /// </summary>
@@ -1076,9 +1120,49 @@ public partial class DataGrid<[DynamicallyAccessedMembers(DynamicallyAccessedMem
     /// </summary>
     private void AddColumn(IDataGridColumn<TData> column)
     {
+        // 重复登记同一实例只会产生重复表头；幂等登记让层级列这类
+        // 经由多条路径初始化的列也能安全到达这里。
+        if (_registeredColumns.Contains(column))
+        {
+            return;
+        }
+
         _registeredColumns.Add(column);
         RebuildColumnOrder();
         OnColumnRegistered();
+    }
+
+    /// <summary>
+    /// 当列组件被销毁时从注册表移除。
+    /// </summary>
+    /// <remarks>
+    /// 列的生命周期由渲染树决定：条件渲染移除列后，若不移除登记，
+    /// 旧实例会被永久保留，重新添加列时还会出现重复表头。
+    /// 这里不调用 <c>StateHasChanged</c>——触发注销的正是网格自身的
+    /// 一次渲染，刷新交由既有的 <c>_needsDataRefresh</c> 流程完成。
+    /// </remarks>
+    internal void UnregisterColumn(IDataGridColumn<TData> column)
+    {
+        var removed = _registeredColumns.Remove(column);
+
+        if (ReferenceEquals(_expandColumn, column))
+        {
+            _expandColumn = null;
+        }
+
+        if (ReferenceEquals(_hierarchyColumn, column))
+        {
+            _hierarchyColumn = null;
+        }
+
+        if (!removed)
+        {
+            return;
+        }
+
+        RebuildColumnOrder();
+        _columnsVersion++;
+        _needsDataRefresh = true;
     }
 
     /// <summary>
@@ -1183,6 +1267,7 @@ public partial class DataGrid<[DynamicallyAccessedMembers(DynamicallyAccessedMem
     /// </summary>
     internal void SetGrouping<TProperty>(DataGridGroupColumn<TData, TProperty> groupColumn)
     {
+        _groupColumnSource = groupColumn;
         _groupByAccessor = groupColumn.GetValueAccessor();
         _groupByColumnId = groupColumn.GetColumnId();
         _groupByColumnTitle = groupColumn.GetTitle();
@@ -1194,6 +1279,25 @@ public partial class DataGrid<[DynamicallyAccessedMembers(DynamicallyAccessedMem
             ColumnId = _groupByColumnId,
             GroupSortDirection = groupColumn.GroupSortDirection
         });
+    }
+
+    /// <summary>
+    /// 组列被销毁时撤销它配置的分组；若分组已由更新的组列接管则保持不动。
+    /// </summary>
+    internal void UnregisterGrouping<TProperty>(DataGridGroupColumn<TData, TProperty> groupColumn)
+    {
+        if (!ReferenceEquals(_groupColumnSource, groupColumn))
+        {
+            return;
+        }
+
+        _groupColumnSource = null;
+        _groupByAccessor = null;
+        _groupByColumnId = null;
+        _groupByColumnTitle = null;
+        _groupColumnHeaderTemplate = null;
+        ApplyGroupDefinition(null);
+        _needsDataRefresh = true;
     }
 
     /// <summary>
@@ -1490,6 +1594,27 @@ public partial class DataGrid<[DynamicallyAccessedMembers(DynamicallyAccessedMem
         _needsDataRefresh = false;
         await ProcessDataAsync();
         StateHasChanged();
+    }
+
+    /// <summary>
+    /// 滚动虚拟化视口，使指定索引处的行对齐到可见区域顶部。
+    /// </summary>
+    /// <remarks>
+    /// 只能在 <see cref="Virtualize"/> 为 <c>true</c>、未启用分组且虚拟化组件完成首次交互渲染后调用；
+    /// 此前请改用 <see cref="InitialItemIndex"/>。越界索引由虚拟化组件钳位。
+    /// </remarks>
+    /// <param name="index">要滚动到的行索引（从零开始）。</param>
+    /// <param name="cancellationToken">用于取消滚动的令牌。</param>
+    public async Task ScrollToItemAsync(int index, CancellationToken cancellationToken = default)
+    {
+        if (_virtualizeRef is null)
+        {
+            throw new InvalidOperationException(
+                $"{nameof(ScrollToItemAsync)} 只能在启用 {nameof(Virtualize)} 且完成首次交互渲染后调用；" +
+                $"首次定位请使用 {nameof(InitialItemIndex)}。");
+        }
+
+        await _virtualizeRef.ScrollToItemAsync(index, cancellationToken);
     }
 
     /// <summary>
@@ -2777,12 +2902,19 @@ public partial class DataGrid<[DynamicallyAccessedMembers(DynamicallyAccessedMem
     /// </summary>
     internal void RegisterHierarchyColumn(IDataGridColumn<TData> column)
     {
+        if (ReferenceEquals(_hierarchyColumn, column))
+        {
+            return;
+        }
+
         if (_hierarchyColumn != null)
         {
             throw new InvalidOperationException(
                 "Only one DataGridHierarchyColumn is allowed per DataGrid.");
         }
+
         _hierarchyColumn = column;
+        AddColumn(column);
         StateHasChanged();
     }
 
@@ -3077,7 +3209,6 @@ public partial class DataGrid<[DynamicallyAccessedMembers(DynamicallyAccessedMem
         }
 
         await NotifyStateChangedAsync();
-        StateHasChanged();
     }
 
     /// <summary>
@@ -3131,7 +3262,6 @@ public partial class DataGrid<[DynamicallyAccessedMembers(DynamicallyAccessedMem
         }
 
         await NotifyStateChangedAsync();
-        StateHasChanged();
     }
 
     private IQueryable<TData> ApplyColumnFilters(IQueryable<TData> queryable)
@@ -3200,7 +3330,6 @@ public partial class DataGrid<[DynamicallyAccessedMembers(DynamicallyAccessedMem
 
         _gridState.Pagination.CurrentPage = 1;
         await ProcessDataAsync();
-        StateHasChanged();
     }
 
     private IEnumerable<TData> ApplyGlobalSearch(IEnumerable<TData> data)
@@ -3344,7 +3473,6 @@ public partial class DataGrid<[DynamicallyAccessedMembers(DynamicallyAccessedMem
         }
 
         await NotifyStateChangedAsync();
-        StateHasChanged();
     }
 
     private async Task HandleSelectAllChanged(bool isChecked)
@@ -3425,7 +3553,6 @@ public partial class DataGrid<[DynamicallyAccessedMembers(DynamicallyAccessedMem
         }
 
         await NotifyStateChangedAsync();
-        StateHasChanged();
     }
 
     private async Task HandleSelectAllItems()
@@ -3444,7 +3571,6 @@ public partial class DataGrid<[DynamicallyAccessedMembers(DynamicallyAccessedMem
         }
 
         await NotifyStateChangedAsync();
-        StateHasChanged();
     }
 
     private async Task HandleClearSelection()
@@ -3459,7 +3585,6 @@ public partial class DataGrid<[DynamicallyAccessedMembers(DynamicallyAccessedMem
         }
 
         await NotifyStateChangedAsync();
-        StateHasChanged();
     }
 
     /// <summary>
@@ -3762,7 +3887,6 @@ public partial class DataGrid<[DynamicallyAccessedMembers(DynamicallyAccessedMem
         }
 
         await NotifyStateChangedAsync();
-        StateHasChanged();
     }
 
     /// <summary>
@@ -3957,7 +4081,6 @@ public partial class DataGrid<[DynamicallyAccessedMembers(DynamicallyAccessedMem
         }
 
         await RefreshDataAsync();
-        StateHasChanged();
     }
 
     private void ClearEditState()
@@ -4107,7 +4230,6 @@ public partial class DataGrid<[DynamicallyAccessedMembers(DynamicallyAccessedMem
         _gridState.Pagination.GoToPage(page);
         await ProcessDataAsync();
         await NotifyStateChangedAsync();
-        StateHasChanged();
     }
 
     private async Task HandlePageSizeChanged(int pageSize)
@@ -4115,7 +4237,6 @@ public partial class DataGrid<[DynamicallyAccessedMembers(DynamicallyAccessedMem
         _gridState.Pagination.PageSize = pageSize;
         await ProcessDataAsync();
         await NotifyStateChangedAsync();
-        StateHasChanged();
     }
 
     private bool IsAllSelected() =>

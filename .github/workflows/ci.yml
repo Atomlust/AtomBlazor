@@ -1,0 +1,186 @@
+# =============================================================================
+# AtomBlazor 持续集成
+#
+# 触发：推送到 master、任意 Pull Request、手动运行。
+#
+# 覆盖范围：
+#   - build-test：6 个库 + 测试工程的 Release 构建与全量单元测试
+#   - aot-smoke ：TrimProbe 以 NativeAOT 发布并真实执行全部 AOT 敏感路径
+#                 （源生成 JSON、编译访问器、IQueryable 排序回退、图表 object 槽位）
+#   - demo-build：Server / Wasm / Auto 三宿主构建
+#   - solution-build：MAUI Blazor Hybrid 宿主的 Windows 目标构建（其余平台目标
+#                     需 macOS/Android 工具链，由各自平台环境验证）
+#
+# 说明：
+#   - AtomBlazor 构建期用 Tailwind CLI 生成 wwwroot/atomblazor.css，
+#     因此所有构建类 job 都必须先 npm ci。
+#   - .NET 版本由仓库 global.json 的 11.0.100-rc.* 决定；
+#     setup-dotnet 需要 include-prerelease 才能解析预览 SDK。
+# =============================================================================
+name: ci
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  build-test:
+    name: 构建与测试
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 .NET SDK（按 global.json）
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.x
+          include-prerelease: true
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 还原 npm 依赖
+        run: npm ci
+
+      - name: 还原 NuGet 依赖
+        run: dotnet restore tests/AtomBlazor.Tests/AtomBlazor.Tests.csproj
+
+      - name: 构建库与测试
+        run: dotnet build tests/AtomBlazor.Tests/AtomBlazor.Tests.csproj -c Release --no-restore
+
+      - name: 运行全量单元测试
+        run: dotnet test tests/AtomBlazor.Tests/AtomBlazor.Tests.csproj -c Release --no-build
+
+  aot-smoke:
+    name: NativeAOT 冒烟
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 .NET SDK（按 global.json）
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.x
+          include-prerelease: true
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 安装 NativeAOT 原生工具链
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang zlib1g-dev
+
+      - name: 还原 npm 依赖
+        run: npm ci
+
+      # 该工程引用两个产品库，真实编译并链接全部 AOT 敏感路径。
+      # 发布日志中允许出现第三方包（Ical.Net）的 IL2104 汇总警告；
+      # 门禁是下方“产物必须成功运行到结束”。
+      - name: NativeAOT 发布
+        run: dotnet publish tools/TrimProbe/TrimProbe.csproj -c Release -r linux-x64 -o artifacts/aot-probe
+
+      - name: 运行 AOT 冒烟并校验输出
+        run: |
+          set -euo pipefail
+          ./artifacts/aot-probe/TrimProbe | tee aot-smoke.log
+          grep -q "AOT smoke OK" aot-smoke.log
+
+      - name: 上传冒烟日志
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aot-smoke-log
+          path: aot-smoke.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+  demo-build:
+    name: 宿主构建（Server/Wasm/Auto）
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 .NET SDK（按 global.json）
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.x
+          include-prerelease: true
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 还原 npm 依赖
+        run: npm ci
+
+      # MAUI 宿主需要平台工作负载，由单独的 solution-build job 在 Windows 上验证。
+      - name: 构建三个 Web 宿主
+        run: |
+          set -euo pipefail
+          for project in \
+            demos/AtomBlazor.Demo.Server/AtomBlazor.Demo.Server.csproj \
+            demos/AtomBlazor.Demo.Wasm/AtomBlazor.Demo.Wasm.csproj \
+            demos/AtomBlazor.Demo.Auto/AtomBlazor.Demo.Auto.csproj; do
+            echo "::group::build $project"
+            dotnet build "$project" -c Release
+            echo "::endgroup::"
+          done
+
+  solution-build:
+    name: MAUI 宿主构建（Windows）
+    runs-on: windows-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 .NET SDK（按 global.json）
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.x
+          include-prerelease: true
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 还原 npm 依赖
+        run: npm ci
+
+      - name: 安装 MAUI Windows 工作负载
+        run: dotnet workload install maui-windows
+
+      # -f 让还原与构建都只落在 Windows 目标：工程默认声明的
+      # android/ios/maccatalyst 需要各自的平台工作负载与 Mac 构建主机，
+      # 不属于本 job 的验证范围。
+      - name: 构建 MAUI 宿主（Windows 目标）
+        run: >-
+          dotnet build demos/AtomBlazor.Demo.Maui/AtomBlazor.Demo.Maui.csproj
+          -c Release -f net11.0-windows10.0.19041.0

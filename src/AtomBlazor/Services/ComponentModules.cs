@@ -12,8 +12,10 @@ namespace AtomBlazor;
 /// （或它前面的 CDN）用旧副本应答新构建，缘由详见 <see cref="PrimitiveModules.ModuleUrl"/>。
 /// </para>
 /// <para>
-/// 当前 只打包 theme 模块；sidebar、text-input、composition-guard 等其余核心模块
-/// TODO：随对应组件交付时补入 bundle 并追加新鲜性校验。
+/// 当前打包的是几乎每个页面都会用到的模块：theme、text-input、composition-guard、
+/// sidebar/sidebar-inset，以及表单控件、导航与可调整尺寸等常用交互模块；
+/// 每个导入模块都附带新鲜性校验。数据网格、图表、Markdown 编辑器等重量级适配层
+/// 刻意留在 bundle 之外，仍按需懒加载。
 /// </para>
 /// <para>
 /// 函数以 <c>命名空间.函数</c> 的点分标识符寻址，命名空间即模块文件名（去连字符）的

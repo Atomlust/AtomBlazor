@@ -48,7 +48,8 @@ public class FormWizardTests
     /// <summary>按序列号开一个 WizardStep（标题/内容/可选/禁用）。</summary>
     private static void AddStep(
         RenderTreeBuilder builder, int seq, string title, string content,
-        bool isOptional = false, bool disabled = false, Func<bool>? validator = null)
+        bool isOptional = false, bool disabled = false, Func<bool>? validator = null,
+        Func<CancellationToken, Task<bool>>? asyncValidator = null)
     {
         builder.OpenComponent<WizardStep>(seq);
         builder.AddAttribute(seq + 1, nameof(WizardStep.Title), title);
@@ -63,6 +64,10 @@ public class FormWizardTests
         if (validator is not null)
         {
             builder.AddAttribute(seq + 4, nameof(WizardStep.Validator), validator);
+        }
+        if (asyncValidator is not null)
+        {
+            builder.AddAttribute(seq + 6, nameof(WizardStep.AsyncValidator), asyncValidator);
         }
         builder.AddAttribute(seq + 5, nameof(WizardStep.ChildContent), (RenderFragment)(tb => tb.AddContent(0, content)));
         builder.CloseComponent();
@@ -374,6 +379,64 @@ public class FormWizardTests
         // Invalid 态对当前步不可达（GetStepState 短路）：圆圈仍为活动态而无 x 图标。
         Assert.Contains("aria-current=\"step\"", StepButtonTag(NavSection(markup), 0));
         Assert.DoesNotContain("M18 6L6 18M6 6l12 12", markup);
+    }
+
+    [Fact]
+    public async Task AsyncValidator失败应阻止Next并等待异步结果()
+    {
+        var release = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var asyncCalls = 0;
+        var stepReports = new List<int>();
+        var (renderer, _) = await MountAsync(
+            builder =>
+            {
+                AddStep(builder, 0, "异步步", "异步内容", asyncValidator: async _ =>
+                {
+                    Interlocked.Increment(ref asyncCalls);
+                    return await release.Task;
+                });
+                AddStep(builder, 10, "后续步", "后续内容");
+            },
+            new Dictionary<string, object?>
+            {
+                [nameof(FormWizard.OnStepChanged)] =
+                    EventCallback.Factory.Create<int>(new object(), v => stepReports.Add(v)),
+            });
+
+        var click = ClickAsync(renderer, 3); // Next：异步校验挂起
+        for (var i = 0; i < 100 && Volatile.Read(ref asyncCalls) == 0; i++)
+        {
+            await Task.Delay(10);
+        }
+
+        Assert.Equal(1, Volatile.Read(ref asyncCalls));
+        Assert.Contains("异步内容", renderer.Markup()); // 未完成前不前进
+
+        release.SetResult(false);
+        await click;
+
+        Assert.Empty(stepReports);
+        var markup = renderer.Markup();
+        Assert.Contains("异步内容", markup);
+        Assert.DoesNotContain("后续内容", markup);
+    }
+
+    [Fact]
+    public async Task AsyncValidator通过后应放行Next()
+    {
+        var (renderer, _) = await MountAsync(
+            builder =>
+            {
+                AddStep(builder, 0, "异步步", "异步内容",
+                    asyncValidator: async _ => { await Task.Yield(); return true; });
+                AddStep(builder, 10, "后续步", "后续内容");
+            });
+
+        await ClickAsync(renderer, 3);
+
+        var markup = renderer.Markup();
+        Assert.Contains("后续内容", markup);
+        Assert.DoesNotContain("异步内容", markup);
     }
 
     [Fact]

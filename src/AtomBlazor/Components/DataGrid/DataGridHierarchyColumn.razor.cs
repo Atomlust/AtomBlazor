@@ -15,7 +15,7 @@ namespace AtomBlazor;
 /// </summary>
 /// <typeparam name="TData">表格中数据项的类型。</typeparam>
 /// <typeparam name="TProp">本列所绑定属性的类型。</typeparam>
-public partial class DataGridHierarchyColumn<TData, TProp> : ComponentBase, IDataGridColumn<TData>, IFilterableColumn, IHierarchyIndentColumn
+public partial class DataGridHierarchyColumn<TData, TProp> : ComponentBase, IDataGridColumn<TData>, IFilterableColumn, IHierarchyIndentColumn, IDisposable
     where TData : class
 {
     private string? resolvedTitle;
@@ -234,6 +234,12 @@ public partial class DataGridHierarchyColumn<TData, TProp> : ComponentBase, IDat
     public LambdaExpression? GetSortExpression() => Property;
     public LambdaExpression? GetFilterExpression() => Filterable ? Property : null;
 
+    public IOrderedQueryable<TData>? ApplyOrderBy(IQueryable<TData> source, bool descending) =>
+        descending ? source.OrderByDescending(Property) : source.OrderBy(Property);
+
+    public IOrderedQueryable<TData>? ApplyThenBy(IOrderedQueryable<TData> source, bool descending) =>
+        descending ? source.ThenByDescending(Property) : source.ThenBy(Property);
+
     // IFilterableColumn implementation
     FilterFieldType IFilterableColumn.GetFilterFieldType() => FilterType ?? InferFilterFieldType();
     IEnumerable<SelectOption<string>>? IFilterableColumn.GetFilterOptions() => FilterOptions;
@@ -295,7 +301,13 @@ public partial class DataGridHierarchyColumn<TData, TProp> : ComponentBase, IDat
         }
 
         ParentGrid.RegisterHierarchyColumn(this);
-        ParentGrid.RegisterHierarchyColumnDef(this);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        ParentGrid?.UnregisterColumn(this);
+        GC.SuppressFinalize(this);
     }
 
     private string GetColumnId()

@@ -159,9 +159,10 @@ public partial class DataGrid<TData> where TData : class
             await RefreshDataAsync();
             return true;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             // A failed remote save must not discard the draft or terminate a server circuit.
+            DataGridLog.RowCommitFailed(Logger, ex);
             editError = Localizer["DataGrid.SaveFailed"];
             return false;
         }
@@ -197,8 +198,22 @@ public partial class DataGrid<TData> where TData : class
 
         foreach (var change in changes)
         {
-            if ((ItemKey != null && !Equals(ItemKey(change.OriginalItem), ItemKey(change.Item)))
-                || !Validator.TryValidateObject(change.Item, new ValidationContext(change.Item, ServiceProvider, null), [], true))
+            if (ItemKey != null && !Equals(ItemKey(change.OriginalItem), ItemKey(change.Item)))
+            {
+                editError = Localizer["DataGrid.InvalidBatch"];
+                _stateVersion++;
+                StateHasChanged();
+                return false;
+            }
+
+            // 异步版本会运行 IAsyncValidatableObject 与 AsyncValidationAttribute，
+            // 与单元格编辑所用的 EditContext.ValidateAsync 保持一致。
+            if (!await Validator.TryValidateObjectAsync(
+                    change.Item,
+                    new ValidationContext(change.Item, ServiceProvider, null),
+                    [],
+                    validateAllProperties: true,
+                    CancellationToken.None))
             {
                 editError = Localizer["DataGrid.InvalidBatch"];
                 _stateVersion++;
@@ -227,8 +242,9 @@ public partial class DataGrid<TData> where TData : class
             await RefreshDataAsync();
             return true;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            DataGridLog.BatchCommitFailed(Logger, ex);
             editError = Localizer["DataGrid.SaveFailed"];
             return false;
         }
@@ -276,7 +292,6 @@ public partial class DataGrid<TData> where TData : class
         ClearEditState();
         editError = null;
         await OnBatchCancel.InvokeAsync();
-        StateHasChanged();
     }
 
     private async Task FocusCellEditorAsync()

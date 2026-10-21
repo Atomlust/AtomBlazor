@@ -64,6 +64,13 @@ public partial class WizardStep : ComponentBase, IDisposable
     public Func<bool>? Validator { get; set; }
 
     /// <summary>
+    /// 获取或设置该步骤的自定义异步校验函数。提供时必须返回 <c>true</c>
+    /// 才算该步骤通过校验；与 <see cref="Validator"/> 同时设置时两者都要通过。
+    /// </summary>
+    [Parameter]
+    public Func<CancellationToken, Task<bool>>? AsyncValidator { get; set; }
+
+    /// <summary>
     /// 获取或设置该步骤活动时渲染的内容。
     /// </summary>
     [Parameter]
@@ -103,7 +110,8 @@ public partial class WizardStep : ComponentBase, IDisposable
             IsOptional = IsOptional,
             Disabled = Disabled,
             FieldNames = FieldNames,
-            Validator = Validator
+            Validator = Validator,
+            AsyncValidator = AsyncValidator
         });
     }
 

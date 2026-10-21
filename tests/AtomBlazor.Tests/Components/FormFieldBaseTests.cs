@@ -299,6 +299,49 @@ public class FormFieldBaseTests
     }
 
     [Fact]
+    public async Task 复用表达式实例换模型时应把字段标识改挂到新模型()
+    {
+        var changedPerson = new Person { Username = "ok" };
+        var holder = new PersonHolder { Person = new Person { Username = "ok" } };
+        Expression<Func<string?>> expression = () => holder.Person!.Username;
+
+        // 校验器固定服务于 changedPerson：消息只会挂在它名下。
+        var (context, _) = CreateValidatedContext(changedPerson);
+
+        var renderer = CreateRenderer();
+        var childContent = new RenderFragment(builder =>
+        {
+            builder.OpenComponent<TestFormField>(0);
+            builder.AddAttribute(1, nameof(TestFormField.Value), "ok");
+            builder.AddAttribute(2, nameof(TestFormField.ValueExpression), expression);
+            builder.AddAttribute(3, nameof(TestFormField.ValueChanged),
+                EventCallback.Factory.Create<string?>(holder, value => holder.Person!.Username = value));
+            builder.CloseComponent();
+        });
+
+        await renderer.MountAsync<EditContextHost>(new Dictionary<string, object?>
+        {
+            [nameof(EditContextHost.EditContext)] = context,
+            [nameof(EditContextHost.ChildContent)] = childContent,
+        });
+
+        var field = renderer.FindComponent<TestFormField>();
+
+        // 复用同一个表达式实例，只换它求值出的模型；按引用缓存会留旧标识符。
+        holder.Person = changedPerson;
+        await renderer.RerenderRootAsync(0, new Dictionary<string, object?>
+        {
+            [nameof(EditContextHost.EditContext)] = context,
+            [nameof(EditContextHost.ChildContent)] = childContent,
+        });
+
+        await renderer.Dispatcher.InvokeAsync(() => field.SimulateChangeAsync(""));
+        await SettleAsync(renderer);
+
+        Assert.Contains("用户名不能为空", renderer.Markup());
+    }
+
+    [Fact]
     public async Task Dispose应退订校验状态变化()
     {
         var person = new Person { Username = "ok" };
@@ -404,6 +447,12 @@ public class FormFieldBaseTests
     internal sealed class Person
     {
         public string? Username { get; set; }
+    }
+
+    /// <summary>持有可替换模型的闭包宿主，用于验证表达式复用时的模型换绑。</summary>
+    internal sealed class PersonHolder
+    {
+        public Person? Person { get; set; }
     }
 
     /// <summary>

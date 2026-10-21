@@ -465,7 +465,6 @@ public partial class DataTable<TData> : ComponentBase where TData : class
 
         // Automatic sorting will happen in ProcessDataAsync via state binding
         await ProcessDataAsync();
-        StateHasChanged();
     }
 
     /// <summary>
@@ -574,7 +573,6 @@ public partial class DataTable<TData> : ComponentBase where TData : class
         _selectAllDropdownOpen = false;
         _selectionVersion++;
         await HandleSelectionChange(_tableState.Selection.SelectedItems);
-        StateHasChanged();
     }
 
     /// <summary>
@@ -589,7 +587,6 @@ public partial class DataTable<TData> : ComponentBase where TData : class
         _selectAllDropdownOpen = false;
         _selectionVersion++;
         await HandleSelectionChange(_tableState.Selection.SelectedItems);
-        StateHasChanged();
     }
 
     /// <summary>
@@ -601,7 +598,6 @@ public partial class DataTable<TData> : ComponentBase where TData : class
         _selectAllDropdownOpen = false;
         _selectionVersion++;
         await HandleSelectionChange(_tableState.Selection.SelectedItems);
-        StateHasChanged();
     }
 
     /// <summary>
@@ -697,7 +693,6 @@ public partial class DataTable<TData> : ComponentBase where TData : class
     {
         _paginationVersion++;  // Track pagination change for ShouldRender
         await ProcessDataAsync();
-        StateHasChanged();
     }
 
     /// <summary>
@@ -707,7 +702,6 @@ public partial class DataTable<TData> : ComponentBase where TData : class
     {
         _paginationVersion++;  // Track pagination change for ShouldRender
         await ProcessDataAsync();
-        StateHasChanged();
     }
 
     /// <summary>

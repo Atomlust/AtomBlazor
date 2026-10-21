@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+
 namespace AtomBlazor;
 
 /// <summary>
@@ -20,7 +22,9 @@ namespace AtomBlazor;
 /// </remarks>
 public class DefaultLocalizer : ILocalizer
 {
-    private readonly Dictionary<string, string> defaults = new(StringComparer.Ordinal)
+    // 本类以单例注册，Set 可在运行期任意线程覆盖默认值；
+    // 普通 Dictionary 的并发读写会破坏内部结构，故用并发字典。
+    private readonly ConcurrentDictionary<string, string> defaults = new(StringComparer.Ordinal)
     {
         ["Attachment.Open"] = "Open attachment",
         ["Sortable.Handle"] = "Reorder item",

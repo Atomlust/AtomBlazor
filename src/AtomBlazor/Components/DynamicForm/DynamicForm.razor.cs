@@ -335,7 +335,15 @@ public partial class DynamicForm : ComponentBase
 
     // ── 校验 ──────────────────────────────────────────────────
 
-    private bool ValidateForm()
+    /// <summary>
+    /// 校验所有当前可见字段，返回是否全部通过。
+    /// </summary>
+    /// <remarks>
+    /// 同步规则立即求值；<see cref="FormFieldDefinition.AsyncValidator"/> 会被依次等待。
+    /// 错误写入组件内部的字段错误表，并触发重渲染。
+    /// </remarks>
+    /// <param name="cancellationToken">取消令牌，用于中止异步校验器。</param>
+    public async Task<bool> ValidateAsync(CancellationToken cancellationToken = default)
     {
         fieldErrors.Clear();
 
@@ -347,23 +355,29 @@ public partial class DynamicForm : ComponentBase
 
         foreach (var field in fieldsToValidate)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (!IsFieldVisible(field))
             {
                 continue;
             }
 
             Values.TryGetValue(field.Name, out var value);
-            var error = ValidateField(field, value);
+            var error = await ValidateFieldAsync(field, value, cancellationToken);
             if (error is not null)
             {
                 fieldErrors[field.Name] = error;
             }
         }
 
+        StateHasChanged();
         return fieldErrors.Count == 0;
     }
 
-    private static string? ValidateField(FormFieldDefinition field, object? value)
+    private static async ValueTask<string?> ValidateFieldAsync(
+        FormFieldDefinition field,
+        object? value,
+        CancellationToken cancellationToken)
     {
         // 必填校验——对布尔字段，"必填"意味着值必须为 true
         if (field.Required)
@@ -394,7 +408,7 @@ public partial class DynamicForm : ComponentBase
 
         foreach (var validation in field.Validations)
         {
-            var error = EvaluateValidation(field, validation, value);
+            var error = await EvaluateValidationAsync(field, validation, value, cancellationToken);
             if (error is not null)
             {
                 return error;
@@ -404,7 +418,11 @@ public partial class DynamicForm : ComponentBase
         return null;
     }
 
-    private static string? EvaluateValidation(FormFieldDefinition field, FieldValidation validation, object? value)
+    private static async ValueTask<string?> EvaluateValidationAsync(
+        FormFieldDefinition field,
+        FieldValidation validation,
+        object? value,
+        CancellationToken cancellationToken)
     {
         var label = field.Label ?? field.Name;
         var str = value is IFormattable formattable
@@ -512,18 +530,25 @@ public partial class DynamicForm : ComponentBase
                 break;
 
             case ValidationType.Custom:
-                if (field.Validations is not null)
-                {
-                    var customValidator = field.Metadata?.TryGetValue("customValidator", out var validatorObj) == true
+                var customValidator = field.CustomValidator
+                    ?? (field.Metadata?.TryGetValue("customValidator", out var validatorObj) == true
                         ? validatorObj as Func<object?, string?>
-                        : null;
-                    if (customValidator is not null)
+                        : null);
+                if (customValidator is not null)
+                {
+                    var customError = customValidator(value);
+                    if (customError is not null)
                     {
-                        var customError = customValidator(value);
-                        if (customError is not null)
-                        {
-                            return validation.Message ?? customError;
-                        }
+                        return validation.Message ?? customError;
+                    }
+                }
+
+                if (field.AsyncValidator is not null)
+                {
+                    var asyncError = await field.AsyncValidator(value, cancellationToken);
+                    if (asyncError is not null)
+                    {
+                        return validation.Message ?? asyncError;
                     }
                 }
 
@@ -595,7 +620,7 @@ public partial class DynamicForm : ComponentBase
                 await OnSubmit.InvokeAsync(Values);
             }
 
-            var isValid = ValidateForm();
+            var isValid = await ValidateAsync();
             StateHasChanged();
 
             if (isValid && OnValidSubmit.HasDelegate)

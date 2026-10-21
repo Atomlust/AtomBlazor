@@ -13,7 +13,7 @@ namespace AtomBlazor;
 /// </summary>
 /// <typeparam name="TData">表格中数据项的类型。</typeparam>
 /// <typeparam name="TProperty">要按其分组的属性的类型。</typeparam>
-public partial class DataGridGroupColumn<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] TData, TProperty> : ComponentBase
+public partial class DataGridGroupColumn<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] TData, TProperty> : ComponentBase, IDisposable
     where TData : class
 {
     /// <summary>
@@ -61,6 +61,13 @@ public partial class DataGridGroupColumn<[DynamicallyAccessedMembers(Dynamically
         }
 
         ParentGrid.SetGrouping(this);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        ParentGrid?.UnregisterGrouping(this);
+        GC.SuppressFinalize(this);
     }
 
     internal string GetColumnId()

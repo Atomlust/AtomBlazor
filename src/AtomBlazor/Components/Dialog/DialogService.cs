@@ -13,7 +13,12 @@ namespace AtomBlazor;
 /// </remarks>
 public class DialogService
 {
+    private readonly object sync = new();
     private readonly List<DialogData> dialogs = new();
+
+    // 每次变更发布一个新数组，读者拿到的永远是稳定视图；
+    // 直接 AsReadOnly() 会在渲染中途被其他线程改动，导致枚举失效。
+    private volatile IReadOnlyList<DialogData> snapshot = Array.Empty<DialogData>();
 
     /// <summary>
     /// 当对话框集合发生更改时发生。
@@ -21,9 +26,13 @@ public class DialogService
     public event Action? OnChange;
 
     /// <summary>
-    /// 获取当前待处理对话框的列表。
+    /// 获取当前待处理对话框的不可变快照。
     /// </summary>
-    public IReadOnlyList<DialogData> Dialogs => dialogs.AsReadOnly();
+    /// <remarks>
+    /// 返回的列表是某一时刻的副本：此后再入队或解算对话框都不会改变它，
+    /// 因此可以安全地跨线程读取或用于渲染循环。
+    /// </remarks>
+    public IReadOnlyList<DialogData> Dialogs => snapshot;
 
     /// <summary>
     /// 显示一个带单个确认按钮的警告对话框。
@@ -43,8 +52,7 @@ public class DialogService
             Options = options ?? new AlertDialogOptions()
         };
 
-        dialogs.Add(data);
-        OnChange?.Invoke();
+        Enqueue(data);
 
         return data.Completion;
     }
@@ -71,8 +79,7 @@ public class DialogService
             Options = options ?? new ConfirmDialogOptions()
         };
 
-        dialogs.Add(data);
-        OnChange?.Invoke();
+        Enqueue(data);
 
         var result = await data.Completion;
         return new ConfirmDialogResult(result);
@@ -120,8 +127,7 @@ public class DialogService
             Options = options ?? new PromptDialogOptions()
         };
 
-        dialogs.Add(data);
-        OnChange?.Invoke();
+        Enqueue(data);
 
         var result = await data.Completion;
         return new PromptDialogResult(result);
@@ -159,8 +165,7 @@ public class DialogService
             }
         };
 
-        dialogs.Add(data);
-        OnChange?.Invoke();
+        Enqueue(data);
 
         return data.Completion;
     }
@@ -170,13 +175,20 @@ public class DialogService
     /// </summary>
     internal void Resolve(string id, DialogResult result)
     {
-        var dialog = dialogs.FirstOrDefault(d => d.Id == id);
-        if (dialog is null)
+        DialogData? dialog;
+        lock (sync)
         {
-            return;
+            dialog = dialogs.FirstOrDefault(d => d.Id == id);
+            if (dialog is null)
+            {
+                return;
+            }
+
+            dialogs.Remove(dialog);
+            snapshot = dialogs.ToArray();
         }
 
-        dialogs.Remove(dialog);
+        // 完成源与事件都在锁外触发：等待方或订阅方可以安全地回到服务里读写。
         dialog.SetResult(result);
         OnChange?.Invoke();
     }
@@ -186,12 +198,30 @@ public class DialogService
     /// </summary>
     internal void CancelAll()
     {
-        foreach (var dialog in dialogs.ToList())
+        DialogData[] pending;
+        lock (sync)
+        {
+            pending = dialogs.ToArray();
+            dialogs.Clear();
+            snapshot = Array.Empty<DialogData>();
+        }
+
+        foreach (var dialog in pending)
         {
             dialog.SetResult(DialogResult.Cancel());
         }
 
-        dialogs.Clear();
+        OnChange?.Invoke();
+    }
+
+    private void Enqueue(DialogData dialog)
+    {
+        lock (sync)
+        {
+            dialogs.Add(dialog);
+            snapshot = dialogs.ToArray();
+        }
+
         OnChange?.Invoke();
     }
 }

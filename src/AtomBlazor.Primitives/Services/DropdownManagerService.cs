@@ -64,16 +64,35 @@ public class DropdownManagerService : IDropdownManagerService
             throw new ArgumentException("下拉 ID 含有非法字符。", nameof(dropdownId));
         }
 
+        string? previousDropdownId = null;
+        Action? callbackToClose = null;
+
         lock (gate)
         {
- // 若当前打开的下拉与被登记者不同，先关闭当前那个
+            // 若当前打开的下拉与被登记者不同，记下要关闭的那个；
+            // 状态先切换到新下拉，确保旧回调里的注销不会误伤新登记。
             if (currentDropdownId != null && currentDropdownId != dropdownId)
             {
-                currentCloseCallback?.Invoke();
+                previousDropdownId = currentDropdownId;
+                callbackToClose = currentCloseCallback;
             }
 
             currentDropdownId = dropdownId;
             currentCloseCallback = closeCallback;
+        }
+
+        // 关闭回调可能引发渲染、注销甚至再次登记，必须在锁外执行；
+        // 其失败不应回滚已经生效的新下拉登记。
+        if (callbackToClose is not null)
+        {
+            try
+            {
+                callbackToClose();
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"关闭下拉 '{previousDropdownId}' 时出错：{ex.Message}");
+            }
         }
     }
 

@@ -10,7 +10,7 @@ namespace AtomBlazor;
 /// 渲染一个表头复选框（全选）以及每行的复选框。
 /// </summary>
 /// <typeparam name="TData">表格中数据项的类型。</typeparam>
-public partial class DataGridSelectColumn<TData> : ComponentBase, IDataGridColumn<TData>
+public partial class DataGridSelectColumn<TData> : ComponentBase, IDataGridColumn<TData>, IDisposable
     where TData : class
 {
     /// <summary>
@@ -107,5 +107,12 @@ public partial class DataGridSelectColumn<TData> : ComponentBase, IDataGridColum
         }
 
         ParentGrid.RegisterColumn(this);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        ParentGrid?.UnregisterColumn(this);
+        GC.SuppressFinalize(this);
     }
 }

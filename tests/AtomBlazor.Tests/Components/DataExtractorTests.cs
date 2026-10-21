@@ -2,6 +2,7 @@ using AtomBlazor.Primitives;
 using System.Collections;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using AtomBlazor;
 using Xunit;
 
@@ -104,6 +105,45 @@ public class DataExtractorTests
         var data = new ArrayList { new StructRow(7), new StructRow(9) };
 
         Assert.Equal(new object?[] { 7, 9 }, Extract(data, "Value"));
+    }
+
+    [Fact]
+    public void 字典项按键取值且大小写不敏感()
+    {
+        var data = new object?[]
+        {
+            new Dictionary<string, object?> { ["Revenue"] = 10 },
+            new Dictionary<string, object?> { ["revenue"] = 20 },
+            new Dictionary<string, object?> { ["Other"] = 1 }
+        };
+
+        Assert.Equal(new object?[] { 10, 20, null }, Extract(data, "Revenue"));
+    }
+
+    [Fact]
+    public void JsonElement项按键取值且大小写不敏感()
+    {
+        using var document = JsonDocument.Parse(
+            """[{"Revenue":10},{"revenue":20},{"Other":1}]""");
+
+        var values = Extract(document.RootElement, "Revenue");
+
+        Assert.Equal(3, values.Count);
+        Assert.Equal(10, Assert.IsType<JsonElement>(values[0]).GetInt32());
+        Assert.Equal(20, Assert.IsType<JsonElement>(values[1]).GetInt32());
+        Assert.Null(values[2]);
+    }
+
+    [Fact]
+    public void 字典与JsonElement路径不写入属性缓存()
+    {
+        var before = Cache().Count;
+
+        Extract(new[] { new Dictionary<string, object?> { ["Revenue"] = 1 } }, "Revenue");
+        using var document = JsonDocument.Parse("""[{"Revenue":1}]""");
+        Extract(document.RootElement, "Revenue");
+
+        Assert.Equal(before, Cache().Count);
     }
 
     [Fact]

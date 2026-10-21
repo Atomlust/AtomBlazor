@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json;
 using AtomBlazor.Primitives;
@@ -11,11 +10,6 @@ namespace AtomBlazor;
 /// </summary>
 public static class FormSchemaParser
 {
-    private static readonly JsonSerializerOptions jsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
-
     /// <summary>
     /// 将 JSON 字符串解析为 <see cref="FormSchema"/>。
     /// 自动探测输入是原生 FormSchema JSON 还是 JSON Schema。
@@ -42,16 +36,10 @@ public static class FormSchemaParser
 
     // ── 原生 FormSchema 解析 ──────────────────────────────────
 
-    // NativeSchemaDto 为私有 DTO 图，System.Text.Json 反射序列化无法静态分析
-    // 其修剪/动态代码约束在本方法内抑制（DTO 全部为公开可序列化形状，随程序集一同保留）。
-    [UnconditionalSuppressMessage("Trimming", "IL2026: 与反射相关的标注可能导致运行时缺失项",
-        Justification = "私有 DTO 图随程序集保留，运行时反射填充，无外部依赖。")]
-    [UnconditionalSuppressMessage("AOT", "IL3050: 调用标注了 RequiresDynamicCode 的方法",
-        Justification = "私有 DTO 图随程序集保留，运行时反射填充，无外部依赖。")]
     private static FormSchema ParseNativeSchema(string json)
     {
         // 使用 DTO 以兼容不同的大小写/格式可能
-        var dto = JsonSerializer.Deserialize<NativeSchemaDto>(json, jsonOptions)
+        var dto = JsonSerializer.Deserialize(json, FormSchemaJsonContext.Default.NativeSchema)
             ?? throw new JsonException("Failed to deserialize FormSchema from JSON.");
 
         var schema = new FormSchema
@@ -517,7 +505,7 @@ public static class FormSchemaParser
 
     // ── 原生 Schema DTO ───────────────────────────────────────
 
-    private sealed class NativeSchemaDto
+    internal sealed class NativeSchemaDto
     {
         public string? Title { get; set; }
         public string? Description { get; set; }
@@ -526,7 +514,7 @@ public static class FormSchemaParser
         public List<NativeFieldDto>? Fields { get; set; }
     }
 
-    private sealed class NativeSectionDto
+    internal sealed class NativeSectionDto
     {
         public string? Title { get; set; }
         public string? Description { get; set; }
@@ -537,7 +525,7 @@ public static class FormSchemaParser
         public List<NativeFieldDto>? Fields { get; set; }
     }
 
-    private sealed class NativeFieldDto
+    internal sealed class NativeFieldDto
     {
         public string? Name { get; set; }
         public string? Label { get; set; }

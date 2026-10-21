@@ -135,6 +135,28 @@ public interface IDataGridColumn<TData> where TData : class
     public LambdaExpression? GetSortExpression();
 
     /// <summary>
+    /// 以强类型键选择器对 <see cref="IQueryable{T}"/> 应用首个排序。
+    /// 未重写的列返回 null，调用方回退到内存排序。
+    /// </summary>
+    /// <param name="source">可查询数据源。</param>
+    /// <param name="descending">是否降序。</param>
+    /// <returns>已排序查询；列不支持时返回 null。</returns>
+    /// <remarks>
+    /// 强类型实现让 LINQ 提供程序（如 EF Core）仍能翻译排序，
+    /// 同时避免在 AOT 下使用 <c>MakeGenericMethod</c> 构造泛型排序调用。
+    /// </remarks>
+    public IOrderedQueryable<TData>? ApplyOrderBy(IQueryable<TData> source, bool descending) => null;
+
+    /// <summary>
+    /// 以强类型键选择器追加后续排序。
+    /// 未重写的列返回 null，调用方回退到内存排序。
+    /// </summary>
+    /// <param name="source">已排序的可查询数据源。</param>
+    /// <param name="descending">是否降序。</param>
+    /// <returns>追加排序后的查询；列不支持时返回 null。</returns>
+    public IOrderedQueryable<TData>? ApplyThenBy(IOrderedQueryable<TData> source, bool descending) => null;
+
+    /// <summary>
     /// 获取用于构造过滤 Where 子句的 LINQ 属性表达式。
     /// 列不支持基于表达式的过滤时返回 null。
     /// </summary>

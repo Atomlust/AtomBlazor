@@ -32,7 +32,7 @@ public class PortalService(ILogger<PortalService> logger) : IPortalService
     private readonly ConcurrentDictionary<string, PortalEntry> portals = new();
     private long nextOrder;
     private int hostCount;
-    private bool hasWarnedMissingHost;
+    private int hasWarnedMissingHost;
 
     /// <inheritdoc />
     public bool HasHost => Volatile.Read(ref hostCount) > 0;
@@ -57,7 +57,7 @@ public class PortalService(ILogger<PortalService> logger) : IPortalService
 
         // 新宿主到来时清掉"只警告一次"的闩锁，这样本电路后续真实发生的失败
         // 仍会被报告，而不会被先前一条无关的警告吞掉。
-        hasWarnedMissingHost = false;
+        Interlocked.Exchange(ref hasWarnedMissingHost, 0);
     }
 
     /// <inheritdoc />
@@ -65,9 +65,17 @@ public class PortalService(ILogger<PortalService> logger) : IPortalService
     {
         // 钳位：没有对应注册的释放不得把计数压成负数，
         // 否则新宿主注册之后 HasHost 仍会报 false。
-        if (Interlocked.Decrement(ref hostCount) < 0)
+        // 用 CAS 而不是 Exchange(ref, 0)：后者会把并发注册刚加回来的计数一并抹掉。
+        var observed = Interlocked.Decrement(ref hostCount);
+        while (observed < 0)
         {
-            Interlocked.Exchange(ref hostCount, 0);
+            var previous = Interlocked.CompareExchange(ref hostCount, 0, observed);
+            if (previous == observed || previous >= 0)
+            {
+                return;
+            }
+
+            observed = previous;
         }
     }
 
@@ -85,9 +93,8 @@ public class PortalService(ILogger<PortalService> logger) : IPortalService
 
         ArgumentNullException.ThrowIfNull(content);
 
-        if (!HasHost && !hasWarnedMissingHost)
+        if (!HasHost && Interlocked.Exchange(ref hasWarnedMissingHost, 1) == 0)
         {
-            hasWarnedMissingHost = true;
             logMissingPortalHost(logger, null);
         }
 

@@ -268,9 +268,17 @@ public partial class SortablePrimitive<TItem> : ComponentBase, IAsyncDisposable
         }
     }
 
-    [UnconditionalSuppressMessage("System.Text.Json", "IL2026: JsonSerializer.Serialize 在 trim 下需静态分析类型，可能对裁剪代码造成破坏", Justification = "序列化 IReadOnlyDictionary<string,string>，键值均为编译期可知的基元类型，裁剪/AOT 不影响运行。")]
-    [UnconditionalSuppressMessage("AOT", "IL3050: JsonSerializer.Serialize 在 AOT 下可能需运行时代码生成", Justification = "字典键值均为 string，无需动态代码生成；抑制等价于 net10 未开 AOT 兼容的原始行为。")]
-    private string KeyboardAnnouncementsJson => System.Text.Json.JsonSerializer.Serialize(KeyboardAnnouncements ?? new System.Collections.Generic.Dictionary<string, string>());
+    private string KeyboardAnnouncementsJson
+    {
+        get
+        {
+            var announcements = KeyboardAnnouncements is null
+                ? new Dictionary<string, string>()
+                : new Dictionary<string, string>(KeyboardAnnouncements);
+            return System.Text.Json.JsonSerializer.Serialize(
+                announcements, SortableJsonContext.Default.Announcements);
+        }
+    }
 
     private void SnapshotParameters()
     {

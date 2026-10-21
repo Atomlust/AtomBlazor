@@ -36,7 +36,8 @@
                 @ref="_virtualizeRef"
                 ItemsProvider="LoadItemsAsync"
                 ItemSize="32"
-                OverscanCount="5">
+                OverscanCount="5"
+                ItemComparer="@IndexedItemComparer">
                 <ItemContent Context="indexed">
                     <div id="@GetItemId(indexed.Index)"
                          role="option"
@@ -57,7 +58,8 @@
             <Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize
                 Items="_indexedItems"
                 ItemSize="32"
-                OverscanCount="5">
+                OverscanCount="5"
+                ItemComparer="@IndexedItemComparer">
                 <ItemContent Context="indexed">
                     <div id="@GetItemId(indexed.Index)"
                          role="option"
@@ -197,6 +199,16 @@
         public readonly TItem Item;
         public readonly int Index;
         public IndexedItem(TItem item, int index) { Item = item; Index = index; }
+    }
+
+    // 绝对索引即本分组视图内的唯一键，搜索或提供者变化会重建索引。
+    private static readonly IEqualityComparer<IndexedItem> IndexedItemComparer = new IndexedItemIndexComparer();
+
+    private sealed class IndexedItemIndexComparer : IEqualityComparer<IndexedItem>
+    {
+        public bool Equals(IndexedItem x, IndexedItem y) => x.Index == y.Index;
+
+        public int GetHashCode(IndexedItem obj) => obj.Index;
     }
 
     // IVirtualizedGroupHandler 实现

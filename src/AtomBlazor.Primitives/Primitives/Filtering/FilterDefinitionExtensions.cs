@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace AtomBlazor.Primitives.Filtering;
 
@@ -15,19 +14,6 @@ namespace AtomBlazor.Primitives.Filtering;
 public static class FilterDefinitionExtensions
 {
     private static readonly ConcurrentDictionary<(Type, string), PropertyInfo?> propertyCache = new();
-
-    [UnconditionalSuppressMessage("AOT", "IL3050: 调用标注了 RequiresDynamicCode 的方法",
-        Justification = "FilterDefinition/FilterCondition 为固定形状的公开 DTO 图，随程序集保留；反射序列化路径无法静态分析，运行时不依赖被裁剪项。")]
-    private static readonly JsonSerializerOptions jsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = true,
-        Converters =
-        {
-            new JsonStringEnumConverter(),
-            new FilterValueJsonConverter()
-        }
-    };
 
     /// <summary>
     /// 将筛选编译为 <see cref="Func{T, TResult}"/> 谓词，用于客户端内存过滤。
@@ -167,22 +153,15 @@ public static class FilterDefinitionExtensions
     /// <summary>
     /// 将筛选定义序列化为 JSON 字符串。
     /// </summary>
-    [UnconditionalSuppressMessage("Trimming", "IL2026: 与反射相关的标注可能导致运行时缺失项",
-        Justification = "FilterDefinition/FilterCondition 为固定形状的公开 DTO 图，随程序集保留；反射序列化路径无法静态分析，运行时不依赖被裁剪项。")]
-    [UnconditionalSuppressMessage("AOT", "IL3050: 调用标注了 RequiresDynamicCode 的方法",
-        Justification = "FilterDefinition/FilterCondition 为固定形状的公开 DTO 图，随程序集保留；反射序列化路径无法静态分析，运行时不依赖被裁剪项。")]
     public static string ToJson(this FilterDefinition filter) =>
-        JsonSerializer.Serialize(filter, jsonOptions);
+        JsonSerializer.Serialize(filter, FilteringJsonContext.Default.FilterDefinition);
 
     /// <summary>
     /// 从 JSON 字符串反序列化筛选定义。
     /// </summary>
-    [UnconditionalSuppressMessage("Trimming", "IL2026: 与反射相关的标注可能导致运行时缺失项",
-        Justification = "FilterDefinition/FilterCondition 为固定形状的公开 DTO 图，随程序集保留；反射序列化路径无法静态分析，运行时不依赖被裁剪项。")]
-    [UnconditionalSuppressMessage("AOT", "IL3050: 调用标注了 RequiresDynamicCode 的方法",
-        Justification = "FilterDefinition/FilterCondition 为固定形状的公开 DTO 图，随程序集保留；反射序列化路径无法静态分析，运行时不依赖被裁剪项。")]
     public static FilterDefinition FromJson(string json) =>
-        JsonSerializer.Deserialize<FilterDefinition>(json, jsonOptions) ?? new FilterDefinition();
+        JsonSerializer.Deserialize(json, FilteringJsonContext.Default.FilterDefinition)
+        ?? new FilterDefinition();
 
     #region ToFunc implementation
 

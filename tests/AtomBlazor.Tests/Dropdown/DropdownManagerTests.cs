@@ -50,6 +50,48 @@ public class DropdownManagerTests
     }
 
     [Fact]
+    public void 关闭回调应在锁外执行且可安全访问管理器()
+    {
+        var manager = CreateManager();
+        bool? observedOnOtherThread = null;
+
+        manager.RegisterOpen("a", () =>
+        {
+            // 旧实现持锁调用回调；另一线程访问管理器会被阻塞到超时。
+            var probe = Task.Run(() => manager.IsOpen("b"));
+            observedOnOtherThread = probe.Wait(TimeSpan.FromSeconds(2)) && probe.Result;
+        });
+
+        manager.RegisterOpen("b", () => { });
+
+        Assert.True(observedOnOtherThread);
+        Assert.True(manager.IsOpen("b"));
+    }
+
+    [Fact]
+    public void 旧下拉关闭回调抛错不应阻止新下拉登记()
+    {
+        var manager = CreateManager();
+        manager.RegisterOpen("a", () => throw new InvalidOperationException("boom"));
+
+        var exception = Record.Exception(() => manager.RegisterOpen("b", () => { }));
+
+        Assert.Null(exception);
+        Assert.True(manager.IsOpen("b"));
+    }
+
+    [Fact]
+    public void 旧关闭回调内注销自身不应清掉新登记()
+    {
+        var manager = CreateManager();
+        manager.RegisterOpen("a", () => manager.Unregister("a"));
+
+        manager.RegisterOpen("b", () => { });
+
+        Assert.True(manager.IsOpen("b"));
+    }
+
+    [Fact]
     public void 注销当前者后应无人打开且注销他人不生效()
     {
         var manager = CreateManager();

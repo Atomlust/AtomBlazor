@@ -75,7 +75,7 @@ public class DynamicFormTests
         return (renderer, form);
     }
 
-    /// <summary>直发表单提交事件，触发 ValidateForm 全量校验。</summary>
+    /// <summary>直发表单提交事件，触发 ValidateAsync 全量校验。</summary>
     private static async Task SubmitAsync(ComponentTestRenderer renderer)
     {
         await renderer.Dispatcher.InvokeAsync(async () =>
@@ -398,6 +398,118 @@ public class DynamicFormTests
         await SubmitAsync(renderer);
 
         Assert.Contains("邮箱 must be a valid email address.", renderer.Markup());
+    }
+
+    [Fact]
+    public async Task 异步自定义校验器应阻塞提交直至返回错误()
+    {
+        var gate = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var asyncCalls = 0;
+        var validSubmits = 0;
+        var schema = new FormSchema
+        {
+            Fields =
+            [
+                new FormFieldDefinition
+                {
+                    Name = "code",
+                    Label = "验证码",
+                    Type = FieldType.Text,
+                    Validations = [new FieldValidation { Type = ValidationType.Custom }],
+                    AsyncValidator = async (_, ct) =>
+                    {
+                        Interlocked.Increment(ref asyncCalls);
+                        return await gate.Task.WaitAsync(ct);
+                    },
+                },
+            ],
+        };
+
+        var (renderer, form) = await MountAsync(schema, new Dictionary<string, object?>
+        {
+            [nameof(DynamicForm.OnValidSubmit)] =
+                EventCallback.Factory.Create<Dictionary<string, object?>>(new object(), _ => validSubmits++),
+        });
+        form.Values["code"] = "1234";
+        await renderer.Dispatcher.InvokeAsync(() => Task.CompletedTask);
+
+        var submit = SubmitAsync(renderer);
+        for (var i = 0; i < 100 && Volatile.Read(ref asyncCalls) == 0; i++)
+        {
+            await Task.Delay(10);
+        }
+
+        Assert.Equal(1, Volatile.Read(ref asyncCalls));
+        Assert.Equal(0, Volatile.Read(ref validSubmits)); // 异步结果未出前不判定通过
+
+        gate.SetResult("验证码已过期");
+        await submit;
+
+        Assert.Equal(0, Volatile.Read(ref validSubmits));
+        Assert.Contains("验证码已过期", renderer.Markup());
+    }
+
+    [Fact]
+    public async Task 异步自定义校验器通过后应放行有效提交()
+    {
+        var validSubmits = 0;
+        var schema = new FormSchema
+        {
+            Fields =
+            [
+                new FormFieldDefinition
+                {
+                    Name = "code",
+                    Label = "验证码",
+                    Type = FieldType.Text,
+                    Validations = [new FieldValidation { Type = ValidationType.Custom }],
+                    AsyncValidator = async (_, _) => { await Task.Yield(); return null; },
+                },
+            ],
+        };
+
+        var (renderer, form) = await MountAsync(schema, new Dictionary<string, object?>
+        {
+            [nameof(DynamicForm.OnValidSubmit)] =
+                EventCallback.Factory.Create<Dictionary<string, object?>>(new object(), _ => validSubmits++),
+        });
+        form.Values["code"] = "1234";
+        await renderer.Dispatcher.InvokeAsync(() => Task.CompletedTask);
+
+        await SubmitAsync(renderer);
+
+        Assert.Equal(1, Volatile.Read(ref validSubmits));
+        Assert.Contains("验证码", renderer.Markup()); // 标签仍在，仅校验通过
+    }
+
+    [Fact]
+    public async Task 同步自定义校验器应优先于异步校验器()
+    {
+        var asyncCalls = 0;
+        var schema = new FormSchema
+        {
+            Fields =
+            [
+                new FormFieldDefinition
+                {
+                    Name = "code",
+                    Label = "验证码",
+                    Type = FieldType.Text,
+                    Validations = [new FieldValidation { Type = ValidationType.Custom }],
+                    CustomValidator = _ => "同步拒绝",
+                    AsyncValidator = async (_, _) => { asyncCalls++; await Task.Yield(); return null; },
+                },
+            ],
+        };
+
+        var (renderer, form) = await MountAsync(schema);
+        form.Values["code"] = "1234";
+        await renderer.Dispatcher.InvokeAsync(() => Task.CompletedTask);
+
+        await SubmitAsync(renderer);
+
+        Assert.Equal(0, asyncCalls);
+        Assert.Contains("同步拒绝", renderer.Markup());
     }
 
     [Fact]

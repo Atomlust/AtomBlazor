@@ -17,6 +17,7 @@ public class FilterDefinition
     /// <summary>
     /// 获取或设置组合条件与分组所用的逻辑运算符（AND/OR）。
     /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter<LogicalOperator>))]
     public LogicalOperator Operator { get; set; } = LogicalOperator.And;
 
     /// <summary>

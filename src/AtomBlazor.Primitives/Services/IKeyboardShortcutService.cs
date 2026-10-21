@@ -28,14 +28,19 @@ public interface IKeyboardShortcutService : IAsyncDisposable
     /// </summary>
     /// <param name="shortcut">快捷键字符串（例如 "Ctrl+N"）。</param>
     /// <param name="callback">按下时要调用的异步回调。</param>
-    /// <param name="id">本次注册的唯一标识。</param>
+    /// <param name="id">本次注册的唯一标识。相同标识再次注册会替换旧登记。</param>
     /// <returns>用于注销该快捷键的可释放句柄。</returns>
+    /// <remarks>
+    /// 同一组合键可以被多个标识同时注册，按下时按注册顺序调用全部回调；
+    /// 只有最后一个注册释放后，该组合键才从全局监听中移除。
+    /// </remarks>
     public Task<IDisposable> RegisterAsync(string shortcut, Func<Task> callback, string id);
 
     /// <summary>
     /// 按唯一标识注销快捷键。
     /// </summary>
     /// <param name="id">注册时使用的标识。</param>
+    /// <remarks>只移除该标识对应的登记，同键的其他注册继续生效。</remarks>
     public void Unregister(string id);
 
     /// <summary>

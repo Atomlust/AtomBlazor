@@ -109,11 +109,8 @@ public partial class FilterGroup : ComponentBase
     private async Task HandleRemoveGroup() =>
         await OnRemove.InvokeAsync();
 
-    private void HandleChanged()
-    {
+    private void HandleChanged() =>
         Context?.NotifyChanged();
-        StateHasChanged();
-    }
 
     /// <summary>
     /// 该分组的无障碍名称。其两部分原本都是英文字面量，于是本地化的应用无论页面其余部分

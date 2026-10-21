@@ -27,12 +27,15 @@ public class FilterPresetTests
         {
             var saved = new FilterDefinition { Conditions = [new() { Field = "Status", Value = "Active", Operator = FilterOperator.Equals }] };
             var original = new FilterDefinition();
+            FilterDefinition? published = null;
             var builder = await renderer.MountAsync<FilterBuilder>(new()
             {
                 [nameof(FilterBuilder.Filter)] = original,
                 [nameof(FilterBuilder.ShowApplyButton)] = true,
                 [nameof(FilterBuilder.Fields)] = new FilterField[] { new() { Name = "Status", Label = "Status", Type = FilterFieldType.Text } },
-                [nameof(FilterBuilder.Presets)] = new FilterPreset[] { new("active", "Active", saved) }
+                [nameof(FilterBuilder.Presets)] = new FilterPreset[] { new("active", "Active", saved) },
+                [nameof(FilterBuilder.FilterChanged)] =
+                    EventCallback.Factory.Create<FilterDefinition>(this, filter => published = filter)
             });
             await builder.ApplyPresetAsync("active");
             Assert.True(original.IsEmpty);
@@ -43,10 +46,12 @@ public class FilterPresetTests
             Assert.Equal("Active", saved.Conditions[0].Value);
             Assert.True(original.IsEmpty);
             await (Task)ComponentProbe.Call(builder, "HandleApply")!;
-            Assert.Equal("Pending", original.Conditions[0].Value);
+            var snapshot = Assert.IsType<FilterDefinition>(published);
+            Assert.Equal("Pending", snapshot.Conditions[0].Value);
+            Assert.True(original.IsEmpty); // 绑定参数不被就地改写，父级由 FilterChanged 回填
             await builder.SetParametersAsync(ParameterView.FromDictionary(new Dictionary<string, object?> { [nameof(builder.MaxConditions)] = 0 }));
             await Assert.ThrowsAsync<InvalidOperationException>(() => builder.ApplyPresetAsync("active"));
-            Assert.Equal("Pending", original.Conditions[0].Value);
+            Assert.Equal("Pending", snapshot.Conditions[0].Value);
         });
     }
 }

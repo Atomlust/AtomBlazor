@@ -1,4 +1,6 @@
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -29,6 +31,7 @@ public partial class FormWizard : ComponentBase
     // --- 注册（基于实例的去重） ---
     private readonly List<WizardStepInfo> steps = new();
     private readonly Dictionary<WizardStep, int> stepOwners = new();
+    private static readonly ConcurrentDictionary<(Type, string), Action<object>?> defaultSetterCache = new();
 
     // --- 状态 ---
     private int currentStep;
@@ -321,7 +324,7 @@ public partial class FormWizard : ComponentBase
             return;
         }
 
-        if (!ValidateCurrentStep())
+        if (!await ValidateCurrentStepAsync())
         {
             // BL0012：GoToNextAsync 由导航按钮 OnClick 接线，重渲染由框架自动完成。
             return;
@@ -404,7 +407,7 @@ public partial class FormWizard : ComponentBase
     /// </summary>
     internal async Task CompleteAsync()
     {
-        if (!ValidateCurrentStep())
+        if (!await ValidateCurrentStepAsync())
         {
             // BL0012：CompleteAsync 由完成按钮 OnClick 接线，重渲染由框架自动完成。
             return;
@@ -420,7 +423,7 @@ public partial class FormWizard : ComponentBase
 
     // --- 校验 ---
 
-    private bool ValidateCurrentStep()
+    private async Task<bool> ValidateCurrentStepAsync()
     {
         if (currentStep >= steps.Count)
         {
@@ -429,15 +432,18 @@ public partial class FormWizard : ComponentBase
 
         var step = steps[currentStep];
 
-        // 检查基于 EditContext 的字段校验（仅当前步骤）
+        // 检查基于 EditContext 的字段校验（仅当前步骤）。
+        // ValidateAsync 会运行 .NET 11 的异步 DataAnnotations 校验器；
+        // 整模型校验后只取本步骤字段的消息，其他步骤的错误不阻塞本步。
         if (step.FieldNames is { Length: > 0 } && EditContext is not null)
         {
+            await EditContext.ValidateAsync();
+
             var hasErrors = false;
 
             foreach (var fieldName in step.FieldNames)
             {
                 var fieldIdentifier = new FieldIdentifier(EditContext.Model, fieldName);
-                EditContext.NotifyFieldChanged(fieldIdentifier);
 
                 if (EditContext.GetValidationMessages(fieldIdentifier).Any())
                 {
@@ -454,6 +460,12 @@ public partial class FormWizard : ComponentBase
 
         // 检查自定义校验器
         if (step.Validator is not null && !step.Validator())
+        {
+            stepValidationState[currentStep] = false;
+            return false;
+        }
+
+        if (step.AsyncValidator is not null && !await step.AsyncValidator(CancellationToken.None))
         {
             stepValidationState[currentStep] = false;
             return false;
@@ -551,12 +563,14 @@ public partial class FormWizard : ComponentBase
         }
     }
 
-    // 按字段名反射重置 EditForm 模型属性，宿主模型类型来自使用方，修剪器无法静态分析，
-    // 其动态代码约束在本方法内抑制（仅触碰公开可写实例属性，失败时静默跳过）。
-    [UnconditionalSuppressMessage("Trimming", "IL2075: 'this' 参数不满足 DynamicallyAccessedMemberTypes.PublicProperties",
-        Justification = "仅重置宿主模型的公开可写实例属性，使用方模型随宿主程序集保留。")]
-    [UnconditionalSuppressMessage("Trimming", "IL2072: 'type' 参数不满足 DynamicallyAccessedMemberTypes.PublicParameterlessConstructor",
-        Justification = "仅对值类型取默认实例，引用类型置 null，不依赖动态构造。")]
+    /// <summary>
+    /// 按字段名把模型属性重置为默认值。
+    /// </summary>
+    /// <remarks>
+    /// 属性发现依赖运行时模型类型；裁剪/NativeAOT 宿主须保留
+    /// <see cref="WizardStep.FieldNames"/> 所指的公开属性，否则该字段会被跳过。
+    /// 重置本身由编译后的默认值赋值器完成，不再使用 Activator。
+    /// </remarks>
     private void ResetStepModelFields(WizardStepInfo step)
     {
         if (EditContext is null || step.FieldNames is not { Length: > 0 })
@@ -569,15 +583,33 @@ public partial class FormWizard : ComponentBase
 
         foreach (var fieldName in step.FieldNames)
         {
-            var property = modelType.GetProperty(fieldName, BindingFlags.Public | BindingFlags.Instance);
-            if (property is { CanWrite: true })
-            {
-                var defaultValue = property.PropertyType.IsValueType
-                    ? Activator.CreateInstance(property.PropertyType)
-                    : null;
-                property.SetValue(model, defaultValue);
-            }
+            var setter = defaultSetterCache.GetOrAdd(
+                (modelType, fieldName),
+                static key => CreateDefaultSetter(key.Item1, key.Item2));
+
+            setter?.Invoke(model);
         }
+    }
+
+    // 属性发现依赖运行时用户模型，无法静态声明成员保留；仅赋值默认值，不构造实例。
+    [UnconditionalSuppressMessage("Trimming", "IL2070: 运行时用户模型未声明 DynamicallyAccessedMembers",
+        Justification = "宿主模型随应用发布；裁剪后未保留的字段按缺失跳过，访问器本身已编译缓存。")]
+    private static Action<object>? CreateDefaultSetter(Type modelType, string fieldName)
+    {
+        var property = modelType.GetProperty(fieldName, BindingFlags.Public | BindingFlags.Instance);
+
+        if (property is null || !property.CanWrite || property.GetIndexParameters().Length != 0 ||
+            property.SetMethod is not { IsPublic: true })
+        {
+            return null;
+        }
+
+        var model = Expression.Parameter(typeof(object), "model");
+        var assignment = Expression.Assign(
+            Expression.Property(Expression.Convert(model, modelType), property),
+            Expression.Default(property.PropertyType));
+
+        return Expression.Lambda<Action<object>>(assignment, model).Compile();
     }
 
     private int FindNextEnabledStep(int fromIndex)

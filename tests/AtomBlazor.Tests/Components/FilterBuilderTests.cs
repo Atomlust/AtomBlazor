@@ -16,8 +16,9 @@ namespace AtomBlazor.Tests.Components;
 
 /// <summary>
 /// FilterBuilder 组件层测试。覆盖：容器与预设/应用按钮渲染、应用预设时对原预设做深拷贝
-/// （偿还：编辑草稿不污染原始预设）、HandleApply 将草稿复制进绑定 Filter、以及
-/// MaxConditions 低于预设条件数时 ApplyPresetAsync 抛 InvalidOperationException。
+/// （偿还：编辑草稿不污染原始预设）、应用/清空只通过 FilterChanged 发布独立快照而不改写
+/// 绑定 Filter 参数，以及 MaxConditions 低于预设条件数时 ApplyPresetAsync 抛
+/// InvalidOperationException。
 /// </summary>
 public class FilterBuilderTests
 {
@@ -97,23 +98,53 @@ public class FilterBuilderTests
     }
 
     [Fact]
-    public async Task 显式应用应将草稿复制进绑定Filter()
+    public async Task 显式应用应发布独立快照且不改写绑定Filter()
     {
+        var boundFilter = new FilterDefinition();
+        FilterDefinition? published = null;
         var preset = MakePreset("p1", "Name");
         var (_, builder) = await MountAsync(new Dictionary<string, object?>
         {
+            [nameof(FilterBuilder.Filter)] = boundFilter,
             [nameof(FilterBuilder.Presets)] = new List<FilterPreset> { preset },
             [nameof(FilterBuilder.ShowApplyButton)] = true,
+            [nameof(FilterBuilder.FilterChanged)] =
+                EventCallback.Factory.Create<FilterDefinition>(new object(), filter => published = filter),
         });
 
         await builder.ApplyPresetAsync("p1");
-        Assert.True(builder.Filter.IsEmpty); // 显式应用前绑定 Filter 仍为空
+        Assert.True(boundFilter.IsEmpty); // 显式应用前绑定 Filter 仍为空
 
         await (Task)ComponentProbe.Call(builder, "HandleApply")!;
 
-        Assert.False(builder.Filter.IsEmpty);
-        Assert.Single(builder.Filter.Conditions);
-        Assert.Equal("alpha", builder.Filter.Conditions[0].Value);
+        var snapshot = Assert.IsType<FilterDefinition>(published);
+        Assert.Single(snapshot.Conditions);
+        Assert.Equal("alpha", snapshot.Conditions[0].Value);
+        Assert.Same(boundFilter, builder.Filter);
+        Assert.True(boundFilter.IsEmpty); // 参数对象不被就地改写
+
+        var draft = ComponentProbe.Field<FilterDefinition?>(builder, "draftFilter")!;
+        Assert.NotSame(draft, published); // 发布的是与草稿独立的快照
+    }
+
+    [Fact]
+    public async Task 自动模式清空应只发布空快照而不改写绑定Filter()
+    {
+        var boundFilter = MakePreset("p1", "Name").Filter;
+        FilterDefinition? published = null;
+        var (_, builder) = await MountAsync(new Dictionary<string, object?>
+        {
+            [nameof(FilterBuilder.Filter)] = boundFilter,
+            [nameof(FilterBuilder.FilterChanged)] =
+                EventCallback.Factory.Create<FilterDefinition>(new object(), filter => published = filter),
+        });
+
+        await (Task)ComponentProbe.Call(builder, "HandleClear")!;
+
+        Assert.False(boundFilter.IsEmpty); // 父级模型在发布前后都保持原样
+        var snapshot = Assert.IsType<FilterDefinition>(published);
+        Assert.True(snapshot.IsEmpty);
+        Assert.NotSame(boundFilter, snapshot);
     }
 
     [Fact]

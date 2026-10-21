@@ -22,4 +22,14 @@ internal static partial class DataGridLog
                   "ItemsProvider and never holds more than one page. Set ExportScope to CurrentPage " +
                   "to make that explicit, or fetch the full set yourself and export it.")]
     public static partial void ExportLimitedToLoadedPage(ILogger logger);
+
+    [LoggerMessage(
+        Level = LogLevel.Error,
+        Message = "DataGrid row commit failed; the edit draft was kept so the user can retry.")]
+    public static partial void RowCommitFailed(ILogger logger, Exception exception);
+
+    [LoggerMessage(
+        Level = LogLevel.Error,
+        Message = "DataGrid batch commit failed; pending changes were kept so the user can retry.")]
+    public static partial void BatchCommitFailed(ILogger logger, Exception exception);
 }

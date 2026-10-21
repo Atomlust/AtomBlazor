@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -8,12 +7,6 @@ namespace AtomBlazor;
 
 public abstract partial class ChartBase : ComponentBase, IAsyncDisposable
 {
-    private static readonly JsonSerializerOptions serializerOptions = new()
-    {
-        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
-
     private IJSObjectReference? jsModule;
     private DotNetObjectReference<ChartBase>? dotNetRef;
     private bool clickHandlersEnabled;
@@ -228,33 +221,28 @@ public abstract partial class ChartBase : ComponentBase, IAsyncDisposable
         }
     }
 
-    // 与一致保留反射式 JsonSerializer.Serialize（option 为动态 POCO 图，源生成序列化会改变行为）
-    // 修剪/AOT 约束在本方法内抑制——option 图由各 Chart 组件构建，类型随宿主程序集保留。
-    [UnconditionalSuppressMessage("Trimming", "IL2026: JsonSerializer.Serialize<TValue> 依赖反射发现并物化 option POCO 图的属性，修剪下不自述 trim-safe",
-        Justification = "序列化的 option 图由各图表组件在运行时构建，其类型由用户数据与组件配置驱动，随宿主程序集保留，属受控路径，保留行为。")]
-    [UnconditionalSuppressMessage("AOT", "IL3050: JsonSerializer.Serialize<TValue> 标注 RequiresDynamicCode，AOT 下需运行时代码生成",
-        Justification = "同 IL2026：受控序列化路径，保留行为；AOT 实测回观。")]
     private async Task InitializeChartAsync()
     {
+        // 序列化失败属于配置/数据错误，必须让调用方看到，不能混入
+        // 预渲染期间 JS interop 不可用的预期异常。
+        var option = BuildOption();
+        var json = ChartOptionSerializer.Serialize(option);
+
+        using var document = JsonDocument.Parse(json);
+        var serialized = document.RootElement.Clone();
+
+        // 只有确实有监听者时我才把引用交给 JS，无处理器的图表
+        // 因此不添额外开销、也无需释放。
+        if (OnDataPointClick.HasDelegate || OnChartClick.HasDelegate)
+        {
+            dotNetRef ??= DotNetObjectReference.Create(this);
+        }
+
         try
         {
             jsModule = await JsModules.GetAsync(JS, "./_content/AtomBlazor/js/echarts-renderer.js");
-
-            var option = BuildOption();
-            var json = JsonSerializer.Serialize(option, serializerOptions);
-            lastSerializedJson = json;
-
-            using var document = JsonDocument.Parse(json);
-            var serialized = document.RootElement.Clone();
-
-            // 只有确实有监听者时我才把引用交给 JS，无处理器的图表
-            // 因此不添额外开销、也无需释放。
-            if (OnDataPointClick.HasDelegate || OnChartClick.HasDelegate)
-            {
-                dotNetRef ??= DotNetObjectReference.Create(this);
-            }
-
             await jsModule.InvokeVoidAsync("initialize", chartId, serialized, dotNetRef);
+            lastSerializedJson = json;
             jsInitialized = true;
             clickHandlersEnabled = dotNetRef is not null;
         }
@@ -268,16 +256,23 @@ public abstract partial class ChartBase : ComponentBase, IAsyncDisposable
         }
     }
 
-    // 同上：更新路径的反射序列化在方法内定点抑制，保留语句本体。
-    [UnconditionalSuppressMessage("Trimming", "IL2026: JsonSerializer.Serialize<TValue> 依赖反射发现并物化 option POCO 图的属性，修剪下不自述 trim-safe",
-        Justification = "序列化的 option 图由各图表组件在运行时构建，其类型由用户数据与组件配置驱动，随宿主程序集保留，属受控路径，保留行为。")]
-    [UnconditionalSuppressMessage("AOT", "IL3050: JsonSerializer.Serialize<TValue> 标注 RequiresDynamicCode，AOT 下需运行时代码生成",
-        Justification = "同 IL2026：受控序列化路径，保留行为；AOT 实测回观。")]
     private async Task UpdateChartAsync()
     {
         if (disposed || !jsInitialized || jsModule == null)
         {
             return;
+        }
+
+        var option = BuildOption();
+        var json = ChartOptionSerializer.Serialize(option);
+        var changed = json != lastSerializedJson;
+
+        using var document = changed ? JsonDocument.Parse(json) : null;
+        var serialized = changed ? document!.RootElement.Clone() : default;
+
+        if (changed)
+        {
+            lastSerializedJson = json;
         }
 
         try
@@ -293,20 +288,10 @@ public abstract partial class ChartBase : ComponentBase, IAsyncDisposable
                 clickHandlersEnabled = enableClicks;
             }
 
-            var option = BuildOption();
-            var json = JsonSerializer.Serialize(option, serializerOptions);
-
-            if (json == lastSerializedJson)
+            if (changed)
             {
-                return;
+                await jsModule.InvokeVoidAsync("update", chartId, serialized);
             }
-
-            lastSerializedJson = json;
-
-            using var document = JsonDocument.Parse(json);
-            var serialized = document.RootElement.Clone();
-
-            await jsModule.InvokeVoidAsync("update", chartId, serialized);
         }
         catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
         {

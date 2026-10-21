@@ -13,4 +13,5 @@ internal sealed class WizardStepInfo
     public bool Disabled { get; set; }
     public string[]? FieldNames { get; set; }
     public Func<bool>? Validator { get; set; }
+    public Func<CancellationToken, Task<bool>>? AsyncValidator { get; set; }
 }

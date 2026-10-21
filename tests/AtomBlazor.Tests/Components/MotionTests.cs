@@ -18,7 +18,7 @@ namespace AtomBlazor.Tests.Components;
 /// </summary>
 public class MotionTests
 {
-    private static ComponentTestRenderer CreateRenderer(NoopJavaScript? js = null, NavigationManager? navigation = null)
+    private static ComponentTestRenderer CreateRenderer(IJSRuntime? js = null, NavigationManager? navigation = null)
     {
         var services = new ServiceCollection();
         services.AddSingleton<IJSRuntime>(js ?? new NoopJavaScript());
@@ -186,6 +186,49 @@ public class MotionTests
 
         await renderer.Dispatcher.InvokeAsync(async () => await motion.DisposeAsync());
         Assert.Contains(js.Invocations, i => i.Identifier == "dispose");
+    }
+
+    [Fact]
+    public async Task animation模块抛JS异常时不应让渲染生命周期失败()
+    {
+        var js = new ThrowingJavaScript("motion");
+        var renderer = CreateRenderer(js);
+
+        // ConfigureAsync 从 OnAfterRenderAsync 直接 await；异常必须被 interop 吞掉。
+        await MountMotionAsync(renderer);
+
+        Assert.Contains("内容", renderer.Markup());
+    }
+
+    [Fact]
+    public async Task play的JS异常不应冒泡到调用方()
+    {
+        var js = new ThrowingJavaScript("play");
+        var renderer = CreateRenderer(js);
+        var motion = await MountMotionAsync(renderer);
+
+        await renderer.Dispatcher.InvokeAsync(() => motion.PlayAsync());
+    }
+
+    /// <summary>在指定方法上抛 <see cref="JSException"/> 的运行时，用于验证动画错误契约。</summary>
+    private sealed class ThrowingJavaScript(string throwOn) : IJSRuntime, IJSObjectReference
+    {
+        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) =>
+            InvokeAsync<TValue>(identifier, CancellationToken.None, args);
+
+        public ValueTask<TValue> InvokeAsync<TValue>(
+            string identifier, CancellationToken cancellationToken, object?[]? args)
+        {
+            if (identifier == throwOn)
+            {
+                throw new JSException("动画模块不可用");
+            }
+
+            return ValueTask.FromResult(
+                typeof(TValue) == typeof(IJSObjectReference) ? (TValue)(object)this : default!);
+        }
+
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }
 
     [Fact]

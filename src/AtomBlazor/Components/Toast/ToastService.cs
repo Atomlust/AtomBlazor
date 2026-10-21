@@ -8,6 +8,7 @@ public class ToastService
 {
     private readonly List<ToastData> toasts = new();
     private readonly object sync = new();
+    private ToastPosition? position;
 
     /// <summary>
     /// toast 集合发生变化时触发的事件。
@@ -29,11 +30,20 @@ public class ToastService
     }
 
     /// <summary>
-    /// 获取或设置运行期的 toast 位置覆盖。
+    /// 获取运行期的 toast 位置覆盖。
     /// 一旦设置，它优先于 ToastProvider 的 Position 参数。
-    /// 设为 null 即回到提供器的缺省值。
+    /// 为 null 即回到提供器的缺省值。
     /// </summary>
-    public ToastPosition? Position { get; private set; }
+    public ToastPosition? Position
+    {
+        get
+        {
+            lock (sync)
+            {
+                return position;
+            }
+        }
+    }
 
     /// <summary>
     /// 在运行期设置 toast 的位置。
@@ -41,7 +51,11 @@ public class ToastService
     /// <param name="position">显示 toast 的位置。</param>
     public void SetPosition(ToastPosition position)
     {
-        Position = position;
+        lock (sync)
+        {
+            this.position = position;
+        }
+
         OnChange?.Invoke();
     }
 
@@ -50,7 +64,11 @@ public class ToastService
     /// </summary>
     public void ResetPosition()
     {
-        Position = null;
+        lock (sync)
+        {
+            position = null;
+        }
+
         OnChange?.Invoke();
     }
 

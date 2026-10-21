@@ -7,7 +7,7 @@
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
     <!-- 裁剪/AOT 兼容分析：trim 警告 + AOT 分析器 -->
     <IsAotCompatible>true</IsAotCompatible>
-    <Version>0.4.0</Version>
+    <Version>0.5.0</Version>
     <!-- 作者与版权 -->
     <Authors>Atomlust Studio</Authors>
     <Company>Atomlust Studio</Company>
@@ -22,12 +22,6 @@
 
     <!-- 开发期使用 ProjectReference 打包时会出现 NU5104 预览版本警告，抑制之 -->
     <NoWarn>$(NoWarn);NU5104</NoWarn>
-    <!-- IL2111：Razor 把 DynamicComponent 的 Type 参数经 AddComponentParameter(object) 装箱， 擦除 [DynamicallyAccessedMembers] 标注，修剪分析器误报。DynamicComponent 经反射 实例化组件是框架既定行为，运行期无影响（未开启修剪分析故不报）。仅作用于本工程。 -->
-    <NoWarn>$(NoWarn);IL2111</NoWarn>
- <!-- BL0011：.NET 11 Razor 分析器新要求 Virtualize 配 ItemsProvider 必须提供 ItemComparer； 未带该参数（其分析器版本无此诊断）。不补 ItemComparer—— 它改变条目标识/复用语义，破坏与的 行为。诊断报在 Razor 生成的 .g.cs（无源码 位置），文件级 #pragma 定点抑制不可行，故按 IL2111 同款处置仅在本工程抑制（偏差）。 -->
-    <NoWarn>$(NoWarn);BL0011</NoWarn>
- <!-- BL0012：Razor 分析器报“StateHasChanged 冗余”（方法结束后框架会自动重渲）。 24 处 DataGrid 事件处理中存在该调用，逐一移除会改变与的 行为语义，且诊断报在生成的 .g.cs 中无法定点 #pragma 抑制，故按 BL0011 同款处置仅在本工程抑制（偏差）。 -->
-    <NoWarn>$(NoWarn);BL0012</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

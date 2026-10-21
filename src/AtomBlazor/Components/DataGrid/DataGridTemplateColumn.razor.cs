@@ -12,7 +12,7 @@ namespace AtomBlazor;
 /// 用于展示操作、徽标（badge）或其他自定义内容的列。
 /// </summary>
 /// <typeparam name="TData">表格中数据项的类型。</typeparam>
-public partial class DataGridTemplateColumn<TData> : ComponentBase, IDataGridColumn<TData>, IFilterableColumn
+public partial class DataGridTemplateColumn<TData> : ComponentBase, IDataGridColumn<TData>, IFilterableColumn, IDisposable
     where TData : class
 {
     private Func<TData, object>? compiledSortBy;
@@ -358,5 +358,12 @@ public partial class DataGridTemplateColumn<TData> : ComponentBase, IDataGridCol
         }
 
         ParentGrid.RegisterColumn(this);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        ParentGrid?.UnregisterColumn(this);
+        GC.SuppressFinalize(this);
     }
 }

@@ -412,9 +412,9 @@
                         }
                         else if (_groupedRenderItems != null)
                         {
-                            if (Virtualize && ItemSize > 0 && _groupedRenderItemsList != null)
+                            if (Virtualize && _groupedRenderItemsList != null)
                             {
-                                <Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize Items="@_groupedRenderItemsList" Context="renderItem" ItemSize="@ItemSize" OverscanCount="@OverscanCount">
+                                <Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize Items="@_groupedRenderItemsList" Context="renderItem" ItemSize="@ItemSize" OverscanCount="@OverscanCount" InitialItemIndex="@InitialItemIndex">
                                     @RenderGroupedOrHierarchyItem(renderItem)
                                 </Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize>
                             }
@@ -430,13 +430,15 @@
                         {
                             <Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize @ref="_virtualizeRef"
                                 ItemsProvider="@VirtualItemsProviderAsync" Context="item"
-                                ItemSize="@ItemSize" OverscanCount="@OverscanCount">
+                                ItemSize="@ItemSize" OverscanCount="@OverscanCount"
+                                InitialItemIndex="@InitialItemIndex"
+                                ItemComparer="@EffectiveItemComparer">
                                 @RenderDataRow(item)
                             </Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize>
                         }
-                        else if (Virtualize && ItemSize > 0)
+                        else if (Virtualize)
                         {
-                            <Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize Items="@_processedDataList" Context="item" ItemSize="@ItemSize" OverscanCount="@OverscanCount">
+                            <Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize @ref="_virtualizeRef" Items="@_processedDataList" Context="item" ItemSize="@ItemSize" OverscanCount="@OverscanCount" InitialItemIndex="@InitialItemIndex">
                                 @RenderDataRow(item)
                             </Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize>
                         }
