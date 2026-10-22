@@ -19,8 +19,8 @@ namespace AtomBlazor.Tests.Components;
 
 /// <summary>
 /// Calendar 测试：月历网格生成（5/6 周补齐、闰年/平年二月、外部日期显隐、
-/// 周起点显式参数与当前区域性默认沿）、月份导航（prev/next 越年界；上游对导航按钮
-/// 不设 MinDate/MaxDate 守卫，越界日期按上游实际面表现为网格内 disabled 而非按钮禁用）、
+/// 周起点显式参数与当前区域性默认沿）、月份导航（prev/next 越年界；对导航按钮
+/// 不设 MinDate/MaxDate 守卫，越界日期按实际面表现为网格内 disabled 而非按钮禁用）、
 /// 选中回调（SelectedChanged 与 OnSelect 双沿、外部日期点击换月、禁用日期不回调）、
 /// 今天高亮与焦点 tabindex、CalendarDayContext 语义（IsSelected/IsDisabled/IsOutsideMonth/
 /// IsToday/IsInRange 恒 false）、键盘导航（方向键/Home/End/PageUp(±12)/PageDown、禁用跳过、
@@ -28,7 +28,7 @@ namespace AtomBlazor.Tests.Components;
 /// OnMonthChanged/OnYearChanged 与 GetYears 区间）、外部参数变更同步显示月份、
 /// FocusActiveDayAsync/AutoFocus 的 elementUtils.focusElement interop 载荷、DisposeAsync。
 /// headless 限制：真实 DOM 聚焦不可断言，仅断言派发内容；快照含 calendar GUID 与
-/// select-N 短 id，先经正则归一化。上游 Calendar 仅月视图，无 View 切换参数面，
+/// select-N 短 id，先经正则归一化。 Calendar 仅月视图，无 View 切换参数面，
 /// 亦无 SelectionMode 多/范围选择（范围语义属 DateRangePicker，随后续里程碑交付）。
 /// </summary>
 public class CalendarTests
@@ -279,7 +279,7 @@ public class CalendarTests
     [Fact]
     public async Task 下月导航越过最小日期边界仍换页而越界日期全禁用()
     {
-        // 上游实际面：PreviousMonth/NextMonth 无 MinDate/MaxDate 守卫，
+        // 实际面：PreviousMonth/NextMonth 无 MinDate/MaxDate 守卫，
         // 越出下界的月份照常渲染，但月内日期全部 disabled。
         var (renderer, _, _) = await MountAsync(PinnedParams(
             selected: new DateTime(2026, 10, 12), minDate: new DateTime(2026, 10, 05)));
@@ -412,7 +412,7 @@ public class CalendarTests
         var (renderer, _, _) = await MountAsync(dict);
 
         Assert.NotEmpty(captured);
-        Assert.All(captured, ctx => Assert.False(ctx.IsInRange)); // 单日期日历恒 false（上游语义）
+        Assert.All(captured, ctx => Assert.False(ctx.IsInRange)); // 单日期日历恒 false（语义）
 
         var sep27 = captured.Single(c => c.Date == new DateTime(2026, 9, 27));
         Assert.True(sep27.IsOutsideMonth);
@@ -616,9 +616,9 @@ public class CalendarTests
         var dict = PinnedParams(selected: new DateTime(2026, 10, 12));
         var (renderer, _, calendar) = await MountAsync(dict);
 
-        // 重渲染根组件并改 Selected——上游 OnParametersSet 直接写 _displayDate 字段而非
+        // 重渲染根组件并改 Selected—— OnParametersSet 直接写 _displayDate 字段而非
         // DisplayDate 属性，不经属性 setter 的清缓存沿：头部月份随 DisplayDate 跳到 2027 年
-        // 1 月，但周网格沿用 _cachedWeeks 缓存仍为上月的 10 月格（上游行为，bug-for-bug 保留）。
+        // 1 月，但周网格沿用 _cachedWeeks 缓存仍为上月的 10 月格（行为，bug-for-bug 保留）。
         dict[nameof(Calendar.Selected)] = new DateTime(2027, 1, 5);
         await renderer.RerenderRootAsync(0, dict);
         await SettleAsync(renderer);

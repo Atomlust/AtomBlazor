@@ -11,7 +11,7 @@ using Xunit;
 namespace AtomBlazor.Tests.Primitives;
 
 /// <summary>
-/// DataGrid(P) 逻辑测试（主波；全自写—— ui/tests 对 DataGrid 的断言依赖 
+/// DataGrid(P) 逻辑测试（主波；全自写—— 
 /// FilterBuilder，无法机械，故覆盖可独立验证的纯逻辑面）。
 /// 覆盖：DataGridDataExtensions 的多列排序管线（IQueryable / IEnumerable 两条路径
 /// 含 NormalizeKeySelector 剥离装箱 Convert 节点）、DataGridCsvWriter 的导出与公式注入防护、

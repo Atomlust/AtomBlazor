@@ -320,86 +320,76 @@ public class SliderTests
     // [Fact] - 注释：Slider 组件已移除 JsUpdateValueFromPercentage 方法
     // public async Task 百分比回调应按步长取整并钳制到边界()
     // {
-    //     var (renderer, _, slider) = await MountPrimitiveAsync(new Dictionary<string, object?>
-    //     {
-    //         [nameof(Slider.DefaultValue)] = 0.0,
-    //         [nameof(Slider.Step)] = 5.0,
-    //     });
-    //
-    //     // 52.3 → 步长 5 取整为 50。
-    //     await InvokeAsync(renderer, slider, s => s.JsUpdateValueFromPercentage(0.523));
-    //     Assert.Equal(50, slider.Value);
-    //
-    //     // 超界百分比钳到 Max。
-    //     await InvokeAsync(renderer, slider, s => s.JsUpdateValueFromPercentage(1.7));
-    //     Assert.Equal(100, slider.Value);
-    //
-    //     // NaN/Infinity 不改值。
-    //     await InvokeAsync(renderer, slider, s => s.JsUpdateValueFromPercentage(double.NaN));
-    //     await InvokeAsync(renderer, slider, s => s.JsUpdateValueFromPercentage(double.PositiveInfinity));
-    //     Assert.Equal(100, slider.Value);
+    // var (renderer, _, slider) = await MountPrimitiveAsync(new Dictionary<string, object?>
+    // {
+    // [nameof(Slider.DefaultValue)] = 0.0,
+    // [nameof(Slider.Step)] = 5.0,
+    // });
+    // // 52.3 → 步长 5 取整为 50。
+    // await InvokeAsync(renderer, slider, s => s.JsUpdateValueFromPercentage(0.523));
+    // Assert.Equal(50, slider.Value);
+    // // 超界百分比钳到 Max。
+    // await InvokeAsync(renderer, slider, s => s.JsUpdateValueFromPercentage(1.7));
+    // Assert.Equal(100, slider.Value);
+    // // NaN/Infinity 不改值。
+    // await InvokeAsync(renderer, slider, s => s.JsUpdateValueFromPercentage(double.NaN));
+    // await InvokeAsync(renderer, slider, s => s.JsUpdateValueFromPercentage(double.PositiveInfinity));
+    // Assert.Equal(100, slider.Value);
     // }
 
     // [Fact] - 注释：Slider 组件已移除 DisposeAsync 和 JsUpdateValueFromPercentage 方法
     // public async Task 释放后百分比回调应变为空操作()
     // {
-    //     var (renderer, _, slider) = await MountPrimitiveAsync();
-    //
-    //     await renderer.Dispatcher.InvokeAsync(slider.DisposeAsync);
-    //     await FlushAsync(renderer);
-    //
-    //     await InvokeAsync(renderer, slider, s => s.JsUpdateValueFromPercentage(0.9));
-    //     Assert.Equal(0, slider.Value);
+    // var (renderer, _, slider) = await MountPrimitiveAsync();
+    // await renderer.Dispatcher.InvokeAsync(slider.DisposeAsync);
+    // await FlushAsync(renderer);
+    // await InvokeAsync(renderer, slider, s => s.JsUpdateValueFromPercentage(0.9));
+    // Assert.Equal(0, slider.Value);
     // }
 
     // [Fact] - 注释：Slider 组件已移除 SetValueAsync 方法
     // public async Task 受控模式应经ValueChanged上报且不落内部值()
     // {
-    //     var reports = new List<double>();
-    //     var (renderer, _, slider) = await MountPrimitiveAsync(new Dictionary<string, object?>
-    //     {
-    //         [nameof(Slider.Value)] = 10.0,
-    //         [nameof(Slider.ValueChanged)] = EventCallback.Factory.Create<double>(new object(), v => reports.Add(v)),
-    //     });
-    //
-    //     await InvokeAsync(renderer, slider, s => s.SetValueAsync(42));
-    //     await FlushAsync(renderer);
-    //
-    //     Assert.Equal([42], reports);
-    //     // 受控值不因内部赋值而改变：显示仍由父级参数决定。
-    //     Assert.Equal(10, slider.Value);
+    // var reports = new List<double>();
+    // var (renderer, _, slider) = await MountPrimitiveAsync(new Dictionary<string, object?>
+    // {
+    // [nameof(Slider.Value)] = 10.0,
+    // [nameof(Slider.ValueChanged)] = EventCallback.Factory.Create<double>(new object(), v => reports.Add(v)),
+    // });
+    // await InvokeAsync(renderer, slider, s => s.SetValueAsync(42));
+    // await FlushAsync(renderer);
+    // Assert.Equal([42], reports);
+    // // 受控值不因内部赋值而改变：显示仍由父级参数决定。
+    // Assert.Equal(10, slider.Value);
     // }
 
     // [Fact] - 注释：Slider 组件已移除 SetValueAsync 方法
     // public async Task 非受控模式应落内部值且与当前值相同时不上报()
     // {
-    //     var reports = new List<double>();
-    //     var (renderer, _, slider) = await MountPrimitiveAsync(new Dictionary<string, object?>
-    //     {
-    //         [nameof(Slider.DefaultValue)] = 10.0,
-    //     });
-    //
-    //     await InvokeAsync(renderer, slider, s => s.SetValueAsync(20));
-    //     await FlushAsync(renderer);
-    //     Assert.Equal(20, slider.Value);
-    //     Assert.Empty(reports);
-    //
-    //     // 相同值短路。
-    //     await InvokeAsync(renderer, slider, s => s.SetValueAsync(20));
-    //     Assert.Equal(20, slider.Value);
+    // var reports = new List<double>();
+    // var (renderer, _, slider) = await MountPrimitiveAsync(new Dictionary<string, object?>
+    // {
+    // [nameof(Slider.DefaultValue)] = 10.0,
+    // });
+    // await InvokeAsync(renderer, slider, s => s.SetValueAsync(20));
+    // await FlushAsync(renderer);
+    // Assert.Equal(20, slider.Value);
+    // Assert.Empty(reports);
+    // // 相同值短路。
+    // await InvokeAsync(renderer, slider, s => s.SetValueAsync(20));
+    // Assert.Equal(20, slider.Value);
     // }
 
     // [Fact] - 注释：Slider 组件已移除 Percentage 属性
     // public async Task 量程为零时百分比应为零()
     // {
-    //     var (_, _, slider) = await MountPrimitiveAsync(new Dictionary<string, object?>
-    //     {
-    //         [nameof(Slider.Min)] = 5.0,
-    //         [nameof(Slider.Max)] = 5.0,
-    //         [nameof(Slider.DefaultValue)] = 5.0,
-    //     });
-    //
-    //     Assert.Equal(0, slider.Percentage);
+    // var (_, _, slider) = await MountPrimitiveAsync(new Dictionary<string, object?>
+    // {
+    // [nameof(Slider.Min)] = 5.0,
+    // [nameof(Slider.Max)] = 5.0,
+    // [nameof(Slider.DefaultValue)] = 5.0,
+    // });
+    // Assert.Equal(0, slider.Percentage);
     // }
 
     // ------------------------------------------------------------------
@@ -409,31 +399,26 @@ public class SliderTests
     // [Fact] - 注释：Slider 组件已移除 DisposeAsync 方法
     // public async Task 挂载应经共享primitives包初始化并在释放时派发dispose()
     // {
-    //     var (renderer, js, slider) = await MountPrimitiveAsync(new Dictionary<string, object?>
-    //     {
-    //         [nameof(Slider.Orientation)] = SliderOrientation.Vertical,
-    //     });
-    //
-    //     var import = Assert.Single(js.Invocations, i => i.Identifier == "import");
-    //     Assert.Contains("primitives.js", (string)import.Args![0]!);
-    //
-    //     var initialize = Single(js, "slider.initialize");
-    //     Assert.Equal(4, initialize.Args!.Length);
-    //     Assert.NotNull(initialize.Args![0]);   // 轨道元素引用
-    //     Assert.NotNull(initialize.Args![1]);   // DotNetObjectReference
-    //     var sliderId = Assert.IsType<string>(initialize.Args![2]);
-    //     Assert.Equal(32, sliderId.Length);     // Guid "N"
-    //     var options = initialize.Args![3]!;
-    //     Assert.Equal("vertical", options!.GetType().GetProperty("orientation")?.GetValue(options));
-    //
-    //     var dotNetRef = Assert.IsType<DotNetObjectReference<Slider>>(initialize.Args[1]!);
-    //     Assert.Same(slider, dotNetRef.Value);
-    //
-    //     await renderer.Dispatcher.InvokeAsync(slider.DisposeAsync);
-    //     await FlushAsync(renderer);
-    //
-    //     var dispose = Single(js, "slider.dispose");
-    //     Assert.Equal(sliderId, dispose.Args![0]);
+    // var (renderer, js, slider) = await MountPrimitiveAsync(new Dictionary<string, object?>
+    // {
+    // [nameof(Slider.Orientation)] = SliderOrientation.Vertical,
+    // });
+    // var import = Assert.Single(js.Invocations, i => i.Identifier == "import");
+    // Assert.Contains("primitives.js", (string)import.Args![0]!);
+    // var initialize = Single(js, "slider.initialize");
+    // Assert.Equal(4, initialize.Args!.Length);
+    // Assert.NotNull(initialize.Args![0]);   // 轨道元素引用
+    // Assert.NotNull(initialize.Args![1]);   // DotNetObjectReference
+    // var sliderId = Assert.IsType<string>(initialize.Args![2]);
+    // Assert.Equal(32, sliderId.Length);     // Guid "N"
+    // var options = initialize.Args![3]!;
+    // Assert.Equal("vertical", options!.GetType().GetProperty("orientation")?.GetValue(options));
+    // var dotNetRef = Assert.IsType<DotNetObjectReference<Slider>>(initialize.Args[1]!);
+    // Assert.Same(slider, dotNetRef.Value);
+    // await renderer.Dispatcher.InvokeAsync(slider.DisposeAsync);
+    // await FlushAsync(renderer);
+    // var dispose = Single(js, "slider.dispose");
+    // Assert.Equal(sliderId, dispose.Args![0]);
     // }
 
     [Fact]

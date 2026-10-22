@@ -436,47 +436,41 @@ public class PrimitiveNavigationMenuTests
     // [Fact] - 注释：NavigationMenu 组件已移除 JsCloseMenus 方法
     // public async Task JsCloseMenus应关闭激活项且闭合时静默()
     // {
-    //     var (renderer, _, root) = await MountAsync(new Dictionary<string, object?>());
-    //
-    //     await FireAsync(renderer, "onclick", new MouseEventArgs());
-    //     await SettleAsync(renderer);
-    //
-    //     await renderer.Dispatcher.InvokeAsync(() => root.JsCloseMenus());
-    //     await SettleAsync(renderer);
-    //     Assert.DoesNotContain("role=\"menu\"", renderer.Markup());
-    //
-    //     // 已无激活项：再调一次不应抛。
-    //     await renderer.Dispatcher.InvokeAsync(() => root.JsCloseMenus());
+    // var (renderer, _, root) = await MountAsync(new Dictionary<string, object?>());
+    // await FireAsync(renderer, "onclick", new MouseEventArgs());
+    // await SettleAsync(renderer);
+    // await renderer.Dispatcher.InvokeAsync(() => root.JsCloseMenus());
+    // await SettleAsync(renderer);
+    // Assert.DoesNotContain("role=\"menu\"", renderer.Markup());
+    // // 已无激活项：再调一次不应抛。
+    // await renderer.Dispatcher.InvokeAsync(() => root.JsCloseMenus());
     // }
 
     // [Fact] - 注释：NavigationMenu 组件已移除 DisposeAsync 方法
     // public async Task MenuTriggers模块应按句柄式initialize与dispose挂摘()
     // {
-    //     var (renderer, js, root) = await MountAsync(new Dictionary<string, object?>
-    //     {
-    //         [nameof(NavigationMenu.EnableKeyboardNavigation)] = true,
-    //     });
-    //
-    //     // 首渲染后：import 一次 + initialize 一次，参数含 navigation=true、enabled=true。
-    //     Assert.Contains(js.Invocations, i => i.Identifier == "import");
-    //     var initialize = js.Invocations.First(i => i.Identifier == "initialize");
-    //     Assert.Equal(4, initialize.Args!.Length);
-    //     Assert.Equal(true, initialize.Args[1]);
-    //     Assert.Equal(true, initialize.Args[2]);
-    //     Assert.IsType<DotNetObjectReference<NavigationMenu>>(initialize.Args[3]);
-    //
-    //     await root.DisposeAsync();
-    //     Assert.Contains(js.Invocations, i => i.Identifier == "dispose");
+    // var (renderer, js, root) = await MountAsync(new Dictionary<string, object?>
+    // {
+    // [nameof(NavigationMenu.EnableKeyboardNavigation)] = true,
+    // });
+    // // 首渲染后：import 一次 + initialize 一次，参数含 navigation=true、enabled=true。
+    // Assert.Contains(js.Invocations, i => i.Identifier == "import");
+    // var initialize = js.Invocations.First(i => i.Identifier == "initialize");
+    // Assert.Equal(4, initialize.Args!.Length);
+    // Assert.Equal(true, initialize.Args[1]);
+    // Assert.Equal(true, initialize.Args[2]);
+    // Assert.IsType<DotNetObjectReference<NavigationMenu>>(initialize.Args[3]);
+    // await root.DisposeAsync();
+    // Assert.Contains(js.Invocations, i => i.Identifier == "dispose");
     // }
 
     // [Fact] - 注释：NavigationMenuItem 组件已移除 ItemContext 属性
     // public async Task Value缺省条目应自动分配N格式Guid()
     // {
-    //     var (renderer, _, root) = await MountAsync(new Dictionary<string, object?>(), childContent: ValuelessItem());
-    //
-    //     var item = await renderer.Dispatcher.InvokeAsync(() => renderer.FindComponent<NavigationMenuItem>());
-    //     Assert.Matches("^[0-9a-f]{32}$", item.ItemContext.Value!);
-    //     Assert.False(item.ItemContext.IsOpen);
+    // var (renderer, _, root) = await MountAsync(new Dictionary<string, object?>(), childContent: ValuelessItem());
+    // var item = await renderer.Dispatcher.InvokeAsync(() => renderer.FindComponent<NavigationMenuItem>());
+    // Assert.Matches("^[0-9a-f]{32}$", item.ItemContext.Value!);
+    // Assert.False(item.ItemContext.IsOpen);
     // }
 
     private static RenderFragment ValuelessItem() => builder =>

@@ -268,7 +268,7 @@ public class PrimitiveScrollAreaTests
 
         var initialize = Assert.Single(js.Invocations, i => i.Identifier == "scrollArea.initialize");
         var args = initialize.Args!;
-        // 上游五参加载：instanceId、viewport 元素、滚动条引用、dotNet 引用、选项对象。
+        // 加载：instanceId、viewport 元素、滚动条引用、dotNet 引用、选项对象。
         Assert.Equal(5, args.Length);
         Assert.Matches("^[0-9a-f]{32}$", Assert.IsType<string>(args[0]));
         Assert.IsAssignableFrom<IJSObjectReference>(args[1]);
@@ -281,7 +281,7 @@ public class PrimitiveScrollAreaTests
     [Fact]
     public async Task initialize选项载荷应随滚动条自身朝向下传()
     {
-        // 上游行为（BbScrollAreaScrollbar 逐行一致）：根 Orientation 只经 Context 影响
+        // 行为：根 Orientation 只经 Context 影响
         // viewport 基础样式，不流向滚动条——initialize 的 orientation 取自滚动条自身参数。
         var (_, js) = await MountAsync(new Dictionary<string, object?>(), FullTree());
 

@@ -13,7 +13,6 @@ namespace AtomBlazor.Tests.Components;
 
 /// <summary>
 /// Dock 家族测试（Components 层复用 Resizable/ContextMenu/DropdownMenu 依赖）：
-/// ui/tests 对本族仅 ApiAuditRegressionTests.DockRejectsMissingAndDuplicatePanelIds
 /// 一枚回归理论命中（BehaviourFixTests 零命中已核），已照搬入首节；余者照
 /// ResizableTests 密度先例自撰。覆盖面：DockSplitNode/DockTabGroupNode/DockFloatingWindow
 /// 纯模型逻辑（NormalizeSizes 四路、EnsureActive 三分、Signature、默认尺寸常量、枚举定序）、

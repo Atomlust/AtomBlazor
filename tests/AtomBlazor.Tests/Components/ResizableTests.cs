@@ -24,7 +24,7 @@ namespace AtomBlazor.Tests.Components;
 /// 五枚 InlineData + End/垂直组 ArrowDown/PageDown）、keyup 解除 preventDefault 抑制、
 /// pointerdown 转调、脱离组静默；Panel 的 flex 样式串/F2 格式化/data-bb 登记属性/
 /// 折叠 CSS 下限归零/脱离组落垂直形态（Group null → IsHorizontal false 怪癖锁）/
-/// 样式合并。 ui/tests 对本族仅 BehaviourFixTests 两枚回归案例命中
+/// 样式合并。 
 /// （ApiAuditRegressionTests 零命中已核），已照搬入键盘面，余者照 ResponsiveNavTests/
 /// SidebarProviderTests 密度先例自撰。
 /// </summary>

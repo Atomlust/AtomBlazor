@@ -14,7 +14,7 @@ AtomBlazor 是一套基于 Blazor 的组件库（Tailwind CSS v4 + shadcn/ui 视
 ```
 src/AtomBlazor.Primitives/     无样式基元 + 服务（Portal/Positioning/Focus/Overlay/JsModules）
 src/AtomBlazor/                预样式组件库（各家族一目录）+ wwwroot/{atomblazor.css,js,lib}
-src/AtomBlazor.Icons.*/        Lucide / Heroicons / Feather / FontAwesome 图标包（Data.cs 由 ps1 生成）
+src/AtomBlazor.Icons.*/        Lucide / Heroicons / Feather / FontAwesome 图标包（Data.cs 为预生成的图标 SVG 数据）
 demos/AtomBlazor.Demo.Shared/  文档站页面（Pages/Components·Primitives·Charts·Icons·Guides…）+ CodeExamples
 demos/AtomBlazor.Demo.{Server,Wasm,Auto}/  Blazor 三宿主
 demos/AtomBlazor.Demo.Maui/    MAUI Blazor Hybrid 宿主（多 TF，本机仅 Windows 可建）
@@ -22,7 +22,6 @@ tests/AtomBlazor.Tests/        xUnit（自研轻量渲染器，非 bUnit）+ Api
 tests/js/                          node --test 的 JS 模块单测
 tests/browser/                     Playwright 配置（spec 待补）
 tools/TrimProbe/                   第三方库裁剪/AOT 冒烟
-ui/                                ⚠ 只读参考目录——绝不写入
 ```
 
 ## 3. 构建与测试
@@ -55,13 +54,12 @@ node --test tests/js/*.test.mjs
 
 ## 6. 铁律
 
-- **`ui/` 只读**：参考目录零写入。
 - **破坏性动作先确认**：安装工作负载、下载 Playwright 浏览器、`dotnet pack --push` 等须先行确认。
 
 ## 7. 打包
 
-版本采用 `Version` 直钉（当前 `0.1.0`）。`dotnet pack AtomBlazor.slnx -c Release` 产出各包 `.nupkg`（图标包 `Data.cs` 由各包内的 `GenerateIconData.ps1`（依各包图标源 JSON 生成）再生，勿手改）。
+版本采用各 csproj 的 `<Version>` 直钉（当前 `0.6.0`）。`dotnet pack AtomBlazor.slnx -c Release` 产出各包 `.nupkg`（图标包 `Data.cs` 为预生成的图标 SVG 数据，勿手改）。
 
 ## 8. 许可
 
-本项目基于 Apache-2.0 许可（详见 `LICENSE`）；第三方组件许可见各包 `LICENSE` 与 `THIRD-PARTY-NOTICES.txt`。
+本项目基于 Apache-2.0 许可（详见仓库根 `LICENSE` 与 `NOTICE`）；各 NuGet 包的许可证由 csproj 的 `PackageLicenseExpression` 声明。

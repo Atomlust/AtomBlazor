@@ -7,7 +7,7 @@ using PrimitivesFiltering = AtomBlazor.Primitives.Filtering;
 namespace AtomBlazor.Tests.Primitives;
 
 /// <summary>
-/// 移植自上游 DataGrid/SortAndFilterByTests.cs。覆盖一个按自身并不存放的值排序与筛选的列——
+/// 覆盖一个按自身并不存放的值排序与筛选的列——
 /// 即 <c>SortAndFilterBy</c> 背后的情形：单元模板把键解析成标签，而表格必须按用户读到的标签
 /// 排序与筛选，而非按键。断言本体逐行照搬。
 /// </summary>

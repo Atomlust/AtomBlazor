@@ -15,7 +15,7 @@ using PrimitiveTableRow = AtomBlazor.Primitives.TableRow<AtomBlazor.Tests.Primit
 namespace AtomBlazor.Tests.Primitives;
 
 /// <summary>
-/// Table(P) 基元测试（主波；全自写——ui/tests 对 Primitives.Table 无专属测试，
+/// Table(P) 基元测试（主波；全自写——，
 /// 其表相关断言散在 DataGrid 用例内，随后续 DataGrid 波另行补充）。
 /// 覆盖：SortingState 三态循环、SelectionState 选择模式与范围选择锚点语义、
 /// ColumnDefinition 取值/比较/自定义比较器、TableDataExtensions 排序分页管线、
@@ -70,7 +70,7 @@ public class PrimitiveTableTests
 
         sorting.ToggleSort("Name");
         Assert.Equal(PrimitiveSortDirection.None, sorting.Direction);
-        // 上游怪癖：循环回 None 时 SortedColumn 一并置空，以便"无排序"有干净的判定面
+        // 怪癖：循环回 None 时 SortedColumn 一并置空，以便"无排序"有干净的判定面
         Assert.Null(sorting.SortedColumn);
     }
 
@@ -206,7 +206,7 @@ public class PrimitiveTableTests
         var rows = new[] { new Row { Name = "a" }, new Row { Name = "b" } };
         var stale = new Row { Name = "stale" };
 
-        // 上游怪癖：锚点失效（翻页/过滤留下的陈旧锚点）不抛异常也不清空，退化为只选 to
+        // 怪癖：锚点失效（翻页/过滤留下的陈旧锚点）不抛异常也不清空，退化为只选 to
         selection.SelectRange(rows, stale, rows[1]);
 
         Assert.Single(selection.SelectedItems);
@@ -374,7 +374,7 @@ public class PrimitiveTableTests
         var data = new List<Row> { new() { Age = 1 } };
         var pagination = new PrimitivePaginationState { PageSize = 3, CurrentPage = 99 };
 
-        // 上游怪癖两段式：① CurrentPage setter 只钳下界（Math.Max(1, value)），不按 TotalPages
+        // 怪癖两段式：① CurrentPage setter 只钳下界（Math.Max(1, value)），不按 TotalPages
         // 钳上界，故页码可以先停在 99、StartIndex 先算成 294；② ApplyPagination 首行就把
         // TotalItems 回写进状态，而 TotalItems setter 反过来把 currentPage 钳到 TotalPages——
         // 于是切片发生在钳制之后，越界页码最终回落为最后一页而非空片（也不抛异常）。

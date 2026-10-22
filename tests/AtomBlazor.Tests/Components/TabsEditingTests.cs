@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.JSInterop;
 using Xunit;
-// 双层同名家族（照 AccordionTests 先例）：机械平移自上游
+// 双层同名家族（照 AccordionTests 先例）：机械平移自
 // ui/tests/Rendering/TabsEditingTests.cs（337 行 13 枚），
 // 别名钉死到 Components 侧（Tabs*）。
 using Tabs = AtomBlazor.Tabs;

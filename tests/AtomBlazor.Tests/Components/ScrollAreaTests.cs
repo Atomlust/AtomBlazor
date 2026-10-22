@@ -156,7 +156,7 @@ public class ScrollAreaTests
         var markup = renderer.Markup();
         // 基元根把消费者样式再并入自身基础样式之后。
         Assert.Contains("position: relative; overflow: hidden; height: 300px; max-height: 400px", markup);
-        // 上游行为（ViewportStyle 逐行一致）：MaxHeight 需同时落在 viewport，
+        // 行为：MaxHeight 需同时落在 viewport，
         // 否则 height: 100% 解析为 auto（循环依赖）无法滚动。
         Assert.Contains("height: 100%; max-height: 400px", markup);
     }

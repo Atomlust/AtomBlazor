@@ -608,7 +608,7 @@ public class ResponsiveNavTests
         await renderer.Dispatcher.InvokeAsync(() => { });
 
         // 不做整段标记快照：移动端面板经Sheet 门户渲染进渲染器自建的根，
-        // 单测渲染器观察不到（参考项目同样只保留 API 表面快照）。
+        // 单测渲染器观察不到。
         // 这里只钉住与门户策略无关的桌面端结构与无障碍契约。
         var markup = Scrub(renderer.Markup());
 

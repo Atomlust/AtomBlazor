@@ -10,7 +10,7 @@ namespace AtomBlazor.Tests.Primitives;
 /// Filtering(P) 基元测试（依赖先行波；全自写——Filters/FilterPresetTests.cs
 /// 依赖 FilterBuilder 故不可移植，登记为待移植项）。
 /// 覆盖：FilterDefinition/PrimitivesFiltering.FilterCondition 结构与深拷贝、FilterOperatorHelper 算子表与标签、
-/// MatchesValue 各算子语义（含"不完整条件匹配全部"与"整日语义"两条上游怪癖）、
+/// MatchesValue 各算子语义（含"不完整条件匹配全部"与"整日语义"两条怪癖）、
 /// 日期预设与 InLast/InNext、ToFunc/ToExpression/ToExpressionForSelector、JSON 往返。
 /// </summary>
 public class PrimitiveFilteringTests
@@ -307,7 +307,7 @@ public class PrimitiveFilteringTests
         Assert.True(Cond(PrimitivesFiltering.FilterOperator.Between, 5, 10).MatchesValue(10, PrimitivesFiltering.FilterFieldType.Number));
         Assert.False(Cond(PrimitivesFiltering.FilterOperator.Between, 5, 10).MatchesValue(11, PrimitivesFiltering.FilterFieldType.Number));
 
-        // 上游怪癖：Between 缺任一端点即"不完整条件"，匹配全部（与 ToExpression 行为对齐）
+        // 怪癖：Between 缺任一端点即"不完整条件"，匹配全部（与 ToExpression 行为对齐）
         Assert.True(Cond(PrimitivesFiltering.FilterOperator.Between, 5, null).MatchesValue(999, PrimitivesFiltering.FilterFieldType.Number));
     }
 
@@ -317,7 +317,7 @@ public class PrimitiveFilteringTests
         Assert.True(Cond(PrimitivesFiltering.FilterOperator.In, abValues).MatchesValue("b"));
         Assert.False(Cond(PrimitivesFiltering.FilterOperator.NotIn, abValues).MatchesValue("b"));
 
-        // 空集合：In 匹配全部、NotIn 全部排除（上游注释明确对齐 ToExpression）
+        // 空集合：In 匹配全部、NotIn 全部排除（注释明确对齐 ToExpression）
         Assert.True(Cond(PrimitivesFiltering.FilterOperator.In, Array.Empty<string>()).MatchesValue("zzz"));
         Assert.False(Cond(PrimitivesFiltering.FilterOperator.NotIn, Array.Empty<string>()).MatchesValue("zzz"));
     }
@@ -325,7 +325,7 @@ public class PrimitiveFilteringTests
     [Fact]
     public void 值缺失的条件判为不完整并匹配全部()
     {
-        // 上游怪癖：用户尚未填值的条件不参与过滤，避免编辑中整表清空
+        // 怪癖：用户尚未填值的条件不参与过滤，避免编辑中整表清空
         Assert.True(Cond(PrimitivesFiltering.FilterOperator.Equals, null).MatchesValue("anything"));
         Assert.True(Cond(PrimitivesFiltering.FilterOperator.Contains, null).MatchesValue("anything"));
 
@@ -349,7 +349,7 @@ public class PrimitiveFilteringTests
     {
         var day = new DateTime(2026, 3, 10);
 
-        // 上游怪癖：日期选择器不含时间分量，故 > 实为 >= 次日零点（同日 23:00 不算大于）
+        // 怪癖：日期选择器不含时间分量，故 > 实为 >= 次日零点（同日 23:00 不算大于）
         Assert.False(Cond(PrimitivesFiltering.FilterOperator.GreaterThan, day).MatchesValue(day.AddHours(23), PrimitivesFiltering.FilterFieldType.Date));
         Assert.True(Cond(PrimitivesFiltering.FilterOperator.GreaterThan, day).MatchesValue(day.AddDays(1), PrimitivesFiltering.FilterFieldType.Date));
     }
@@ -484,7 +484,7 @@ public class PrimitiveFilteringTests
     [Fact]
     public void 列名不在字段元数据表内时整条条件被跳过而非判假()
     {
-        // 上游怪癖（EvaluateGroup L203-206）：提供了 fieldTypeMap 时，未登记的列名直接
+        // 怪癖（EvaluateGroup L203-206）：提供了 fieldTypeMap 时，未登记的列名直接
         // continue 跳过；条件全部被跳过则 results 为空、整组返回 true——即"未知列不过滤"。
         var predicate = new FilterDefinition
         {

@@ -27,7 +27,7 @@ namespace AtomBlazor.Tests.Components;
 /// 骨架加载、Border/滚动壳/CellWidth 定宽公式、atom-guide-background-grid 背景类门控、
 /// sr-only 播报区）；DashboardWidget（Title/自定义 Header/Footer、八向缩放手柄与
 /// role=separator、移除按钮点击卸载联动注销、Static 与 Editable/AllowResize 门控、
-/// Loading 骨架）；GetConfig 全量配置回读。上游 ui/ 无本族任何测试，密度照
+/// Loading 骨架）；GetConfig 全量配置回读。 ui/ 无本族任何测试，密度照
 /// ResizableTests／Editable 家族先例自撰。
 /// </summary>
 public class DashboardGridTests
@@ -237,7 +237,7 @@ public class DashboardGridTests
 
         await renderer.Dispatcher.InvokeAsync(() => grid.JsOnWidgetDragEnd("ghost", 6, 6));
 
-        // 上游原样：未知号 OldPosition 兜底 (1,1,1,1)，且 SetPosition 把它直接新增进激活布局。
+        // 原样：未知号 OldPosition 兜底 (1,1,1,1)，且 SetPosition 把它直接新增进激活布局。
         Assert.Equal((1, 1, 1, 1), (dragged!.OldPosition.Column, dragged.OldPosition.Row, dragged.OldPosition.ColumnSpan, dragged.OldPosition.RowSpan));
         Assert.Equal((6, 6, 1, 1), (dragged.NewPosition.Column, dragged.NewPosition.Row, dragged.NewPosition.ColumnSpan, dragged.NewPosition.RowSpan));
         Assert.Contains(grid.GetConfig().Widgets, w => w.WidgetId == "ghost");

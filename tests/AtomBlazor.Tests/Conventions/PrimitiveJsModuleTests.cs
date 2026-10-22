@@ -206,7 +206,6 @@ public class PrimitiveJsModuleTests
         // 就游离于该排序之外，dialog 里的 popover 一按 Escape 会把两层同时关掉。
         // 内容持有焦点的浮层（Select、菜单）在自己的容器上处理 Escape 并阻止其冒泡，
         // 这就是为什么容器级监听器没问题、document 级监听器不行。
-        //
         // document 级 keydown 监听器只在它对 Escape 作出反应时才是问题。
         // element-utils.js 监听 Tab 是为了区分键盘抵达与鼠标抵达，keyboard-shortcuts.js 服务于
         // 应用级快捷键；两者都不看 Escape。

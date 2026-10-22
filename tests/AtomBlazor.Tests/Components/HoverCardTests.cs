@@ -151,7 +151,7 @@ public class HoverCardTests
     {
         var reports = new List<bool>();
         var (renderer, _) = CreateRenderer();
-        // 注意：不提供 OpenChanged 委托——DefaultOpen 仅在有委托时初始化即播报（上游怪癖），
+        // 注意：不提供 OpenChanged 委托——DefaultOpen 仅在有委托时初始化即播报（怪癖），
         // 本测试验证"初始化不播报"这一默认行为。
         var hoverCard = await renderer.MountAsync<PHoverCard>(new Dictionary<string, object?>
         {

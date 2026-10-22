@@ -8,7 +8,6 @@ namespace AtomBlazor.Tests.Conventions;
 /// <summary>
 /// 本库发出的每一个 Tailwind 工具类都带 <c>atom:</c> 前缀，并位于 <c>atom-utilities</c> 级联层中
 /// 因此使用者自己运行的 Tailwind 构建永远不会产生同名类，两套样式表也无法争夺同一个元素（#496）。
-///
 /// 构建侧通过读取产出的样式表来守护；源码侧同样被守护，因为在带前缀的构建下
 /// 组件类字符串里一个未加前缀的令牌并不会冲突——它会安静地什么都不产出，这更糟。
 /// </summary>

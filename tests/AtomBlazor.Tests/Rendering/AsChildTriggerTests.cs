@@ -74,7 +74,7 @@ public sealed class AsChildTriggerTests : IDisposable
 
     [Theory]
     [MemberData(nameof(ClickTriggers))]
-    public async Task ABbButtonChildIsNotReportedAndWorks(string name)
+    public async Task ButtonChildIsNotReportedAndWorks(string name)
     {
         var trigger = Case(name);
 

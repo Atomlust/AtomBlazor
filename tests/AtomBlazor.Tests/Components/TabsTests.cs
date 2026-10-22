@@ -191,7 +191,7 @@ public class TabsTests
 
         await ClickAsync(renderer, 1);
 
-        // 上游行为（包装层逐行透传基元）：父级未回写前渲染沿保持新值。
+        // 行为：父级未回写前渲染沿保持新值。
         Assert.Equal(["two"], reports);
         Assert.Contains(">内容-two<", renderer.Markup());
     }

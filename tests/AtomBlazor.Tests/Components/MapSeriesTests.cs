@@ -11,7 +11,7 @@ namespace AtomBlazor.Tests.Components;
 /// 自 Charts/MapSeriesTests.cs（七规则机械改名：→AtomBlazor、
 /// Bb 前缀剥除（→MapChart、→Map、→ChartBase）、命名空间/目录
 /// 落本仓 Components/ 先例；方法名与文档注释照先例保英，自 在册、 收官归口
-/// 。断言值 `atom-world` 与数据键 `atomSourceIndex` 为主码实形白名单形态，逐字保原样
+/// 断言值 `atom-world` 与数据键 `atomSourceIndex` 为主码实形白名单形态，逐字保原样
 /// BL0005 pragma 系原位隔离件，随保留）。
 /// </summary>
 public class MapSeriesTests

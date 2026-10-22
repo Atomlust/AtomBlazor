@@ -13,7 +13,7 @@ using Xunit;
 namespace AtomBlazor.Tests.Components;
 
 /// <summary>
-/// DataView 组件层测试。 ui/tests 的 DataView 断言依赖 FilterBuilder，不可机械
+/// DataView 组件层测试。 DataView 断言依赖 FilterBuilder，不可机械
 /// 故覆盖可独立验证的渲染契约与状态面：列表/网格模板渲染、空态自定义模板、加载态。
 /// </summary>
 public class DataViewTests

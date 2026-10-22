@@ -118,7 +118,7 @@ public class TooltipTests
     public async Task 受控开关参数应驱动开合沿且受控回写不回声OpenChanged()
     {
         // 验证两件事：(1) 受控 Open 参数变化驱动视觉开合（触发器 aria-describedby / 内容 data-state）；
-        // (2) 按上游怪癖，受控回写 Open 参数时不回声 OpenChanged（通知只来自触发器路径）。
+        // (2) 按怪癖，受控回写 Open 参数时不回声 OpenChanged（通知只来自触发器路径）。
         var reports = new List<bool>();
         var openChanged = EventCallback.Factory.Create<bool>(new object(), v => reports.Add(v));
         var (renderer, _) = CreateRenderer();

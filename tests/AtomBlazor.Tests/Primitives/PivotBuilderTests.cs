@@ -5,7 +5,7 @@ using Xunit;
 namespace AtomBlazor.Tests.Primitives;
 
 /// <summary>
-/// 移植自上游 Pivot/PivotBuilderTests.cs：交叉汇总引擎——表头、单元、总计，以及一切输出的顺序。
+/// 交叉汇总引擎——表头、单元、总计，以及一切输出的顺序。
 /// </summary>
 public class PivotBuilderTests
 {

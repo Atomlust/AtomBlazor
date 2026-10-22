@@ -83,7 +83,7 @@ public class SelectTests
     private static object? Prop(object? target, string name) =>
         target?.GetType().GetProperty(name)?.GetValue(target);
 
-    /// <summary>经反射取基元 Select 的私有 _context 字段（先例：上游 SelectTriggerLifecycleTests）。</summary>
+    /// <summary>经反射取基元 Select 的私有 _context 字段。</summary>
     private static PSelectContext ContextOf(PSelect select) =>
         (PSelectContext)typeof(PSelect)
             .GetField("_context", BindingFlags.Instance | BindingFlags.NonPublic)!
@@ -292,7 +292,7 @@ public class SelectTests
     [Fact]
     public async Task 键盘激活不应重复关闭刚被自己打开的列表()
     {
-        // 上游 Selection/SelectTriggerLifecycleTests 的 1:1 对应：
+        // Selection/SelectTriggerLifecycleTests 的 1:1 对应：
         // Enter 触发 HandleKeyDown 打开后，浏览器还会补一次 Detail=0 的原生 click，
         // 该重复激活必须被吞掉；随后的指针点击（Detail=1）才执行关闭。
         var (renderer, _) = CreateRenderer();
@@ -420,7 +420,7 @@ public class SelectTests
         builder.OpenComponent<SelectTrigger<string>>(0);
         builder.AddAttribute(1, "ChildContent", (RenderFragment)(inner =>
         {
-            // 包装层 SelectValue 与上游一致：非泛型，经 ISelectDisplayContext 级联取值文本。
+            // 包装层 SelectValue 一致：非泛型，经 ISelectDisplayContext 级联取值文本。
             inner.OpenComponent<SelectValue>(0);
             inner.AddAttribute(1, nameof(SelectValue.Placeholder), "请选择");
             inner.CloseComponent();

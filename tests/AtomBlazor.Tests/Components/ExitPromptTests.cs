@@ -353,7 +353,7 @@ public class ExitPromptTests
     public async Task 拦下导航的对话框应具备可访问结构与两个动作按钮()
     {
         // 不做整段标记快照：浮层有 JS / 原生 <dialog> / 内联三条渲染策略，门户内容由
-        // PortalHost 渲染进渲染器自建的根，单测渲染器观察不到（参考项目同样只保留
+        // PortalHost 渲染进渲染器自建的根，单测渲染器观察不到（同样只保留
         // API 表面快照）。类名覆盖由 AlertDialog 组件自身的源码约定保证，这里只钉住
         // 与策略无关的结构与无障碍契约。
         var (renderer, _, _, _, _) = await HeldAsync();

@@ -8,7 +8,6 @@ namespace AtomBlazor.Tests.Focus;
 
 /// <summary>
 /// 守护 <see cref="FocusManager"/> 交给 <c>focus-trap.js</c> 的那份契约。
-///
 /// 初始聚焦目标由 JS 决定，所以此处可测的是模式与显式元素是否原样送达。
 /// 静默回归恰恰藏在那里：陷阱照样生效、照样锁住 Tab，
 /// 却悄悄退回聚焦第一个可 tab 的子元素——这正是所报告的缺陷 #504，

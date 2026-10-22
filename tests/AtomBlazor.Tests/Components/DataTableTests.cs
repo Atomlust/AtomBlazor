@@ -13,7 +13,7 @@ using Xunit;
 namespace AtomBlazor.Tests.Components;
 
 /// <summary>
-/// DataTable 组件层测试。 ui/tests 的 DataTable 断言依赖 FilterBuilder
+/// DataTable 组件层测试。 DataTable 断言依赖 FilterBuilder
 /// 无法机械，故覆盖可独立验证的渲染契约与纯逻辑面：列注册与渲染、数据行渲染、空/加载态、
 /// 选择模式映射（复选框出现）、工具栏与全局搜索、列可见性切换回调、CellTemplate 自定义单元。
 /// </summary>

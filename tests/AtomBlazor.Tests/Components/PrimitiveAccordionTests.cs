@@ -133,7 +133,7 @@ public class PrimitiveAccordionTests
         var renderer = await MountAsync(new Dictionary<string, object?>());
 
         await ClickTriggerAsync(renderer, 0);
-        // 上游行为（AccordionContext.ToggleItem 逐行一致）：单开且 Collapsible=false 时，
+        // 行为：单开且 Collapsible=false 时，
         // 点击当前已展开条目既不收起也不改变集合——必须始终有一个条目保持展开。
         await ClickTriggerAsync(renderer, 0);
 
@@ -229,7 +229,7 @@ public class PrimitiveAccordionTests
         Assert.Single(reports);
         Assert.Equal(new HashSet<string> { "two" }, reports[0]);
 
-        // 上游行为（BbAccordion.HandleContextStateChanged 逐行一致）：受控模式下
+        // 行为：受控模式下
         // SetValueAsync 只上报、不写回 ControlledValue，父级未跟进时上下文已翻为 two，
         // 渲染沿保持 two，不会被旧 Value=one 拉回。
         var markup = renderer.Markup();
@@ -249,7 +249,7 @@ public class PrimitiveAccordionTests
         });
 
         // 父级跟进并给出 {one,two}：OnParametersSet 直接覆写 OpenValues——
-        // 上游行为（BbAccordion.OnParametersSet 逐行一致）：该沿不经过 ToggleItem，
+        // 行为：该沿不经过 ToggleItem，
         // 单开模式不在受控写入路径上强制，两个条目可同时展开。
         await renderer.Dispatcher.InvokeAsync(() => renderer.RerenderRootAsync(0, new Dictionary<string, object?>
         {
@@ -268,7 +268,7 @@ public class PrimitiveAccordionTests
     [Fact]
     public async Task 仅有Value而无ValueChanged时按非受控处理()
     {
-        // 上游行为（BbAccordion.OnInitialized 逐行一致）：IsControlled 仅以
+        // 行为：IsControlled 仅以
         // ValueChanged.HasDelegate 判定，只传 Value 不传回调时状态仍由内部维护，
         // 受控写入沿不生效——初始展开集合来自 DefaultValue 兜底为空。
         var renderer = await MountAsync(new Dictionary<string, object?>

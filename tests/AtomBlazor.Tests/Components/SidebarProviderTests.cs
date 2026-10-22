@@ -19,7 +19,7 @@ namespace AtomBlazor.Tests.Components;
 /// sidebar.initialize 点分装载（cookie 键载荷、受控模式不发键、savedOpen 优先级）、
 /// 快捷键开关异值重发 setToggleShortcutEnabled、状态变更 saveSidebarState 持久化、
 /// 释放 sidebar.cleanup 带实例 id、预渲染兜底与 JSInvokable 回调落态。
-/// ui/tests 对 Sidebar 零行为测试，本文件照 ResponsiveNavTests/NavigationMenuTests 密度自撰。
+/// 本文件照 ResponsiveNavTests/NavigationMenuTests 密度自撰。
 /// </summary>
 public class SidebarProviderTests
 {

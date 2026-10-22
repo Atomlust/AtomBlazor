@@ -448,7 +448,7 @@ public class TreeViewTests
             [nameof(PTree.AriaLabel)] = "示例树",
         }, NestedFamily());
 
-        // 首轮渲染 a 的特性先于 a1/a2 注册计算（上游同拍）；
+        // 首轮渲染 a 的特性先于 a1/a2 注册计算（同拍）；
         // 一次良性状态变化让全部条目按注册后的级联状态重算（a → mixed）。
         await ActAsync(renderer, () => tree.Context.ExpandNode("b"));
         await FlushAsync(renderer);

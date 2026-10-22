@@ -443,52 +443,47 @@ public class PrimitiveTabsTests
     // [Fact] - 注释：TabsTrigger 组件已移除 OnCloseRequested 事件
     // public async Task Delete与Backspace在接了关闭回调时应上报()
     // {
-    //     var closed = 0;
-    //     var closeRequested = EventCallback.Factory.Create(new object(), () => closed++);
-    //     var (renderer, _) = await MountAsync(new Dictionary<string, object?>
-    //     {
-    //         [nameof(Tabs.ChildContent)] = (RenderFragment)(builder =>
-    //         {
-    //             builder.OpenComponent<TabsList>(0);
-    //             builder.AddAttribute(1, nameof(TabsList.ChildContent), (RenderFragment)(inner =>
-    //             {
-    //                 inner.OpenComponent<TabsTrigger>(0);
-    //                 inner.AddAttribute(2, nameof(TabsTrigger.Value), "one");
-    //                 inner.AddAttribute(3, nameof(TabsTrigger.OnCloseRequested), closeRequested);
-    //                 inner.CloseComponent();
-    //             }));
-    //             builder.CloseComponent();
-    //         }),
-    //     });
-    //
-    //     await PressAsync(renderer, "Delete");
-    //     await PressAsync(renderer, "Backspace");
-    //     Assert.Equal(2, closed);
-    //
-    //     // 未接回调的按键（Enter 走激活分支）不误报关闭。
-    //     await PressAsync(renderer, "Enter");
-    //     Assert.Equal(2, closed);
+    // var closed = 0;
+    // var closeRequested = EventCallback.Factory.Create(new object(), () => closed++);
+    // var (renderer, _) = await MountAsync(new Dictionary<string, object?>
+    // {
+    // [nameof(Tabs.ChildContent)] = (RenderFragment)(builder =>
+    // {
+    // builder.OpenComponent<TabsList>(0);
+    // builder.AddAttribute(1, nameof(TabsList.ChildContent), (RenderFragment)(inner =>
+    // {
+    // inner.OpenComponent<TabsTrigger>(0);
+    // inner.AddAttribute(2, nameof(TabsTrigger.Value), "one");
+    // inner.AddAttribute(3, nameof(TabsTrigger.OnCloseRequested), closeRequested);
+    // inner.CloseComponent();
+    // }));
+    // builder.CloseComponent();
+    // }),
+    // });
+    // await PressAsync(renderer, "Delete");
+    // await PressAsync(renderer, "Backspace");
+    // Assert.Equal(2, closed);
+    // // 未接回调的按键（Enter 走激活分支）不误报关闭。
+    // await PressAsync(renderer, "Enter");
+    // Assert.Equal(2, closed);
     // }
 
     // [Fact] - 注释：MountTriggerAsync 已注释（TabsTrigger 组件已移除 OnRenameRequested 和 OnMoveRequested 事件）
     // public async Task F2与Ctrl方向键应分别上报重命名与移动请求()
     // {
-    //     var renames = 0;
-    //     var moves = new List<int>();
-    //     var (renderer, trigger) = await MountTriggerAsync(
-    //         EventCallback.Factory.Create(new object(), () => renames++),
-    //         EventCallback.Factory.Create<int>(new object(), moves.Add));
-    //
-    //     await PressAsync(renderer, "F2");
-    //     Assert.Equal(1, renames);
-    //     Assert.Empty(moves);
-    //
-    //     await PressAsync(renderer, "ArrowRight", ctrl: true);
-    //     await PressAsync(renderer, "ArrowLeft", ctrl: true);
-    //     Assert.Equal([1, -1], moves);
-    //
-    //     // CanMove 沿：接了 OnMoveRequested 即为可移动。
-    //     Assert.True((bool)ComponentProbe.Call(trigger!, "get_CanMove")!);
+    // var renames = 0;
+    // var moves = new List<int>();
+    // var (renderer, trigger) = await MountTriggerAsync(
+    // EventCallback.Factory.Create(new object(), () => renames++),
+    // EventCallback.Factory.Create<int>(new object(), moves.Add));
+    // await PressAsync(renderer, "F2");
+    // Assert.Equal(1, renames);
+    // Assert.Empty(moves);
+    // await PressAsync(renderer, "ArrowRight", ctrl: true);
+    // await PressAsync(renderer, "ArrowLeft", ctrl: true);
+    // Assert.Equal([1, -1], moves);
+    // // CanMove 沿：接了 OnMoveRequested 即为可移动。
+    // Assert.True((bool)ComponentProbe.Call(trigger!, "get_CanMove")!);
     // }
 
     [Fact]
@@ -551,41 +546,38 @@ public class PrimitiveTabsTests
     // [Fact] - 注释：TabsTrigger 组件已移除 OnRenameRequested 和 OnMoveRequested 事件
     // public async Task 默认结构快照应与基线一致()
     // {
-    //     var (renderer, _) = await MountAsync(new Dictionary<string, object?>
-    //     {
-    //         [nameof(Tabs.DefaultValue)] = "one",
-    //         [nameof(Tabs.ChildContent)] = ThreeTabs(),
-    //     });
-    //
-    //     await Verify(Scrub(renderer.Markup()));
+    // var (renderer, _) = await MountAsync(new Dictionary<string, object?>
+    // {
+    // [nameof(Tabs.DefaultValue)] = "one",
+    // [nameof(Tabs.ChildContent)] = ThreeTabs(),
+    // });
+    // await Verify(Scrub(renderer.Markup()));
     // }
 
     /// <summary>单独挂载一个带回调的基元触发器，用于检视其内部能力面。</summary>
     // private static async Task<(ComponentTestRenderer Renderer, TabsTrigger? Trigger)> MountTriggerAsync(
-    //     EventCallback renameRequested, EventCallback<int> moveRequested)
+    // EventCallback renameRequested, EventCallback<int> moveRequested)
     // {
-    //     var renderer = CreateRenderer(out _);
-    //     await renderer.MountAsync<Tabs>(new Dictionary<string, object?>
-    //     {
-    //         [nameof(Tabs.ChildContent)] = (RenderFragment)(builder =>
-    //         {
-    //             builder.OpenComponent<TabsList>(0);
-    //             builder.AddAttribute(1, nameof(TabsList.ChildContent), (RenderFragment)(inner =>
-    //             {
-    //                 inner.OpenComponent<TabsTrigger>(0);
-    //                 inner.AddAttribute(1, nameof(TabsTrigger.Value), "one");
-    //                 inner.AddAttribute(2, nameof(TabsTrigger.OnRenameRequested), renameRequested);
-    //                 inner.AddAttribute(3, nameof(TabsTrigger.OnMoveRequested), moveRequested);
-    //                 inner.CloseComponent();
-    //             }));
-    //             builder.CloseComponent();
-    //         }),
-    //     });
-    //
-    //     await renderer.Dispatcher.InvokeAsync(() => { });
-    //
-    //     TabsTrigger? trigger = null;
-    //     await renderer.Dispatcher.InvokeAsync(() => trigger = renderer.FindComponent<TabsTrigger>());
-    //     return (renderer, trigger);
+    // var renderer = CreateRenderer(out _);
+    // await renderer.MountAsync<Tabs>(new Dictionary<string, object?>
+    // {
+    // [nameof(Tabs.ChildContent)] = (RenderFragment)(builder =>
+    // {
+    // builder.OpenComponent<TabsList>(0);
+    // builder.AddAttribute(1, nameof(TabsList.ChildContent), (RenderFragment)(inner =>
+    // {
+    // inner.OpenComponent<TabsTrigger>(0);
+    // inner.AddAttribute(1, nameof(TabsTrigger.Value), "one");
+    // inner.AddAttribute(2, nameof(TabsTrigger.OnRenameRequested), renameRequested);
+    // inner.AddAttribute(3, nameof(TabsTrigger.OnMoveRequested), moveRequested);
+    // inner.CloseComponent();
+    // }));
+    // builder.CloseComponent();
+    // }),
+    // });
+    // await renderer.Dispatcher.InvokeAsync(() => { });
+    // TabsTrigger? trigger = null;
+    // await renderer.Dispatcher.InvokeAsync(() => trigger = renderer.FindComponent<TabsTrigger>());
+    // return (renderer, trigger);
     // }
 }

@@ -22,7 +22,7 @@ namespace AtomBlazor.Tests.Primitives;
 /// data-editable/data-breakpoint 小写态、data-min-*-span 钳位、grid 摆放与消费者
 /// style 叠加不替换、脱离网格抛 InvalidOperationException、Dispose 注销联动）。
 /// 怪癖锁存：WidgetPositionSnapshot 数值默认 0 而 WidgetPosition 默认 1（两套默认值
-/// 并存属上游原样，照录不修）；State.UpdateWidgetPosition 在激活布局缺位时直接新增。
+/// 并存属原样，照录不修）；State.UpdateWidgetPosition 在激活布局缺位时直接新增。
 /// </summary>
 public class PrimitiveDashboardGridTests
 {
@@ -257,7 +257,7 @@ public class PrimitiveDashboardGridTests
     [Fact]
     public void 快照类型默认值零与位置默认值一并存怪癖锁()
     {
-        // 上游原样：WidgetPositionSnapshot 数值默认 0，而 WidgetPosition 默认 1。
+        // 原样：WidgetPositionSnapshot 数值默认 0，而 WidgetPosition 默认 1。
         // 手写快照不经 Restore 直接消费时落点会差一格——此处照录锁存，不改主码。
         var snapshotDefaults = new WidgetPositionSnapshot();
         Assert.Equal((0, 0, 0, 0), (snapshotDefaults.Column, snapshotDefaults.Row, snapshotDefaults.ColumnSpan, snapshotDefaults.RowSpan));
@@ -489,7 +489,7 @@ public class PrimitiveDashboardGridTests
         Assert.NotNull(context.State.Large.GetPosition("w1"));
 
         var widget = renderer.FindComponent<PrimitiveDashboardWidget>();
-        // 上游释放次序：Dispose 先 UnregisterWidget（内部 NotifyStateChanged）后摘钩订阅，
+        // 释放次序：Dispose 先 UnregisterWidget（内部 NotifyStateChanged）后摘钩订阅，
         // 因此注销通知会打回自身 StateHasChanged——必须沿 Dispatcher 线程走渲染队列。
         await renderer.Dispatcher.InvokeAsync(widget.Dispose);
 

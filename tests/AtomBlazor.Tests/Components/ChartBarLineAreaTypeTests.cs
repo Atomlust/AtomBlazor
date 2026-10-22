@@ -6,7 +6,7 @@ namespace AtomBlazor.Tests.Components;
 
 /// <summary>
 /// 自写波：BarChart / LineChart / AreaChart 三枚类型件的默认 option 形状面。
-/// 对这三族零行为测试（ui/tests 仅 MapSeriesTests 与 SankeyGraphBuilderTests）
+/// 对这三族零行为测试
 /// 本波照 ChartComposableApplyToTests 先例走纯逻辑反射面——无渲染、无宿主、不触 echarts JS。
 /// </summary>
 public class ChartBarLineAreaTypeTests
