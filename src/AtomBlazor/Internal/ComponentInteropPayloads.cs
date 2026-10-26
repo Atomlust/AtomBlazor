@@ -3,7 +3,7 @@ namespace AtomBlazor;
 /// <summary>
 /// 组件通过 JS interop 发给浏览器的配置载荷
 /// （carousel configure、compositionGuard.attach、motion/height/indicator、
-/// dashboardGrid 与 drawer-snaps 模块）。
+/// dashboardGrid、drawer-snaps、theme.initialize、tagInput.initialize 与 quill 编辑器选项）。
 /// </summary>
 /// <remarks>
 /// 为什么用命名 record 而不是匿名类型（与 <see cref="TextInputJsConfig"/> 同理）：
@@ -171,4 +171,81 @@ internal sealed record DrawerSnapsJsConfig
 
     /// <summary>拖拽越过阈值时是否请求关闭。</summary>
     public bool dismiss { get; init; }
+}
+
+/// <summary>theme.initialize 载荷。</summary>
+internal sealed record ThemeInitializeJsConfig
+{
+    /// <summary>是否把偏好持久化到 localStorage。</summary>
+    public bool persist { get; init; }
+
+    /// <summary>是否探测操作系统配色偏好。</summary>
+    public bool detectSystemPreference { get; init; }
+
+    /// <summary>无持久化偏好时套用的默认主题。</summary>
+    public ThemeDefaultsJsConfig defaults { get; init; } = new();
+
+    /// <summary>合法基础（灰阶）色名（小写）——让浏览器就地回落损坏的持久化条目。</summary>
+    public string[] validBaseColors { get; init; } = [];
+
+    /// <summary>合法主色名（小写）——让浏览器就地回落损坏的持久化条目。</summary>
+    public string[] validPrimaryColors { get; init; } = [];
+}
+
+/// <summary><see cref="ThemeInitializeJsConfig"/> 的 defaults 子对象：默认主题值。</summary>
+internal sealed record ThemeDefaultsJsConfig
+{
+    /// <summary>默认是否暗色。</summary>
+    public bool isDarkMode { get; init; }
+
+    /// <summary>默认基础（灰阶）色名（小写）。</summary>
+    public string baseColor { get; init; } = "";
+
+    /// <summary>默认主色名（小写）。</summary>
+    public string primaryColor { get; init; } = "";
+
+    /// <summary>默认圆角半径（rem）。</summary>
+    public double radius { get; init; }
+
+    /// <summary>默认设计（密度/字体/表面/菜单色/菜单强调色的小写取值）。</summary>
+    public ThemeDesignJsConfig design { get; init; } = new();
+}
+
+/// <summary>theme 载荷的 design 子对象：设计五项的小写取值。</summary>
+internal sealed record ThemeDesignJsConfig
+{
+    /// <summary>密度。</summary>
+    public string density { get; init; } = "";
+
+    /// <summary>字体。</summary>
+    public string font { get; init; } = "";
+
+    /// <summary>表面。</summary>
+    public string surface { get; init; } = "";
+
+    /// <summary>菜单背景与文字颜色。</summary>
+    public string menuColor { get; init; } = "";
+
+    /// <summary>菜单焦点与悬停颜色。</summary>
+    public string menuAccent { get; init; } = "";
+}
+
+/// <summary>tagInput.initialize 载荷。</summary>
+internal sealed record TagInputJsConfig
+{
+    /// <summary>新增标签的触发方式（AddTrigger 位标志的整数值）。</summary>
+    public int triggers { get; init; }
+}
+
+/// <summary>quill 富文本编辑器的初始化选项载荷。</summary>
+internal sealed record RichTextEditorJsConfig
+{
+    /// <summary>编辑器空态占位文本。</summary>
+    public string placeholder { get; init; } = "";
+
+    /// <summary>是否处于只读态。</summary>
+    public bool readOnly { get; init; }
+
+    /// <summary>是否接入了图片上传处理器。</summary>
+    public bool hasImageUploader { get; init; }
 }

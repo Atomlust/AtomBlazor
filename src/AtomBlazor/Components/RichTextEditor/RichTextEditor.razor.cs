@@ -1043,7 +1043,7 @@ public partial class RichTextEditor : ComponentBase, IAsyncDisposable
 
     // === 私有辅助方法 ===
 
-    private object BuildEditorOptions() => new
+    private RichTextEditorJsConfig BuildEditorOptions() => new RichTextEditorJsConfig
     {
         placeholder = Placeholder ?? "",
         readOnly = Disabled || ReadOnly,

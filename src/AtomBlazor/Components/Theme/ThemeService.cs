@@ -117,17 +117,17 @@ public class ThemeService : IAsyncDisposable
             // 并应用结果，全都是浏览器侧的决策；而在 Blazor Server 上，此前每一次分别 await 的
             // 调用都是页面加载时的一次电路往返。随请求带上合法的颜色名，使损坏的条目在浏览器
             // 里就回落到配置默认值——与这里 ParseEnum 的行为一致，而不是晚一个往返才被纠正。
-            var applied = await module.InvokeAsync<ThemeState?>("theme.initialize", new
+            var applied = await module.InvokeAsync<ThemeState?>("theme.initialize", new ThemeInitializeJsConfig
             {
                 persist = options.PersistToLocalStorage,
                 detectSystemPreference = options.DetectSystemPreference,
-                defaults = new
+                defaults = new ThemeDefaultsJsConfig
                 {
-                    isDarkMode,
-                    baseColor = baseColor.ToString().ToLowerInvariant(),
-                    primaryColor = primaryColor.ToString().ToLowerInvariant(),
-                    radius,
-                    design = design.ToJs()
+                    isDarkMode = this.isDarkMode,
+                    baseColor = this.baseColor.ToString().ToLowerInvariant(),
+                    primaryColor = this.primaryColor.ToString().ToLowerInvariant(),
+                    radius = this.radius,
+                    design = this.design.ToJs()
                 },
                 validBaseColors = Enum.GetNames<BaseColor>().Select(n => n.ToLowerInvariant()).ToArray(),
                 validPrimaryColors = Enum.GetNames<PrimaryColor>().Select(n => n.ToLowerInvariant()).ToArray()

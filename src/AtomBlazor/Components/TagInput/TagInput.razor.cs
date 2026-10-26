@@ -239,7 +239,7 @@ public partial class TagInput : ComponentBase, IAsyncDisposable
                     _inputRef,
                     _dotNetRef,
                     _instanceId,
-                    new { triggers = (int)AddTrigger });
+                    new TagInputJsConfig { triggers = (int)AddTrigger });
                 _jsInitialized = true;
             }
             catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)

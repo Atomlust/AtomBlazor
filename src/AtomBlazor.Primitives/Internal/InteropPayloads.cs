@@ -2,7 +2,7 @@ namespace AtomBlazor.Primitives;
 
 /// <summary>
 /// 基元组件通过 JS interop 发给浏览器的配置载荷（overlay.*、slider.initialize、
-/// menuKeyboard.initialize、scrollbar 等模块）。
+/// menuKeyboard.initialize、positioning.computePosition/autoUpdate、scrollbar 等模块）。
 /// </summary>
 /// <remarks>
 /// 为什么用命名 record 而不是匿名类型：
@@ -171,4 +171,29 @@ internal sealed record ScrollAreaJsConfig
 {
     /// <summary>滚动条方向："vertical" 或 "horizontal"。</summary>
     public string orientation { get; init; } = "vertical";
+}
+
+/// <summary>positioning.computePosition / positioning.autoUpdate 载荷（两个函数同一形状）。</summary>
+internal sealed record PositioningJsConfig
+{
+    /// <summary>首选方位，如 "bottom"、"top-start"。</summary>
+    public string placement { get; init; } = "";
+
+    /// <summary>与锚元素的偏移像素数。</summary>
+    public int offset { get; init; }
+
+    /// <summary>空间不足时是否翻转到对面方位。</summary>
+    public bool flip { get; init; }
+
+    /// <summary>是否沿交叉轴平移以保持元素在视口内。</summary>
+    public bool shift { get; init; }
+
+    /// <summary>距视口边缘的内边距像素数。</summary>
+    public int padding { get; init; }
+
+    /// <summary>CSS 定位策略："absolute" 或 "fixed"。</summary>
+    public string strategy { get; init; } = "absolute";
+
+    /// <summary>是否让浮动内容宽度与锚元素一致。</summary>
+    public bool matchReferenceWidth { get; init; }
 }

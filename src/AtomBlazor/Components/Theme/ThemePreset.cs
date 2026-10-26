@@ -92,7 +92,7 @@ public sealed record ThemeDesign
     }
 
     /// <summary>转换为发往 JavaScript 的小写取值形状。</summary>
-    internal object ToJs() => new
+    internal ThemeDesignJsConfig ToJs() => new ThemeDesignJsConfig
     {
         density = Density.ToString().ToLowerInvariant(),
         font = Font.ToString().ToLowerInvariant(),

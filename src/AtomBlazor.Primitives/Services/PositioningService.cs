@@ -38,7 +38,7 @@ public class PositioningService : IPositioningService, IAsyncDisposable
         var module = await GetModuleAsync();
         options ??= new PositioningOptions();
 
-        var jsOptions = new
+        var jsOptions = new PositioningJsConfig
         {
             placement = options.Placement,
             offset = options.Offset,
@@ -97,7 +97,7 @@ public class PositioningService : IPositioningService, IAsyncDisposable
         var module = await GetModuleAsync();
         options ??= new PositioningOptions();
 
-        var jsOptions = new
+        var jsOptions = new PositioningJsConfig
         {
             placement = options.Placement,
             offset = options.Offset,
