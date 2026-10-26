@@ -4,7 +4,7 @@ AtomBlazor 是一套基于 Blazor 的组件库（Tailwind CSS v4 + shadcn/ui 视
 
 ## 1. 环境
 
-- **.NET 11 SDK**（预览频道；本仓用 `11.0.100-rc.2`）。`global.json` 锁定 SDK 版本。
+- **.NET 11 SDK**（预览频道；本仓用 `11.0.100-rc.3`）。`global.json` 锁定 SDK 版本。
 - **工作负载**：库工程开 `IsAotCompatible`；MAUI Hybrid 宿主需 `maui-windows`；Wasm 的 **AOT**（`RunAOTCompilation`）额外需 `wasm-tools`。
 - **Tailwind CSS v4**（standalone）——经 `tools/atom.tailwind.targets` 在 `dotnet build` 时把 `wwwroot/css/atom-input.css` 构建为 `wwwroot/atomblazor.css`、把 Demo 的 `app-input.css` 构建为 `app.css`。产物 `atomblazor.css` 为提交物；改样式改 `*-input.css` 源，勿手改产物。
 - **Node.js ≥ 24**——跑 JS 单测与 Playwright。

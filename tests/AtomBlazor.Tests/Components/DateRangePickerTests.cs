@@ -32,9 +32,32 @@ public class DateRangePickerTests
 {
     /// <summary>归一化 popover-N 与 popover-N-trigger/content、NativeSelect 自增短 id，使快照可确定。</summary>
     private static string Scrub(string markup) =>
+        ScrubToday(
+            Regex.Replace(
+                Regex.Replace(markup, "popover-[0-9]+", "popover-<n>"),
+                "select-[0-9a-f]{8}", "select-<id>"));
+
+    /// <summary>
+    /// “今天”格（data-today）的高亮随系统日期漂移，使结构快照无法复现。
+    /// 将其退化为普通越界日（dayDefault）样式并从快照中移除 data-today 标记，使快照与运行日无关。
+    /// </summary>
+    private static string ScrubToday(string markup) =>
         Regex.Replace(
-            Regex.Replace(markup, "popover-[0-9]+", "popover-<n>"),
-            "select-[0-9a-f]{8}", "select-<id>");
+            markup,
+            @"<button\b[^>]*\bdata-today\b[^>]*>",
+            m => NormalizeTodayButton(m.Value));
+
+    private static string NormalizeTodayButton(string tag)
+    {
+        var cls = Regex.Match(tag, @"class=""([^""]*)""").Groups[1].Value;
+        var normalized = cls.Replace(
+            "atom:bg-accent atom:text-accent-foreground",
+            "atom:hover:bg-accent atom:hover:text-accent-foreground");
+        return tag
+            .Replace($"class=\"{cls}\"", $"class=\"{normalized}\"")
+            .Replace("data-today=\"\"", string.Empty)
+            .Replace("data-today", string.Empty);
+    }
 
     /// <summary>构造带基元服务的渲染器（与 DateTimePickerTests 同构，弹层需要门户/定位/焦点服务）。</summary>
     private static (ComponentTestRenderer Renderer, NoopJavaScript Js) CreateRenderer()

@@ -228,11 +228,15 @@
                                 var isRangeStart = !isDisabled && IsRangeStart(dateValue);
                                 var isRangeEnd = !isDisabled && IsRangeEnd(dateValue);
                                 var isToday = dateValue.Date == DateTime.Today;
+                                // 仅当“今天”落在选区之外（即 GetDayClass 取 dayToday 分支）时打标：
+                                // 该高亮随系统日期漂移，供测试 Scrub 归一化用，不影响视觉。
+                                var isTodayOutsideRange = isToday && !isDisabled && !isInRange && !isRangeStart && !isRangeEnd;
 
                                 <td class="@GetCellClass(day, isInRange, isRangeStart, isRangeEnd)" data-drp-cell>
                                     <button type="button"
                                             class="@GetDayClass(dateValue, isDisabled, isInRange, isRangeStart, isRangeEnd, isToday)"
                                             data-drp-day-btn
+                                            data-today="@(isTodayOutsideRange ? "" : null)"
                                             disabled="@isDisabled"
                                             @onclick="@(() => HandleDateClick(dateValue))">
                                         @if (DayTemplate != null)

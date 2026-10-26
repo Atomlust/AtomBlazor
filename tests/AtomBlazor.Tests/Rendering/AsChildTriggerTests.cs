@@ -59,7 +59,7 @@ public sealed class AsChildTriggerTests : IDisposable
 
     [Theory]
     [MemberData(nameof(ClickTriggers))]
-    public async Task APlainTextChildLogsTheWarning(string name)
+    public async Task PlainTextChildLogsTheWarning(string name)
     {
         var trigger = Case(name);
 
