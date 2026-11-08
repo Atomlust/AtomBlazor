@@ -77,22 +77,54 @@
     /// </summary>
     private bool IsVertical => Orientation == SliderOrientation.Vertical;
 
+    // 拖拽期间每次指针移动都会重渲染，而类名输入只有方向/禁用/自定义类
+    // 三项，全部记忆化以跳过重复的 tailwind-merge 计算。
+    private CssClassMemoizer<(bool IsVertical, bool Disabled, string? Class)> _cssCache;
+    private CssClassMemoizer<(bool IsVertical, string? TrackClass)> _trackCache;
+    private CssClassMemoizer<(bool IsVertical, bool Disabled, string? ThumbClass)> _thumbCache;
+
     // 垂直滑块必须堆叠在交叉轴上：轨道带有 `grow`，它跟随 flex 主轴，
     // 因此行容器会把 8px 的轨道横向拉伸到整个容器宽度。
-    private string CssClass => ClassNames.cn(
-        IsVertical
-            ? "atom:relative atom:flex atom:flex-col atom:h-full atom:min-h-40 atom:w-5 atom:shrink-0 atom:touch-none atom:select-none atom:items-center"
-            : "atom:relative atom:flex atom:w-full atom:touch-none atom:select-none atom:items-center",
-        Disabled ? "atom:opacity-50 atom:cursor-not-allowed" : "atom:cursor-pointer",
-        Class
-    );
+    private string CssClass
+    {
+        get
+        {
+            var key = (IsVertical, Disabled, Class);
+            if (!_cssCache.TryGet(key, out var cached))
+            {
+                cached = ClassNames.cn(
+                    IsVertical
+                        ? "atom:relative atom:flex atom:flex-col atom:h-full atom:min-h-40 atom:w-5 atom:shrink-0 atom:touch-none atom:select-none atom:items-center"
+                        : "atom:relative atom:flex atom:w-full atom:touch-none atom:select-none atom:items-center",
+                    Disabled ? "atom:opacity-50 atom:cursor-not-allowed" : "atom:cursor-pointer",
+                    Class
+                );
+                _cssCache.Set(key, cached);
+            }
 
-    private string ComputedTrackClass => ClassNames.cn(
-        IsVertical
-            ? "atom:relative atom:w-2 atom:h-full atom:grow atom:overflow-hidden atom:rounded-full atom:bg-secondary"
-            : "atom:relative atom:h-2 atom:w-full atom:grow atom:overflow-hidden atom:rounded-full atom:bg-secondary",
-        TrackClass
-    );
+            return cached!;
+        }
+    }
+
+    private string ComputedTrackClass
+    {
+        get
+        {
+            var key = (IsVertical, TrackClass);
+            if (!_trackCache.TryGet(key, out var cached))
+            {
+                cached = ClassNames.cn(
+                    IsVertical
+                        ? "atom:relative atom:w-2 atom:h-full atom:grow atom:overflow-hidden atom:rounded-full atom:bg-secondary"
+                        : "atom:relative atom:h-2 atom:w-full atom:grow atom:overflow-hidden atom:rounded-full atom:bg-secondary",
+                    TrackClass
+                );
+                _trackCache.Set(key, cached);
+            }
+
+            return cached!;
+        }
+    }
 
     // 基元只设置填充的长度（垂直时为 height，否则为 width），
     // 所以样式层把填充钉在它生长的那条边上。
@@ -100,14 +132,27 @@
         ? "atom:absolute atom:bottom-0 atom:w-full atom:bg-primary"
         : "atom:absolute atom:start-0 atom:h-full atom:bg-primary";
 
-    private string ComputedThumbClass => ClassNames.cn(
-        "atom:absolute atom:block atom:h-5 atom:w-5 atom:rounded-full atom:border-2 atom:border-primary atom:bg-background atom:ring-offset-background atom:transition-colors",
-        "atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2",
-        "atom:disabled:pointer-events-none atom:disabled:opacity-50",
-        IsVertical
-            ? "atom:-translate-x-1/2 atom:left-1/2 atom:translate-y-1/2"
-            : "atom:-translate-x-1/2 atom:top-1/2 atom:-translate-y-1/2",
-        Disabled ? "" : "atom:cursor-grab atom:active:cursor-grabbing",
-        ThumbClass
-    );
+    private string ComputedThumbClass
+    {
+        get
+        {
+            var key = (IsVertical, Disabled, ThumbClass);
+            if (!_thumbCache.TryGet(key, out var cached))
+            {
+                cached = ClassNames.cn(
+                    "atom:absolute atom:block atom:h-5 atom:w-5 atom:rounded-full atom:border-2 atom:border-primary atom:bg-background atom:ring-offset-background atom:transition-colors",
+                    "atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2",
+                    "atom:disabled:pointer-events-none atom:disabled:opacity-50",
+                    IsVertical
+                        ? "atom:-translate-x-1/2 atom:left-1/2 atom:translate-y-1/2"
+                        : "atom:-translate-x-1/2 atom:top-1/2 atom:-translate-y-1/2",
+                    Disabled ? "" : "atom:cursor-grab atom:active:cursor-grabbing",
+                    ThumbClass
+                );
+                _thumbCache.Set(key, cached);
+            }
+
+            return cached!;
+        }
+    }
 }

@@ -44,6 +44,7 @@
                   SelectedChanged="@HandleDateSelected"
                   MinDate="@MinDate"
                   MaxDate="@MaxDate"
+                  Clock="@Clock"
                   DisabledDates="@DisabledDates"
                   FirstDayOfWeek="@FirstDayOfWeek"
                   DayClassFunc="@DayClassFunc"
@@ -119,6 +120,17 @@
     /// </summary>
     [Parameter]
     public DateTime? MaxDate { get; set; }
+
+    /// <summary>
+    /// 组件内部"今天"的时间源，默认系统时钟，透传给 <see cref="Calendar"/>。
+    /// </summary>
+    /// <remarks>
+    /// 初始展示月份、"今天"高亮与未选中时的初始聚焦日都取自它。
+    /// 注入固定 <see cref="TimeProvider"/> 可获得确定性渲染（测试、演示或
+    /// 服务端统一业务时钟场景）。
+    /// </remarks>
+    [Parameter]
+    public TimeProvider? Clock { get; set; }
 
     /// <summary>
     /// 判定某个日期是否禁用的函数。

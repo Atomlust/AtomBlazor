@@ -215,6 +215,10 @@ public partial class Button : ComponentBase
     /// </summary>
     private string? Rel => Target == "_blank" ? "noopener noreferrer" : null;
 
+    // 按钮是页面上摆放密度最高的组件，父级重渲染会连带全部按钮重算类名；
+    // 输入只有变体/尺寸/自定义类与两个布尔派生态，全部记忆化。
+    private CssClassMemoizer<(ButtonVariant Variant, ButtonSize Size, string? Class, bool DisabledAnchor, bool SuppressPointerEvents)> _cssCache;
+
     /// <summary>
     /// 获取按钮元素计算后的 CSS 类。
     /// </summary>
@@ -225,8 +229,19 @@ public partial class Button : ComponentBase
     /// - 尺寸专属类（内边距、字号、高度）
     /// - 来自 Class 参数的自定义类
     /// 使用 cn() 工具做智能类名合并与 Tailwind 冲突消解。
+    /// 结果按键记忆化，见 <see cref="_cssCache"/> 的键元组——改动下方
+    /// 计算时必须同步键的取值。
     /// </remarks>
-    private string CssClass => ClassNames.cn(
+    private string CssClass
+    {
+        get
+        {
+            var key = (Variant, Size, Class,
+                HasHref && IsDisabled,
+                TriggerContext is { IsOpen: true, SuppressPointerEventsWhenOpen: true });
+            if (!_cssCache.TryGet(key, out var cached))
+            {
+                cached = ClassNames.cn(
         // 基础按钮样式（来自 shadcn/ui）
         "atom:inline-flex atom:items-center atom:justify-center atom:gap-2 atom:rounded-md atom:text-sm atom:font-medium",
         "atom:transition-colors atom:focus-visible:outline-none atom:focus-visible:ring-2",
@@ -259,9 +274,15 @@ public partial class Button : ComponentBase
         // AsChild 触发器守卫：浮层打开期间忽略指针事件，
         // 使单次点击无法既经"点击外部"关闭浮层、又经本按钮重开它
         TriggerContext is { IsOpen: true, SuppressPointerEventsWhenOpen: true } ? "atom:pointer-events-none" : null,
-        // 自定义类（如有）
-        Class
-    );
+                // 自定义类（如有）
+                Class
+                );
+                _cssCache.Set(key, cached);
+            }
+
+            return cached!;
+        }
+    }
 
     /// <summary>
     /// 获取 HTML button 元素的 type 特性值。

@@ -242,6 +242,7 @@ public class DateRangePickerTests
         var reports = new List<DateRange?>();
         var (renderer, _, picker) = await MountAsync(new Dictionary<string, object?>
         {
+            [nameof(DateRangePicker.Clock)] = FixedTimeProvider.October2026,
             [nameof(DateRangePicker.DateFormat)] = "yyyy-MM-dd",
             [nameof(DateRangePicker.ValueChanged)] =
                 EventCallback.Factory.Create<DateRange?>(new object(), v => reports.Add(v)),
@@ -271,6 +272,7 @@ public class DateRangePickerTests
         var reports = new List<DateRange?>();
         var (renderer, _, picker) = await MountAsync(new Dictionary<string, object?>
         {
+            [nameof(DateRangePicker.Clock)] = FixedTimeProvider.October2026,
             [nameof(DateRangePicker.AutoApply)] = true,
             [nameof(DateRangePicker.ValueChanged)] =
                 EventCallback.Factory.Create<DateRange?>(new object(), v => reports.Add(v)),
@@ -295,6 +297,7 @@ public class DateRangePickerTests
         var reports = new List<DateRange?>();
         var (renderer, _, picker) = await MountAsync(new Dictionary<string, object?>
         {
+            [nameof(DateRangePicker.Clock)] = FixedTimeProvider.October2026,
             [nameof(DateRangePicker.ShowButtons)] = false,
             [nameof(DateRangePicker.ValueChanged)] =
                 EventCallback.Factory.Create<DateRange?>(new object(), v => reports.Add(v)),
@@ -432,6 +435,7 @@ public class DateRangePickerTests
     {
         var (renderer, _, _) = await MountAsync(new Dictionary<string, object?>
         {
+            [nameof(DateRangePicker.Clock)] = FixedTimeProvider.October2026,
             [nameof(DateRangePicker.ShowPresets)] = false,
             [nameof(DateRangePicker.MonthNames)] = shortMonthNames,
             [nameof(DateRangePicker.CustomDayNames)] = sundayFirstDayNames,
@@ -452,6 +456,7 @@ public class DateRangePickerTests
     {
         var (renderer, _, _) = await MountAsync(new Dictionary<string, object?>
         {
+            [nameof(DateRangePicker.Clock)] = FixedTimeProvider.October2026,
             [nameof(DateRangePicker.MonthNames)] = fullMonthNames,
         });
         await OpenAsync(renderer);
@@ -564,6 +569,7 @@ public class DateRangePickerTests
     {
         var (renderer, _, _) = await MountAsync(new Dictionary<string, object?>
         {
+            [nameof(DateRangePicker.Clock)] = FixedTimeProvider.October2026,
             [nameof(DateRangePicker.ShowTwoMonths)] = false,
             [nameof(DateRangePicker.ShowPresets)] = false,
             [nameof(DateRangePicker.MonthNames)] = shortMonthNames,
@@ -680,6 +686,7 @@ public class DateRangePickerTests
     {
         var (renderer, _, _) = await MountAsync(new Dictionary<string, object?>
         {
+            [nameof(DateRangePicker.Clock)] = FixedTimeProvider.October2026,
             [nameof(DateRangePicker.Value)] = Range(1, 25),
             [nameof(DateRangePicker.DateFormat)] = "yyyy-MM-dd",
             [nameof(DateRangePicker.AriaLabel)] = "Vacation range",

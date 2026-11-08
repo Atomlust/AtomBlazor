@@ -74,6 +74,11 @@ public partial class DataTable<TData> : ComponentBase where TData : class
     private int _columnsVersion;
     private bool _selectAllDropdownOpen;
 
+    // 可见列缓存：仅在 _columnsVersion 变化或注册列时重建，
+    // 避免表头与每个数据行在每次渲染重复求值 Where。
+    private int _visibleColumnsVersion = -1;
+    private List<ColumnData>? _visibleColumnsCache;
+
     // ShouldRender tracking fields
     private bool _parametersChanged;
     private IEnumerable<TData>? _lastData;
@@ -112,6 +117,17 @@ public partial class DataTable<TData> : ComponentBase where TData : class
     /// </summary>
     [Parameter]
     public DataTableSelectionMode SelectionMode { get; set; } = DataTableSelectionMode.None;
+
+    /// <summary>
+    /// 获取或设置行身份选择器，为行渲染提供稳定的 <c>@key</c>。
+    /// </summary>
+    /// <remarks>
+    /// 排序、筛选与分页都会重建行序列；提供该选择器后，Blazor 可按行身份
+    /// 而非位置做 diff，避免行内 DOM（焦点、选区、展开状态）被错误复用。
+    /// 返回值须在当前数据集内唯一；不提供时按位置 diff（与既有行为一致）。
+    /// </remarks>
+    [Parameter]
+    public Func<TData, object>? RowKeySelector { get; set; }
 
     /// <summary>
     /// 获取或设置是否显示带全局搜索与列可见性的工具栏。
@@ -320,6 +336,25 @@ public partial class DataTable<TData> : ComponentBase where TData : class
         };
 
         _columns.Add(columnData);
+        _visibleColumnsCache = null;
+    }
+
+    /// <summary>
+    /// 获取当前可见的列。缓存于 <see cref="_visibleColumnsCache"/>，
+    /// 由 <see cref="_columnsVersion"/> 失效。
+    /// </summary>
+    private List<ColumnData> VisibleColumns
+    {
+        get
+        {
+            if (_visibleColumnsCache is null || _visibleColumnsVersion != _columnsVersion)
+            {
+                _visibleColumnsCache = _columns.Where(c => c.Visible).ToList();
+                _visibleColumnsVersion = _columnsVersion;
+            }
+
+            return _visibleColumnsCache;
+        }
     }
 
     /// <summary>

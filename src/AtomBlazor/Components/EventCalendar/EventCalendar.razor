@@ -76,7 +76,7 @@
                    居于其起始日的单元之内，使其留在 gridcell 之中，
                    并落于 Tab 键序的恰当位置。 *@
                 var layout = BuildWeekLayout(week, MaxEventsPerDay);
-                <div role="row" class="atom:relative atom:grid atom:grid-cols-7 atom:gap-px">
+                <div role="row" @key="week[0]" class="atom:relative atom:grid atom:grid-cols-7 atom:gap-px">
                     @for (var index = 0; index < week.Length; index++)
                     {
                         var day = week[index];
@@ -84,7 +84,7 @@
                         var chips = GetSingleDayEvents(day);
                         var chipBudget = Math.Max(0, MaxEventsPerDay - layout.BarsPerColumn[column]);
                         var hiddenCount = layout.HiddenPerColumn[column] + Math.Max(0, chips.Count - chipBudget);
-                        <div role="gridcell" aria-label="@day.ToString("D", culture)" class="@GetMonthCellClasses(day)">
+                        <div role="gridcell" @key="day" aria-label="@day.ToString("D", culture)" class="@GetMonthCellClasses(day)">
                             <button type="button"
                                     class="@GetDayNumberClasses(day)"
                                     aria-label="@day.ToString("D", culture)"
@@ -159,7 +159,7 @@
             <div role="row" class="atom:grid atom:grid-cols-7 atom:gap-px">
                 @foreach (var day in WeekDays)
                 {
-                    <div role="columnheader" class="atom:bg-card atom:p-2 atom:text-center">
+                    <div role="columnheader" @key="day" class="atom:bg-card atom:p-2 atom:text-center">
                         <button type="button"
                                 class="atom:mx-auto atom:flex atom:flex-col atom:items-center atom:gap-0.5 atom:rounded-md atom:px-2 atom:py-0.5 atom:hover:bg-accent atom:hover:text-accent-foreground atom:focus-visible:outline-none atom:focus-visible:ring-2 atom:focus-visible:ring-ring"
                                 aria-label="@day.ToString("D", culture)"
@@ -182,7 +182,7 @@
                 {
                     var day = weekDays[index];
                     var column = index;
-                    <div role="gridcell" aria-label="@day.ToString("D", culture)" class="atom:min-h-48 atom:space-y-1 atom:bg-card atom:p-1.5">
+                    <div role="gridcell" @key="day" aria-label="@day.ToString("D", culture)" class="atom:min-h-48 atom:space-y-1 atom:bg-card atom:p-1.5">
                         @if (weekLayout.VisibleLaneCount > 0)
                         {
                             @* 横条悬浮于单元之上，故在此预留其占位高度。 *@
@@ -241,7 +241,7 @@
             }
             @foreach (var day in AgendaDays)
             {
-                <div class="atom:p-4">
+                <div @key="day" class="atom:p-4">
                     <h3 class="@(day == DateTime.Today ? "atom:text-sm atom:font-semibold atom:text-primary" : "atom:text-sm atom:font-semibold")">
                         @day.ToString("D", culture)
                     </h3>

@@ -423,6 +423,7 @@ public class FormFieldDateTimePickerTests
                     EventCallback.Factory.Create<DateTime?>(doc, value => doc.When = value));
                 builder.AddAttribute(3, nameof(FormFieldDateTimePicker.DateTimeFormat), "yyyy-MM-dd HH:mm");
                 builder.AddAttribute(4, nameof(FormFieldDateTimePicker.Label), (string?)"预约时间");
+                builder.AddAttribute(5, nameof(FormFieldDateTimePicker.Clock), FixedTimeProvider.October2026);
                 builder.CloseComponent();
             }),
         });

@@ -176,7 +176,7 @@ public class ItemTests
 
     [Theory]
     [InlineData(ItemSize.Default, "atom:px-4 atom:py-3")]
-    [InlineData(ItemSize.Sm, "atom:px-3 atom:py-2 atom:text-sm")]
+    [InlineData(ItemSize.Small, "atom:px-3 atom:py-2 atom:text-sm")]
     public async Task 尺寸应映射到对应内边距(ItemSize size, string expectedClasses)
     {
         var renderer = CreateRenderer();

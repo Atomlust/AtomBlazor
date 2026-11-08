@@ -1,0 +1,88 @@
+@namespace AtomBlazor
+@inherits ComponentBase
+
+@* FormField* 家族共用的骨架：Field 容器 + 标签 + 控制区 + 描述/错误三态。
+   控件先行布局（FormFieldCheckbox）与需要分组语义标签的组件不使用本骨架。 *@
+
+<Field Orientation="@Orientation" IsInvalid="@IsInvalid" Class="@Class">
+    @if (Label is not null)
+    {
+        @if (AssociateLabel)
+        {
+            <FieldLabel For="@LabelFor">@Label</FieldLabel>
+        }
+        else
+        {
+            <FieldLabel>@Label</FieldLabel>
+        }
+    }
+    <FieldContent>
+        @Control
+        @if (!string.IsNullOrEmpty(HelperText) && !IsInvalid)
+        {
+            <FieldDescription Id="@HelperTextId">@HelperText</FieldDescription>
+        }
+        @if (RuntimeErrorText is not null)
+        {
+            <FieldError Id="@ErrorId">@RuntimeErrorText</FieldError>
+        }
+        else if (IsInvalid && !string.IsNullOrEmpty(ErrorText))
+        {
+            <FieldError Id="@ErrorId">@ErrorText</FieldError>
+        }
+        else if (HasEditContextErrors)
+        {
+            <FieldError Id="@ErrorId" Errors="@EditContextErrors" />
+        }
+    </FieldContent>
+</Field>
+
+@code {
+    /// <summary>字段布局方向。</summary>
+    [Parameter] public FieldOrientation Orientation { get; set; }
+
+    /// <summary>字段是否处于无效态。</summary>
+    [Parameter] public bool IsInvalid { get; set; }
+
+    /// <summary>附加到 Field 容器的自定义类。</summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>标签文本；为 null 时不渲染标签。</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>标签关联的控件 id；仅在 <see cref="AssociateLabel"/> 为真时输出。</summary>
+    [Parameter] public string? LabelFor { get; set; }
+
+    /// <summary>
+    /// 是否把标签与控件 id 关联（输出 <c>for</c> 属性）。
+    /// 单控件字段为真；标签属于组语义（RadioGroup、CheckboxGroup 等）的字段为假。
+    /// </summary>
+    [Parameter] public bool AssociateLabel { get; set; }
+
+    /// <summary>帮助文本；无效时不显示。</summary>
+    [Parameter] public string? HelperText { get; set; }
+
+    /// <summary>描述元素的 id（供 aria-describedby 指向）。</summary>
+    [Parameter] public string? HelperTextId { get; set; }
+
+    /// <summary>
+    /// 运行时错误文本（如输入解析失败），优先级高于 <see cref="ErrorText"/>。
+    /// 仅 FormFieldInput 这类带解析错误的控件使用。
+    /// </summary>
+    [Parameter] public string? RuntimeErrorText { get; set; }
+
+    /// <summary>调用方显式提供的错误文本。</summary>
+    [Parameter] public string? ErrorText { get; set; }
+
+    /// <summary>错误元素的 id。</summary>
+    [Parameter] public string? ErrorId { get; set; }
+
+    /// <summary>EditContext 是否报出本字段的校验错误。</summary>
+    [Parameter] public bool HasEditContextErrors { get; set; }
+
+    /// <summary>来自 EditContext 的校验错误消息。</summary>
+    [Parameter] public IEnumerable<string> EditContextErrors { get; set; } = [];
+
+    /// <summary>控件区内容（渲染在标签之后、描述/错误之前）。</summary>
+    [Parameter] public RenderFragment? Control { get; set; }
+}

@@ -5,26 +5,6 @@ using System.Linq.Expressions;
 
 namespace AtomBlazor;
 
-/// <summary>
-/// 定义 Switch 组件的尺寸变体。
-/// </summary>
-public enum SwitchSize
-{
-    /// <summary>
-    /// 小号开关（h-5 w-9，thumb h-4 w-4）。
-    /// </summary>
-    Small,
-
-    /// <summary>
-    /// 中号开关（默认）（h-6 w-11，thumb h-5 w-5）。
-    /// </summary>
-    Medium,
-
-    /// <summary>
-    /// 大号开关（h-7 w-14，thumb h-6 w-6）。
-    /// </summary>
-    Large
-}
 
 /// <summary>
 /// 遵循 shadcn/ui 设计体系的开关组件。
@@ -206,25 +186,42 @@ public partial class Switch : ComponentBase
     /// - Class 参数带来的自定义类
     /// 使用 cn() 工具做智能类合并与 Tailwind 冲突消解。
     /// </remarks>
-    private string CssClass => ClassNames.cn(
-        // 开关基础样式（ shadcn/ui）
-        "atom:peer atom:inline-flex atom:shrink-0 atom:cursor-pointer atom:items-center atom:rounded-full atom:border-2 atom:border-transparent",
-        "atom:transition-colors atom:focus-visible:outline-none atom:focus-visible:ring-2",
-        "atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2 atom:focus-visible:ring-offset-background",
-        "atom:disabled:cursor-not-allowed atom:disabled:opacity-50",
-        // 尺寸变体
-        Size switch
+    // 翻动开关只改变 Checked；类名输入只有尺寸/开关态/自定义类三项，
+    // 记忆化以跳过每次渲染的 tailwind-merge 计算。
+    private CssClassMemoizer<(SwitchSize Size, bool Checked, string? Class)> _cssCache;
+
+    private string CssClass
+    {
+        get
         {
-            SwitchSize.Small => "atom:h-5 atom:w-9",
-            SwitchSize.Medium => "atom:h-6 atom:w-11",
-            SwitchSize.Large => "atom:h-7 atom:w-14",
-            _ => "atom:h-6 atom:w-11"
-        },
-        // 打开态样式
-        Checked ? "atom:bg-primary" : "atom:bg-input",
-        // 自定义类（若提供）
-        Class
-    );
+            var key = (Size, Checked, Class);
+            if (!_cssCache.TryGet(key, out var cached))
+            {
+                cached = ClassNames.cn(
+                    // 开关基础样式（ shadcn/ui）
+                    "atom:peer atom:inline-flex atom:shrink-0 atom:cursor-pointer atom:items-center atom:rounded-full atom:border-2 atom:border-transparent",
+                    "atom:transition-colors atom:focus-visible:outline-none atom:focus-visible:ring-2",
+                    "atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2 atom:focus-visible:ring-offset-background",
+                    "atom:disabled:cursor-not-allowed atom:disabled:opacity-50",
+                    // 尺寸变体
+                    Size switch
+                    {
+                        SwitchSize.Small => "atom:h-5 atom:w-9",
+                        SwitchSize.Medium => "atom:h-6 atom:w-11",
+                        SwitchSize.Large => "atom:h-7 atom:w-14",
+                        _ => "atom:h-6 atom:w-11"
+                    },
+                    // 打开态样式
+                    Checked ? "atom:bg-primary" : "atom:bg-input",
+                    // 自定义类（若提供）
+                    Class
+                );
+                _cssCache.Set(key, cached);
+            }
+
+            return cached!;
+        }
+    }
 
     /// <summary>
     /// 获取开关 thumb 元素的计算 CSS 类。

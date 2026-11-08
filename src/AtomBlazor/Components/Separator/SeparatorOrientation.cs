@@ -7,6 +7,12 @@ namespace AtomBlazor;
 /// 决定分隔符显示为横跨宽度的水平分割线，还是纵贯高度的垂直分割线。
 /// 它同时影响视觉外观与面向屏幕阅读器的 aria-orientation 属性。
 /// </remarks>
+/// <remarks>
+/// 本枚举与 <c>AtomBlazor.Primitives.SeparatorOrientation</c> 成员集一一对应。
+/// 双层架构刻意在组件层与原语层各暴露一份公开枚举以隔离公开 API；
+/// 若在此增删成员，必须同步另一侧及 <c>Separator.razor.cs</c> 中的
+/// <c>MappedOrientation</c> 映射。
+/// </remarks>
 public enum SeparatorOrientation
 {
     /// <summary>

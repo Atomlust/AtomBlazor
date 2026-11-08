@@ -196,7 +196,7 @@ public class InputConverter<TValue>
         // 原生选择控件正是栽在这个坑上，被静默重置为默认值。
         if (parseType.IsEnum)
         {
-            return (TValue)Enum.Parse(parseType, input, ignoreCase: true);
+            return (TValue)EnumParserCache.Parse(parseType, input);
         }
 
         object result = parseType switch

@@ -1,13 +1,14 @@
 @namespace AtomBlazor
 @typeparam TValue
 @inherits FormFieldBase
+@attribute [CascadingTypeParameter(nameof(TValue))]
 
-<Field Orientation="@Orientation" IsInvalid="@IsInvalid" Class="@Class">
-    @if (Label is not null)
-    {
-        <FieldLabel>@Label</FieldLabel>
-    }
-    <FieldContent>
+<FormFieldShell Orientation="@Orientation" IsInvalid="@IsInvalid" Class="@Class"
+                Label="@Label"
+                HelperText="@HelperText" HelperTextId="@DescriptionId"
+                ErrorText="@ErrorText" ErrorId="@ErrorId"
+                HasEditContextErrors="@HasEditContextErrors" EditContextErrors="@EditContextErrors">
+    <Control>
         <MultiSelect Required="@Required" ActiveClass="@ActiveClass" AriaLabel="@AriaLabel" TValue="TValue"
                      Options="@Options"
                      Values="@Values"
@@ -34,17 +35,5 @@
                      @attributes="AdditionalAttributes">
             @ChildContent
         </MultiSelect>
-        @if (!string.IsNullOrEmpty(HelperText) && !IsInvalid)
-        {
-            <FieldDescription Id="@DescriptionId">@HelperText</FieldDescription>
-        }
-        @if (IsInvalid && !string.IsNullOrEmpty(ErrorText))
-        {
-            <FieldError Id="@ErrorId">@ErrorText</FieldError>
-        }
-        else if (HasEditContextErrors)
-        {
-            <FieldError Id="@ErrorId" Errors="@EditContextErrors" />
-        }
-    </FieldContent>
-</Field>
+    </Control>
+</FormFieldShell>

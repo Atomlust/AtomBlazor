@@ -115,7 +115,7 @@
                                                     IsSelected = isSelected,
                                                     IsDisabled = isDisabled,
                                                     IsOutsideMonth = isOutside,
-                                                    IsToday = day.Value.Date == DateTime.Today
+                                                    IsToday = day.Value.Date == Today
                                                 })
                                             }
                                             else
@@ -187,6 +187,20 @@
     /// <summary>最大可选日期。</summary>
     [Parameter]
     public DateTime? MaxDate { get; set; }
+
+    /// <summary>
+    /// 组件内部"今天"的时间源，默认系统时钟。
+    /// </summary>
+    /// <remarks>
+    /// "今天"高亮、未选中时的初始聚焦日与年视图的当前年都取自它。
+    /// 注入固定 <see cref="TimeProvider"/> 可获得确定性渲染（测试、演示或
+    /// 服务端统一业务时钟场景）。
+    /// </remarks>
+    [Parameter]
+    public TimeProvider? Clock { get; set; }
+
+    /// <summary>解析后的本地"今天"。</summary>
+    private DateTime Today => (Clock ?? TimeProvider.System).GetLocalNow().Date;
 
     /// <summary>判断某日期是否禁用的函数。</summary>
     [Parameter]
@@ -282,7 +296,7 @@
     protected override void OnInitialized()
     {
         _resolvedCulture = CultureInfo.CurrentCulture;
-        _displayDate = Selected ?? DateTime.Today;
+        _displayDate = Selected ?? Today;
         _previousSelected = Selected;
         InitializeFocusedDate();
     }
@@ -354,10 +368,10 @@
         {
             _focusedDate = Selected.Value.Date;
         }
-        else if (DateTime.Today.Month == DisplayDate.Month &&
-                 DateTime.Today.Year == DisplayDate.Year)
+        else if (Today.Month == DisplayDate.Month &&
+                 Today.Year == DisplayDate.Year)
         {
-            _focusedDate = DateTime.Today;
+            _focusedDate = Today;
         }
         else
         {
@@ -492,7 +506,7 @@
 
     private async Task NavigateDay(int days)
     {
-        var currentFocus = _focusedDate ?? Selected ?? DateTime.Today;
+        var currentFocus = _focusedDate ?? Selected ?? Today;
         var newDate = currentFocus.AddDays(days);
 
         // 沿导航方向跳过禁用日期
@@ -534,7 +548,7 @@
 
     private async Task NavigateMonth(int months)
     {
-        var currentFocus = _focusedDate ?? Selected ?? DateTime.Today;
+        var currentFocus = _focusedDate ?? Selected ?? Today;
         var targetMonth = DisplayDate.AddMonths(months);
         DisplayDate = new DateTime(targetMonth.Year, targetMonth.Month, 1);
 
@@ -625,7 +639,7 @@
 
     private IEnumerable<int> GetYears()
     {
-        var currentYear = DateTime.Today.Year;
+        var currentYear = Today.Year;
         var startYear = MinDate?.Year ?? currentYear - 50;
         var endYear = MaxDate?.Year ?? currentYear + 50;
 
@@ -740,7 +754,7 @@
             baseClass = dayDisabledClasses;
         else if (isOutside)
             baseClass = dayOutsideClasses;
-        else if (date.Date == DateTime.Today)
+        else if (date.Date == Today)
             baseClass = dayTodayClasses;
         else
             baseClass = dayBaseClasses;

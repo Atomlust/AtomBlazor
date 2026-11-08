@@ -19,7 +19,7 @@
             <span class="@ClassNames.cn("atom:truncate", Value == null ? "atom:text-muted-foreground" : null)">@(Value == null ? Placeholder ?? Localizer["Cascader.Placeholder"] : PathLabel(Value))</span>
             <LucideIcon Name="chevron-down" Size="16" Class="atom:ms-2 atom:h-4 atom:w-4 atom:shrink-0 atom:opacity-50" aria-hidden="true" />
         </AtomBlazor.PopoverTrigger>
-        <AtomBlazor.PopoverContent MatchTriggerWidth="true" Class="atom:max-w-[90vw] atom:p-0"
+        <AtomBlazor.PopoverContent Class="atom:w-auto atom:max-w-[90vw] atom:p-0" Align="PopoverAlign.Start"
                           AutoFocusId="@(ShowSearch ? searchId : InitialItemId)" OnContentReady="ConnectKeyboardAsync"
                           aria-label="@(AriaLabel ?? Localizer["Cascader.Label"])">
           <div id="@popupId">
@@ -34,12 +34,12 @@
             }
             @if (!string.IsNullOrWhiteSpace(search))
             {
-                <div class="atom:max-h-64 atom:overflow-auto atom:p-1" data-cascader-column="0">
+                <div class="atom:max-h-64 atom:w-64 atom:overflow-auto atom:p-1" data-cascader-column="0">
                     @foreach (var node in SearchResults)
                     {
                         <button @key="node.Value" id="@NodeId(node.Value)" type="button" data-cascader-item="@node.Value"
                                 class="@itemClass" aria-current="@(Value == node.Value ? "true" : null)"
-                                @onclick="@(() => SelectAsync(node.Value))">@PathLabel(node.Value)</button>
+                                @onclick="@(() => SelectAsync(node.Value))"><span class="atom:truncate">@PathLabel(node.Value)</span></button>
                     }
                     @if (!SearchResults.Any())
                     {
@@ -53,7 +53,7 @@
                     @for (var column = 0; column < Columns.Count; column++)
                     {
                         var depth = column;
-                        <div class="atom:max-h-64 atom:min-w-40 atom:flex-1 atom:overflow-y-auto atom:border-e atom:border-border atom:px-1 atom:last:border-e-0"
+                        <div class="atom:max-h-64 atom:w-36 atom:min-w-24 atom:overflow-y-auto atom:border-e atom:border-border atom:px-1 atom:last:border-e-0"
                              data-cascader-column="@depth" data-cascader-parent="@(depth > 0 ? path[depth - 1] : null)" role="group" aria-label="@Localizer["Cascader.Level", depth + 1]">
                             @foreach (var key in Columns[column])
                             {

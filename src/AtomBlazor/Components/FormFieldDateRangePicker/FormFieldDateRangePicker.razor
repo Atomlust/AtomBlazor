@@ -1,18 +1,19 @@
 @namespace AtomBlazor
 @inherits FormFieldBase
 
-<Field Orientation="@Orientation" IsInvalid="@IsInvalid" Class="@Class">
-    @if (Label is not null)
-    {
-        <FieldLabel>@Label</FieldLabel>
-    }
-    <FieldContent>
+<FormFieldShell Orientation="@Orientation" IsInvalid="@IsInvalid" Class="@Class"
+                Label="@Label"
+                HelperText="@HelperText" HelperTextId="@DescriptionId"
+                ErrorText="@ErrorText" ErrorId="@ErrorId"
+                HasEditContextErrors="@HasEditContextErrors" EditContextErrors="@EditContextErrors">
+    <Control>
         <DateRangePicker AriaLabel="@AriaLabel" Value="@Value"
                            ValueChanged="HandleValueChanged"
                            DateFormat="@DateFormat"
                            Placeholder="@Placeholder"
                            MinDate="@MinDate"
                            MaxDate="@MaxDate"
+                           Clock="@Clock"
                            DisabledDates="@DisabledDates"
                            MinDays="@MinDays"
                            MaxDays="@MaxDays"
@@ -25,17 +26,5 @@
                            Disabled="@Disabled"
                            Class="@InputClass"
                            @attributes="AdditionalAttributes" />
-        @if (!string.IsNullOrEmpty(HelperText) && !IsInvalid)
-        {
-            <FieldDescription Id="@DescriptionId">@HelperText</FieldDescription>
-        }
-        @if (IsInvalid && !string.IsNullOrEmpty(ErrorText))
-        {
-            <FieldError Id="@ErrorId">@ErrorText</FieldError>
-        }
-        else if (HasEditContextErrors)
-        {
-            <FieldError Id="@ErrorId" Errors="@EditContextErrors" />
-        }
-    </FieldContent>
-</Field>
+    </Control>
+</FormFieldShell>

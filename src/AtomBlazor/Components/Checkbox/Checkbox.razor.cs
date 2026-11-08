@@ -197,14 +197,31 @@ public partial class Checkbox : ComponentBase
     /// - 键盘导航的焦点环
     /// - Class 参数带来的自定义类
     /// </remarks>
-    private string CssClass => ClassNames.cn(
-        "atom:peer atom:h-5 atom:w-5 atom:shrink-0 atom:rounded-sm atom:border atom:border-primary atom:flex atom:items-center atom:justify-center",
-        "atom:ring-offset-background atom:focus-visible:outline-none atom:focus-visible:ring-2",
-        "atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2",
-        "atom:disabled:cursor-not-allowed atom:disabled:opacity-50",
-        (Checked || Indeterminate) ? "atom:bg-primary atom:text-primary-foreground" : "atom:bg-background",
-        Class
-    );
+    // 勾选切换只改变 Checked/Indeterminate；类名输入只有这两项加自定义类，
+    // 记忆化以跳过每次渲染的 tailwind-merge 计算。
+    private CssClassMemoizer<(bool Checked, bool Indeterminate, string? Class)> _cssCache;
+
+    private string CssClass
+    {
+        get
+        {
+            var key = (Checked, Indeterminate, Class);
+            if (!_cssCache.TryGet(key, out var cached))
+            {
+                cached = ClassNames.cn(
+                    "atom:peer atom:h-5 atom:w-5 atom:shrink-0 atom:rounded-sm atom:border atom:border-primary atom:flex atom:items-center atom:justify-center",
+                    "atom:ring-offset-background atom:focus-visible:outline-none atom:focus-visible:ring-2",
+                    "atom:focus-visible:ring-ring atom:focus-visible:ring-offset-2",
+                    "atom:disabled:cursor-not-allowed atom:disabled:opacity-50",
+                    (Checked || Indeterminate) ? "atom:bg-primary atom:text-primary-foreground" : "atom:bg-background",
+                    Class
+                );
+                _cssCache.Set(key, cached);
+            }
+
+            return cached!;
+        }
+    }
 
     /// <summary>
     /// 处理选中状态变化，并通知 EditContext 触发表单校验。

@@ -160,9 +160,14 @@ public class FormFieldDateRangePickerTests
         string? helperText = null,
         string? errorText = null,
         string? ariaLabel = null,
+        TimeProvider? clock = null,
         IReadOnlyDictionary<string, object?>? splat = null)
     {
         var parameters = new Dictionary<string, object?>();
+        if (clock is not null)
+        {
+            parameters[nameof(FormFieldDateRangePicker.Clock)] = clock;
+        }
         if (value is not null)
         {
             parameters[nameof(FormFieldDateRangePicker.Value)] = value;
@@ -312,6 +317,7 @@ public class FormFieldDateRangePickerTests
 
         var dict = FieldParams(
             dateFormat: "yyyy-MM-dd", placeholder: "选一段假期",
+            clock: FixedTimeProvider.October2026,
             valueChanged: EventCallback.Factory.Create<DateRange?>(new object(), v => reports.Add(v)));
         var field = await renderer.MountAsync<FormFieldDateRangePicker>(dict);
         await SettleAsync(renderer);
@@ -356,6 +362,7 @@ public class FormFieldDateRangePickerTests
 
         await renderer.MountAsync<FormFieldDateRangePicker>(FieldParams(
             autoApply: true, dateFormat: "yyyy-MM-dd",
+            clock: FixedTimeProvider.October2026,
             valueChanged: EventCallback.Factory.Create<DateRange?>(new object(), v => reports.Add(v))));
         await SettleAsync(renderer);
 
@@ -380,6 +387,7 @@ public class FormFieldDateRangePickerTests
 
         await renderer.MountAsync<FormFieldDateRangePicker>(FieldParams(
             showButtons: false,
+            clock: FixedTimeProvider.October2026,
             valueChanged: EventCallback.Factory.Create<DateRange?>(new object(), v => reports.Add(v))));
         await SettleAsync(renderer);
 
@@ -451,6 +459,7 @@ public class FormFieldDateRangePickerTests
                     EventCallback.Factory.Create<DateRange?>(doc, value => doc.Range = value));
                 builder.AddAttribute(3, nameof(FormFieldDateRangePicker.DateFormat), "yyyy-MM-dd");
                 builder.AddAttribute(4, nameof(FormFieldDateRangePicker.Label), (string?)"休假区间");
+                builder.AddAttribute(5, nameof(FormFieldDateRangePicker.Clock), FixedTimeProvider.October2026);
                 builder.CloseComponent();
             }),
         });

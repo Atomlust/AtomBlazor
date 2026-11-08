@@ -407,6 +407,7 @@ public class CalendarTests
         };
 
         var dict = PinnedParams(selected: new DateTime(2026, 10, 12), minDate: new DateTime(2026, 10, 05));
+        dict[nameof(Calendar.Clock)] = FixedTimeProvider.October2026;
         dict[nameof(Calendar.DayTemplate)] = template;
 
         var (renderer, _, _) = await MountAsync(dict);

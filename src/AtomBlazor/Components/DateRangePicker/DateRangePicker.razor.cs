@@ -71,6 +71,22 @@ public partial class DateRangePicker : ComponentBase
     public DateTime? MaxDate { get; set; }
 
     /// <summary>
+    /// 组件内部"今天"的时间源，默认系统时钟。
+    /// </summary>
+    /// <remarks>
+    /// 初始展示月份、预设区间（今天/昨天/近 7 天等）与"今天"高亮都取自它。
+    /// 注入固定 <see cref="TimeProvider"/> 可获得确定性渲染（测试、演示或
+    /// 服务端统一业务时钟场景）。
+    /// </remarks>
+    [Parameter]
+    public TimeProvider? Clock { get; set; }
+
+    /// <summary>
+    /// 解析后的本地"今天"。
+    /// </summary>
+    private DateTime Today => (Clock ?? TimeProvider.System).GetLocalNow().Date;
+
+    /// <summary>
     /// 判断某个日期是否被禁用的函数。
     /// </summary>
     [Parameter]
@@ -295,7 +311,7 @@ public partial class DateRangePicker : ComponentBase
         }
         else
         {
-            _displayMonth1 = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+            _displayMonth1 = new DateTime(Today.Year, Today.Month, 1);
         }
         _displayMonth2 = _displayMonth1.AddMonths(1);
     }
@@ -442,15 +458,15 @@ public partial class DateRangePicker : ComponentBase
         }
     }
 
-    private static DateRange? ResolveRange(DateRangeQuickPick quickPick) =>
+    private DateRange? ResolveRange(DateRangeQuickPick quickPick) =>
         quickPick.Preset.HasValue ? GetPresetRange(quickPick.Preset.Value) : quickPick.RangeFactory?.Invoke();
 
     private string ResolveLabel(DateRangeQuickPick quickPick) =>
         quickPick.Preset.HasValue ? GetPresetLabel(quickPick.Preset.Value) : quickPick.Label ?? string.Empty;
 
-    private static DateRange? GetPresetRange(DateRangePreset preset)
+    private DateRange? GetPresetRange(DateRangePreset preset)
     {
-        var today = DateTime.Today;
+        var today = Today;
         return preset switch
         {
             DateRangePreset.Today => new DateRange(today, today),

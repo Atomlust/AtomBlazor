@@ -13,5 +13,5 @@ public enum ItemSize
     /// <summary>
     /// 小号尺寸，缩减内边距。
     /// </summary>
-    Sm
+    Small = 1
 }

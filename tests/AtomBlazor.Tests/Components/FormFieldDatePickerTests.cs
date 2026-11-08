@@ -397,6 +397,7 @@ public class FormFieldDatePickerTests
                     EventCallback.Factory.Create<DateTime?>(doc, value => doc.Date = value));
                 builder.AddAttribute(3, nameof(FormFieldDatePicker.DateFormat), "yyyy-MM-dd");
                 builder.AddAttribute(4, nameof(FormFieldDatePicker.Label), (string?)"生效日期");
+                builder.AddAttribute(5, nameof(FormFieldDatePicker.Clock), FixedTimeProvider.October2026);
                 builder.CloseComponent();
             }),
         });

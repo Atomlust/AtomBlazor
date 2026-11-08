@@ -79,7 +79,7 @@ public partial class Item : ComponentBase
         // 尺寸专属样式
         Size switch
         {
-            ItemSize.Sm => "atom:px-3 atom:py-2 atom:text-sm",
+            ItemSize.Small => "atom:px-3 atom:py-2 atom:text-sm",
             _ => "atom:px-4 atom:py-3"
         },
         Class

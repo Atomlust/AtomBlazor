@@ -3,12 +3,12 @@
 @inherits FormFieldBase
 @attribute [CascadingTypeParameter(nameof(TValue))]
 
-<Field Orientation="@Orientation" IsInvalid="@IsInvalid" Class="@Class">
-    @if (Label is not null)
-    {
-        <FieldLabel For="@ControlId">@Label</FieldLabel>
-    }
-    <FieldContent>
+<FormFieldShell Orientation="@Orientation" IsInvalid="@IsInvalid" Class="@Class"
+                Label="@Label" LabelFor="@ControlId" AssociateLabel
+                HelperText="@HelperText" HelperTextId="@DescriptionId"
+                ErrorText="@ErrorText" ErrorId="@ErrorId"
+                HasEditContextErrors="@HasEditContextErrors" EditContextErrors="@EditContextErrors">
+    <Control>
         <NativeSelect AriaLabel="@AriaLabel" TValue="TValue"
                         Value="@Value"
                         ValueChanged="HandleValueChanged"
@@ -22,17 +22,5 @@
                         @attributes="AdditionalAttributes">
             @ChildContent
         </NativeSelect>
-        @if (!string.IsNullOrEmpty(HelperText) && !IsInvalid)
-        {
-            <FieldDescription Id="@DescriptionId">@HelperText</FieldDescription>
-        }
-        @if (IsInvalid && !string.IsNullOrEmpty(ErrorText))
-        {
-            <FieldError Id="@ErrorId">@ErrorText</FieldError>
-        }
-        else if (HasEditContextErrors)
-        {
-            <FieldError Id="@ErrorId" Errors="@EditContextErrors" />
-        }
-    </FieldContent>
-</Field>
+    </Control>
+</FormFieldShell>

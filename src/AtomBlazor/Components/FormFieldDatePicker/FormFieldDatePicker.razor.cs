@@ -88,6 +88,12 @@ public partial class FormFieldDatePicker : FormFieldBase
     public DateTime? MaxDate { get; set; }
 
     /// <summary>
+    /// 获取或设置内部"今天"的时间源，透传给 <see cref="DatePicker"/>。
+    /// </summary>
+    [Parameter]
+    public TimeProvider? Clock { get; set; }
+
+    /// <summary>
     /// 获取或设置判定某日期是否禁选的方法。
     /// </summary>
     [Parameter]

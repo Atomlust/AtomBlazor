@@ -82,6 +82,23 @@ public partial class DateTimePicker : ComponentBase
     public DateTime? MaxDate { get; set; }
 
     /// <summary>
+    /// 组件内部"今天/现在"的时间源，默认系统时钟，透传给 <see cref="Calendar"/>。
+    /// </summary>
+    /// <remarks>
+    /// 日历初始展示月份、"今天"高亮、未选日期时的默认落日与 SetNow 都取自它。
+    /// 注入固定 <see cref="TimeProvider"/> 可获得确定性渲染（测试、演示或
+    /// 服务端统一业务时钟场景）。
+    /// </remarks>
+    [Parameter]
+    public TimeProvider? Clock { get; set; }
+
+    /// <summary>解析后的本地"今天/现在"。</summary>
+    private DateTime Now => (Clock ?? TimeProvider.System).GetLocalNow().DateTime;
+
+    /// <summary>解析后的本地"今天"。</summary>
+    private DateTime Today => Now.Date;
+
+    /// <summary>
     /// 判定日期是否禁用的函数。
     /// </summary>
     [Parameter]
@@ -262,7 +279,7 @@ public partial class DateTimePicker : ComponentBase
     private async Task UpdateTime()
     {
         // 调整时间保留已选日期；尚未选日时默认今天。
-        var date = Value?.Date ?? DateTime.Today;
+        var date = Value?.Date ?? Today;
         await SetValue(date.AddHours(_internalHour).AddMinutes(_internalMinute).AddSeconds(_internalSecond));
     }
 
@@ -340,7 +357,7 @@ public partial class DateTimePicker : ComponentBase
 
     private async Task SetNow()
     {
-        var now = DateTime.Now;
+        var now = Now;
         _internalHour = now.Hour;
         _internalMinute = now.Minute / MinuteStep * MinuteStep;
         _internalSecond = ShowSeconds ? now.Second : 0;
