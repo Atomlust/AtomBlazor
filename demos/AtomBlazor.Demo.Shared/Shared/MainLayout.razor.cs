@@ -25,6 +25,9 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable
     {
         NavigationManager.LocationChanged += OnLocationChanged;
         CultureService.LanguageChanged += HandleLanguageChanged;
+        // 电路线程不继承 SSR 请求线程的文化，这里按当前语言补齐，
+        // 使日历类组件的月份/星期名随显示语言联动。
+        CultureService.SyncThreadCulture();
     }
 
     /// <inheritdoc />

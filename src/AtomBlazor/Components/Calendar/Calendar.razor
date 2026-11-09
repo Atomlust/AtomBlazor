@@ -99,11 +99,13 @@
                                     aria-selected="@(isSelected ? "true" : "false")">
                                     @if (day.HasValue)
                                     {
+                                        var lunar = GetLunar(day.Value);
                                         <button type="button"
                                                 id="@GetDayId(day.Value)"
-                                                class="@GetDayClasses(day.Value, isSelected, isDisabled, isFocused, isOutside)"
+                                                class="@GetDayClasses(day.Value, isSelected, isDisabled, isFocused, isOutside, lunar is not null)"
                                                 disabled="@isDisabled"
                                                 tabindex="@(isFocused ? 0 : -1)"
+                                                aria-label="@GetDayAriaLabel(day.Value, lunar)"
                                                 @onclick="@(() => SelectDate(day.Value))"
                                                 @onclick:stopPropagation="true"
                                                 @onfocus="@(() => HandleDayFocus(day.Value))">
@@ -115,8 +117,17 @@
                                                     IsSelected = isSelected,
                                                     IsDisabled = isDisabled,
                                                     IsOutsideMonth = isOutside,
-                                                    IsToday = day.Value.Date == Today
+                                                    IsToday = day.Value.Date == Today,
+                                                    LunarMonthName = lunar?.MonthName,
+                                                    LunarDayName = lunar?.DayName,
+                                                    IsLunarLeapMonth = lunar?.IsLeapMonth ?? false,
+                                                    LunarFestival = lunar?.Festival
                                                 })
+                                            }
+                                            else if (lunar is { } lunarInfo)
+                                            {
+                                                <span class="atom:leading-none">@day.Value.Day</span>
+                                                <span class="atom:text-[10px] atom:leading-none atom:opacity-70">@LunarCalendarHelper.GetSubLabel(lunarInfo)</span>
                                             }
                                             else
                                             {
@@ -149,6 +160,11 @@
     private DayOfWeek _cachedFirstDayOfWeek;
     private bool _cachedShowOutsideDays;
     private List<List<DateTime?>>? _cachedWeeks;
+
+    // 农历换算缓存：按显示月份失效；值可为 null（越界日期的负缓存，避免逐帧重算）
+    private Dictionary<DateTime, LunarInfo?>? _lunarCache;
+    private bool _lunarCacheShowLunar;
+    private (int Year, int Month) _lunarCacheMonth;
 
     // ShouldRender 跟踪字段
     private bool _parametersChanged;
@@ -198,6 +214,20 @@
     /// </remarks>
     [Parameter]
     public TimeProvider? Clock { get; set; }
+
+    /// <summary>
+    /// 是否在日格数字下方显示农历副标签（节日 > 月名 > 日名）。
+    /// </summary>
+    /// <remarks>
+    /// 农历换算基于 BCL <see cref="System.Globalization.ChineseLunisolarCalendar"/>，
+    /// 支持 1901-02-19 ~ 2100-12-31；越界日期自动隐藏副标签。默认关闭时
+    /// 渲染标记与未引入本功能前完全一致。农历月名、日名与节日名固定为中文，
+    /// 不随 Culture 或 ILocalizer 切换，因此非中文界面下日格的 aria-label
+    /// 会是「本地化公历日期 + 中文农历描述」的混排。自定义 <c>DayTemplate</c> 可经
+    /// <see cref="CalendarDayContext"/> 的 Lunar* 字段自行编排。
+    /// </remarks>
+    [Parameter]
+    public bool ShowLunar { get; set; }
 
     /// <summary>解析后的本地"今天"。</summary>
     private DateTime Today => (Clock ?? TimeProvider.System).GetLocalNow().Date;
@@ -745,7 +775,7 @@
         return string.IsNullOrEmpty(CellClass) ? baseClass : ClassNames.cn(baseClass, CellClass);
     }
 
-    private string GetDayClasses(DateTime date, bool isSelected, bool isDisabled, bool isFocused, bool isOutside)
+    private string GetDayClasses(DateTime date, bool isSelected, bool isDisabled, bool isFocused, bool isOutside, bool showLunarSubLabel = false)
     {
         string baseClass;
         if (isSelected)
@@ -758,6 +788,12 @@
             baseClass = dayTodayClasses;
         else
             baseClass = dayBaseClasses;
+
+        // 农历两行布局：主数字 + 副标签纵向排列
+        if (showLunarSubLabel)
+        {
+            baseClass = ClassNames.cn(baseClass, "atom:flex-col");
+        }
 
         // 键盘焦点环（区别于程序化焦点下的 :focus-visible）
         if (isFocused && _isKeyboardNavigating && !isSelected)
@@ -772,6 +808,50 @@
         }
 
         return ClassNames.cn(baseClass, DayClass, customClass);
+    }
+
+    /// <summary>
+    /// 取指定日期的农历信息（带按显示月份失效的缓存）。
+    /// </summary>
+    /// <returns>未开启 <see cref="ShowLunar"/> 或日期超出农历支持范围时为 null。</returns>
+    private LunarInfo? GetLunar(DateTime date)
+    {
+        if (!ShowLunar)
+        {
+            return null;
+        }
+
+        var viewKey = (DisplayDate.Year, DisplayDate.Month);
+        if (_lunarCache is null || !_lunarCacheShowLunar || _lunarCacheMonth != viewKey)
+        {
+            _lunarCache = new Dictionary<DateTime, LunarInfo?>();
+            _lunarCacheShowLunar = ShowLunar;
+            _lunarCacheMonth = viewKey;
+        }
+
+        if (!_lunarCache.TryGetValue(date, out var info))
+        {
+            info = LunarCalendarHelper.TryGetLunar(date, out var parsed) ? parsed : null;
+            _lunarCache[date] = info;
+        }
+
+        return info;
+    }
+
+    /// <summary>
+    /// 日格的无障碍名称：开启农历时给出公历 + 农历完整描述；
+    /// 未开启时返回 null（不渲染 aria-label，与既有标记逐字节一致）。
+    /// </summary>
+    private string? GetDayAriaLabel(DateTime date, LunarInfo? lunar)
+    {
+        if (lunar is not { } info)
+        {
+            return null;
+        }
+
+        var gregorian = date.ToString("D", _resolvedCulture);
+        var lunarText = $"农历{info.MonthName}{info.DayName}";
+        return info.Festival is null ? $"{gregorian}，{lunarText}" : $"{gregorian}，{lunarText}，{info.Festival}";
     }
 
     #endregion

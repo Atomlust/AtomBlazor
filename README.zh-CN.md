@@ -193,7 +193,7 @@
 | `DataView` | 工具栏驱动的列表/卡片数据视图 |
 | `PivotDataGrid` | 透视数据网格，多维汇总 |
 | `FilterBuilder` | 面向最终用户的可视化筛选构造器 |
-| `Calendar` | 月历选择 |
+| `Calendar` | 月历选择，可显示农历副标签 |
 | `EventCalendar` | 事件日历，日程内容就地呈现 |
 | `Scheduler` | 时间排程器 |
 | `Gantt` | 甘特图，项目排期可视化 |

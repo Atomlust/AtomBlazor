@@ -430,6 +430,38 @@ public class CalendarTests
     }
 
     [Fact]
+    public async Task ShowLunar开启时应渲染农历副标签与无障碍名称()
+    {
+        // 2026-02-17 = 正月初一（春节）：显示月锚定在 2026 年 2 月
+        var dict = PinnedParams(selected: new DateTime(2026, 2, 17));
+        dict[nameof(Calendar.ShowLunar)] = true;
+
+        var (renderer, _, _) = await MountAsync(dict);
+        var markup = renderer.Markup();
+
+        // 节日副标签（节日优先于日名）
+        Assert.Contains("春节", markup);
+        // 两行布局与 10px 副标签结构
+        Assert.Contains("atom:text-[10px]", markup);
+        Assert.Contains("atom:flex-col", markup);
+        // 无障碍名称含农历描述
+        Assert.Contains("农历正月", markup);
+    }
+
+    [Fact]
+    public async Task ShowLunar关闭时不应出现任何农历标记()
+    {
+        var dict = PinnedParams(selected: new DateTime(2026, 2, 17));
+
+        var (renderer, _, _) = await MountAsync(dict);
+        var markup = renderer.Markup();
+
+        Assert.DoesNotContain("春节", markup);
+        Assert.DoesNotContain("农历", markup);
+        Assert.DoesNotContain("atom:text-[10px]", markup);
+    }
+
+    [Fact]
     public async Task DayTemplate缺省时按钮文本应为日号()
     {
         var (renderer, _, _) = await MountAsync(PinnedParams(selected: new DateTime(2026, 10, 12)));

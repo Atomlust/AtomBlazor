@@ -26,4 +26,23 @@ public class CalendarDayContext
     /// 单日期日历恒为 false。
     /// </summary>
     public bool IsInRange { get; init; }
+
+    /// <summary>
+    /// 农历月名（如「正月」「闰六月」）。未开启 <c>ShowLunar</c>、日期超出
+    /// 农历支持范围（1901-02-19 ~ 2100-12-31）时为 null。
+    /// </summary>
+    public string? LunarMonthName { get; init; }
+
+    /// <summary>
+    /// 农历日名（初一…三十）。可用性与 <see cref="LunarMonthName"/> 相同。
+    /// </summary>
+    public string? LunarDayName { get; init; }
+
+    /// <summary>该日是否落在农历闰月。可用性与 <see cref="LunarMonthName"/> 相同。</summary>
+    public bool IsLunarLeapMonth { get; init; }
+
+    /// <summary>
+    /// 命中的节日名（春节、中秋、除夕、元旦等）；无节日为 null。
+    /// </summary>
+    public string? LunarFestival { get; init; }
 }

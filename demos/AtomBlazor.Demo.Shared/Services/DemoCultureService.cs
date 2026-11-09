@@ -32,7 +32,7 @@ public sealed class DemoCultureService
     /// <summary>不可变快照，经 MainLayout 的 CascadingValue 下发；版本号递增会唤醒整棵渲染树。</summary>
     public DemoCultureState Snapshot { get; private set; } = new(Chinese, 0);
 
-    /// <summary>由 cookie 值初始化（未识别值一律回落中文；与当前值相同则零动作零事件）。</summary>
+    /// <summary>由 cookie 值初始化（未识别值一律回落中文）。无论语言是否变化都同步线程文化。</summary>
     public void InitializeFromCookie(string? cookieValue) => Apply(Normalize(cookieValue));
 
     /// <summary>切换语言并触发事件与快照版本递增。</summary>
@@ -46,14 +46,39 @@ public sealed class DemoCultureService
 
     private void Apply(string language)
     {
-        if (language == _language)
+        // 语言未变化也必须同步线程文化：SSR 首帧（cookie=zh 的默认路径）不走
+        // 变更分支，而宿主进程线程文化可能被钉在其他值（如 en-US），
+        // 不同步则日历类组件的月份/星期名与站点语言脱节。
+        var changed = language != _language;
+        _language = language;
+        if (changed)
         {
-            return;
+            Snapshot = new DemoCultureState(language, Snapshot.Version + 1);
         }
 
-        _language = language;
-        Snapshot = new DemoCultureState(language, Snapshot.Version + 1);
-        LanguageChanged?.Invoke();
+        SyncThreadCulture();
+
+        if (changed)
+        {
+            LanguageChanged?.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// 把线程文化同步到当前显示语言（zh → zh-CN，en → en-US）。
+    /// </summary>
+    /// <remarks>
+    /// 月份名、星期名等日期格式化数据取自 <see cref="CultureInfo.CurrentCulture"/>，
+    /// 而非组件库 ILocalizer 字符串表；语言切换必须同时传导线程文化，
+    /// 日历类组件（Calendar/DatePicker/DateRangePicker/EventCalendar）才能联动。
+    /// 在调用方线程上生效：SSR 中间件路径覆盖首帧，Wasm/Maui 客户端路径
+    /// 覆盖唯一 UI 线程；Blazor Server 电路线程由 MainLayout.OnInitialized 补齐。
+    /// </remarks>
+    public void SyncThreadCulture()
+    {
+        var culture = new CultureInfo(_language == English ? "en-US" : "zh-CN");
+        CultureInfo.CurrentCulture = culture;
+        CultureInfo.CurrentUICulture = culture;
     }
 
     private static string Normalize(string? value) =>

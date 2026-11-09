@@ -193,7 +193,7 @@
 | `DataView` | Toolbar-driven list/card data views |
 | `PivotDataGrid` | Pivot grid for multi-dimensional summaries |
 | `FilterBuilder` | Visual query builder for end users |
-| `Calendar` | Month calendar with selection |
+| `Calendar` | Month calendar with selection and optional lunar sub-labels |
 | `EventCalendar` | Event calendar for date-backed content |
 | `Scheduler` | Time-slot scheduling |
 | `Gantt` | Gantt chart for project schedules |

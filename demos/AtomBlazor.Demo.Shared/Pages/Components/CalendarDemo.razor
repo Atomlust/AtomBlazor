@@ -286,6 +286,7 @@
             <AccessibilityItem>@L.T("日期单元格用 aria-selected 标记当前选中项", "Day cells use aria-selected for the current selection")</AccessibilityItem>
             <AccessibilityItem>@L.T("被禁用的日期带有 aria-disabled", "Disabled dates are marked with aria-disabled")</AccessibilityItem>
             <AccessibilityItem>@L.T("翻页按钮带有描述性的 aria-label 属性", "Navigation buttons have descriptive aria-label attributes")</AccessibilityItem>
+            <AccessibilityItem>@L.T("开启 ShowLunar 后，日期按钮的 aria-label 会同时给出公历全日期、农历月日与节日名；关闭时不输出 aria-label，可见文本即全部信息。", "With ShowLunar enabled, each day button's aria-label carries the full Gregorian date plus the lunar month/day and festival name; when disabled no aria-label is emitted and the visible text is the whole label.")</AccessibilityItem>
         </AriaAttributes>
         <KeyboardNavigation>
             <KeyboardShortcutItem Description="@(L.T("在日期之间移动", "Navigate days"))">
@@ -308,6 +309,40 @@
             </KeyboardShortcutItem>
         </KeyboardNavigation>
     </AccessibilityList>
+
+    <!-- Show Lunar -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("农历显示", "Lunar Calendar")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("开启 ShowLunar 后，日格下方显示农历副标签：节日优先（如春节、中秋、除夕），其次初一显示月名，其余显示日名。自定义 DayTemplate 可经 CalendarDayContext 的 Lunar* 字段自行编排。", "With ShowLunar enabled, each day cell shows a lunar sub-label: festivals first (Spring Festival, Mid-Autumn, New Year's Eve...), the lunar month name on the first day, otherwise the lunar day name. Custom DayTemplate can compose from the Lunar* fields on CalendarDayContext.")
+            </p>
+        </div>
+        <div class="flex flex-wrap gap-8">
+            <div>
+                <p class="text-sm font-medium mb-2">@L.T("默认日格", "Default cells")</p>
+                <div class="border rounded-lg w-fit">
+                    <Calendar @bind-Selected="_lunarSelected" ShowLunar="true" />
+                </div>
+            </div>
+            <div>
+                <p class="text-sm font-medium mb-2">@L.T("自定义 DayTemplate", "Custom DayTemplate")</p>
+                <div class="border rounded-lg w-fit">
+                    <Calendar @bind-Selected="_lunarTemplateSelected" ShowLunar="true">
+                        <DayTemplate Context="day">
+                            <div class="text-center">
+                                <div>@day.Date.Day</div>
+                                <div class="text-[9px] leading-none opacity-60">
+                                    @(day.LunarFestival ?? day.LunarDayName)
+                                </div>
+                            </div>
+                        </DayTemplate>
+                    </Calendar>
+                </div>
+            </div>
+        </div>
+        <CodeBlock Source="Components/Calendar/show-lunar.txt" />
+    </div>
 
     <!-- API Reference -->
     <section class="space-y-4">
@@ -352,10 +387,13 @@
                     @L.T("日历首次渲染时是否把键盘焦点移到活动日期，让方向键立即可用。适合在气泡卡片或对话框中展示的日历。", "Whether to move keyboard focus to the active day when the calendar first renders, so arrow-key navigation works immediately. Useful for calendars shown in a popover or dialog.")
                 </ApiParameter>
                 <ApiParameter Name="DayTemplate" Type="RenderFragment&lt;CalendarDayContext&gt;?" Default="null">
-                    @L.T("用于在每个日期按钮内渲染自定义内容的模板。上下文提供 Date、IsSelected、IsDisabled、IsOutsideMonth、IsToday 与 IsInRange。为 null 时渲染日期数字。", "Template for rendering custom content inside each day button. The context exposes Date, IsSelected, IsDisabled, IsOutsideMonth, IsToday and IsInRange. When null, the day number is rendered.")
+                    @L.T("用于在每个日期按钮内渲染自定义内容的模板。上下文提供 Date、IsSelected、IsDisabled、IsOutsideMonth、IsToday 与 IsInRange；开启 ShowLunar 后另提供 LunarMonthName、LunarDayName、IsLunarLeapMonth 与 LunarFestival。为 null 时渲染日期数字。", "Template for rendering custom content inside each day button. The context exposes Date, IsSelected, IsDisabled, IsOutsideMonth, IsToday and IsInRange; with ShowLunar enabled it also exposes LunarMonthName, LunarDayName, IsLunarLeapMonth and LunarFestival. When null, the day number is rendered.")
                 </ApiParameter>
                 <ApiParameter Name="DayClassFunc" Type="Func&lt;DateTime, string?&gt;?" Default="null">
                     @L.T("为指定日期按钮返回额外 CSS 类的函数，会与内置日期样式及 DayClass 组合。", "Function returning additional CSS classes for a specific day button, composed with the built-in day classes and DayClass.")
+                </ApiParameter>
+                <ApiParameter Name="ShowLunar" Type="bool" Default="false">
+                    @L.T("在日格数字下方显示农历副标签：节日优先，其次初一显示月名，其余显示日名。换算基于 BCL ChineseLunisolarCalendar，支持 1901-02-19 ~ 2100-12-31，越界日期自动隐藏副标签。农历月日与节日名固定为中文，不随语言切换翻译。关闭时渲染标记与未引入本功能前一致。", "Show a lunar sub-label under each day number: festival first, then the lunar month name on the first day of a month, otherwise the lunar day name. Conversion relies on the BCL ChineseLunisolarCalendar and covers 1901-02-19 through 2100-12-31; out-of-range dates hide the sub-label. Lunar month, day and festival names stay Chinese and are not translated. When off, the markup is byte-identical to before this feature.")
                 </ApiParameter>
                 <ApiParameter Name="OnSelect" Type="EventCallback&lt;DateTime&gt;">
                     @L.T("选中某个日期时触发的回调。", "Callback when a date is selected.")
@@ -410,6 +448,8 @@
     private DateTime? _autoFocusDate;
     private bool _showAutoFocusCalendar;
     private DateTime? _dayTemplateDate;
+    private DateTime? _lunarSelected;
+    private DateTime? _lunarTemplateSelected;
     private DateTime? _dayClassDate;
 
     private static readonly HashSet<int> eventDays = new() { 3, 8, 12, 17, 21, 26 };

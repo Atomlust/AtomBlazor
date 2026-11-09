@@ -92,6 +92,12 @@ public partial class DateTimePicker : ComponentBase
     [Parameter]
     public TimeProvider? Clock { get; set; }
 
+    /// <summary>
+    /// 是否在日格下方显示农历副标签，透传给 <see cref="Calendar"/>。
+    /// </summary>
+    [Parameter]
+    public bool ShowLunar { get; set; }
+
     /// <summary>解析后的本地"今天/现在"。</summary>
     private DateTime Now => (Clock ?? TimeProvider.System).GetLocalNow().DateTime;
 
