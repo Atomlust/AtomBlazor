@@ -189,11 +189,20 @@ jobs:
           fi
 
           # 正文 = 标签注解（发布说明）+ 本次提交清单 + Full Changelog 链接。
-          # 轻量标签没有注解正文，下面用 note_lines 判定并回落 --generate-notes。
+          # checkout 收尾时用 +<sha>:refs/tags/$TAG 覆盖标签 ref，使它指向提交对象，
+          # 此时 %(contents) 取到的是提交信息；因此按标签 refspec 另抓一份到独立 ref，
+          # 确认 objecttype 为 tag 后再读注解。轻量标签无注解，回落自动生成。
           prev="$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || true)"
-          note_lines="$(git for-each-ref --format='%(contents:body)' "refs/tags/$TAG" | sed '/^[[:space:]]*$/d' | wc -l)"
+          notes_ref="refs/tags/$TAG-notes"
+          git fetch --quiet origin "+refs/tags/$TAG:$notes_ref" || true
+          if [ "$(git for-each-ref --format='%(objecttype)' "$notes_ref")" = "tag" ]; then
+            note_lines="$(git for-each-ref --format='%(contents:body)' "$notes_ref" | sed '/^[[:space:]]*$/d' | wc -l)"
+          else
+            note_lines=0
+          fi
+
           if [ "$note_lines" -gt 0 ]; then
-            git for-each-ref --format='%(contents)' "refs/tags/$TAG" > release-notes.md
+            git for-each-ref --format='%(contents)' "$notes_ref" > release-notes.md
             if [ -n "$prev" ]; then
               {
                 printf '\n### 提交\n'
@@ -203,7 +212,7 @@ jobs:
             fi
             notes=(--notes-file release-notes.md)
           else
-            echo "::notice::标签 $TAG 无注解正文，改用自动生成说明"
+            echo "::notice::标签 $TAG 没有附注正文，改用自动生成说明"
             notes=(--generate-notes)
           fi
 
