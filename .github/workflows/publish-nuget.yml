@@ -4,9 +4,9 @@
 # 触发方式：
 #   1. 推送版本标签（推荐）：
 #      git tag -a v0.1.0 --cleanup=verbatim -F 说明文件 && git push origin v0.1.0
-#      Release 正文取自标签注解（必须是附注标签，轻量标签只能回落自动摘要），
-#      注解按「### 新增 / ### 优化 / ### 修复」三节书写，流程再自动追加
-#      本次提交清单与 Full Changelog 链接。
+#      Release 正文取自标签注解（必须是附注标签），注解按「### 新增 / ### 优化 /
+#      ### 修复」三节书写，流程再自动追加本次提交清单与 Full Changelog 链接。
+#      注解缺任一节时，流程会按提交信息关键字自动归类生成同样三节，并给出 warning。
 #      必须带 --cleanup=verbatim：git tag 默认会把以 # 开头的行当注释删掉，
 #      markdown 小节标题会整段丢失（v0.10.0 首次发布即因此只剩项目符号）。
 #   2. 手动运行（Actions 页面 → Run workflow）：
@@ -191,32 +191,49 @@ jobs:
             exit 1
           fi
 
-          # 正文 = 标签注解（发布说明）+ 本次提交清单 + Full Changelog 链接。
+          # 正文优先取标签注解，但注解必须含「### 新增 / ### 优化 / ### 修复」三节；
+          # 缺任一节就按提交信息自动归类生成，保证每次 Release 结构一致。
           # checkout 收尾时用 +<sha>:refs/tags/$TAG 覆盖标签 ref，使它指向提交对象，
           # 此时 %(contents) 取到的是提交信息；因此按标签 refspec 另抓一份到独立 ref，
-          # 确认 objecttype 为 tag 后再读注解。轻量标签无注解，回落自动生成。
+          # 确认 objecttype 为 tag 后再读注解。
           prev="$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || true)"
           notes_ref="refs/tags/$TAG-notes"
           git fetch --quiet origin "+refs/tags/$TAG:$notes_ref" || true
+
+          annotation=""
           if [ "$(git for-each-ref --format='%(objecttype)' "$notes_ref")" = "tag" ]; then
-            note_lines="$(git for-each-ref --format='%(contents:body)' "$notes_ref" | sed '/^[[:space:]]*$/d' | wc -l)"
-          else
-            note_lines=0
+            annotation="$(git for-each-ref --format='%(contents)' "$notes_ref")"
           fi
 
-          if [ "$note_lines" -gt 0 ]; then
-            git for-each-ref --format='%(contents)' "$notes_ref" > release-notes.md
+          if [ -n "$annotation" ] && printf '%s\n' "$annotation" | grep -q '^### 新增' &&
+             printf '%s\n' "$annotation" | grep -q '^### 优化' &&
+             printf '%s\n' "$annotation" | grep -q '^### 修复'; then
+            printf '%s\n' "$annotation" > release-notes.md
             if [ -n "$prev" ]; then
               {
                 printf '\n### 提交\n'
                 git log --no-merges --pretty=format:'- %s (%h)' "$prev..$TAG"
-                printf '\n\n**Full Changelog**: https://github.com/%s/compare/%s...%s\n' "$REPO" "$prev" "$TAG"
               } >> release-notes.md
             fi
-            notes=(--notes-file release-notes.md)
+          elif [ -n "$prev" ]; then
+            echo "::warning::标签 $TAG 的注解未按「新增/优化/修复」三节书写，已按提交信息自动归类"
+            git log --no-merges --pretty=format:'%s (%h)' "$prev..$TAG" | awk '
+              { line = "- " $0 }
+              line ~ /修复|解决|回归|hotfix|fix:/ { fix = fix line "\n"; next }
+              line ~ /新增|添加|支持|引入|feat/ { add = add line "\n"; next }
+              { opt = opt line "\n" }
+              END { printf "### 新增\n%s\n### 优化\n%s\n### 修复\n%s", add, opt, fix }
+            ' > release-notes.md
           else
-            echo "::notice::标签 $TAG 没有附注正文，改用自动生成说明"
+            echo "::notice::没有上一标签可比较，改用自动生成说明"
             notes=(--generate-notes)
+          fi
+
+          if [ -s release-notes.md ]; then
+            if [ -n "$prev" ]; then
+              printf '\n**Full Changelog**: https://github.com/%s/compare/%s...%s\n' "$REPO" "$prev" "$TAG" >> release-notes.md
+            fi
+            notes=(--notes-file release-notes.md)
           fi
 
           # 本 job 原先不检出代码，gh 没有 git remote 上下文，所有调用必须显式 --repo
