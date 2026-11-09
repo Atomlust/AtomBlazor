@@ -110,8 +110,9 @@ public partial class Textarea : ComponentBase
     /// 获取或设置文本域允许的最大字符数。
     /// </summary>
     /// <remarks>
-    /// 设置后输出 HTML5 maxlength 属性
-    /// 浏览器会阻止用户输入超过该数量的字符。
+    /// 设置后输出 HTML5 maxlength 属性，浏览器会阻止用户继续键入超过该数量的字符。
+    /// IME 组合输入可以越过 maxlength，提交时由浏览器侧脚本截断后再回填 <see cref="Value"/>；
+    /// 程序化赋值不受本参数约束，超长值请用表单校验拦截。
     /// </remarks>
     [Parameter]
     public int? MaxLength { get; set; }

@@ -94,6 +94,15 @@ public partial class FormFieldInput<[System.Diagnostics.CodeAnalysis.Dynamically
     public bool Required { get; set; }
 
     /// <summary>
+    /// 获取或设置输入框允许的最大字符数。
+    /// </summary>
+    /// <remarks>
+    /// 转发给内部 InputField，设置后输出 HTML5 maxlength 属性并在提交时截断 IME 组合输入。
+    /// </remarks>
+    [Parameter]
+    public int? MaxLength { get; set; }
+
+    /// <summary>
     /// 获取或设置解析后的值校验函数。
     /// </summary>
     [Parameter]

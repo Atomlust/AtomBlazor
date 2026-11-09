@@ -28,6 +28,7 @@ namespace AtomBlazor;
 /// - 失焦时保留非法文本（用户能看到自己输错了什么）
 /// - 通过 <see cref="ValidationPattern"/> 在解析前做正则校验
 /// - 通过 <see cref="Validation"/> 在解析后做值校验
+/// - 通过 <see cref="MaxLength"/> 限制原始文本字符数（IME 组合输入在提交时截断）
 /// - 完整 ARIA 属性支持，解析错误时自动输出 aria-invalid
 /// - 与 <see cref="Input"/> 完全一致的视觉外观
 /// - JS 优先的事件处理，在 Blazor Server/Auto 下获得最佳性能
@@ -184,6 +185,16 @@ public partial class InputField<[System.Diagnostics.CodeAnalysis.DynamicallyAcce
     /// </summary>
     [Parameter]
     public bool Required { get; set; }
+
+    /// <summary>
+    /// 获取或设置输入框允许的最大字符数。
+    /// </summary>
+    /// <remarks>
+    /// 设置后输出 HTML5 maxlength 属性；限制的是原始文本长度，与 <see cref="Format"/>/转换器无关。
+    /// IME 组合输入可以越过 maxlength，提交时由浏览器侧脚本截断后再解析回填。
+    /// </remarks>
+    [Parameter]
+    public int? MaxLength { get; set; }
 
     /// <summary>
     /// 获取或设置应用到输入框的额外 CSS 类。
@@ -410,7 +421,8 @@ public partial class InputField<[System.Diagnostics.CodeAnalysis.DynamicallyAcce
             _ => "onchange"
         },
         debounceMs = DebounceInterval,
-        notifyOnBlur = true
+        notifyOnBlur = true,
+        maxLength = MaxLength
     };
 
     private void NotifyFieldChanged() => validation.NotifyFieldChanged();

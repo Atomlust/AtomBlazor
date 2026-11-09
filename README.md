@@ -66,7 +66,7 @@
 
 | Component | What it does |
 | --- | --- |
-| `Input` | Single-line text entry with adornments and validation-ready styling |
+| `Input` | Single-line text entry with adornments, character limits and validation-ready styling |
 | `Textarea` | Auto-growing multi-line entry |
 | `MaskedInput` | Pattern-enforced entry for phones, IDs, plates and more |
 | `NumericInput` | Numbers with steppers and precision control |

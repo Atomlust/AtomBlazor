@@ -13,7 +13,8 @@ namespace AtomBlazor.Tests.Components;
 /// <summary>
 /// Input 渲染与 JS 化事件测试：默认渲染快照（Scrub 随机 id）、InputType 到 HTML type 的映射表驱动、
 /// File 类型不输出 value、首渲染后 textInput.initialize 的 interop 契约（identifier、instanceId 与配置内容）、
-/// UpdateTiming/DebounceInterval 变化驱动 textInput.updateConfig、JsOnInput/JsOnChange 直接调用回填值
+/// UpdateTiming/DebounceInterval/MaxLength 变化驱动 textInput.updateConfig、MaxLength 输出 maxlength 属性、
+/// JsOnInput/JsOnChange 直接调用回填值
 /// 与空白规整为 null、释放时派发 textInput.dispose。
 /// </summary>
 public class InputTests
@@ -48,11 +49,12 @@ public class InputTests
     }
 
     /// <summary>读取发给 JS 的匿名配置对象（匿名类型不可 ToString 断言，按属性反射读取）。</summary>
-    private static (string Mode, int DebounceMs) ReadConfig(object config)
+    private static (string Mode, int DebounceMs, int? MaxLength) ReadConfig(object config)
     {
         var type = config.GetType();
         return ((string)type.GetProperty("mode")!.GetValue(config)!,
-                (int)type.GetProperty("debounceMs")!.GetValue(config)!);
+                (int)type.GetProperty("debounceMs")!.GetValue(config)!,
+                (int?)type.GetProperty("maxLength")!.GetValue(config));
     }
 
     [Fact]
@@ -122,9 +124,10 @@ public class InputTests
         Assert.IsType<DotNetObjectReference<Input>>(initialize.Args[1]);
         Assert.Matches("^[0-9a-f]{32}$", (string)initialize.Args[2]!);
 
-        var (mode, debounceMs) = ReadConfig(initialize.Args[3]!);
+        var (mode, debounceMs, maxLength) = ReadConfig(initialize.Args[3]!);
         Assert.Equal("onchange", mode);
         Assert.Equal(500, debounceMs);
+        Assert.Null(maxLength);
     }
 
     [Fact]
@@ -152,9 +155,63 @@ public class InputTests
         var initialize = js.Invocations.First(i => i.Identifier == "textInput.initialize");
         Assert.Equal(initialize.Args![2], update.Args[0]);
 
-        var (mode, debounceMs) = ReadConfig(update.Args[1]!);
+        var (mode, debounceMs, maxLength) = ReadConfig(update.Args[1]!);
         Assert.Equal("debounced", mode);
         Assert.Equal(150, debounceMs);
+        Assert.Null(maxLength);
+    }
+
+    [Fact]
+    public async Task MaxLength应输出maxlength属性并进入JS配置()
+    {
+        var js = new NoopJavaScript();
+        var renderer = CreateRenderer(js);
+
+        await MountAsync(renderer, new Dictionary<string, object?>
+        {
+            [nameof(Input.Value)] = "abc",
+            [nameof(Input.MaxLength)] = 12,
+        });
+
+        Assert.Contains("maxlength=\"12\"", renderer.Markup());
+
+        var initialize = Assert.Single(js.Invocations, i => i.Identifier == "textInput.initialize");
+        Assert.Equal(12, ReadConfig(initialize.Args![3]!).MaxLength);
+    }
+
+    [Fact]
+    public async Task 未设置MaxLength时不应输出maxlength属性()
+    {
+        var renderer = CreateRenderer();
+
+        await MountAsync(renderer, new Dictionary<string, object?>
+        {
+            [nameof(Input.Value)] = "abcdefghij",
+        });
+
+        Assert.DoesNotContain("maxlength=", renderer.Markup());
+    }
+
+    [Fact]
+    public async Task 更换MaxLength应派发textInput配置更新()
+    {
+        var js = new NoopJavaScript();
+        var renderer = CreateRenderer(js);
+
+        await MountAsync(renderer, new Dictionary<string, object?>
+        {
+            [nameof(Input.MaxLength)] = 5,
+        });
+
+        await renderer.RerenderRootAsync(0, new Dictionary<string, object?>
+        {
+            [nameof(Input.MaxLength)] = 9,
+        });
+        await FlushAsync(renderer);
+
+        var update = Assert.Single(js.Invocations, i => i.Identifier == "textInput.updateConfig");
+        Assert.Equal(9, ReadConfig(update.Args![1]!).MaxLength);
+        Assert.Contains("maxlength=\"9\"", renderer.Markup());
     }
 
     [Fact]

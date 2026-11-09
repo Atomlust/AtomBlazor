@@ -68,6 +68,23 @@ public class InputFieldTests
     }
 
     [Fact]
+    public async Task MaxLength应输出maxlength属性且未设置时不输出()
+    {
+        var (renderer, _) = await MountAsync<string>(new Dictionary<string, object?>
+        {
+            [nameof(InputField<string>.Value)] = "abcdefghij",
+            [nameof(InputField<string>.MaxLength)] = 8,
+        });
+        Assert.Contains("maxlength=\"8\"", renderer.Markup());
+
+        var (plain, _) = await MountAsync<string>(new Dictionary<string, object?>
+        {
+            [nameof(InputField<string>.Value)] = "abcdefghij",
+        });
+        Assert.DoesNotContain("maxlength=", plain.Markup());
+    }
+
+    [Fact]
     public async Task 非法文本应触发解析错误并保留原文与无效态()
     {
         var errors = new List<InputParseException>();

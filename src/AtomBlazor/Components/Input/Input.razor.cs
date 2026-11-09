@@ -20,6 +20,7 @@ namespace AtomBlazor;
 /// - 通过 aria-invalid 属性呈现错误态
 /// - 状态变化带平滑颜色过渡
 /// - 支持禁用与必填状态
+/// - 通过 MaxLength 参数限制字符数上限（IME 组合输入在提交时截断）
 /// - 支持占位文本
 /// - Value/ValueChanged 双向绑定
 /// - 内置 ARIA 属性
@@ -115,6 +116,17 @@ public partial class Input : ComponentBase
     /// </remarks>
     [Parameter]
     public bool Required { get; set; }
+
+    /// <summary>
+    /// 获取或设置输入框允许的最大字符数。
+    /// </summary>
+    /// <remarks>
+    /// 设置后输出 HTML5 maxlength 属性，浏览器会阻止用户继续键入超过该数量的字符。
+    /// IME 组合输入可以越过 maxlength，提交时由浏览器侧脚本截断后再回填 <see cref="Value"/>；
+    /// 程序化赋值不受本参数约束，超长值请用表单校验拦截。
+    /// </remarks>
+    [Parameter]
+    public int? MaxLength { get; set; }
 
     /// <summary>
     /// 获取或设置应用到输入框的额外 CSS 类。
@@ -339,7 +351,8 @@ public partial class Input : ComponentBase
             UpdateTiming.Debounced => "debounced",
             _ => "onchange"
         },
-        debounceMs = DebounceInterval
+        debounceMs = DebounceInterval,
+        maxLength = MaxLength
     };
 
     /// <summary>

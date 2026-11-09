@@ -163,6 +163,27 @@
         <CodeBlock Source="Components/Input/required.txt" />
     </div>
 
+    <!-- Max Length -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("最大长度", "Max Length")</h2>
+            <p class="text-sm text-muted-foreground">
+                @L.T("用 MaxLength 限制字符数上限，输出原生 maxlength 属性；IME 组合输入越过上限时，提交后会被截断。", "Cap the character count with MaxLength, which emits the native maxlength attribute; text committed by an IME that exceeds the limit is truncated.")
+            </p>
+        </div>
+        <div class="max-w-md space-y-4">
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("昵称（最多 12 个字符）", "Nickname (up to 12 characters)")</label>
+                <Input Type="InputType.Text" Placeholder="@(L.T("请输入昵称", "Enter nickname"))" MaxLength="12" />
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-medium">@L.T("兑换码（最多 8 位）", "Redemption code (up to 8 characters)")</label>
+                <Input Type="InputType.Text" Placeholder="XXXXXXXX" MaxLength="8" />
+            </div>
+        </div>
+        <CodeBlock Source="Components/Input/max-length.txt" />
+    </div>
+
     <!-- With Label and Description -->
     <div class="space-y-4">
         <div class="space-y-2">
@@ -596,6 +617,18 @@
                             <AccessibilityItem><code>required</code> attribute signals mandatory fields to screen readers and enables native validation</AccessibilityItem>
                         </text>
 }
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <AccessibilityItem><code>maxlength</code> 属性限制可输入的字符数；读屏软件会播报字数上限，超出上限的文本不会被接受</AccessibilityItem>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <AccessibilityItem><code>maxlength</code> caps the number of characters entered, is announced by screen readers, and rejects text beyond the limit</AccessibilityItem>
+                        </text>
+}
         </AriaAttributes>
     </AccessibilityList>
 
@@ -627,6 +660,9 @@
                 </ApiParameter>
                 <ApiParameter Name="Required" Type="bool" Default="false">
                     @L.T("输入框是否为表单校验必填。会设置 HTML5 的 required 属性。", "Whether the input is required for form validation. Sets the HTML5 required attribute.")
+                </ApiParameter>
+                <ApiParameter Name="MaxLength" Type="int?" Default="null">
+                    @L.T("允许的最大字符数。设置后输出 HTML5 的 maxlength 属性；IME 组合输入越过上限时，提交后会被截断。程序化赋值不受本参数约束。", "Maximum number of characters. Sets the HTML5 maxlength attribute; text committed by an IME that exceeds the limit is truncated. Programmatically assigned values are not clamped.")
                 </ApiParameter>
                 <ApiParameter Name="UpdateTiming" Type="UpdateTiming" Default="Immediate">
                     @L.T("控制 ValueChanged 何时触发。Immediate（每次按键）、OnChange（失去焦点或回车）或 Debounced（停顿输入后）。", "Controls when ValueChanged fires. Immediate (every keystroke), OnChange (blur or Enter), or Debounced (after typing pauses).")

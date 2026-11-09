@@ -28,6 +28,9 @@ internal sealed record TextInputJsConfig
 
     /// <summary>debounced 模式的防抖间隔（毫秒）。</summary>
     public int debounceMs { get; init; }
+
+    /// <summary>最大字符数（未设置时为 null），提交时据此截断 IME 组合输入。</summary>
+    public int? maxLength { get; init; }
 }
 
 /// <summary>InputField 的 textInput 配置载荷（比 <see cref="TextInputJsConfig"/> 多 notifyOnBlur）。</summary>
@@ -38,6 +41,9 @@ internal sealed record InputFieldJsConfig
 
     /// <summary>失焦时是否通知 EditContext 校验。</summary>
     public bool notifyOnBlur { get; init; }
+
+    /// <summary>最大字符数（未设置时为 null），提交时据此截断 IME 组合输入。</summary>
+    public int? maxLength { get; init; }
 }
 
 /// <summary>

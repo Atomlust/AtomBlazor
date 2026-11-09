@@ -271,6 +271,42 @@
         <CodeBlock Source="Components/FormFieldInput/required.txt" />
     </div>
 
+    <!-- Max Length Field -->
+    <div class="space-y-4">
+        <div class="space-y-2">
+            <h2 class="text-2xl font-semibold">@L.T("最大长度", "Max Length")</h2>
+            @if (L.IsChinese)
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    <code class="text-xs bg-muted px-1 py-0.5 rounded">MaxLength</code> 转发给内部输入框，输出 HTML 的 maxlength 属性；IME 组合输入越过上限时，提交后会被截断。
+                </p>
+                        </text>
+}
+            else
+            {
+                        <text>
+                            <p class="text-sm text-muted-foreground">
+                    The <code class="text-xs bg-muted px-1 py-0.5 rounded">MaxLength</code> parameter forwards to the underlying input and sets the HTML
+                    maxlength attribute; text committed by an IME that exceeds the limit is truncated.
+                </p>
+                        </text>
+}
+        </div>
+        <div class="max-w-md">
+            <FormFieldInput TValue="string"
+                       @bind-Value="_nickname"
+                       Label="@(L.T("昵称", "Nickname"))"
+                       HelperText="@(L.T("最多 16 个字符。", "Up to 16 characters."))"
+                       MaxLength="16" />
+        </div>
+        <div class="rounded-lg border p-4 bg-muted/50">
+            <p class="text-sm font-medium mb-1">@L.T("当前值：", "Current value:")</p>
+            <p class="text-sm font-mono">@(string.IsNullOrEmpty(_nickname) ? L.T("（空）", "(empty)") : _nickname)</p>
+        </div>
+        <CodeBlock Source="Components/FormFieldInput/max-length.txt" />
+    </div>
+
     <!-- Disabled Field -->
     <div class="space-y-4">
         <div class="space-y-2">
@@ -448,6 +484,9 @@
                 <ApiParameter Name="Required" Type="bool" Default="false">
                     @L.T("输入框是否为必填（会设置 HTML 的 required 属性）。", "Whether the input is required (sets the HTML required attribute).")
                 </ApiParameter>
+                <ApiParameter Name="MaxLength" Type="int?" Default="null">
+                    @L.T("转发给内部 InputField 的最大字符数（输出 HTML 的 maxlength 属性，并在提交时截断 IME 组合输入）。", "Maximum number of characters forwarded to the inner InputField (sets the HTML maxlength attribute and truncates over-long IME commits).")
+                </ApiParameter>
                 <ApiParameter Name="Validation" Type="Func&lt;TValue, bool&gt;?" Default="null">
                     @L.T("解析之后的校验函数。值有效时返回 true。", "Post-parse validation function. Returns true if the value is valid.")
                 </ApiParameter>
@@ -509,6 +548,7 @@
     private string? _email;
     private DateTime? _birthDate;
     private string? _username;
+    private string? _nickname;
     private string? _formName;
     private string? _formEmail;
     private int _formAge;

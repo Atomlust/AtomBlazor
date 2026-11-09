@@ -112,6 +112,23 @@ public class FormFieldInputTests
     }
 
     [Fact]
+    public async Task 最大长度应透传内部InputField并落DOM()
+    {
+        var renderer = CreateRenderer();
+
+        await renderer.MountAsync<FormFieldInput<string>>(new Dictionary<string, object?>
+        {
+            [nameof(FormFieldInput<string>.Value)] = "abc",
+            [nameof(FormFieldInput<string>.Label)] = (string?)"昵称",
+            [nameof(FormFieldInput<string>.MaxLength)] = 20,
+        });
+        await SettleAsync(renderer);
+
+        Assert.Equal(20, renderer.FindComponent<InputField<string>>().MaxLength);
+        Assert.Contains("maxlength=\"20\"", renderer.Markup());
+    }
+
+    [Fact]
     public async Task 控件ID应由字段持有并与标签和描述接线()
     {
         var person = new Person { Age = 30 };

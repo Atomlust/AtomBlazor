@@ -26,7 +26,7 @@ const instances = new Map();
  * @param {number} config.debounceMs - Debounce interval (debounced mode only).
  * @param {boolean} [config.hasCharacterCount] - Whether to update a character count element.
  * @param {string} [config.characterCountSelector] - CSS selector for the counter element.
- * @param {number|null} [config.maxLength] - Max length for character count display.
+ * @param {number|null} [config.maxLength] - Maximum characters; drives the counter display and truncates over-long commits.
  * @param {boolean} [config.notifyOnBlur] - When true, also fires JsOnChange on blur even if value didn't change.
  */
 export function initialize(element, dotNetRef, instanceId, config) {
@@ -52,20 +52,21 @@ export function initialize(element, dotNetRef, instanceId, config) {
   };
 
   const updateCharacterCount = () => {
-    if (!config.hasCharacterCount || !config.characterCountSelector) {
+    const cfg = state.config;
+    if (!cfg.hasCharacterCount || !cfg.characterCountSelector) {
       return;
     }
     const wrapper = element.closest('[data-textarea-wrapper]');
     if (!wrapper) {
       return;
     }
-    const counter = wrapper.querySelector(config.characterCountSelector);
+    const counter = wrapper.querySelector(cfg.characterCountSelector);
     if (!counter) {
       return;
     }
     const len = element.value.length;
-    counter.textContent = config.maxLength
-      ? `${len}/${config.maxLength}`
+    counter.textContent = cfg.maxLength
+      ? `${len}/${cfg.maxLength}`
       : `${len}`;
   };
 
@@ -80,21 +81,36 @@ export function initialize(element, dotNetRef, instanceId, config) {
     }
   };
 
-  const handleInput = () => {
-    const value = element.value;
+  // HTML maxlength 只是阻止继续键入，IME 组合串可以越过上限；提交后截断，
+  // 让 DOM 与回填给 .NET 的值保持一致。
+  const clampToMaxLength = () => {
+    const max = state.config.maxLength;
+    if (typeof max === 'number' && max > 0 && element.value.length > max) {
+      element.value = element.value.slice(0, max);
+    }
+    return element.value;
+  };
 
-    // The counter tracks the element, not the bound value, so it stays live while composing.
+  const handleInput = () => {
+    // updateConfig 换掉的是 state.config，闭包参数只是首帧的值。
+    const config = state.config;
+
+    // Interop here would write the bound value back mid-composition; guard.onFlush
+    // re-runs this once the IME commits. Rewriting element.value mid-composition would
+    // break the IME session too, so only the live counter moves until it commits.
+    if (guard.isComposing) {
+      updateCharacterCount();
+      return;
+    }
+
+    clampToMaxLength();
     updateCharacterCount();
 
     if (config.mode === 'onchange') {
       return;
     }
 
-    // Interop here would write the bound value back mid-composition; guard.onFlush
-    // re-runs this once the IME commits.
-    if (guard.isComposing) {
-      return;
-    }
+    const value = element.value;
 
     if (config.mode === 'immediate') {
       if (state.rafId) {
@@ -121,7 +137,7 @@ export function initialize(element, dotNetRef, instanceId, config) {
 
   const handleChange = () => {
     cancelPending();
-    callOnChange(element.value);
+    callOnChange(clampToMaxLength());
   };
 
   const guard = createCompositionGuard(element, { onFlush: handleInput });
@@ -152,7 +168,7 @@ export function initialize(element, dotNetRef, instanceId, config) {
     const handleBlur = () => {
       if (!changeHandledBlur) {
         cancelPending();
-        callOnChange(element.value);
+        callOnChange(clampToMaxLength());
       }
       changeHandledBlur = false;
     };
