@@ -2,7 +2,10 @@
 # AtomBlazor NuGet 自动打包与发布（Trusted Publishing / OIDC 免密钥）
 #
 # 触发方式：
-#   1. 推送版本标签（推荐）：git tag v0.1.0 && git push origin v0.1.0
+#   1. 推送版本标签（推荐）：git tag -a v0.1.0 -m '<发布说明>' && git push origin v0.1.0
+#      Release 正文取自标签注解（注解请用 markdown，小节用 ###），
+#      流程再自动追加本次提交清单与 Full Changelog 链接；
+#      轻量标签（git tag v0.1.0，无注解）没有说明可取，回落 gh --generate-notes。
 #   2. 手动运行（Actions 页面 → Run workflow）：
 #      - publish_to_nuget = false：仅打包并上传 workflow 产物（试运行，不推送）
 #      - publish_to_nuget = true ：打包并推送到 nuget.org
@@ -162,6 +165,12 @@ jobs:
           name: nupkg-${{ github.sha }}
           path: ${{ env.PACK_DIR }}
 
+      - name: 检出代码与标签历史
+        uses: actions/checkout@v4
+        with:
+          # 生成 changelog 需要上一版本标签锚点与标签注解对象本身
+          fetch-depth: 0
+
       - name: 创建 Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -175,15 +184,36 @@ jobs:
             echo "::error::$PACK_DIR 下没有 .nupkg，取消创建 Release"
             exit 1
           fi
-          # 本 job 未检出代码，gh 没有 git remote 上下文，必须显式 --repo
+
+          # 正文 = 标签注解（发布说明）+ 本次提交清单 + Full Changelog 链接。
+          # 轻量标签没有注解正文，下面用 note_lines 判定并回落 --generate-notes。
+          prev="$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || true)"
+          note_lines="$(git for-each-ref --format='%(contents:body)' "refs/tags/$TAG" | sed '/^[[:space:]]*$/d' | wc -l)"
+          if [ "$note_lines" -gt 0 ]; then
+            git for-each-ref --format='%(contents)' "refs/tags/$TAG" > release-notes.md
+            if [ -n "$prev" ]; then
+              {
+                printf '\n### 提交\n'
+                git log --no-merges --pretty=format:'- %s (%h)' "$prev..$TAG"
+                printf '\n\n**Full Changelog**: https://github.com/%s/compare/%s...%s\n' "$REPO" "$prev" "$TAG"
+              } >> release-notes.md
+            fi
+            notes=(--notes-file release-notes.md)
+          else
+            echo "::notice::标签 $TAG 无注解正文，改用自动生成说明"
+            notes=(--generate-notes)
+          fi
+
+          # 本 job 原先不检出代码，gh 没有 git remote 上下文，所有调用必须显式 --repo
           if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
-            echo "::notice::Release $TAG 已存在，仅补挂缺失的附件"
+            echo "::notice::Release $TAG 已存在，刷新正文并补挂缺失的附件"
+            gh release edit "$TAG" --repo "$REPO" "${notes[@]}"
             gh release upload "$TAG" "${assets[@]}" --clobber --repo "$REPO"
           else
             gh release create "$TAG" \
               --repo "$REPO" \
               --title "$TAG" \
-              --generate-notes \
+              "${notes[@]}" \
               "${assets[@]}"
           fi
           echo "::notice::已创建/更新 Release $TAG，附件 ${#assets[@]} 个包"
