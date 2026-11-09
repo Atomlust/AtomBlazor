@@ -33,7 +33,8 @@
 #   - AtomBlazor 构建期会用 Tailwind CLI（仓库根 npm 依赖中的 @tailwindcss/cli）
 #     生成 wwwroot/atomblazor.css，因此流程中必须先 npm ci。
 #   - 推 v* 标签时，github-release job 会在 nuget.org 发布成功后创建 GitHub Release
-#     （--generate-notes 自动摘要 + 全部 .nupkg 作为附件）。若仓库 Settings → Actions
+#     （正文取自标签注解，再追加本次提交清单与 Full Changelog 链接；轻量标签回落
+#     gh --generate-notes，全部 .nupkg 作为附件）。若仓库 Settings → Actions
 #     → General → Workflow permissions 设为 Read written，该 job 会因 GITHUB_TOKEN
 #     无 contents 写权限而失败，需改为 Read and write。
 # =============================================================================
@@ -159,17 +160,19 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: 下载打包产物
-        uses: actions/download-artifact@v4
-        with:
-          name: nupkg-${{ github.sha }}
-          path: ${{ env.PACK_DIR }}
-
+      # checkout 必须排在下载产物之前：它默认 clean: true，会清空整个 workspace，
+      # 后下载就会把 artifacts/ 里的 .nupkg 一起删掉（v0.10.0 的 Release job 即因此失败）。
       - name: 检出代码与标签历史
         uses: actions/checkout@v4
         with:
           # 生成 changelog 需要上一版本标签锚点与标签注解对象本身
           fetch-depth: 0
+
+      - name: 下载打包产物
+        uses: actions/download-artifact@v4
+        with:
+          name: nupkg-${{ github.sha }}
+          path: ${{ env.PACK_DIR }}
 
       - name: 创建 Release
         env:
