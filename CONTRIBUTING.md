@@ -4,7 +4,7 @@ AtomBlazor 是一套基于 Blazor 的组件库（Tailwind CSS v4 + shadcn/ui 视
 
 ## 1. 环境
 
-- **.NET 11 SDK**（预览频道；本仓用 `11.0.100-rc.3`）。`global.json` 锁定 SDK 版本。
+- **.NET 11 SDK**（正式版；本仓用 `11.0.100`）。`global.json` 锁定 SDK 版本。
 - **工作负载**：库工程开 `IsAotCompatible`；MAUI Hybrid 宿主需 `maui-windows`；Wasm 的 **AOT**（`RunAOTCompilation`）额外需 `wasm-tools`。
 - **Tailwind CSS v4**（standalone）——经 `tools/atom.tailwind.targets` 在 `dotnet build` 时把 `wwwroot/css/atom-input.css` 构建为 `wwwroot/atomblazor.css`、把 Demo 的 `app-input.css` 构建为 `app.css`。产物 `atomblazor.css` 为提交物；改样式改 `*-input.css` 源，勿手改产物。
 - **Node.js ≥ 24**——跑 JS 单测与 Playwright。
@@ -58,7 +58,18 @@ node --test tests/js/*.test.mjs
 
 ## 7. 打包
 
-版本采用各 csproj 的 `<Version>` 直钉（当前 `0.6.0`）。`dotnet pack AtomBlazor.slnx -c Release` 产出各包 `.nupkg`（图标包 `Data.cs` 为预生成的图标 SVG 数据，勿手改）。
+版本采用各 csproj 的 `<Version>` 直钉（当前 `1.0.0`）。`dotnet pack AtomBlazor.slnx -c Release` 产出各包 `.nupkg`（图标包 `Data.cs` 为预生成的图标 SVG 数据，勿手改）。
+
+发版用附注标签触发 `publish-nuget.yml`：
+
+```bash
+git tag -a v1.0.0 --cleanup=verbatim -F 说明文件
+git push origin master v1.0.0
+```
+
+- `--cleanup=verbatim` 必须带：默认清理会把以 `#` 开头的行当注释删掉，markdown 小节标题会整段丢失。
+- 说明文件按 `### 新增 / ### 优化 / ### 修复` 三节书写；缺任一节时流程会按提交信息关键字自动归类兜底并给出 warning。
+- 标签版本须与 csproj `<Version>` 一致；`dotnet nuget push` 带 `--skip-duplicate`，重复推送安全。
 
 ## 8. 许可
 
