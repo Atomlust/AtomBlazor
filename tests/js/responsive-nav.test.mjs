@@ -15,7 +15,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 const moduleUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/responsive-nav.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/responsive-nav.js', import.meta.url);
 
 const bodySentinel = { tag: 'body' };
 globalThis.document = { body: bodySentinel };
@@ -142,7 +142,7 @@ test('cleanup 幂等：连续两次调用与无 initialize 场景均静默', () 
 
 test('components-core.js barrel 已收口 responsiveNav 命名空间', async () => {
     const { readFile } = await import('node:fs/promises');
-    const core = new URL('../../src/AtomBlazor.Components/wwwroot/js/components-core.js', import.meta.url);
+    const core = new URL('../../src/AtomBlazor/wwwroot/js/components-core.js', import.meta.url);
     const text = await readFile(core, 'utf8');
     assert.match(text, /^import \* as responsiveNav from '\.\/responsive-nav\.js\?assets=1';$/m);
     assert.match(text, /^assertFresh\('responsive-nav\.js', responsiveNav, 'initialize'\);$/m);

@@ -2,7 +2,6 @@ using AtomBlazor.Primitives;
 using AtomBlazor;
 using AtomBlazor.Tests.Rendering;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;

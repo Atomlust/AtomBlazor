@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 const selector = '[data-slot="map-chart"]';
-const engine = '/_content/AtomBlazor.Components/lib/echarts/echarts.min.js';
+const engine = '/_content/AtomBlazor/lib/echarts/echarts.min.js';
 // 偏差（授权）：goto 统一等 networkidle——WebAssembly 宿主下 load 事件远早于运行时
 // 装配完成，首屏 8s 断言会抢跑（ net10 的运行时装配更快）。
 

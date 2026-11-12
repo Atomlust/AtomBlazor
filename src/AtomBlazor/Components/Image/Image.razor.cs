@@ -5,7 +5,7 @@ namespace AtomBlazor;
 // 命名消歧说明：本类型名为 Image，与框架的 Microsoft.AspNetCore.Components.Web.Image
 // 同名不同义。本库仅 _Imports.razor 引入了该 Web 命名空间，而框架该命名空间下
 // 实际并不存在 Image 类型，且本工程未引用 System.Drawing，故无冲突。
-// 若未来使用者同时引入其他 Image 类型，请使用全名 AtomBlazor.Components.Image。
+// 若未来使用者同时引入其他 Image 类型，请使用全名 AtomBlazor.Image。
 
 /// <summary>
 /// 一种图片组件：当来源无法加载时展示合理的回退内容。

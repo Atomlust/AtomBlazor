@@ -105,7 +105,10 @@ export function initialize(element, dotNetRef, instanceId, config) {
 
   /**
    * 剥掉输入值里的非数字字符，同时保留光标位置。
-   * 允许数字、至多一个小数点（allowDecimal 开启时），以及一个前导负号（allowNegative 开启时）。
+   * 允许数字、至多一个小数分隔符（allowDecimal 开启时），以及一个前导负号（allowNegative 开启时）。
+   * 小数分隔符只认 config.decimalSeparator：千分位（en-US 的 ","、de-DE 的 "."）必须整段剥掉，
+   * 否则粘贴 "1,234.56" 会把千分位当小数点，金额静默变成 1.23456。C# 侧 TryParseValue 同样
+   * 先剥千分位再按文化归一化小数点，两侧口径必须一致。
    */
   const sanitizeInput = () => {
     const cfg = state.config;
@@ -121,7 +124,7 @@ export function initialize(element, dotNetRef, instanceId, config) {
       const decSep = cfg.decimalSeparator || '.';
       if (ch >= '0' && ch <= '9') {
         sanitized += ch;
-      } else if ((ch === '.' || ch === ',' || ch === decSep) && cfg.allowDecimal && !hasDecimal) {
+      } else if (ch === decSep && cfg.allowDecimal && !hasDecimal) {
         sanitized += decSep;
         hasDecimal = true;
       } else if (ch === '-' && cfg.allowNegative && sanitized.length === 0) {

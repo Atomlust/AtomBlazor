@@ -117,28 +117,6 @@ public class TreeViewTests
         builder.CloseComponent();
     };
 
-    /// <summary>根 p（子 p1 禁用可选/p2）。</summary>
-    private static RenderFragment CascadeFamily(bool p1Disabled = false) => builder =>
-    {
-        builder.OpenComponent<PTreeItem>(0);
-        builder.AddAttribute(1, "Value", "p");
-        builder.AddAttribute(2, "ChildContent", (RenderFragment)(inner =>
-        {
-            var iseq = 0;
-            inner.OpenComponent<PTreeItem>(iseq++);
-            inner.AddAttribute(iseq++, "Value", "p1");
-            if (p1Disabled)
-            {
-                inner.AddAttribute(iseq++, "Disabled", true);
-            }
-            inner.CloseComponent();
-            inner.OpenComponent<PTreeItem>(iseq++);
-            inner.AddAttribute(iseq++, "Value", "p2");
-            inner.CloseComponent();
-        }));
-        builder.CloseComponent();
-    };
-
     // ------------------------------------------------------------------
     // 上下文纯状态沿
     // ------------------------------------------------------------------

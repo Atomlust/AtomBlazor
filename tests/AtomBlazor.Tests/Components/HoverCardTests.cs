@@ -274,7 +274,7 @@ public class HoverCardTests
     {
         var (renderer, _) = CreateRenderer();
         await renderer.MountAsync<PortalHost>(new Dictionary<string, object?>());
-        var hoverCard = await renderer.MountAsync<CHoverCard>(new Dictionary<string, object?>
+        await renderer.MountAsync<CHoverCard>(new Dictionary<string, object?>
         {
             [nameof(CHoverCard.ChildContent)] = ComponentFamily(),
             [nameof(CHoverCard.OpenDelay)] = 0,

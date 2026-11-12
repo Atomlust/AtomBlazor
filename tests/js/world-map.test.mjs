@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFile } from 'node:fs/promises';
 
-const moduleUrl = new URL('../../src/AtomBlazor.Components/wwwroot/js/world-map.js', import.meta.url);
+const moduleUrl = new URL('../../src/AtomBlazor/wwwroot/js/world-map.js', import.meta.url);
 const source = (await readFile(moduleUrl, 'utf8')).replaceAll('import.meta.url', JSON.stringify(moduleUrl.href));
 const geoJson = JSON.parse(await readFile(new URL('../maps/world.json', moduleUrl), 'utf8'));
 let moduleId = 0;

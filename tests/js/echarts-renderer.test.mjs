@@ -16,7 +16,7 @@ import assert from 'node:assert/strict';
 import { afterEach, test } from 'node:test';
 
 const rendererUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/echarts-renderer.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/echarts-renderer.js', import.meta.url);
 
 const installed = [];
 const mutationObservers = [];
@@ -231,7 +231,7 @@ function stubDom(elements) {
     return { frames };
 }
 
-* 自定义属性取值桩（option 里含 var 时才需要）。 
+/** 自定义属性取值桩（option 里含 var 时才需要）。 */
 function stubStyles(vars) {
     stub('getComputedStyle', () => ({
         getPropertyValue: (name) => vars[name] ?? '',
@@ -516,7 +516,7 @@ test('更新按 notMerge 取舍并记下原始 option', async () => {
     assert.deepEqual(chart.options[2].opts, { notMerge: false });
     assert.deepEqual(chart.options[2].option.color, ['#112233'], '更新同样先解 CSS 变量');
 
-     主题重解读用的是最近一次的原始 option（仍是 var 文本而非已解色）。
+    // 主题重解读用的是最近一次的原始 option（仍是 var 文本而非已解色）。
     mutationObservers[0].emit([{ type: 'attributes', attributeName: 'data-theme' }]);
     assert.equal(chart.options.length, 3, '变更要等下一拍才落地');
     dom.frames.flush();

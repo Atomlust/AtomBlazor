@@ -12,7 +12,7 @@ import assert from 'node:assert/strict';
 import { test, beforeEach } from 'node:test';
 
 const moduleUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/segmented-input.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/segmented-input.js', import.meta.url);
 
 // ── 最小 DOM 桩 ────────────────────────────────────────────────────────────
 

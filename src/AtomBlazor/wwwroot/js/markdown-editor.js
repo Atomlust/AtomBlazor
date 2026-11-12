@@ -145,19 +145,6 @@ export function redo(textarea) {
 }
 
 /**
- * Get current selection information from textarea
- * @param {HTMLTextAreaElement} textarea - The textarea element
- * @returns {object} Selection info including start, end, and selected text
- */
-export function getSelection(textarea) {
-    return {
-        selectionStart: textarea.selectionStart,
-        selectionEnd: textarea.selectionEnd,
-        selectedText: textarea.value.substring(textarea.selectionStart, textarea.selectionEnd)
-    };
-}
-
-/**
  * Insert formatting around selected text or at cursor position
  * @param {HTMLTextAreaElement} textarea - The textarea element
  * @param {string} prefix - Text to insert before selection
@@ -343,16 +330,6 @@ export function removeLinePrefix(textarea) {
     }
 
     return textarea.value;
-}
-
-/**
- * Focus the textarea element
- * @param {HTMLTextAreaElement} textarea - The textarea element
- */
-export function focusTextarea(textarea) {
-    if (textarea) {
-        textarea.focus();
-    }
 }
 
 // Store references for cleanup

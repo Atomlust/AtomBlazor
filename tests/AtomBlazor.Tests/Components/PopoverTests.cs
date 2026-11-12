@@ -493,7 +493,7 @@ public class PopoverTests
             b.CloseComponent();
         });
 
-        var popover = await renderer.MountAsync<CPopover>(new Dictionary<string, object?>
+        await renderer.MountAsync<CPopover>(new Dictionary<string, object?>
         {
             [nameof(CPopover.ChildContent)] = builder,
         });

@@ -14,7 +14,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 const moduleUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/navigation-menu.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/navigation-menu.js', import.meta.url);
 
 // 微型选择器匹配：仅 a[href] 与 [role="menuitem"] 两型（本模块只用这一组合）。
 function matchSimple(el, part) {
@@ -204,7 +204,7 @@ test('未识别按键不引发导航', () => {
 
 test('components-core.js barrel 已收口 navigationMenu 命名空间', async () => {
     const { readFile } = await import('node:fs/promises');
-    const core = new URL('../../src/AtomBlazor.Components/wwwroot/js/components-core.js', import.meta.url);
+    const core = new URL('../../src/AtomBlazor/wwwroot/js/components-core.js', import.meta.url);
     const text = await readFile(core, 'utf8');
     assert.match(text, /^import \* as navigationMenu from '\.\/navigation-menu\.js\?assets=1';$/m);
     assert.match(text, /^assertFresh\('navigation-menu\.js', navigationMenu, 'navigateNext'\);$/m);

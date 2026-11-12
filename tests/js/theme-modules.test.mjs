@@ -17,9 +17,9 @@ import { test } from 'node:test';
 register(new URL('./fixtures/cross-package-resolver.mjs', import.meta.url));
 
 const themeUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/theme.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/theme.js', import.meta.url);
 const bundleUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/components-core.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/components-core.js', import.meta.url);
 
 test('theme.js 可导入且导出面与 ThemeService 的点分标识符一一对应', async () => {
     const mod = await import(themeUrl.href);

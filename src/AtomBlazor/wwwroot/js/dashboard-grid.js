@@ -67,10 +67,6 @@ export function initializeDashboardGrid(dotNetRef, instanceId, options) {
     startRowSpan: 0,
   };
 
-  // 保留配置好的拖拽/缩放取值，供 setEditable 恢复时使用
-  state.configuredAllowDrag = options.allowDrag;
-  state.configuredAllowResize = options.allowResize;
-
   instances.set(instanceId, state);
   setupResizeObserver(instanceId, state);
   setupEventListeners(instanceId, state);
@@ -84,42 +80,14 @@ export function initializeDashboardGrid(dotNetRef, instanceId, options) {
 export function updateGridOptions(instanceId, options) {
   const state = instances.get(instanceId);
   if (!state) return;
-  state.configuredAllowDrag = options.allowDrag;
-  state.configuredAllowResize = options.allowResize;
   state.options = options;
   syncGridGuide(state);
-}
-
-export function updateWidgetPositions(instanceId, positions) {
-  // .NET 状态恢复之后，同步 DOM 内联样式
-  if (!positions) return;
-  const state = instances.get(instanceId);
-  const container = state ? state.gridEl : null;
-  for (const pos of positions) {
-    const widget = container
-      ? container.querySelector(`[data-widget-id="${pos.widgetId}"]`)
-      : document.querySelector(`[data-widget-id="${pos.widgetId}"]`);
-    if (widget) {
-      widget.style.gridColumn = `${pos.column} / span ${pos.columnSpan}`;
-      widget.style.gridRow = `${pos.row} / span ${pos.rowSpan}`;
-    }
-  }
 }
 
 export function requestCompact(instanceId) {
   const state = instances.get(instanceId);
   if (!state || state.isDragging || state.isResizing) return;
   runCompactAndReveal(state);
-}
-
-export function setEditable(instanceId, editable) {
-  const state = instances.get(instanceId);
-  if (!state) return;
-  state.options.editable = editable;
-  // 依据最初配置的取值（初始化/更新时传入）重新计算，
-  // 使 editable 关掉再打开后能恢复预期行为。
-  state.options.allowDrag = editable && (state.configuredAllowDrag ?? state.options.allowDrag);
-  state.options.allowResize = editable && (state.configuredAllowResize ?? state.options.allowResize);
 }
 
 export function disposeDashboardGrid(instanceId) {

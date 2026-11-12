@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import { test, beforeEach, afterEach } from 'node:test';
 
 const moduleUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/exit-prompt.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/exit-prompt.js', import.meta.url);
 
 // ---- window 桩：记录 beforeunload 监听器的增删 ----
 

@@ -75,7 +75,7 @@ export function initializeDragDrop(containerElement, dotNetRef, instanceId) {
   const createIndicator = () => {
     const indicator = document.createElement('div');
     indicator.className = 'atom-tree-drop-indicator';
-    indicator.style.cssText = 'position:absolute;left:0;right:0;height:2px;background:hsl(var(--primary));pointer-events:none;z-index:50;display:none;';
+    indicator.style.cssText = 'position:absolute;left:0;right:0;height:2px;background:var(--primary);pointer-events:none;z-index:50;display:none;';
     // 仅当计算位置为 static 且不存在内联覆盖时才设置定位
     const computedPosition = window.getComputedStyle(containerElement).position;
     if (computedPosition === 'static' && !containerElement.style.position) {

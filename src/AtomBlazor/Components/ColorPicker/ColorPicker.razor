@@ -155,8 +155,14 @@
     };
 
     /// <summary>
-    /// 获取或设置十六进制格式的颜色值。
+    /// 获取或设置颜色值。
     /// </summary>
+    /// <remarks>
+    /// 输入可接受 <c>#RGB</c>/<c>#RRGGBB</c>/<c>#RRGGBBAA</c>、<c>rgb()</c>/<c>rgba()</c>
+    /// 与 <c>hsl()</c>/<c>hsla()</c>；无法解析的字符串被忽略，保留当前颜色。
+    /// 回写（含 <see cref="ValueChanged"/>）一律按 <see cref="Format"/> 输出，
+    /// 因此把 <c>Format</c> 设为 RGB/HSL 也能正确往返，不会与取色器状态脱节。
+    /// </remarks>
     [Parameter]
     public string Value { get; set; } = "#000000";
 
@@ -170,6 +176,9 @@
     /// 获取或设置非受控用法下的初始颜色值。
     /// 设置后首次渲染以该值作为起始颜色。
     /// </summary>
+    /// <remarks>
+    /// 接受与 <see cref="Value"/> 相同的颜色记法；无法解析时忽略，退回 <see cref="Value"/>。
+    /// </remarks>
     [Parameter]
     public string? DefaultValue { get; set; }
 
@@ -272,7 +281,7 @@
 
     protected override void OnInitialized()
     {
-        if (DefaultValue != null && ColorUtils.IsValidHex(DefaultValue))
+        if (DefaultValue != null && ColorUtils.TryParseColor(DefaultValue, out _))
         {
             Value = DefaultValue;
         }
@@ -283,7 +292,7 @@
 
     protected override void OnParametersSet()
     {
-        if (Value != _previousValue && ColorUtils.IsValidHex(Value))
+        if (Value != _previousValue && ColorUtils.TryParseColor(Value, out _))
         {
             ParseValue(Value);
             _previousValue = Value;
@@ -374,11 +383,11 @@
         await UpdateColor();
     }
 
-    private void ParseValue(string hex)
+    private void ParseValue(string value)
     {
-        if (!ColorUtils.IsValidHex(hex)) return;
+        if (!ColorUtils.TryParseColor(value, out var parsed)) return;
 
-        var (r, g, b, a) = ColorUtils.ParseHex(hex);
+        var (r, g, b, a) = parsed;
         _r = r;
         _g = g;
         _b = b;

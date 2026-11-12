@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import { test, beforeEach } from 'node:test';
 
 const moduleUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/virtualization-scroll.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/virtualization-scroll.js', import.meta.url);
 
 // ---- document / 元素桩 ----
 

@@ -15,7 +15,8 @@ namespace AtomBlazor.Tests.Components;
 
 /// <summary>
 /// PickList 组件层行为测试：两栏分派（源=未命中 Values 的 Options 按 Options 序，目标=命中项
-/// 按 Values/moved 序）、无匹配选项的值被丢弃、四个移动按钮的本地化 aria-label 与禁用条件
+/// 按 Values/moved 序）、无匹配选项的值不呈现但保留在绑定集合中（移动不得静默删数据）、
+/// 四个移动按钮的本地化 aria-label 与禁用条件
 /// （无选择禁用 MoveSelected/RemoveSelected，目标空禁用 RemoveAll）、ShowMoveAll=false 只剩两个
 /// 按钮、经按钮 OnClick 事件沿触发移动并断言 OnMove（PickListMoveEventArgs：Values 与 ToTarget）
 /// 与 ValuesChanged 新集合、搜索词收窄后 MoveAll 只迁移可见项、Disabled 传播两栏列表并令移动失效。
@@ -128,9 +129,9 @@ public class PickListTests
     }
 
     [Fact]
-    public async Task 无匹配选项的Values项应被丢弃不呈现()
+    public async Task 无匹配选项的Values项应不呈现但仍留在绑定集合中()
     {
-        // zzz 不在 Options 中：不可见亦不可移动，直接丢弃
+        // zzz 不在 Options 中：不可见亦不可移动，但绝不从绑定里抹掉
         var (renderer, _, _, _) = await MountAsync(values: ["zzz", "beta"]);
         var markup = renderer.Markup();
 
@@ -140,6 +141,24 @@ public class PickListTests
         Assert.True(
             markup.IndexOf("Gamma", StringComparison.Ordinal)
             < markup.IndexOf("Beta", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task 移动其它项不应静默丢弃无匹配选项的既有值()
+    {
+        var (renderer, _, reports, _) = await MountAsync(values: ["zzz", "beta"]);
+
+        // onclick 次序：源项 Alpha(0)、Gamma(1)，按钮 MoveSelected→Target(2)、
+        // MoveAll→Target(3)、MoveSelected→Source(4)、MoveAll→Source(5)，目标项 Beta(6)
+        await ClickAsync(renderer, occurrence: 3);
+        await SettleAsync(renderer);
+
+        var reported = Assert.Single(reports);
+        Assert.NotNull(reported);
+        // 曾在 OnParametersSet 里按 Options 过滤 Values，于是任何一次移动都会把
+        // zzz 永久写没——选项迟到或引用已下线项时，等于替用户删数据。
+        Assert.Contains("zzz", reported);
+        Assert.Equal(["zzz", "beta", "alpha", "gamma"], reported);
     }
 
     // ------------------------------------------------------------------

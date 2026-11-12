@@ -344,21 +344,6 @@ public partial class MultiSelect<TValue> : ComponentBase, IAsyncDisposable
     }
 
     /// <summary>
-    /// 获取多选组件是否处于无效状态（用于校验）。
-    /// </summary>
-    private bool IsInvalid
-    {
-        get
-        {
-            if (_editContext != null && ValuesExpression != null && _fieldIdentifier.FieldName != null)
-            {
-                return _editContext.GetValidationMessages(_fieldIdentifier).Any();
-            }
-            return false;
-        }
-    }
-
-    /// <summary>
     /// 校验参数合法性。
     /// </summary>
     protected override void OnParametersSet()

@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import { test, beforeEach, afterEach } from 'node:test';
 
 const moduleUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/clipboard.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/clipboard.js', import.meta.url);
 
 // ---- 环境桩：navigator / window / document / ClipboardItem ----
 

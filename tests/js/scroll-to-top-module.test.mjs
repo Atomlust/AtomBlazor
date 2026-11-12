@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import { test, beforeEach } from 'node:test';
 
 const moduleUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/scroll-to-top.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/scroll-to-top.js', import.meta.url);
 
 // ---- 微型 DOM 桩（模块内函数只在调用时触碰这些全局） ----
 function makeEvents() {
@@ -107,7 +107,7 @@ async function importModule(domOptions) {
     return import(moduleUrl);
 }
 
- 手动排空 rAF 队列（check 每轮重新排队，到顶后收敛）。
+/** 手动排空 rAF 队列（check 每轮重新排队，到顶后收敛）。 */
 function pump(max = 50) {
     for (let i = 0; i < max && rafQueue.length; i++) rafQueue.shift()();
 }
@@ -239,7 +239,7 @@ test('scrollToTop 平滑请求与 reduced-motion 回退 auto', async () => {
     assert.deepEqual(hit.scrollCalls[0], { top: 0, behavior: 'smooth' });
     hit.scrollTop = 0;
     pump();
-    assert.equal(await pending, true);  check 到顶收敛
+    assert.equal(await pending, true); // check 到顶收敛
 
     const calm = makeElement(120);
     const mod2 = await importModule({ selectorHit: calm, reducedMotion: true });
@@ -254,12 +254,12 @@ test('scrollToTop 以 scrollend 收敛，迟到的旧 scrollend 不得误判', a
     const hit = makeElement(80);
     const mod = await importModule({ selectorHit: hit });
     const pending = mod.scrollToTop('#panel', false);
-    hit.scrollTop = 40;  scrollend 到达但尚未到顶：end 判定不收敛
+    hit.scrollTop = 40; // scrollend 到达但尚未到顶：end 判定不收敛
     hit.dispatch('scrollend');
-    rafQueue.shift()?.();  check：40>0 且仍在连接上，重新排队
+    rafQueue.shift()?.(); // check：40>0 且仍在连接上，重新排队
     assert.equal(rafQueue.length, 1);
     hit.scrollTop = 0;
-    rafQueue.shift()?.();  check：到顶收敛
+    rafQueue.shift()?.(); // check：到顶收敛
     assert.equal(await pending, true);
     assert.equal(hit.listenerCount('scrollend'), 0); // 收敛后摘掉 scrollend 监听
 });

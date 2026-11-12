@@ -245,6 +245,24 @@ public class TimePickerTests
     }
 
     [Fact]
+    public async Task 越界MinuteStep应挂载即抛守卫异常()
+    {
+        // 0 会让 IncrementMinute 的取模与 SetNow 的整除同时除零；
+        // 与 DateTimePicker.MinuteStep 的守卫口径一致。
+        var (renderer, _) = CreateRenderer();
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => renderer.MountAsync<TimePicker>(
+            new Dictionary<string, object?> { [nameof(TimePicker.MinuteStep)] = 0 }));
+
+        var (renderer2, _) = CreateRenderer();
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => renderer2.MountAsync<TimePicker>(
+            new Dictionary<string, object?> { [nameof(TimePicker.MinuteStep)] = 60 }));
+
+        var (renderer3, _) = CreateRenderer();
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => renderer3.MountAsync<TimePicker>(
+            new Dictionary<string, object?> { [nameof(TimePicker.MinuteStep)] = -5 }));
+    }
+
+    [Fact]
     public async Task 步进越界应被MinTime与MaxTime钳制()
     {
         var reports = new List<TimeSpan?>();

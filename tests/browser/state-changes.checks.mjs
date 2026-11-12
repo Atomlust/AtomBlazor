@@ -128,7 +128,7 @@ test('checkbox activates once per key and slider navigation leaves Tab available
 
 test('chart callbacks can be added, replaced and removed without remounting or changing data', async ({ page }) => {
     const fire = () => page.evaluate(async () => {
-        const echarts = await import('/_content/AtomBlazor.Components/lib/echarts/echarts.min.js');
+        const echarts = await import('/_content/AtomBlazor/lib/echarts/echarts.min.js');
         const chart = echarts.getInstanceByDom(document.querySelector('#chart-callback [data-slot=map-chart]'));
         chart.trigger('click', { seriesType: 'map', seriesName: 'Visitors', seriesIndex: 0,
             dataIndex: 0, data: { atomSourceIndex: 0 }, name: 'United States of America', value: 5 });
@@ -138,7 +138,7 @@ test('chart callbacks can be added, replaced and removed without remounting or c
     // The callback is installed asynchronously after the parent's render.
     // Wait for the actual subscription before emitting one event, avoiding duplicate test clicks.
     const subscribed = () => page.evaluate(async () => {
-        const echarts = await import('/_content/AtomBlazor.Components/lib/echarts/echarts.min.js');
+        const echarts = await import('/_content/AtomBlazor/lib/echarts/echarts.min.js');
         return !echarts.getInstanceByDom(document.querySelector('#chart-callback [data-slot=map-chart]')).isSilent('click');
     });
     await expect.poll(subscribed).toBe(true);
@@ -182,7 +182,7 @@ test('explicit null clears bound files while an omitted Files parameter retains 
 test('radar tooltips display untrusted labels as text', async ({ page }) => {
     const payload = '<img src="/missing-tooltip-image" onerror="window.tooltipExecuted=true">';
     const formatter = await page.evaluate(async payload => {
-        const renderer = await import('/_content/AtomBlazor.Components/js/echarts-renderer.js');
+        const renderer = await import('/_content/AtomBlazor/js/echarts-renderer.js');
         const element = document.createElement('div');
         element.id = 'tooltip-fixture';
         element.style = 'width:500px;height:350px';
@@ -192,7 +192,7 @@ test('radar tooltips display untrusted labels as text', async ({ page }) => {
             tooltip: { show: true },
             series: [{ type: 'radar', name: payload, data: [{ value: [50, 60, 70] }] }],
         });
-        const echarts = await import('/_content/AtomBlazor.Components/lib/echarts/echarts.min.js');
+        const echarts = await import('/_content/AtomBlazor/lib/echarts/echarts.min.js');
         const chart = echarts.getInstanceByDom(element);
         chart.dispatchAction({ type: 'showTip', seriesIndex: 0, dataIndex: 0 });
         return chart.getOption().tooltip[0].formatter({ marker: '<span>marker</span>', seriesName: payload, value: [payload, 60, 70] });

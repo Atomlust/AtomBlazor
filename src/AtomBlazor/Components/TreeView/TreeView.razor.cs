@@ -398,7 +398,7 @@ public partial class TreeView<TItem> : ComponentBase, IAsyncDisposable
         }
     }
 
-    private void IndexItemRecursive(TItem item, string? parentKey)
+    private void IndexItemRecursive(TItem item, string? parentKey, HashSet<string>? ancestors = null)
     {
         if (ValueField == null)
         {
@@ -406,6 +406,16 @@ public partial class TreeView<TItem> : ComponentBase, IAsyncDisposable
         }
 
         var value = ValueField(item);
+
+        // 数据里出现环（A→B→A，甚至 A→A）时递归会无限下潜，
+        // StackOverflowException 无法捕获、直接杀掉整个进程。
+        // 只跟踪当前祖先链，因此共享同一子节点的菱形结构仍按原样索引。
+        ancestors ??= new HashSet<string>();
+        if (!ancestors.Add(value))
+        {
+            return;
+        }
+
         itemsByValue![value] = item;
         parentByValue[value] = parentKey;
 
@@ -424,9 +434,11 @@ public partial class TreeView<TItem> : ComponentBase, IAsyncDisposable
         {
             foreach (var child in children)
             {
-                IndexItemRecursive(child, value);
+                IndexItemRecursive(child, value, ancestors);
             }
         }
+
+        ancestors.Remove(value);
     }
 
     private IEnumerable<TItem> GetRootItems()

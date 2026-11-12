@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFile } from 'node:fs/promises';
-const source = await readFile(new URL('../../src/AtomBlazor.Components/wwwroot/js/drawer-snaps.js', import.meta.url), 'utf8');
+const source = await readFile(new URL('../../src/AtomBlazor/wwwroot/js/drawer-snaps.js', import.meta.url), 'utf8');
 const { configure, dispose, nearestSnap } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 
 test('snap selection respects dismissal configuration and bounds', () => {

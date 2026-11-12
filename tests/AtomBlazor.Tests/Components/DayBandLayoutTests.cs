@@ -8,7 +8,7 @@ namespace AtomBlazor.Tests.Components;
 /// DayBandLayout 纯函数面测试（自写补足）：跨家族共享的日带布局助手（EventCalendar 与
 /// Scheduler 皆消费）——泳道（lane）认领的重叠/复用/增长与参数守卫、横条 calc() 字符串的
 /// 缝隙/内缩/接缝/top 计算、泳道垫块高度、接缝圆角表。全为不渲染的纯逻辑，直调内部类型
-/// （AtomBlazor.Components 已对本测试程序集开 InternalsVisibleTo）。
+/// （AtomBlazor 已对本测试程序集开 InternalsVisibleTo）。
 /// </summary>
 public class DayBandLayoutTests
 {

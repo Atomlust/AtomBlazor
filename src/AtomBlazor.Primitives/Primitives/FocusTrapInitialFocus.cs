@@ -5,7 +5,7 @@ namespace AtomBlazor.Primitives;
 /// </summary>
 /// <remarks>
 /// 声明在 <c>AtomBlazor.Primitives</c> 命名空间而非嵌套命名空间，
-/// 以便引用了 <c>AtomBlazor.Components</c> 的应用可以无歧义地直呼其名。
+/// 以便引用了 <c>AtomBlazor</c> 的应用可以无歧义地直呼其名。
 /// 携带 <c>data-autofocus</c> 的元素，或显式传给
 /// <c>IFocusManager.TrapFocus</c> 的目标元素，优先于本设置。
 /// </remarks>

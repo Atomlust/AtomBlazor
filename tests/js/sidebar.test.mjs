@@ -20,10 +20,9 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 const moduleUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/sidebar.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/sidebar.js', import.meta.url);
 
 // 环境桩：document（监听表 + body 哨兵 + cookie 罐）。
-const bodies = [];
 function makeDocument() {
     const handlers = new Map();
     const jar = new Map();
@@ -268,7 +267,7 @@ test('invoke 异常吞掉：坏引用不拉崩共享分发环，好实例照常�
 
 test('components-core.js barrel 已收口 sidebar 与 sidebarInset 两命名空间', async () => {
     const { readFile } = await import('node:fs/promises');
-    const core = new URL('../../src/AtomBlazor.Components/wwwroot/js/components-core.js', import.meta.url);
+    const core = new URL('../../src/AtomBlazor/wwwroot/js/components-core.js', import.meta.url);
     const text = await readFile(core, 'utf8');
     assert.match(text, /^import \* as sidebar from '\.\/sidebar\.js\?assets=1';$/m);
     assert.match(text, /^import \* as sidebarInset from '\.\/sidebar-inset\.js\?assets=1';$/m);

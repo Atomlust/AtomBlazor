@@ -18,7 +18,7 @@ import { readFile } from 'node:fs/promises';
 import { test, afterEach } from 'node:test';
 
 const modulePath = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/color-picker.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/color-picker.js', import.meta.url);
 const dragUpdatesPath = new URL(
     '../../src/AtomBlazor.Primitives/wwwroot/js/drag-updates.js', import.meta.url);
 

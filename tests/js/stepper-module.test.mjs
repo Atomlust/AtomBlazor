@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import { test, afterEach } from 'node:test';
 
 const moduleUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/stepper.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/stepper.js', import.meta.url);
 
 // MutationObserver 桩：构造即登记，observe/disconnect 计数，trigger 手动派发变异回调。
 const created = [];
@@ -27,7 +27,6 @@ class FakeMutationObserver {
     trigger() { this.callback([], this); }
 }
 
-const originalObserver = globalThis.MutationObserver;
 globalThis.MutationObserver = FakeMutationObserver;
 
 afterEach(() => {

@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import { test, afterEach } from 'node:test';
 
 const moduleUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/tabs-reorder.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/tabs-reorder.js', import.meta.url);
 
 // 微型选择器匹配：仅 [attr="v"][attr2] 连缀特性形态（本模块选择器只有 role+data 一类）。
 function matchSimple(el, part) {

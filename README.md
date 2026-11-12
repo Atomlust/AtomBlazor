@@ -18,15 +18,26 @@
 
 ---
 
+## The whole library, at a glance
+
+| Components | Headless primitives | Inline SVG icons | Stylesheets (gzip) | Automated tests | Demo pages |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| **474**<br>in 141 families | **128**<br>in 40 families | **5,393** | **< 30 KB** | **4,773** | **216** |
+
+*Every number above is measured from this repository, not rounded up for the brochure. Component counts come straight from the public API baseline: 474 concrete `ComponentBase` types in `AtomBlazor`, 128 in `AtomBlazor.Primitives`.*
+
 ## Why AtomBlazor?
 
-- **141 production-ready components.** Buttons to DataGrids, Gantt charts, schedulers, pivot tables, charts and a rich-text editor — all styled in the clean, modern shadcn/ui visual language, powered by Tailwind CSS v4.
-- **A two-layer architecture.** Build your own design system on **AtomBlazor.Primitives** — headless, fully composable primitives with built-in ARIA attributes and complete keyboard navigation — or ship today with the pre-styled components built on top of them.
-- **Theming that actually works.** A single OKLCH-based design-token system drives light/dark modes, 5 base palettes, 10+ primary colors, radius and density presets — every one switchable at runtime and persisted across reloads. No duplicate stylesheets, no `!important` wars.
-- **Runs everywhere Blazor runs.** Verified on all four hosting models: Blazor Server, WebAssembly, Auto, and MAUI Blazor Hybrid.
-- **Trimmable, zero trimming warnings.** Library projects enable `IsAotCompatible` and ship clean under ILLink analysis. One caveat for **Native AOT**: the dynamic filtering and sorting paths compile to LINQ expression trees, which require dynamic code — pre-filter and pre-sort in memory (or use strongly-typed LINQ) when you deploy with Native AOT.
-- **JS interop that stays out of the way.** Interactive modules are lazily imported on first render and cached per runtime with version stamps. Only the theme bootstrapper preloads.
-- **Icons without network requests.** Four icon packs — Lucide (1,753 icons), Heroicons (Outline/Solid/Mini/Micro), Feather (286), Font Awesome (Solid/Regular/Brands) — compiled inline as SVG into the assembly. Zero HTTP round-trips, works offline.
+- **474 production-ready components in 141 families.** Buttons to DataGrids, Gantt charts, schedulers, pivot tables, charts and a rich-text editor — all styled in the clean, modern shadcn/ui visual language, powered by Tailwind CSS v4. Not a starter kit you finish yourself: a catalog you ship from.
+- **A two-layer architecture.** Build your own design system on **AtomBlazor.Primitives** — 128 headless, fully composable primitives across 40 families, with built-in ARIA attributes and complete keyboard navigation — or ship today with the 474 pre-styled components built on top of them. Same engine, your brand.
+- **Theming that actually works.** A single OKLCH design-token system drives light/dark modes, 5 base palettes, 17 primary colors, radius and density presets — every one switchable at runtime and persisted across reloads. No duplicate stylesheets, no `!important` wars, no rebuild.
+- **Absurdly small for what it covers.** The stylesheet for all 474 components plus the full theme layer weigh **under 30 KB gzipped** (26.7 KB + 3.1 KB). One CSS payload, every component, every theme.
+- **Runs everywhere Blazor runs.** Verified in CI on all four hosting models: Blazor Server, WebAssembly, Auto, and MAUI Blazor Hybrid. Not "should work" — built and tested on every commit.
+- **Trimmable, zero trimming warnings.** Library projects enable `IsAotCompatible` and ship clean under ILLink analysis, guarded by a dedicated AOT smoke job. One caveat for **Native AOT**: the dynamic filtering and sorting paths compile to LINQ expression trees, which require dynamic code — pre-filter and pre-sort in memory (or use strongly-typed LINQ) when you deploy with Native AOT.
+- **JS interop that stays out of the way.** Interactive modules are lazily imported on first render and cached per runtime with version stamps. Only the theme bootstrapper preloads. No npm at runtime, no bundler in your pipeline, no JS framework to learn.
+- **5,393 icons, zero network requests.** Four icon packs — Lucide (1,753), Heroicons (1,288 across Outline/Solid/Mini/Micro), Feather (286), Font Awesome (2,066 across Solid/Regular/Brands) — compiled inline as SVG into the assembly. Zero HTTP round-trips, works offline, and each pack is a separate assembly — reference only the ones you use.
+- **Localization is not an afterthought.** All 574 component strings route through a single `ILocalizer`. Override one key at startup, or subclass to wire `IStringLocalizer` and switch cultures at runtime.
+- **Tested like infrastructure.** 4,302 C# tests (including rendered-markup snapshots) plus 471 JavaScript module tests — 4,773 automated checks standing between you and a regression.
 
 ## Requirements
 
@@ -37,16 +48,16 @@
 
 | Package | NuGet | Description |
 | --- | --- | --- |
-| Components | [`AtomBlazor`](https://www.nuget.org/packages/AtomBlazor) | 141 pre-styled components (depends on Primitives; bundles Markdig, HtmlSanitizer, TailwindMerge.NET, Ical.Net) |
-| Primitives | [`AtomBlazor.Primitives`](https://www.nuget.org/packages/AtomBlazor.Primitives) | Headless, composable primitives with Portal / Positioning / Focus / Overlay services |
+| Components | [`AtomBlazor`](https://www.nuget.org/packages/AtomBlazor) | 474 pre-styled components in 141 families (depends on Primitives; bundles Markdig, HtmlSanitizer, TailwindMerge.NET, Ical.Net) |
+| Primitives | [`AtomBlazor.Primitives`](https://www.nuget.org/packages/AtomBlazor.Primitives) | 128 headless, composable primitives in 40 families, with Portal / Positioning / Focus / Overlay services |
 | Icons | [`AtomBlazor.Icons.Lucide`](https://www.nuget.org/packages/AtomBlazor.Icons.Lucide) | Lucide icons (1,753, inline SVG) |
-| Icons | [`AtomBlazor.Icons.Heroicons`](https://www.nuget.org/packages/AtomBlazor.Icons.Heroicons) | Heroicons (Outline / Solid / Mini / Micro) |
+| Icons | [`AtomBlazor.Icons.Heroicons`](https://www.nuget.org/packages/AtomBlazor.Icons.Heroicons) | Heroicons (1,288 — Outline / Solid / Mini / Micro) |
 | Icons | [`AtomBlazor.Icons.Feather`](https://www.nuget.org/packages/AtomBlazor.Icons.Feather) | Feather icons (286) |
-| Icons | [`AtomBlazor.Icons.FontAwesome`](https://www.nuget.org/packages/AtomBlazor.Icons.FontAwesome) | Font Awesome (Solid / Regular / Brands) |
+| Icons | [`AtomBlazor.Icons.FontAwesome`](https://www.nuget.org/packages/AtomBlazor.Icons.FontAwesome) | Font Awesome Free (2,066 — Solid / Regular / Brands) |
 
 ## Component Catalog
 
-**141 components. Zero gaps.** Grouped by what you're building, not by the alphabet. Every one shares the same OKLCH token theming, full keyboard support and ARIA semantics — learn one and you already know the other 140.
+**141 component families. Zero gaps.** Grouped by what you're building, not by the alphabet. Every one shares the same OKLCH token theming, full keyboard support and ARIA semantics — learn one family and the rest follow the same conventions.
 ### Buttons & Actions
 
 *Every click target you'll ever need.*
@@ -292,6 +303,61 @@ Full signature: `AddAtomBlazorComponents(Action<DefaultLocalizer>? , Action<Them
 <Button Variant="ButtonVariant.Default" OnClick="@(() => count++)">Count: @count</Button>
 <LucideIcon Name="house" Size="20" />
 ```
+
+## Theming: one token system, every component
+
+Change your entire app's personality at runtime — no stylesheet swap, no rebuild, no `!important` overrides.
+
+```razor
+@inject ThemeService Themes
+
+<Button OnClick="@(() => Themes.SetPrimaryColorAsync(PrimaryColor.Violet))">Go violet</Button>
+<Button OnClick="@(() => Themes.ToggleDarkModeAsync())">Toggle dark</Button>
+<Button OnClick="@(() => Themes.SetPresetAsync(ThemePreset.Compact))">Compact density</Button>
+```
+
+| Dial | Options |
+| --- | --- |
+| Base palette | Zinc · Slate · Gray · Neutral · Stone |
+| Primary color | Default + 17 named hues, Blue through Pink |
+| Dark mode | Light · Dark · system-preference detection |
+| Density preset | Standard · Compact · Dense · Spacious |
+| Corner radius | Any value from 0 to 4 rem, applied live |
+
+Every dial is independent: mix a Slate base with an Amber primary, Dense density and 0.75 rem radius. Choices persist to `localStorage` and are restored by a tiny blocking bootstrapper **before first paint** — dark-mode users never see a white flash, and your CSP needs no `unsafe-inline`. Full token reference: [THEMING.md](./THEMING.md).
+
+## Localization: 574 strings, one interface
+
+Every placeholder, button label, `aria-label` and empty-state message in all 474 components resolves through `ILocalizer`. Nothing is hard-coded into markup.
+
+```csharp
+// Pattern A — override individual keys at startup
+builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set("DataGrid.Loading", "Laden...");
+    localizer.Set("Pagination.Next", "Weiter");
+});
+
+// Pattern B — subclass for runtime culture switching via IStringLocalizer
+public class AppLocalizer(IStringLocalizer<SharedResources> loc) : DefaultLocalizer
+{
+    public override string this[string key] =>
+        loc[key] is { ResourceNotFound: false } found ? found.Value : base[key];
+}
+```
+
+English defaults ship in the box; keys use dotted notation (`DataGrid.Loading`) and standard `string.Format` placeholders (`"Showing {0}–{1} of {2}"`).
+
+## Built like infrastructure
+
+A UI library is load-bearing code. It is tested like it.
+
+- **4,302 C# tests** — behavior, ARIA semantics, keyboard navigation and rendered-markup snapshots that fail the build when a single class name drifts.
+- **471 JavaScript module tests** — the interop layer is tested as real code, not assumed to work, and gated in CI on every commit.
+- **A public API baseline** — every component parameter, enum and service interface is snapshotted. An accidental breaking change cannot slip into a release.
+- **An AOT smoke job** — trimming and Native AOT compatibility are verified in CI, not claimed in a README.
+- **Four hosting models built on every commit** — Server, WebAssembly, Auto and MAUI Blazor Hybrid.
+- **216 demo pages and 1,268 copy-paste examples** — run any project under `demos/` and browse the whole catalog live.
 
 ## Rendering Modes
 

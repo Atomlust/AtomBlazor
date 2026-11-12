@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.JSInterop;
 using Xunit;
 // 双层同名家族（照 Accordion/Tabs/ScrollArea 先例）：本文件测基元层，
-// 别名钉死到 Primitives 侧，避免与 AtomBlazor.Components 同名类型发生 CS0104 歧义。
+// 别名钉死到 Primitives 侧，避免与 AtomBlazor 同名类型发生 CS0104 歧义。
 using PNavigationMenu = AtomBlazor.Primitives.NavigationMenuPrimitive;
 using PNavigationMenuContent = AtomBlazor.Primitives.NavigationMenuContentPrimitive;
 using PNavigationMenuItem = AtomBlazor.Primitives.NavigationMenuItemPrimitive;

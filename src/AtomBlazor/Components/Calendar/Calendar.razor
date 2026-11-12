@@ -70,7 +70,8 @@
             @* 日历网格 *@
             <table class="atom:w-full atom:border-collapse atom:space-y-1" role="grid"
                    @onkeydown="HandleKeyDown"
-                   @onkeydown:preventDefault="@ShouldPreventKeyDefault">
+                   @onkeyup="HandleKeyUp"
+                   @onkeydown:preventDefault="@_preventKeyDefault">
                 <thead>
                     @* 居中对齐而非左对齐。七天单元格固定各占 9 单位（252px）；表格宽度
                        取决于上方月/年下拉，通常更宽。左对齐会把差值留在网格右侧成为
@@ -486,8 +487,19 @@
 
     #region 键盘导航
 
-    // 对导航键一律阻止默认行为，避免页面滚动
-    private bool ShouldPreventKeyDefault => true;
+    /// <summary>
+    /// 上一次按键是否为本网格消费的导航键。
+    /// </summary>
+    /// <remarks>
+    /// Blazor 在元素渲染时而非事件触发时求值 <c>@onkeydown:preventDefault</c>，
+    /// 所以这个标志描述的永远是上一次按键。恒置 true 会把 Tab 一并吞掉，
+    /// 焦点永远无法离开日历网格（WCAG 2.1.2 键盘陷阱）；因此照
+    /// <c>ResizableHandle</c> 的既有约定，只在导航键后置位、keyup 立即复位。
+    /// 代价是离散按下方向键的第一下不阻止页面滚动，按住连发时则全程阻止。
+    /// </remarks>
+    private bool _preventKeyDefault;
+
+    private void HandleKeyUp() => _preventKeyDefault = false;
 
     private string GetDayId(DateTime date) => $"{_calendarId}-day-{date:yyyyMMdd}";
 
@@ -496,6 +508,8 @@
         // 判断是否需要处理该按键
         var shouldHandle = e.Key is "ArrowLeft" or "ArrowRight" or "ArrowUp" or "ArrowDown"
             or "Home" or "End" or "PageUp" or "PageDown" or "Enter" or " ";
+
+        _preventKeyDefault = shouldHandle;
 
         if (!shouldHandle) return;
 

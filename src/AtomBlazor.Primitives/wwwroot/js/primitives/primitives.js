@@ -16,24 +16,21 @@
  *
  *     await module.InvokeVoidAsync("clickOutside.onClickOutsideByIds", ...);
  *
- * 各独立文件仍可单独导入，内容不变；模块每个文档只求值一次，无论先经哪条路径到达，
- * 所以混用两种方式也是安全的。
+ * 各独立文件仍可单独导入，内容不变。但**同一个 URL 才是同一个模块实例**：
+ * `./signature-pad.js` 与 `./signature-pad.js?assets=1` 会被浏览器当成两个模块分别求值，
+ * 各自持有独立的实例 Map。本 barrel 对 signature-pad 用了 `?assets=1`（它需要随包分发的
+ * 静态资源），所以任何绕过 barrel 直接导入它的调用点必须带上完全相同的查询串，
+ * 否则两边操作的是不同的状态。其余模块一律裸路径导入，请保持不变。
  *
  * 命名空间永远是文件名（去连字符）的 camelCase 形式。请保持这条规则——它正是调用点写法
  * 可以预测的前提。
  *
- * 当前打包 （Portal/Direction）、（Positioning/Floating）、（焦点捕获/
- * 原生 dialog/全局快捷键/滑动区域）、（slider）、（tree-keyboard）、
- * （signature-pad）、（keyboard-nav，Tabs/ListBox 键盘导航）、
- * （match-trigger-width，DropdownMenu 触发器等宽）与
- * （scroll-area，ScrollArea 自定义滚动条）与 （table-row-nav，Table 行键盘导航）
- * 已交付的模块。
- * 提前整体迁入了 overlay.js 的静态依赖图（click-outside、escape-keydown、
- * menu-keyboard、select、element-utils），避免同一模块随 二次搬运。
- * 后续的模块清单与到货批次：
- * （2026-10-14）已交付 sortable.js（及其配套 sortable-keyboard/overlay/transfer.js
- *           与 vendored lib/sortable/sortable.min.js）。下方已补齐导入、新鲜性校验与导出，
- * 遗留 sortable.js TODO。
+ * 当前打包 20 个模块：click-outside、element-utils、escape-keydown、focus-trap、
+ * keyboard-nav、keyboard-shortcuts、match-trigger-width、menu-keyboard、native-dialog、
+ * overlay、portal、positioning、scroll-area、select、slider、signature-pad、swipe-area、
+ * table-row-nav、tree-keyboard、sortable。
+ * overlay.js 自身又把 click-outside、escape-keydown、menu-keyboard、select、element-utils
+ * 纳入静态依赖图，因此它们不会随浮层二次搬运。
  */
 
 import * as clickOutside from './click-outside.js';

@@ -12,7 +12,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 const moduleUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/sidebar-inset.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/sidebar-inset.js', import.meta.url);
 
 // window 桩：记录 scrollTo 实参序列。
 const windowCalls = [];

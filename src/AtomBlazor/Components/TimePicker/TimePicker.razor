@@ -233,6 +233,11 @@
     /// <summary>
     /// 分钟步进间隔。
     /// </summary>
+    /// <remarks>
+    /// 取值范围 1–59，超出范围会在参数设置时抛出 <see cref="ArgumentOutOfRangeException"/>。
+    /// 与 <c>DateTimePicker.MinuteStep</c> 的校验口径一致：0 会让分钟增减与「此刻」
+    /// 按钮触发除零异常。
+    /// </remarks>
     [Parameter]
     public int MinuteStep { get; set; } = 1;
 
@@ -298,6 +303,11 @@
 
     protected override void OnParametersSet()
     {
+        if (MinuteStep is < 1 or > 59)
+        {
+            throw new ArgumentOutOfRangeException(nameof(MinuteStep), "MinuteStep must be between 1 and 59.");
+        }
+
         _parametersChanged = true;
 
         if (Value.HasValue)

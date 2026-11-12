@@ -294,7 +294,7 @@ public class TooltipTests
     {
         var (renderer, _) = CreateRenderer();
         await renderer.MountAsync<PortalHost>(new Dictionary<string, object?>());
-        var tooltip = await renderer.MountAsync<CTooltip>(new Dictionary<string, object?>
+        await renderer.MountAsync<CTooltip>(new Dictionary<string, object?>
         {
             [nameof(CTooltip.ChildContent)] = ComponentFamily(),
             [nameof(CTooltip.DelayDuration)] = 0,

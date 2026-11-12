@@ -183,8 +183,6 @@ public partial class MaskedInput : ComponentBase, IAsyncDisposable
 
     private string InputMode => MaskDefinitions.GetInputMode(Preset);
 
-    private int MaskLength => GetEffectiveMask().Length;
-
     private string EffectivePlaceholder
     {
         get

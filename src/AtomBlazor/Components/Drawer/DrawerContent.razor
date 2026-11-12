@@ -102,6 +102,7 @@
     private DotNetObjectReference<DrawerContent>? _dotNetRef;
     private string _instanceId = Guid.NewGuid().ToString("N");
     private bool _isInitialized;
+    private int _initGeneration;
     private bool _disposed;
     private IJSObjectReference? snapModule;
     private string? lastSnapConfiguration;
@@ -126,18 +127,36 @@
         }
     }
 
+    /// <summary>
+    /// 本轮初始化是否已作废。
+    /// </summary>
+    /// <remarks>
+    /// 初始化要跨好几个 await，期间 Drawer 完全可能已经关闭：<c>CleanupAsync</c> 那时
+    /// 还拿不到尚未赋值的句柄，于是迟到的滚动锁再也没人释放，body 被永久锁死、整页冻结。
+    /// 代号由 <c>CleanupAsync</c> 推进，因此也能识别「关闭后又重新打开」——
+    /// 作废的一轮绝不允许把自己的句柄写进字段，覆盖掉新一轮的资源。
+    /// </remarks>
+    private bool IsInitStale(int generation) => generation != _initGeneration || Context?.IsOpen != true || _disposed;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (Context?.IsOpen == true && !_isInitialized)
         {
             _isInitialized = true;
+            var generation = ++_initGeneration;
 
             // 设置焦点陷阱
             if (TrapFocus)
             {
                 try
                 {
-                    _focusTrap = await FocusManager.TrapFocus(_contentRef, InitialFocus, InitialFocusElement);
+                    var trap = await FocusManager.TrapFocus(_contentRef, InitialFocus, InitialFocusElement);
+                    if (IsInitStale(generation))
+                    {
+                        await trap.DisposeAsync();
+                        return;
+                    }
+                    _focusTrap = trap;
                 }
                 catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
                 {
@@ -155,7 +174,13 @@
                 try
                 {
                     _portalModule = await PrimitiveModules.GetAsync(JS);
-                    _scrollLockCleanup = await _portalModule.InvokeAsync<IJSObjectReference>("portal.lockBodyScroll");
+                    var scrollLock = await _portalModule.InvokeAsync<IJSObjectReference>("portal.lockBodyScroll");
+                    if (IsInitStale(generation))
+                    {
+                        await scrollLock.InvokeVoidAsync("apply");
+                        return;
+                    }
+                    _scrollLockCleanup = scrollLock;
                 }
                 catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
                 {
@@ -170,9 +195,21 @@
             // 在 JS 中设置 Esc 键检测（避免每次按键都往返 C#）
             try
             {
+                if (IsInitStale(generation))
+                {
+                    await CleanupAsync();
+                    return;
+                }
+
                 _escapeModule = await PrimitiveModules.GetAsync(JS);
                 _dotNetRef = DotNetObjectReference.Create(this);
                 await _escapeModule.InvokeVoidAsync("escapeKeydown.initialize", _dotNetRef, _instanceId);
+
+                if (IsInitStale(generation))
+                {
+                    await CleanupAsync();
+                    return;
+                }
             }
             catch (Exception ex) when (ex is JSDisconnectedException or TaskCanceledException or ObjectDisposedException)
             {
@@ -243,6 +280,9 @@
 
     private async Task CleanupAsync()
     {
+        // 作废任何仍在飞行中的初始化，防止它把迟到的句柄写回字段。
+        _initGeneration++;
+
         lastSnapConfiguration = null;
         if (snapModule is not null)
         {

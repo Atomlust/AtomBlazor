@@ -146,6 +146,27 @@ public class RadioGroupTests
     }
 
     [Fact]
+    public async Task 整组未选中时首项仍应可被Tab聚焦()
+    {
+        var renderer = CreateRenderer();
+
+        await renderer.MountAsync<RadioGroup<string>>(GroupParams(
+            Items("a", "b", "c"), valueChanged: NullValueChanged()));
+        await SettleAsync(renderer);
+
+        var markup = renderer.Markup();
+        // 曾把未选中项一律置为 -1，整组在 Tab 顺序里彻底消失：键盘用户进不来，
+        // 也就无法用方向键选中任何项（WCAG 2.1.1）。首项必须兜底为 0。
+        Assert.Equal(3, Regex.Count(markup, "aria-checked=\\\"false\\\""));
+        Assert.Single(Regex.Matches(markup, "tabindex=\\\"0\\\""));
+        Assert.Equal(2, Regex.Count(markup, "tabindex=\\\"-1\\\""));
+        Assert.True(
+            markup.IndexOf("tabindex=\"0\"", StringComparison.Ordinal) <
+            markup.IndexOf("选项 b", StringComparison.Ordinal),
+            "可聚焦的应当是首项。");
+    }
+
+    [Fact]
     public async Task 选中项应显示内点而未选项缩放为零()
     {
         var renderer = CreateRenderer();

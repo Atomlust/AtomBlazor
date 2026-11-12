@@ -214,7 +214,6 @@ public class BreadcrumbTests
     [Fact]
     public async Task 根与条目的类和附加属性应各自透传()
     {
-        var renderer = CreateRenderer();
         RenderFragment items = builder =>
         {
             builder.OpenComponent<BreadcrumbItem>(0);
@@ -238,7 +237,6 @@ public class BreadcrumbTests
         Assert.Contains("item-custom", markup);
         Assert.Contains("link-custom", markup);
         Assert.Contains("data-x=\"1\"", markup);
-        _ = renderer;
     }
 
     [Fact]

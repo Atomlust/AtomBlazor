@@ -15,7 +15,7 @@ namespace AtomBlazor.Primitives;
 /// 提供可排序列表的全部行为功能：JS interop 生命周期、事件回调、
 /// 无障碍（ARIA 实时播报），以及通过自动 <c>@key</c> 包装实现的稳定 Blazor 差异比对。
 /// 不携带任何 CSS——样式由消费方组件或带样式的
-/// <c>AtomBlazor.Components.Sortable</c> 包裹件负责。
+/// <c>AtomBlazor.Sortable</c> 包裹件负责。
 /// </para>
 /// <para>
 /// 支持单列表、互联多列表（项目通过共享的 <see cref="Group"/> 组名在列表间移动）

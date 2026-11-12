@@ -3,7 +3,7 @@
 //
 // 该说明符 '../../AtomBlazor.Primitives/js/drag-updates.js?assets=1' 按发布后的
 // _content/ 服务布局写成（与 .Primitives 的同构写法一致）：
-// 运行时相对 _content/AtomBlazor.Components/js/ 解析为
+// 运行时相对 _content/AtomBlazor/js/ 解析为
 // _content/AtomBlazor.Primitives/js/drag-updates.js，在浏览器里成立；
 // 但在仓库布局下该相对路径不存在，直接 file-URL 导入 range-slider.js（或把它
 // 静态依赖进来的 components-core.js barrel）会以 ERR_MODULE_NOT_FOUND 失败。

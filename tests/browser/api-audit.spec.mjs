@@ -79,7 +79,7 @@ for (const route of ['form-field-checkbox-group', 'form-field-date-range-picker'
 test('scroll watcher finds late targets, updates thresholds, restores focus and waits for completion', async ({ page }) => {
     await go(page, '/components/scroll-to-top');
     const result = await page.evaluate(async () => {
-        const module = await import('/_content/AtomBlazor.Components/js/scroll-to-top.js');
+        const module = await import('/_content/AtomBlazor/js/scroll-to-top.js');
         const reports = [];
         const callback = { invokeMethodAsync: async (_, visible) => { reports.push(visible); } };
         module.observe('audit', '#audit-scroll', 50, callback);

@@ -125,11 +125,6 @@ export function initializeRangeSlider(trackElement, dotNetRef, sliderId) {
   });
 }
 
-// 为沿用既有 interop 入口的调用方保留；普通指针捕获是本地的。
-export function startDrag(sliderId, thumb, pointerId) {
-  rangeSliderStates.get(sliderId)?.begin(thumb, pointerId);
-}
-
 export function disposeRangeSlider(sliderId) {
   rangeSliderStates.get(sliderId)?.dispose();
   rangeSliderStates.delete(sliderId);

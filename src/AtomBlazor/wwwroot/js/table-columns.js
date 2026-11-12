@@ -176,7 +176,7 @@ export function initColumnReorder(containerElement, dotNetRef, gridId) {
   if (!state.dropIndicator) {
     const indicator = document.createElement('div');
     indicator.style.cssText =
-      'position:absolute;width:2px;background:hsl(var(--primary));' +
+      'position:absolute;width:2px;background:var(--primary);' +
       'top:0;bottom:0;pointer-events:none;z-index:50;display:none;';
     containerElement.style.position = 'relative';
     containerElement.appendChild(indicator);
@@ -237,10 +237,10 @@ export function setupDraggableHeaders(gridId, reorderableColumnIds) {
         `left:${rect.left}px;top:${rect.top}px;` +
         `width:${rect.width}px;height:${rect.height}px;` +
         `display:flex;align-items:center;padding:0 16px;` +
-        `background:hsl(var(--background));` +
-        `border:1px solid hsl(var(--border));border-radius:6px;` +
+        `background:var(--background);` +
+        `border:1px solid var(--border);border-radius:6px;` +
         `box-shadow:0 4px 12px rgba(0,0,0,0.15);` +
-        `font-size:14px;font-weight:500;color:hsl(var(--foreground));` +
+        `font-size:14px;font-weight:500;color:var(--foreground);` +
         `opacity:0.9;pointer-events:none;z-index:9999;`;
       document.body.appendChild(ghost);
 

@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import { test, afterEach } from 'node:test';
 
 const moduleUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/file-upload.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/file-upload.js', import.meta.url);
 
 const originalDocument = globalThis.document;
 

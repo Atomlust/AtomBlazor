@@ -15,8 +15,8 @@ async function load(path) {
 const slider = await load('src/AtomBlazor.Primitives/wwwroot/js/primitives/slider.js');
 const swipe = await load('src/AtomBlazor.Primitives/wwwroot/js/primitives/swipe-area.js');
 const keyboard = await load('src/AtomBlazor.Primitives/wwwroot/js/primitives/keyboard-nav.js');
-const range = await load('src/AtomBlazor.Components/wwwroot/js/range-slider.js');
-const color = await load('src/AtomBlazor.Components/wwwroot/js/color-picker.js');
+const range = await load('src/AtomBlazor/wwwroot/js/range-slider.js');
+const color = await load('src/AtomBlazor/wwwroot/js/color-picker.js');
 
 async function microtasks() { for (let i = 0; i < 15; i++) await Promise.resolve(); }
 function clock(t) {
@@ -227,12 +227,17 @@ test('slider prevents navigation scrolling without swallowing subsequent Tab or 
   slider.dispose('keyboard-slider');
 });
 
-test('step snapping matches .NET midpoint-to-even and clamps negative ranges', () => {
+test('step snapping matches .NET midpoint-to-even, anchors to min and clamps negative ranges', () => {
   assert.equal(snapSliderValue(0.25, 0, 10, 1), 2);
   assert.equal(snapSliderValue(0.35, 0, 10, 1), 4);
   assert.equal(snapSliderValue(0.25, -10, 0, 1), -8);
-  assert.equal(snapSliderValue(0, 3, 9, 2), 4);
-  assert.equal(snapSliderValue(1, 3, 9, 2), 8);
+  // 网格锚定 min：min=3、step=2 只能落在 3/5/7/9 上。
+  assert.equal(snapSliderValue(0, 3, 9, 2), 3);
+  assert.equal(snapSliderValue(1, 3, 9, 2), 9);
+  assert.equal(snapSliderValue(0.5, 3, 9, 2), 7); // 商 1.5 中点取偶 → 2 → 3+4
+  // step 非正或非有限：退化为连续取值，不得产生 NaN/Infinity。
+  assert.equal(snapSliderValue(0.5, 3, 9, 0), 6);
+  assert.equal(snapSliderValue(0.5, 3, 9, NaN), 6);
 });
 
 test('slider moves locally, suppresses duplicate steps, and restores rendered styles after acknowledgement', async t => {

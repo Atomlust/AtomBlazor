@@ -3,7 +3,7 @@
 // 按 _content/ 服务布局解析（发布后在浏览器里成立），仓库布局下 Node 解析不到，
 // 故沿用 module-loading-harness.test.mjs 的"data: URI base64 再导入"模式，导入前把
 // 该说明符改写为 drag-updates.js 的真实 file URL；其余代码逐行照常求值。
-// C# 侧调用点为 barrel 点分标识符 rangeSlider.initializeRangeSlider/startDrag/
+// C# 侧调用点为 barrel 点分标识符 rangeSlider.initializeRangeSlider/
 // disposeRangeSlider（见 components-core.js 与 PrimitiveJsModuleTests 的命名空间
 // camelCase 规则），本文件同时守护该导出面。
 // DOM 交互沿用 slider-module.test.mjs 先例的最小元素桩（增加 contains/querySelector/
@@ -14,7 +14,7 @@ import { readFile } from 'node:fs/promises';
 import { test, afterEach } from 'node:test';
 
 const modulePath = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/range-slider.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/range-slider.js', import.meta.url);
 const dragUpdatesPath = new URL(
     '../../src/AtomBlazor.Primitives/wwwroot/js/drag-updates.js', import.meta.url);
 
@@ -110,8 +110,8 @@ const trackAttrs = {
 test('range-slider.js 可导入且导出面与 rangeSlider. 点分标识符一一对应', async () => {
     const mod = await import(moduleUrl);
 
-    // C# 侧调用点：rangeSlider.initializeRangeSlider / startDrag / disposeRangeSlider。
-    for (const name of ['initializeRangeSlider', 'startDrag', 'disposeRangeSlider']) {
+    // C# 侧调用点：rangeSlider.initializeRangeSlider / disposeRangeSlider。
+    for (const name of ['initializeRangeSlider', 'disposeRangeSlider']) {
         assert.equal(typeof mod[name], 'function', `range-slider.js 缺少导出 ${name}`);
     }
 });
@@ -191,21 +191,6 @@ test('轨道点击应选中更近的手柄并即刻上报', async () => {
     assert.deepEqual(dotNet.calls, [['UpdateValueFromPercentage', 0.2, 'start']]);
 });
 
-test('startDrag 保留为兼容入口并转发 begin', async () => {
-    const mod = await import(moduleUrl);
-    const dotNet = makeDotNet();
-    const element = makeElement({ ...trackAttrs });
-    const id = freshId();
-    mod.initializeRangeSlider(element, dotNet, id);
-
-    // 模拟既有 interop 入口：不经 pointerdown 直接开始拖拽终点手柄。
-    mod.startDrag(id, 'end', 7);
-    element.dispatch('pointermove', { pointerId: 7, clientX: 90, clientY: 0, preventDefault() {} });
-    await settle();
-
-    assert.deepEqual(dotNet.calls, [['UpdateValueFromPercentage', 0.9, 'end']]);
-});
-
 test('起点手柄不可越过终点（minRange=0 时钳到终点）', async () => {
     const mod = await import(moduleUrl);
     const dotNet = makeDotNet();
@@ -213,7 +198,7 @@ test('起点手柄不可越过终点（minRange=0 时钳到终点）', async () 
     const id = freshId();
     mod.initializeRangeSlider(element, dotNet, id);
 
-    mod.startDrag(id, 'start', 7);
+    element.dispatch('pointerdown', { pointerId: 7, button: 0, clientX: 95, clientY: 0, preventDefault() {} });
     element.dispatch('pointermove', { pointerId: 7, clientX: 95, clientY: 0, preventDefault() {} });
     element.dispatch('pointermove', { pointerId: 7, clientX: 100, clientY: 0, preventDefault() {} });
     await settle();

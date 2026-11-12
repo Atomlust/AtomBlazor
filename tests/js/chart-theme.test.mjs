@@ -6,19 +6,19 @@
 // afterEach 一律删除本轮装上的全局件，绝不让桩泄漏给同进程的后续用例。
 //
 // 覆盖意图分三层：
- 1) resolveThemeColors 的护栏（空入参原样返回）、深克隆与不改写原对象；
- 2) var 求值链——命中自定义属性、fallback、无 fallback 保留原文、一处多 var；
- 3) oklch 换算的浏览器无关数学（oklchToRgb 未导出，只能经此间接驱动）与
- color-mix 的 DOM 兜底；watchThemeChanges 的观察选项、延迟一拍派发与清理。
+// 1) resolveThemeColors 的护栏（空入参原样返回）、深克隆与不改写原对象；
+// 2) var 求值链——命中自定义属性、fallback、无 fallback 保留原文、一处多 var；
+// 3) oklch 换算的浏览器无关数学（oklchToRgb 未导出，只能经此间接驱动）与
+// color-mix 的 DOM 兜底；watchThemeChanges 的观察选项、延迟一拍派发与清理。
 //
 // 说明：echarts-renderer.js 的兄弟件 world-map.js 属 Map 家族，
-// 与 MapSeriesTests 一同 ，本波不在 Node 侧测它。
+// 与 MapSeriesTests 一同覆盖，本波不在 Node 侧测它。
 
 import assert from 'node:assert/strict';
 import { afterEach, test } from 'node:test';
 
 const themeUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/chart-theme.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/chart-theme.js', import.meta.url);
 
 const installed = [];
 
@@ -284,14 +284,14 @@ test('同串多处 var() 皆被替换且大小写敏感', async () => {
     const { resolveThemeColors } = await import(themeUrl.href);
     stubStyles({ '--a': '#111111', '--b': 'oklch(0 0 0)' });
 
-     test 会把 lastIndex 推到串尾；源码显式归零，故第二处 var 同样被换。
+    // 正则 exec 会把 lastIndex 推到串尾；源码显式归零，故第二处 var 同样被换。
     const resolved = resolveThemeColors({
         gradient: 'linear-gradient(var(--a), var(--b))',
         upper: 'VAR(--a)'
     }, fakeElement());
 
     assert.equal(resolved.gradient, 'linear-gradient(#111111, rgb(0, 0, 0))');
-     正则无 i 标志：大写 VAR 原样不动。
+    // 正则无 i 标志：大写 VAR 原样不动。
     assert.equal(resolved.upper, 'VAR(--a)');
 });
 

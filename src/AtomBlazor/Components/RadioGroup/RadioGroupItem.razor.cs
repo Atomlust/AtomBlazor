@@ -124,11 +124,6 @@ public partial class RadioGroupItem<TValue> : ComponentBase
     }
 
     /// <summary>
-    /// 获取该单选项是否禁用（单项禁用或整组禁用）。
-    /// </summary>
-    private bool IsDisabled => Disabled || (Context?.Disabled ?? false);
-
-    /// <summary>
     /// 获取单选按钮的计算 CSS 类。
     /// </summary>
     private string CssClass => ClassNames.cn(

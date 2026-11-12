@@ -2,11 +2,11 @@
 // 模块顶层仅建 instances Map 与常量 DRAG_THRESHOLD，document/window/getComputedStyle/
 // ResizeObserver/MutationObserver 全部在函数体内引用，可在无 DOM 的 Node 环境以
 // file-URL 导入；模块无相对依赖。
-// C# 侧调用点为 JsModules.GetAsync 直连独立路径 ./_content/AtomBlazor.Components/js/
+// C# 侧调用点为 JsModules.GetAsync 直连独立路径 ./_content/AtomBlazor/js/
 // dashboard-grid.js（Components/DashboardGrid/DashboardGrid.razor，同 DataGrid/TreeView
 // 先例，不入 components-core barrel）。
 // 语义照源锁存：dotNetRef 假值与网格元素缺失均静默早退；未登记 instanceId 的
-// updateGridOptions/requestCompact/setEditable/disposeDashboardGrid 全部 no-op；
+// updateGridOptions/requestCompact/disposeDashboardGrid 全部 no-op；
 // 空网格初始化即置 data-positioned=true 并首报 breakpoint large（isInitial 跳压紧回调）；
 // 压紧两遍算法（先左滑再上提）直写 gridColumn/gridRow 内联样式并经 JsOnCompactComplete
 // 回传 .NET；列跨度按当前 breakpoint 列数钳位（col 回拉 max(1, columns-span+1)）；
@@ -21,7 +21,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 const moduleUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/dashboard-grid.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/dashboard-grid.js', import.meta.url);
 
 // 顶层导入：此刻尚未安装任何 DOM 桩，直接证明模块加载零 DOM 依赖。
 const grid = await import(moduleUrl);
@@ -180,10 +180,10 @@ function initGrid(instanceId, children = [], options = {}, env = {}) {
 
 // ------------------------------------------------------------------ 装载面
 
-test('模块无DOM可导入且六路导出齐备', async () => {
+test('模块无DOM可导入且四路导出齐备', async () => {
     for (const name of [
-        'initializeDashboardGrid', 'updateGridOptions', 'updateWidgetPositions',
-        'requestCompact', 'setEditable', 'disposeDashboardGrid',
+        'initializeDashboardGrid', 'updateGridOptions',
+        'requestCompact', 'disposeDashboardGrid',
     ]) {
         assert.equal(typeof grid[name], 'function', `${name} 应为导出函数`);
     }
@@ -210,11 +210,10 @@ test('网格元素缺失静默早退且后续请求全部无操作', async () =>
     assert.doesNotThrow(() => grid.updateGridOptions('g-absent', defaultOptions()));
 });
 
-test('未登记实例的四个更新入口一律静默', async () => {
+test('未登记实例的三个更新入口一律静默', async () => {
     installEnv();
     assert.doesNotThrow(() => grid.updateGridOptions('ghost', defaultOptions()));
     assert.doesNotThrow(() => grid.requestCompact('ghost'));
-    assert.doesNotThrow(() => grid.setEditable('ghost', false));
     assert.doesNotThrow(() => grid.disposeDashboardGrid('ghost'));
 });
 
@@ -267,29 +266,6 @@ test('窄视口初检落small断点且列跨度按小列数钳位', async () => 
 });
 
 // ------------------------------------------------------------------ 更新入口
-
-test('updateWidgetPositions按容器命中写内联样式', async () => {
- // 先装环境再建控件桩：installEnv 会重置文档级控件台账（回退查询依赖它）。
-    installEnv();
-    const w = makeWidget('wd', '1 / span 1', '1 / span 1');
-    const el = makeGridEl('g-sync', [w]);
-    grids.set('g-sync', el);
-    grid.initializeDashboardGrid(makeDotNetRef(), 'g-sync', defaultOptions());
-    await flush();
-
-    grid.updateWidgetPositions('g-sync', [
-        { widgetId: 'wd', column: 3, row: 4, columnSpan: 2, rowSpan: 5 },
-        { widgetId: 'unhit', column: 9, row: 9, columnSpan: 1, rowSpan: 1 },
-    ]);
-    assert.equal(w.style.gridColumn, '3 / span 2');
-    assert.equal(w.style.gridRow, '4 / span 5');
-
- // null 位表早退；未登记实例走文档级回退查询。
-    grid.updateWidgetPositions('g-sync', null);
-    grid.updateWidgetPositions('g-elsewhere', [{ widgetId: 'wd', column: 1, row: 1, columnSpan: 1, rowSpan: 1 }]);
-    assert.equal(w.style.gridColumn, '1 / span 1');
-    assert.ok(el);
-});
 
 test('requestCompact重跑压紧并改写内联摆放', async () => {
     const w = makeWidget('we', '2 / span 1', '4 / span 1');

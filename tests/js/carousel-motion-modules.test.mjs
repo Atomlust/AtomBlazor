@@ -9,9 +9,9 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 const carouselUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/carousel.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/carousel.js', import.meta.url);
 const motionUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/motion.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/motion.js', import.meta.url);
 
 test('carousel.js 可导入且导出面与 Carousel 组件的裸标识符一一对应', async () => {
     const mod = await import(carouselUrl.href);

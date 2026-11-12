@@ -67,6 +67,10 @@
     /// <summary>
     /// 获取或设置步长增量。默认为 1。
     /// </summary>
+    /// <remarks>
+    /// 刻度网格锚定在 <see cref="Min"/> 上：Min=5、Step=10 的合法值是 5/15/25…，
+    /// 而不是 0/10/20…。设为 0 或非有限值时退化为连续取值，不做吸附。
+    /// </remarks>
     [Parameter]
     public double Step { get; set; } = 1;
 
@@ -165,8 +169,14 @@
 
     internal async Task SetValueAsync(double value)
     {
-        value = Math.Round(value / Step) * Step;
         value = Math.Max(Min, Math.Min(Max, value));
+
+        // 步进网格锚定在 Min 上：Min=5、Step=10 的合法值是 5/15/25…，
+        // 而不是 0/10/20…。Step 非正或非有限时退化为连续取值，避免除零与 NaN。
+        if (double.IsFinite(Step) && Step > 0)
+        {
+            value = Math.Min(Max, Min + (Math.Round((value - Min) / Step) * Step));
+        }
 
         if (value == CurrentValue)
         {

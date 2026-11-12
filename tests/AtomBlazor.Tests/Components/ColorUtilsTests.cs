@@ -8,6 +8,8 @@ namespace AtomBlazor.Tests.Components;
 /// ColorUtils 纯函数单测：hex/rgb/hsl/hsv 解析与格式化往返、
 /// 短写展开、越界钳制由调用方负责（此处守护原值）、非法输入的 FormatException
 /// 与 IsValidHex 白名单边界，以及不变文化（InvariantCulture）下的输出形状。
+/// TryParseColor 另测多记法入口、非法输入不抛、分量钳制，以及与 ToHex/ToRgbString/ToHslString
+/// 三种输出的往返一致（ColorPicker 受控绑定在 Format=RGB/HSL 下的命门）。
 /// </summary>
 public class ColorUtilsTests
 {
@@ -191,5 +193,85 @@ public class ColorUtilsTests
         // 组件 HSL 分支的复合明度公式：l = b * (1 - s/2)
         var (h, s, l) = ColorUtils.RgbToHsl(255, 0, 0);
         Assert.Equal("hsl(0, 100%, 50%)", ColorUtils.ToHslString(h, s, l));
+    }
+
+    // ------------------------------------------------------------------
+    // TryParseColor：ColorPicker 入口的多记法解析
+    // ------------------------------------------------------------------
+
+    [Theory]
+    [InlineData("#ff0000", 255, 0, 0, null)]
+    [InlineData("f00", 255, 0, 0, null)]              // 短写 hex
+    [InlineData("#ff000080", 255, 0, 0, 128)]         // 带 alpha 的 hex
+    [InlineData("rgb(255, 0, 0)", 255, 0, 0, null)]
+    [InlineData("rgb(255,0,0)", 255, 0, 0, null)]     // 无空格
+    [InlineData("rgba(255, 0, 0, 0.50)", 255, 0, 0, 128)]
+    [InlineData("hsl(0, 100%, 50%)", 255, 0, 0, null)]
+    [InlineData("hsla(0, 100%, 50%, 0.50)", 255, 0, 0, 128)]
+    [InlineData("  rgb(1, 2, 3)  ", 1, 2, 3, null)]   // 首尾空白
+    public void TryParseColor应接受全部受支持记法(string text, int r, int g, int b, int? a)
+    {
+        Assert.True(ColorUtils.TryParseColor(text, out var color));
+        Assert.Equal((r, g, b, a), color);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("not-a-color")]
+    [InlineData("rgb(1, 2)")]              // 分量不足
+    [InlineData("rgb(1, 2, 3, 4, 5)")]     // 分量过多
+    [InlineData("rgb(a, b, c)")]           // 非数字
+    [InlineData("hsl(0, 100, 50)")]        // 饱和/明度缺 %
+    [InlineData("rgb(1, 2, 3")]            // 括号不闭合
+    [InlineData("#12345")]                 // 5 位不在 hex 白名单
+    public void TryParseColor非法输入应返回假而不抛(string? text)
+    {
+        Assert.False(ColorUtils.TryParseColor(text, out var color));
+        Assert.Equal((0, 0, 0, (int?)null), color);
+    }
+
+    [Fact]
+    public void TryParseColor应钳制越界分量与透明度()
+    {
+        Assert.True(ColorUtils.TryParseColor("rgb(300, -5, 0)", out var rgb));
+        Assert.Equal((255, 0, 0, (int?)null), rgb);
+
+        Assert.True(ColorUtils.TryParseColor("rgba(0, 0, 0, 2)", out var over));
+        Assert.Equal(255, over.A);
+
+        Assert.True(ColorUtils.TryParseColor("rgba(0, 0, 0, -1)", out var under));
+        Assert.Equal(0, under.A);
+    }
+
+    [Fact]
+    public void TryParseColor应与三种输出格式往返一致()
+    {
+        // 这是 Format=RGB/HSL 受控绑定的命门：回写的字符串必须能被入口重新读回，
+        // 否则第一次回写之后外部再改 Value 就彻底失联。
+        foreach (var (r, g, b) in new[] { (255, 0, 0), (12, 34, 56), (0, 0, 0), (255, 255, 255) })
+        {
+            foreach (var alpha in new int?[] { null, 255, 128, 0 })
+            {
+                var hex = ColorUtils.ToHex(r, g, b, alpha);
+                Assert.True(ColorUtils.TryParseColor(hex, out var fromHex), hex);
+                Assert.Equal(r, fromHex.R);
+                Assert.Equal(g, fromHex.G);
+                Assert.Equal(b, fromHex.B);
+
+                var rgbText = ColorUtils.ToRgbString(r, g, b, alpha);
+                Assert.True(ColorUtils.TryParseColor(rgbText, out var fromRgb), rgbText);
+                Assert.Equal((r, g, b), (fromRgb.R, fromRgb.G, fromRgb.B));
+
+                var (h, s, l) = ColorUtils.RgbToHsl(r, g, b);
+                var hslText = ColorUtils.ToHslString(h, s, l, alpha);
+                Assert.True(ColorUtils.TryParseColor(hslText, out var fromHsl), hslText);
+                // HSL 输出把饱和/明度取整到整百分点，往返允许 1/255 的量化误差。
+                Assert.True(Math.Abs(r - fromHsl.R) <= 1, $"{hslText} → R {fromHsl.R}，原 {r}");
+                Assert.True(Math.Abs(g - fromHsl.G) <= 1, $"{hslText} → G {fromHsl.G}，原 {g}");
+                Assert.True(Math.Abs(b - fromHsl.B) <= 1, $"{hslText} → B {fromHsl.B}，原 {b}");
+            }
+        }
     }
 }

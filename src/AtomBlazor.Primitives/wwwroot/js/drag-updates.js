@@ -84,10 +84,12 @@ export function releaseDragPreview(updates, element, properties, isCurrent) {
 export function snapSliderValue(percentage, min, max, step) {
   let value = min + Math.max(0, Math.min(1, percentage)) * (max - min);
   if (step > 0 && Number.isFinite(step)) {
-    const quotient = value / step;
+    // 步进网格锚定在 min 上，与 SliderPrimitive.SetValueAsync 口径一致：
+    // min=3、step=2 的合法值是 3/5/7/9，而不是 4/6/8。
+    const quotient = (value - min) / step;
     const floor = Math.floor(quotient);
     // 与 Math.Round 的中点取偶行为保持一致，负值区间也不例外。
-    value = (quotient - floor === 0.5 ? floor + (Math.abs(floor % 2)) : Math.round(quotient)) * step;
+    value = min + (quotient - floor === 0.5 ? floor + (Math.abs(floor % 2)) : Math.round(quotient)) * step;
   }
   return Math.max(min, Math.min(max, value));
 }

@@ -12,7 +12,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 const moduleUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/numeric-input.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/numeric-input.js', import.meta.url);
 
 function makeElement() {
     const handlers = new Map();
@@ -110,6 +110,36 @@ test('input 沿清洗非法字符并即时回调 JsOnInput', async () => {
     element.value = '-1.2.3,';
     element.dispatch('input');
     assert.equal(element.value, '-1.23');
+});
+
+test('千分位整段剥除，只有文化小数分隔符能成为小数点（粘贴金额不得损坏）', async () => {
+    const mod = await import(moduleUrl.href);
+
+    // en-US / InvariantCulture：千分位 ","，小数点 "."。
+    const us = makeElement();
+    const usNet = makeDotNet();
+    mod.initialize(us, usNet, `t-${nextId++}`, { ...defaultConfig, decimalSeparator: '.' });
+    us.value = '1,234.56';
+    us.dispatch('input');
+    assert.equal(us.value, '1234.56');
+    assert.deepEqual(usNet.calls.at(-1), ['JsOnInput', '1234.56']);
+
+    // de-DE：千分位 "."，小数点 ","。旧实现会把首个 "." 当小数点，金额缩小 1000 倍。
+    const de = makeElement();
+    const deNet = makeDotNet();
+    mod.initialize(de, deNet, `t-${nextId++}`, { ...defaultConfig, decimalSeparator: ',' });
+    de.value = '1.234,56';
+    de.dispatch('input');
+    assert.equal(de.value, '1234,56');
+    assert.deepEqual(deNet.calls.at(-1), ['JsOnInput', '1234,56']);
+
+    // 非文化小数分隔符一律按千分位剥除，与 C# TryParseValue 的口径一致。
+    de.value = '1,5';
+    de.dispatch('input');
+    assert.equal(de.value, '1,5');
+    us.value = '1,5';
+    us.dispatch('input');
+    assert.equal(us.value, '15');
 });
 
 test('全角数字与符号经折叠后按 ASCII 处理（日语输入法全角模式）', async () => {

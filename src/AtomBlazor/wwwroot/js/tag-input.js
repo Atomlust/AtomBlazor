@@ -43,7 +43,12 @@ export function initialize(containerEl, inputEl, dotNetRef, instanceId, config) 
       (key === ';' && (config.triggers & 16));
 
     if (isTrigger) {
-      e.preventDefault();
+      // 空输入框上的 Tab 不阻止默认行为，否则焦点永远走不出标签输入框
+      // （WCAG 2.1.2 键盘陷阱）。仍然上报 JsTriggerAdd：建议列表可能正处于
+      // 高亮态，此时 Tab 应当提交高亮项，再顺势把焦点移走。
+      if (!(key === 'Tab' && inputEl.value.trim() === '')) {
+        e.preventDefault();
+      }
       dotNetRef.invokeMethodAsync('JsTriggerAdd').catch(() => {});
       return;
     }

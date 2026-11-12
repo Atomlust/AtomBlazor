@@ -126,6 +126,42 @@ public partial class RadioGroupItemPrimitive<TValue> : ComponentBase, IDisposabl
     private bool IsDisabled => Disabled || (Context?.Disabled ?? false);
 
     /// <summary>
+    /// 获取漫游 tabindex：选中项可被 Tab 聚焦；整组尚未选中任何项时退回首项。
+    /// </summary>
+    /// <remarks>
+    /// 曾把未选中项一律置为 -1，于是「未选中」的整组在 Tab 顺序里彻底消失——
+    /// 键盘用户无法进入，也就无法用方向键选中任何项（WCAG 2.1.1）。
+    /// 兜底逻辑与 <c>ToggleGroupItemPrimitive</c> 的单选模式保持一致。
+    /// </remarks>
+    private int TabIndex
+    {
+        get
+        {
+            if (IsDisabled)
+            {
+                return -1;
+            }
+
+            if (IsChecked)
+            {
+                return 0;
+            }
+
+            if (Context == null)
+            {
+                return -1;
+            }
+
+            if (Context.Value == null && Context.Items.Count > 0 && Context.Items[0] == this)
+            {
+                return 0;
+            }
+
+            return -1;
+        }
+    }
+
+    /// <summary>
     /// 获取供 CSS 使用的 <c>data-state</c> 属性取值。
     /// </summary>
     private string DataState => IsChecked ? "checked" : "unchecked";

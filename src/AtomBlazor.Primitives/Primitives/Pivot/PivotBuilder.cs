@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Globalization;
 
 namespace AtomBlazor.Primitives.Pivot;

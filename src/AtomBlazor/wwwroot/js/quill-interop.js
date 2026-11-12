@@ -691,17 +691,6 @@ export function getFormat(editorId) {
 }
 
 /**
- * Enables the editor
- * @param {string} editorId - Unique identifier for the editor
- */
-export function enable(editorId) {
-    const stored = editorStates.get(editorId);
-    if (stored) {
-        stored.quill.enable(true);
-    }
-}
-
-/**
  * Disables the editor
  * @param {string} editorId - Unique identifier for the editor
  */

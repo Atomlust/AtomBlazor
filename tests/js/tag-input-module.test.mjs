@@ -12,7 +12,7 @@ import assert from 'node:assert/strict';
 import { test, afterEach } from 'node:test';
 
 const moduleUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/tag-input.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/tag-input.js', import.meta.url);
 
 function makeElement({ focusCalls = null } = {}) {
     const handlers = new Map();
@@ -115,6 +115,7 @@ test('已配置触发键应 preventDefault 并回调 JsTriggerAdd', async () => 
     const dotNet = makeDotNet();
     await mount({ input, dotNet });
 
+    input.value = 'a';
     for (const key of ['Enter', ',', ' ', 'Tab', ';']) {
         const e = keyEvent(key);
         input.dispatch('keydown', e);
@@ -122,6 +123,37 @@ test('已配置触发键应 preventDefault 并回调 JsTriggerAdd', async () => 
     }
 
     assert.equal(dotNet.calls.filter(([name]) => name === 'JsTriggerAdd').length, 5);
+});
+
+test('空输入框上的 Tab 放行焦点但仍上报（键盘不得被困在标签框里）', async () => {
+    const input = makeElement();
+    const dotNet = makeDotNet();
+    await mount({ input, dotNet });
+
+    const empty = keyEvent('Tab');
+    input.dispatch('keydown', empty);
+    assert.ok(!empty.defaultPrevented, '空输入框的 Tab 不得被 preventDefault');
+    // 仍要上报：建议列表可能正高亮着一项，Tab 应提交它再移走焦点。
+    assert.deepEqual(dotNet.calls, [['JsTriggerAdd']]);
+
+    dotNet.calls.length = 0;
+    input.value = '   ';
+    const blank = keyEvent('Tab');
+    input.dispatch('keydown', blank);
+    assert.ok(!blank.defaultPrevented, '纯空白的 Tab 同样放行');
+
+    input.value = 'x';
+    const filled = keyEvent('Tab');
+    input.dispatch('keydown', filled);
+    assert.ok(filled.defaultPrevented, '有内容可提交时 Tab 仍被拦截');
+
+    // 其余触发键在空输入框上维持既有语义（Enter 提交标签）。
+    dotNet.calls.length = 0;
+    input.value = '';
+    const enter = keyEvent('Enter');
+    input.dispatch('keydown', enter);
+    assert.ok(enter.defaultPrevented);
+    assert.deepEqual(dotNet.calls, [['JsTriggerAdd']]);
 });
 
 test('未配置触发位时按键不拦截不上报', async () => {

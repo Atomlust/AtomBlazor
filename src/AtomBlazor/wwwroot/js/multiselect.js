@@ -204,27 +204,3 @@ export function removeMultiSelectInput(inputId) {
         multiSelectStates.delete(inputId);
     }
 }
-
-/**
- * 清理全部多选处理器（调试时有用）
- */
-export function disposeAll() {
-    multiSelectStates.forEach((stored, inputId) => {
-        stored.inputElement.removeEventListener('keydown', stored.keyHandler, true);
-        stored.inputElement.removeEventListener('input', stored.inputHandler);
-        stored.guard.dispose();
-    });
-    multiSelectStates.clear();
-}
-
-/**
- * 以 preventScroll 选项聚焦元素，避免页面跳动
- * @param {HTMLElement} element - 要聚焦的元素
- */
-export function focusElementWithPreventScroll(element) {
-    if (element) {
-        setTimeout(() => {
-            element.focus({ preventScroll: true });
-        }, 10);
-    }
-}

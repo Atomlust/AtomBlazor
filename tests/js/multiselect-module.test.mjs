@@ -4,8 +4,7 @@
 // 随静态依赖图一并解析（barrel 的镜像）。
 // C# 侧调用点为 barrel 点分标识符 multiselect.setupMultiSelectInput /
 // multiselect.removeMultiSelectInput（见 components-core.js 与 PrimitiveJsModuleTests
-// 的命名空间 camelCase 规则），disposeAll/focusElementWithPreventScroll 为模块自有
-// 工具导出，本文件同时守护该导出面。
+// 的命名空间 camelCase 规则），本文件同时守护该导出面。
 // DOM 交互沿用 tag-input-module.test.mjs 先例的最小元素桩（inputElement 必须是
 // globalThis.HTMLElement 桩的实例——setup 里有 instanceof 检查），option 桩提供
 // offsetParent/getAttribute/setAttribute/click/scrollIntoView 面，document 桩按
@@ -104,13 +103,13 @@ const ids = [];
 
 afterEach(async () => {
     const mod = await import(moduleUrl);
-    mod.disposeAll();
+    for (const id of ids) mod.removeMultiSelectInput(id);
     ids.length = 0;
     documents.clear();
 });
 
 const moduleUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/multiselect.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/multiselect.js', import.meta.url);
 
 // 挂载一套 输入框 + 列表内容 桩；contentId 与 C# 侧 $"{Id}-listbox" 同形。
 async function mount({ input = makeElement(), dotNet = makeDotNet(), options = [] } = {}) {
@@ -123,16 +122,13 @@ async function mount({ input = makeElement(), dotNet = makeDotNet(), options = [
     return { mod, input, dotNet, inputId, contentId, options };
 }
 
-test('multiselect.js 可导入且导出面与 C# 点分标识符及清理工具一一对应', async () => {
+test('multiselect.js 可导入且导出面与 C# 点分标识符一一对应', async () => {
     const mod = await import(moduleUrl);
 
-    // C# 侧调用点：multiselect.setupMultiSelectInput / multiselect.removeMultiSelectInput；
-    // 另有两个模块自有导出。
+    // C# 侧调用点：multiselect.setupMultiSelectInput / multiselect.removeMultiSelectInput。
     for (const name of [
         'setupMultiSelectInput',
         'removeMultiSelectInput',
-        'disposeAll',
-        'focusElementWithPreventScroll',
     ]) {
         assert.equal(typeof mod[name], 'function', `multiselect.js 缺少导出 ${name}`);
     }
@@ -346,32 +342,4 @@ test('removeMultiSelectInput 摘除全部监听器且事件不再上报', async 
     assert.equal(input.count('blur'), 0);
 
     mod.removeMultiSelectInput(inputId); // 二次摘除无害
-});
-
-test('disposeAll 清理全部实例', async () => {
-    const a = await mount();
-    const b = await mount();
-
-    a.mod.disposeAll();
-
-    for (const { input, dotNet } of [a, b]) {
-        const enter = keyEvent('Enter');
-        input.dispatch('keydown', enter);
-        assert.ok(!enter.defaultPrevented);
-        assert.deepEqual(dotNet.calls, []);
-    }
-
-    a.mod.disposeAll(); // 空表再清无害
-});
-
-test('focusElementWithPreventScroll 延时聚焦且不带滚动', async () => {
-    const mod = await import(moduleUrl);
-    const el = makeElement();
-
-    mod.focusElementWithPreventScroll(el);
-    mod.focusElementWithPreventScroll(null); // 空引用无副作用
-    assert.deepEqual(el.focusCalls, []); // 尚未到期
-
-    await sleep(20); // setTimeout(…, 10) 到期
-    assert.deepEqual(el.focusCalls, [{ preventScroll: true }]);
 });

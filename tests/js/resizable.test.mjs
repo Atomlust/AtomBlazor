@@ -18,7 +18,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 const moduleUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/resizable.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/resizable.js', import.meta.url);
 
 // ------------------------------------------------------------------ 环境桩
 
@@ -425,7 +425,7 @@ test('垂直组：起始位置取 clientY，光标为 row-resize，包围盒取�
 
 test('components-core.js barrel 已收口 resizable 命名空间', async () => {
     const { readFile } = await import('node:fs/promises');
-    const core = new URL('../../src/AtomBlazor.Components/wwwroot/js/components-core.js', import.meta.url);
+    const core = new URL('../../src/AtomBlazor/wwwroot/js/components-core.js', import.meta.url);
     const text = await readFile(core, 'utf8');
     assert.match(text, /^import \* as resizable from '\.\/resizable\.js\?assets=1';$/m);
     assert.match(text, /^assertFresh\('resizable\.js', resizable, 'initializeResizable'\);$/m);

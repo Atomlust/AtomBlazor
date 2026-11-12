@@ -35,6 +35,10 @@ public partial class DynamicForm : ComponentBase
     /// <summary>
     /// 获取或设置表单提交时调用的回调（无论校验是否通过）。
     /// </summary>
+    /// <remarks>
+    /// 校验先于本回调执行，因此处理器读到的字段错误表一定是本轮的最新状态。
+    /// 只关心校验通过的场景请用 <see cref="OnValidSubmit"/>。
+    /// </remarks>
     [Parameter]
     public EventCallback<Dictionary<string, object?>> OnSubmit { get; set; }
 
@@ -615,13 +619,14 @@ public partial class DynamicForm : ComponentBase
 
         try
         {
+            // 先校验再回调：OnSubmit 的契约是「无论校验是否通过都触发」，
+            // 但触发时字段错误表必须已经就绪，否则处理器读到的是上一轮的陈旧状态。
+            var isValid = await ValidateAsync();
+
             if (OnSubmit.HasDelegate)
             {
                 await OnSubmit.InvokeAsync(Values);
             }
-
-            var isValid = await ValidateAsync();
-            StateHasChanged();
 
             if (isValid && OnValidSubmit.HasDelegate)
             {
@@ -710,9 +715,6 @@ public partial class DynamicForm : ComponentBase
         Layout == FormLayout.Inline ? "atom:space-y-4" : "atom:space-y-6",
         Class
     );
-
-    private string? GetFieldErrorText(string fieldName) =>
-        fieldErrors.TryGetValue(fieldName, out var error) ? error : null;
 
     private bool HasErrors => fieldErrors.Count > 0;
 

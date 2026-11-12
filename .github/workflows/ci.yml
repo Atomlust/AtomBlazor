@@ -5,6 +5,7 @@
 #
 # 覆盖范围：
 #   - build-test：6 个库 + 测试工程的 Release 构建与全量单元测试
+#   - js-test   ：tests/js 的 node --test 模块单测（纯 Node 内置模块，无需 npm ci）
 #   - aot-smoke ：TrimProbe 以 NativeAOT 发布并真实执行全部 AOT 敏感路径
 #                 （源生成 JSON、编译访问器、IQueryable 排序回退、图表 object 槽位）
 #   - demo-build：Server / Wasm / Auto 三宿主构建
@@ -67,6 +68,23 @@ jobs:
 
       - name: 运行全量单元测试
         run: dotnet test tests/AtomBlazor.Tests/AtomBlazor.Tests.csproj -c Release --no-build
+
+  js-test:
+    name: JS 模块单测
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # 这些单测只依赖 node 内置模块与仓库内的相对路径，不需要 npm ci，
+      # 也不触发 Tailwind 构建，因此与 build-test 并行不会有 obj/bin 锁竞争。
+      - name: 运行 JS 模块单测
+        run: node --test tests/js/*.test.mjs
 
   aot-smoke:
     name: NativeAOT 冒烟

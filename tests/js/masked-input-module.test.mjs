@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 const moduleUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/masked-input.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/masked-input.js', import.meta.url);
 
 function makeElement(value = '') {
     return {
@@ -26,8 +26,8 @@ function makeElement(value = '') {
 test('masked-input.js 可导入且导出面与 maskedInput. 点分标识符一一对应', async () => {
     const mod = await import(moduleUrl.href);
 
-    // C# 侧调用点：maskedInput.setInputValue；其余导出守护 1:1 面。
-    for (const name of ['setInputValue', 'setCursorPosition', 'getCursorPosition']) {
+    // C# 侧调用点：maskedInput.setInputValue。
+    for (const name of ['setInputValue']) {
         assert.equal(typeof mod[name], 'function', `masked-input.js 缺少导出 ${name}`);
     }
 });
@@ -58,30 +58,4 @@ test('setInputValue 越界或负光标不移动选区', async () => {
 test('setInputValue 对缺失元素静默返回（预渲染/半程释放容错）', async () => {
     const mod = await import(moduleUrl.href);
     mod.setInputValue(null, 'x', 0);
-});
-
-test('setCursorPosition 依据元素当前值夹光标', async () => {
-    const mod = await import(moduleUrl.href);
-
-    const inside = makeElement('(800) 555-1212');
-    mod.setCursorPosition(inside, 6);
-    assert.equal(inside.selectionStart, 6);
-
-    const outside = makeElement('ab');
-    mod.setCursorPosition(outside, 5);
-    assert.equal(outside.selectionStart, 0);
-
-    mod.setCursorPosition(null, 1);
-});
-
-test('getCursorPosition 读取 selectionStart 并回退零', async () => {
-    const mod = await import(moduleUrl.href);
-
-    assert.equal(mod.getCursorPosition(makeElement('abc')), 0);
-
-    const element = makeElement('abc');
-    element.selectionStart = 2;
-    assert.equal(mod.getCursorPosition(element), 2);
-
-    assert.equal(mod.getCursorPosition(null), 0);
 });

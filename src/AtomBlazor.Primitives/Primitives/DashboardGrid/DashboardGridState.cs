@@ -148,7 +148,4 @@ public class DashboardGridState
             ColumnSpan = pos.ColumnSpan,
             RowSpan = pos.RowSpan
         };
-
-    private static WidgetPosition FromSnapshot(WidgetPositionSnapshot s) =>
-        new(s.WidgetId, s.Column, s.Row, s.ColumnSpan, s.RowSpan);
 }

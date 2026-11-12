@@ -18,15 +18,26 @@
 
 ---
 
+## 一眼看全这套库
+
+| 组件 | 无头基元 | 内联 SVG 图标 | 样式表（gzip） | 自动化测试 | 演示页 |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| **474**<br>141 个族 | **128**<br>40 个族 | **5,393** | **< 30 KB** | **4,773** | **216** |
+
+*以上每个数字都是从本仓库实测得出，没有为了宣传四舍五入。组件数直接取自公开 API 基线：`AtomBlazor` 有 474 个具体 `ComponentBase` 类型，`AtomBlazor.Primitives` 有 128 个。*
+
 ## 为什么选择 AtomBlazor？
 
-- **141 个生产级组件。** 从按钮到 DataGrid、甘特图、日程、透视表、图表与富文本编辑器——统一采用 shadcn/ui 现代视觉语言，由 Tailwind CSS v4 驱动。
-- **双层架构。** 在 **AtomBlazor.Primitives**（无样式、完全可组合的基元，内置 ARIA 属性与完整键盘导航）之上构建你自己的设计系统；或直接使用其上的预样式组件，即刻交付。
-- **真正可用的主题系统。** 单一 OKLCH 设计令牌体系驱动亮/暗双模、5 套基础色、10+ 主色、圆角与密度预设——全部支持**运行时切换**并跨刷新持久化。无需双份样式表，没有 `!important` 大战。
-- **Blazor 能跑的地方它都能跑。** 四种宿主模型全部实测通过：Blazor Server、WebAssembly、Auto、MAUI Blazor Hybrid。
-- **默认可裁剪，零裁剪警告。** 库工程开启 `IsAotCompatible`，经 ILLink 分析构建干净。**Native AOT 有一点需注意**：动态筛选与排序路径会编译为 LINQ 表达式树，需要动态代码——以 Native AOT 部署时，请在内存中预先完成筛选与排序（或改用强类型 LINQ）。
-- **JS 互操作不添乱。** 交互模块在首次渲染时惰性 `import`，按运行时缓存并附版本戳；仅主题引导脚本预加载。
-- **图标零网络请求。** 四个图标包——Lucide（1,753 枚）、Heroicons（Outline/Solid/Mini/Micro 四变体）、Feather（286 枚）、Font Awesome（Solid/Regular/Brands）——以内联 SVG 编译进程序集。无 HTTP 往返，离线可用。
+- **141 个族、474 个生产级组件。** 从按钮到 DataGrid、甘特图、日程、透视表、图表与富文本编辑器——统一采用 shadcn/ui 现代视觉语言，由 Tailwind CSS v4 驱动。不是让你自己收尾的脚手架，而是可以直接交付的完整目录。
+- **双层架构。** 在 **AtomBlazor.Primitives**（40 个族、128 个无样式且完全可组合的基元，内置 ARIA 属性与完整键盘导航）之上构建你自己的设计系统；或直接使用其上的 474 个预样式组件，即刻交付。同一台引擎，你的品牌。
+- **真正可用的主题系统。** 单一 OKLCH 设计令牌体系驱动亮/暗双模、5 套基础色、17 种主色、圆角与密度预设——全部支持**运行时切换**并跨刷新持久化。无需双份样式表，没有 `!important` 大战，不用重新构建。
+- **覆盖这么全，体积却小得离谱。** 全部 474 个组件的完整样式表加上整套主题层，gzip 后**不到 30 KB**（26.7 KB + 3.1 KB）。一份 CSS，装下所有组件、所有主题。
+- **Blazor 能跑的地方它都能跑。** 四种宿主模型全部在 CI 中实测通过：Blazor Server、WebAssembly、Auto、MAUI Blazor Hybrid。不是「应该能用」——每次提交都真实构建并测试。
+- **默认可裁剪，零裁剪警告。** 库工程开启 `IsAotCompatible`，经 ILLink 分析构建干净，并由专门的 AOT 冒烟任务守住。**Native AOT 有一点需注意**：动态筛选与排序路径会编译为 LINQ 表达式树，需要动态代码——以 Native AOT 部署时，请在内存中预先完成筛选与排序（或改用强类型 LINQ）。
+- **JS 互操作不添乱。** 交互模块在首次渲染时惰性 `import`，按运行时缓存并附版本戳；仅主题引导脚本预加载。运行期不需要 npm，你的流水线里不需要打包器，也没有新的 JS 框架要学。
+- **5,393 枚图标，零网络请求。** 四个图标包——Lucide（1,753 枚）、Heroicons（1,288 枚，Outline/Solid/Mini/Micro 四变体）、Feather（286 枚）、Font Awesome（2,066 枚，Solid/Regular/Brands）——以内联 SVG 编译进程序集。无 HTTP 往返，离线可用，且每个图标包都是独立程序集——只引用你用得到的那些。
+- **本地化不是事后补的。** 全部 574 条组件字符串统一走 `ILocalizer`。启动时覆盖单个键，或子类化对接 `IStringLocalizer`，即可运行时切换文化。
+- **按基础设施的标准做测试。** 4,302 个 C# 测试（含渲染标记快照）加 471 个 JavaScript 模块测试——4,773 道自动化检查横在你和回归缺陷之间。
 
 ## 环境要求
 
@@ -37,16 +48,16 @@
 
 | 包 | NuGet | 说明 |
 | --- | --- | --- |
-| 组件 | [`AtomBlazor`](https://www.nuget.org/packages/AtomBlazor) | 141 个预样式组件（依赖 Primitives；内置 Markdig/HtmlSanitizer/TailwindMerge.NET/Ical.Net） |
-| 基元 | [`AtomBlazor.Primitives`](https://www.nuget.org/packages/AtomBlazor.Primitives) | 无样式可组合基元（Portal / Positioning / Focus / Overlay 等服务） |
+| 组件 | [`AtomBlazor`](https://www.nuget.org/packages/AtomBlazor) | 141 个族、474 个预样式组件（依赖 Primitives；内置 Markdig/HtmlSanitizer/TailwindMerge.NET/Ical.Net） |
+| 基元 | [`AtomBlazor.Primitives`](https://www.nuget.org/packages/AtomBlazor.Primitives) | 40 个族、128 个无样式可组合基元（Portal / Positioning / Focus / Overlay 等服务） |
 | 图标 | [`AtomBlazor.Icons.Lucide`](https://www.nuget.org/packages/AtomBlazor.Icons.Lucide) | Lucide 图标（1,753 枚，内联 SVG） |
-| 图标 | [`AtomBlazor.Icons.Heroicons`](https://www.nuget.org/packages/AtomBlazor.Icons.Heroicons) | Heroicons（Outline / Solid / Mini / Micro） |
+| 图标 | [`AtomBlazor.Icons.Heroicons`](https://www.nuget.org/packages/AtomBlazor.Icons.Heroicons) | Heroicons（1,288 枚 — Outline / Solid / Mini / Micro） |
 | 图标 | [`AtomBlazor.Icons.Feather`](https://www.nuget.org/packages/AtomBlazor.Icons.Feather) | Feather 图标（286 枚） |
-| 图标 | [`AtomBlazor.Icons.FontAwesome`](https://www.nuget.org/packages/AtomBlazor.Icons.FontAwesome) | Font Awesome（Solid / Regular / Brands） |
+| 图标 | [`AtomBlazor.Icons.FontAwesome`](https://www.nuget.org/packages/AtomBlazor.Icons.FontAwesome) | Font Awesome Free（2,066 枚 — Solid / Regular / Brands） |
 
 ## 组件目录
 
-**141 个组件，无死角覆盖。** 按「你要构建什么」分组，而非按字母排序。所有组件共享同一套 OKLCH 令牌主题、完整键盘支持与 ARIA 无障碍语义——会用一个，其余 140 个就已经会了。
+**141 个组件族，无死角覆盖。** 按「你要构建什么」分组，而非按字母排序。所有组件共享同一套 OKLCH 令牌主题、完整键盘支持与 ARIA 无障碍语义——会用一族，其余各族都是同一套约定。
 ### Buttons & Actions（按钮与动作）
 
 *你需要的每一个可点击目标。*
@@ -292,6 +303,61 @@ builder.Services.AddAtomBlazorComponents(
 <Button Variant="ButtonVariant.Default" OnClick="@(() => count++)">计数：@count</Button>
 <LucideIcon Name="house" Size="20" />
 ```
+
+## 主题：一套令牌，贯穿所有组件
+
+运行时改变整个应用的气质——不换样式表、不重新构建、不写 `!important` 覆盖。
+
+```razor
+@inject ThemeService Themes
+
+<Button OnClick="@(() => Themes.SetPrimaryColorAsync(PrimaryColor.Violet))">换成紫罗兰</Button>
+<Button OnClick="@(() => Themes.ToggleDarkModeAsync())">切换暗色</Button>
+<Button OnClick="@(() => Themes.SetPresetAsync(ThemePreset.Compact))">紧凑密度</Button>
+```
+
+| 旋钮 | 可选值 |
+| --- | --- |
+| 基础调色板 | Zinc · Slate · Gray · Neutral · Stone |
+| 主色 | Default + 17 种命名色相，从 Blue 到 Pink |
+| 暗色模式 | 亮色 · 暗色 · 跟随系统偏好 |
+| 密度预设 | Standard · Compact · Dense · Spacious |
+| 圆角半径 | 0 到 4 rem 任意取值，即时生效 |
+
+每个旋钮彼此正交：Slate 基础色配 Amber 主色、Dense 密度、0.75 rem 圆角，随意组合。选择会持久化到 `localStorage`，并由一段极小的阻塞式引导脚本在**首次绘制之前**还原——暗色用户永远看不到白闪，你的 CSP 也不需要 `unsafe-inline`。完整令牌参考：[THEMING.md](./THEMING.md)。
+
+## 本地化：574 条字符串，一个接口
+
+474 个组件里的每一个占位符、按钮文案、`aria-label` 与空状态提示，都经由 `ILocalizer` 解析。没有任何字符串硬编码在标记里。
+
+```csharp
+// 模式 A —— 启动时覆盖单个键
+builder.Services.AddAtomBlazorComponents(localizer =>
+{
+    localizer.Set("DataGrid.Loading", "加载中...");
+    localizer.Set("Pagination.Next", "下一页");
+});
+
+// 模式 B —— 子类化，借 IStringLocalizer 实现运行时文化切换
+public class AppLocalizer(IStringLocalizer<SharedResources> loc) : DefaultLocalizer
+{
+    public override string this[string key] =>
+        loc[key] is { ResourceNotFound: false } found ? found.Value : base[key];
+}
+```
+
+库内置英文默认值；键采用点分记法（`DataGrid.Loading`），格式化使用标准 `string.Format` 占位符（`"Showing {0}–{1} of {2}"`）。
+
+## 按基础设施的标准打造
+
+UI 库是承重代码，就该按承重代码的标准来测。
+
+- **4,302 个 C# 测试** —— 覆盖行为、ARIA 语义、键盘导航，以及渲染标记快照：哪怕只有一个类名漂移，构建也会失败。
+- **471 个 JavaScript 模块测试** —— 互操作层被当作真实代码来测，而不是「假定它能跑」，并且每次提交都由 CI 把关。
+- **一份公共 API 基线** —— 每个组件参数、枚举与服务接口都有快照。意外的破坏性变更混不进发布版本。
+- **一个 AOT 冒烟任务** —— 裁剪与 Native AOT 兼容性由 CI 实证，不是靠 README 自夸。
+- **四种宿主模型每次提交都构建** —— Server、WebAssembly、Auto、MAUI Blazor Hybrid。
+- **216 个演示页、1,268 段可直接复制的示例** —— 运行 `demos/` 下任意项目，即可在线浏览整个组件目录。
 
 ## 渲染模式
 

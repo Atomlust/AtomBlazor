@@ -6,7 +6,7 @@ using AtomBlazor.Primitives.Services;
 namespace AtomBlazor;
 
 /// <summary>
-/// 把 AtomBlazor.Components 的服务注册进依赖注入容器的扩展方法。
+/// 把 AtomBlazor 的服务注册进依赖注入容器的扩展方法。
 /// </summary>
 public static class ServiceCollectionExtensions
 {

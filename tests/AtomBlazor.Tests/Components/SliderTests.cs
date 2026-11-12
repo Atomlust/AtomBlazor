@@ -76,20 +76,6 @@ public class SliderTests
         return (renderer, js, (Comp.Slider)component);
     }
 
-    /// <summary>构造 Track>Range 与 Thumb 子树（基元用法）。</summary>
-    private static RenderFragment TrackRangeThumb() => builder =>
-    {
-        builder.OpenComponent<SliderTrack>(0);
-        builder.AddAttribute(1, nameof(SliderTrack.ChildContent), (RenderFragment)(b =>
-        {
-            b.OpenComponent<SliderRange>(0);
-            b.CloseComponent();
-        }));
-        builder.CloseComponent();
-        builder.OpenComponent<SliderThumb>(2);
-        builder.CloseComponent();
-    };
-
     /// <summary>JS 回调沿：直接在 Dispatcher 上调用 [JSInvokable] 入口并等待落定。</summary>
     private static Task InvokeAsync(ComponentTestRenderer renderer, Slider slider, Func<Slider, Task> callback) =>
         renderer.Dispatcher.InvokeAsync(() => callback(slider));
@@ -487,6 +473,44 @@ public class SliderTests
 
         // 组件层的 CSS 类：水平默认布局。
         Assert.Contains("class=\"atom:relative atom:flex atom:w-full atom:touch-none atom:select-none atom:items-center atom:cursor-pointer\"", renderer.Markup());
+    }
+
+    [Fact]
+    public async Task 步进网格应锚定在Min而非零()
+    {
+        var (renderer, _, _) = await MountComponentAsync(new Dictionary<string, object?>
+        {
+            [nameof(Comp.Slider.Min)] = 5.0,
+            [nameof(Comp.Slider.Max)] = 25.0,
+            [nameof(Comp.Slider.Step)] = 10.0,
+            [nameof(Comp.Slider.DefaultValue)] = 5.0,
+        });
+
+        await KeyAsync(renderer, "ArrowUp");
+        await FlushAsync(renderer);
+
+        // 合法值是 5/15/25。曾按 round(value/step)*step 吸附到 0/10/20 网格，
+        // 于是从 5 上一步跳到 20——既越过刻度又与 JS 拖拽口径不一致。
+        Assert.Equal(15, ValueNow(renderer));
+    }
+
+    [Fact]
+    public async Task Step为零应退化为连续取值且不产生NaN()
+    {
+        var (renderer, _, _) = await MountComponentAsync(new Dictionary<string, object?>
+        {
+            [nameof(Comp.Slider.Min)] = 0.0,
+            [nameof(Comp.Slider.Max)] = 100.0,
+            [nameof(Comp.Slider.Step)] = 0.0,
+            [nameof(Comp.Slider.DefaultValue)] = 20.0,
+        });
+
+        await KeyAsync(renderer, "ArrowUp");
+        await FlushAsync(renderer);
+
+        // 0 步长不做吸附（否则 (value-min)/0 得 NaN，整条 aria-valuenow 报废）。
+        Assert.Equal(20, ValueNow(renderer));
+        Assert.DoesNotContain("NaN", renderer.Markup());
     }
 
     [Fact]

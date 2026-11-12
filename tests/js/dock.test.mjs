@@ -11,7 +11,7 @@
 // 且 float 坐标取 clientX-rect.left-24 / clientY-rect.top-12；边缘带 26px→root；组内按
 // 22% 角区→group；rtl 对水平判断整体镜像；reorder 指示器为 2px 实心 primary、root/group
 // 为半透明填充；float/none 只把已建指示器 display:none 不删元素；OnWindowResized 结算读
- offsetWidth/Height（桩以 style getter 模拟浏览器即时回流）；异指针既不提交也不
+// offsetWidth/Height（桩以 style getter 模拟浏览器即时回流）；异指针既不提交也不
 // 拆会话；initTabOverflow 同 id 重复初始化先拆旧条目；溢出测量 1px 容差且测后恢复原
 // display。
 // DOM 桩沿用 sidebar.test.mjs / resizable.test.mjs 先例最小口径：document 监听表 +
@@ -23,7 +23,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 const moduleUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/dock.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/dock.js', import.meta.url);
 
 // ------------------------------------------------------------------ 环境桩
 
@@ -653,7 +653,7 @@ test('invokeMethodAsync 拒绝被 catch 吞：OnTabDropped 与溢出上报断线
 
 // ------------------------------------------------------------------ 浮动窗口
 
- 在 root 下挂浮动窗口元素；offsetWidth/Height 以 style getter 模拟即时回流。
+/** 在 root 下挂浮动窗口元素；offsetWidth/Height 以 style getter 模拟即时回流。 */
 function attachWindow(rootEl, windowId, startWidth, startHeight, style = {}) {
     const winEl = makeEl();
     winEl.attrs['data-dock-window'] = windowId;
@@ -769,7 +769,7 @@ test('startWindowResize 声明上下限生效：min 取声明值、max 钳到上
 
 test('components-core.js barrel 已收口 dock 命名空间', async () => {
     const { readFile } = await import('node:fs/promises');
-    const core = new URL('../../src/AtomBlazor.Components/wwwroot/js/components-core.js', import.meta.url);
+    const core = new URL('../../src/AtomBlazor/wwwroot/js/components-core.js', import.meta.url);
     const text = await readFile(core, 'utf8');
     assert.match(text, /^import \* as dock from '\.\/dock\.js\?assets=1';$/m);
     assert.match(text, /^assertFresh\('dock\.js', dock, 'initializeDock'\);$/m);

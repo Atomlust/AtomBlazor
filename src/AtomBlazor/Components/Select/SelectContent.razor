@@ -1,7 +1,6 @@
 @typeparam TValue
 @namespace AtomBlazor
 @inject ILocalizer Localizer
-@using Microsoft.JSInterop
 @implements IAsyncDisposable
 
 @* SelectContent 基元的带样式包装 *@
@@ -21,7 +20,7 @@
 }
 else
 {
-    <AtomBlazor.Primitives.SelectContentPrimitive TValue="TValue" class="@OuterCssClass" @attributes="AdditionalAttributes">
+    <AtomBlazor.Primitives.SelectContentPrimitive TValue="TValue" ZIndex="@ZIndex" class="@OuterCssClass" @attributes="AdditionalAttributes">
         @RenderOptions()
     </AtomBlazor.Primitives.SelectContentPrimitive>
 }
@@ -84,6 +83,13 @@ else
     public string? Class { get; set; }
 
     /// <summary>
+    /// 浮层内容的 CSS z-index。
+    /// 默认为 9999，以便渲染在遮罩层（Dialog、Sheet、Drawer）之上。
+    /// </summary>
+    [Parameter]
+    public int ZIndex { get; set; } = 9999;
+
+    /// <summary>
     /// 获取或设置要应用到根元素的附加 HTML 特性。
     /// </summary>
     [Parameter(CaptureUnmatchedValues = true)]
@@ -136,20 +142,6 @@ else
     private string InnerCssClass => IsSheet
         ? "atom:max-h-[65dvh] atom:overflow-y-auto atom:p-1 atom:[&_[role=option]]:min-h-[44px]"
         : "atom:max-h-60 atom:overflow-auto atom:p-1 atom:[&::-webkit-scrollbar]:hidden";
-
-    /// <summary>
-    /// 由 JavaScript 在列表滚动接近底部时调用。
-    /// </summary>
-    [JSInvokable]
-    public async Task JsOnNearBottom()
-    {
-        if (!OnLoadMore.HasDelegate || IsLoading)
-        {
-            return;
-        }
-
-        await OnLoadMore.InvokeAsync();
-    }
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }

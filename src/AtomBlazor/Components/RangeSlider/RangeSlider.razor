@@ -69,7 +69,7 @@
     {
         @foreach (var tick in TickValues)
         {
-            var tickPercent = ((tick - Min) / (Max - Min)) * 100;
+            var tickPercent = PercentageOf(tick);
             var tickOffset = tickPercent.ToString("0.##", CultureInfo.InvariantCulture);
             <div class="@(IsVertical
                      ? "atom:absolute atom:end-full atom:me-1 atom:h-0.5 atom:w-2 atom:bg-muted-foreground/30"
@@ -136,6 +136,10 @@
     /// <summary>
     /// 获取或设置步长增量。
     /// </summary>
+    /// <remarks>
+    /// 刻度网格锚定在 <see cref="Min"/> 上：Min=5、Step=10 的合法值是 5/15/25…，
+    /// 而不是 0/10/20…。设为 0 或非有限值时退化为连续取值，不做吸附。
+    /// </remarks>
     [Parameter]
     public double Step { get; set; } = 1;
 
@@ -208,8 +212,14 @@
     private bool IsControlled => ValueChanged.HasDelegate;
     private double StartValue => IsControlled ? Value.Start : _internalStart;
     private double EndValue => IsControlled ? Value.End : _internalEnd;
-    private double StartPercentage => ((StartValue - Min) / (Max - Min)) * 100;
-    private double EndPercentage => ((EndValue - Min) / (Max - Min)) * 100;
+
+    /// <summary>值域跨度。Max==Min 时为 0，此时百分比一律退化为 0 而不是 NaN。</summary>
+    private double Span => Max - Min;
+
+    private double PercentageOf(double value) => Span > 0 ? (value - Min) / Span * 100 : 0;
+
+    private double StartPercentage => PercentageOf(StartValue);
+    private double EndPercentage => PercentageOf(EndValue);
 
     private string StartPercentageValue => $"{StartPercentage.ToString("0.##", CultureInfo.InvariantCulture)}%";
     private string EndPercentageValue => $"{EndPercentage.ToString("0.##", CultureInfo.InvariantCulture)}%";
@@ -223,7 +233,9 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && !Disabled)
+        // 不能只在首帧初始化：以 Disabled=true 挂载、随后解禁的滑块会永远收不到
+        // 指针事件，拖拽彻底失效。InitializeJsAsync 自带幂等守卫。
+        if (!_jsInitialized && !Disabled)
         {
             await InitializeJsAsync();
         }
@@ -255,9 +267,13 @@
             return;
 
         percentage = Math.Max(0, Math.Min(1, percentage));
-        var newValue = Min + (percentage * (Max - Min));
-        newValue = Math.Round(newValue / Step) * Step;
-        newValue = Math.Max(Min, Math.Min(Max, newValue));
+        var newValue = Math.Max(Min, Math.Min(Max, Min + (percentage * Span)));
+
+        // 步进网格锚定在 Min 上，与 SliderPrimitive / snapSliderValue 口径一致。
+        if (double.IsFinite(Step) && Step > 0)
+        {
+            newValue = Math.Min(Max, Min + (Math.Round((newValue - Min) / Step) * Step));
+        }
 
         if (thumb == "start")
         {

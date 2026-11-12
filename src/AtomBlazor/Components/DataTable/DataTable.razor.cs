@@ -566,15 +566,6 @@ public partial class DataTable<TData> : ComponentBase where TData : class
         _filteredData.Count();
 
     /// <summary>
-    /// 打开全选下拉菜单。
-    /// </summary>
-    private void OpenSelectAllDropdown()
-    {
-        _selectAllDropdownOpen = true;
-        StateHasChanged();
-    }
-
-    /// <summary>
     /// 处理全选复选框的变更。
     /// 存在多页时，打开下拉菜单让用户选择范围。
     /// </summary>

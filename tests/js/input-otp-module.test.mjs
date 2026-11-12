@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import { test, afterEach } from 'node:test';
 
 const moduleUrl = new URL(
-    '../../src/AtomBlazor.Components/wwwroot/js/input-otp.js', import.meta.url);
+    '../../src/AtomBlazor/wwwroot/js/input-otp.js', import.meta.url);
 
 function makeElement() {
     const handlers = new Map();
@@ -133,8 +133,8 @@ test('keydown 对控制键、输入法组合与修饰键组合一律放行', asy
 
     pass({ key: 'Backspace' }); // 长度非 1：控制键
     pass({ isComposing: true }); // 输入法组合中
-    pass({ ctrlKey: true });  Ctrl 快捷键（含粘贴）
-    pass({ metaKey: true });  Cmd 快捷键
+    pass({ ctrlKey: true }); // Ctrl 快捷键（含粘贴）
+    pass({ metaKey: true }); // Cmd 快捷键
     assert.equal(prevented, 0);
 });
 

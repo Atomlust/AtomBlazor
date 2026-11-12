@@ -19,27 +19,3 @@ export function setInputValue(element, value, cursorPosition) {
         element.setSelectionRange(cursorPosition, cursorPosition);
     }
 }
-
-/**
- * 设置 input 元素中的光标位置。
- * @param {HTMLInputElement} element - 输入元素。
- * @param {number} cursorPosition - 光标定位的位置。
- */
-export function setCursorPosition(element, cursorPosition) {
-    if (!element) return;
-
-    // 立即设置光标位置
-    if (cursorPosition >= 0 && cursorPosition <= element.value.length) {
-        element.setSelectionRange(cursorPosition, cursorPosition);
-    }
-}
-
-/**
- * 获取 input 元素当前的光标位置。
- * @param {HTMLInputElement} element - 输入元素。
- * @returns {number} 光标位置。
- */
-export function getCursorPosition(element) {
-    if (!element) return 0;
-    return element.selectionStart || 0;
-}

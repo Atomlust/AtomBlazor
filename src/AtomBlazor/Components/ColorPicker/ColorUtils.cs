@@ -255,4 +255,111 @@ public static partial class ColorUtils
         }
         return $"hsl({hue}, {sat}%, {lum}%)";
     }
+
+    /// <summary>
+    /// 解析 ColorPicker 支持的任意颜色记法：十六进制、rgb()/rgba()、hsl()/hsla()。
+    /// </summary>
+    /// <param name="text">待解析的颜色字符串。</param>
+    /// <param name="color">解析出的 RGB 分量与 0–255 的 alpha（无 alpha 时为 null）。</param>
+    /// <returns>解析成功返回 <c>true</c>。</returns>
+    /// <remarks>
+    /// 必须与 <see cref="ToHex"/>、<see cref="ToRgbString"/>、<see cref="ToHslString"/> 的输出往返一致。
+    /// ColorPicker 的 Format 设为 RGB/HSL 时回写的就是函数式记法，入口若只认十六进制，
+    /// 受控绑定会在第一次回写之后彻底失联——外部再改 Value 也不会被采纳。
+    /// </remarks>
+    public static bool TryParseColor(string? text, out (int R, int G, int B, int? A) color)
+    {
+        color = (0, 0, 0, null);
+
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return false;
+        }
+
+        var trimmed = text.Trim();
+        if (IsValidHex(trimmed))
+        {
+            color = ParseHex(trimmed);
+            return true;
+        }
+
+        var match = ColorFunctionRegex().Match(trimmed);
+        if (!match.Success)
+        {
+            return false;
+        }
+
+        var parts = match.Groups["args"].Value.Split(
+            ',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length is not (3 or 4))
+        {
+            return false;
+        }
+
+        int? alpha = null;
+        if (parts.Length == 4)
+        {
+            if (!double.TryParse(parts[3], NumberStyles.Float, CultureInfo.InvariantCulture, out var a))
+            {
+                return false;
+            }
+            alpha = (int)Math.Round(Math.Clamp(a, 0, 1) * 255);
+        }
+
+        var kind = match.Groups["kind"].Value;
+        if (kind is "rgb" or "rgba")
+        {
+            if (!TryParseByte(parts[0], out var r) ||
+                !TryParseByte(parts[1], out var g) ||
+                !TryParseByte(parts[2], out var b))
+            {
+                return false;
+            }
+
+            color = (r, g, b, alpha);
+            return true;
+        }
+
+        if (!double.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out var hue) ||
+            !TryParsePercent(parts[1], out var saturation) ||
+            !TryParsePercent(parts[2], out var lightness))
+        {
+            return false;
+        }
+
+        var (hr, hg, hb) = HslToRgb(hue, saturation, lightness);
+        color = (hr, hg, hb, alpha);
+        return true;
+    }
+
+    private static bool TryParseByte(string text, out int value)
+    {
+        if (!int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
+        {
+            return false;
+        }
+
+        value = Math.Clamp(value, 0, 255);
+        return true;
+    }
+
+    private static bool TryParsePercent(string text, out double value)
+    {
+        value = 0;
+        if (!text.EndsWith('%'))
+        {
+            return false;
+        }
+
+        if (!double.TryParse(text[..^1], NumberStyles.Float, CultureInfo.InvariantCulture, out var pct))
+        {
+            return false;
+        }
+
+        value = Math.Clamp(pct / 100.0, 0, 1);
+        return true;
+    }
+
+    [GeneratedRegex(@"^(?<kind>rgba?|hsla?)\((?<args>[^)]*)\)$")]
+    private static partial Regex ColorFunctionRegex();
 }

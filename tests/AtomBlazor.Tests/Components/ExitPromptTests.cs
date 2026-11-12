@@ -5,7 +5,6 @@ using AtomBlazor;
 using AtomBlazor.Tests.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -119,10 +118,6 @@ public class ExitPromptTests
 
     private static Task RerenderPortalAsync(ComponentTestRenderer renderer) =>
         renderer.Dispatcher.InvokeAsync(() => renderer.RerenderRootAsync(0, new Dictionary<string, object?>()));
-
-    private static Task FireAsync(
-        ComponentTestRenderer renderer, string attributeName, EventArgs args, int occurrence = 0) =>
-        renderer.Dispatcher.InvokeAsync(() => renderer.DispatchAsync(attributeName, args, occurrence));
 
     private static int Count(NoopJavaScript js, string identifier) =>
         js.Invocations.Count(i => i.Identifier == identifier);
@@ -238,7 +233,7 @@ public class ExitPromptTests
     [Fact]
     public async Task 导航被拦下弹出对话框问询一次且二次导航不重复问询()
     {
-        var (renderer, _, navigation, component, prompted) = await HeldAsync();
+        var (renderer, _, _, component, prompted) = await HeldAsync();
 
         Assert.Equal(1, prompted.Count);
         var markup = renderer.Markup();
@@ -250,7 +245,6 @@ public class ExitPromptTests
         // pending 已存在：同处挂起期间的再次导航直通——不拦、也不再问询
         Assert.False(await HoldAsync(renderer, component, "https://localhost/other"));
         Assert.Equal(1, prompted.Count);
-        _ = navigation;
     }
 
     [Fact]

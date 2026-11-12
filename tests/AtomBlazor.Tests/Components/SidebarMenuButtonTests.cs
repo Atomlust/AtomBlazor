@@ -206,7 +206,8 @@ public class SidebarMenuButtonTests
             ["Variant"] = SidebarMenuButtonVariant.Outline,
             ["ChildContent"] = Text("项"),
         });
-        Assert.Contains("atom:shadow-[0_0_0_1px_hsl(var(--sidebar-border))]", outline.Markup(), StringComparison.Ordinal);
+        // --sidebar-border 是完整的 oklch() 颜色函数，套 hsl() 会让整条 shadow 失效。
+        Assert.Contains("atom:shadow-[0_0_0_1px_var(--sidebar-border)]", outline.Markup(), StringComparison.Ordinal);
 
         var def = await MountAsync(typeof(SidebarMenuButton), new() { ["ChildContent"] = Text("项") });
         Assert.DoesNotContain("shadow-[0_0_0_1px", def.Markup(), StringComparison.Ordinal);

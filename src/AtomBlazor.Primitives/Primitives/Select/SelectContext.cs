@@ -378,6 +378,7 @@ public class SelectContext<TValue> : PrimitiveContextWithEvents<SelectState<TVal
 
         var startIndex = State.FocusedIndex;
         var newIndex = startIndex;
+        var steps = 0;
 
         // 找到下一个未禁用的项
         do
@@ -394,13 +395,11 @@ public class SelectContext<TValue> : PrimitiveContextWithEvents<SelectState<TVal
                 newIndex = 0;
             }
 
-
-            // 所有项都禁用时避免死循环
-            if (newIndex == startIndex)
+            // 所有项都禁用时避免死循环：绕完所有项即退出
+            if (++steps > Items.Count)
             {
                 break;
             }
-
 
         } while (newIndex >= 0 && newIndex < Items.Count && Items[newIndex].Disabled);
 

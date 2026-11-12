@@ -45,6 +45,8 @@ public partial class PickList<TValue> : ComponentBase
     /// <remarks>
     /// 顺序按移动发生的先后保留，而非按 <see cref="Options"/> 中的列举顺序，
     /// 因为穿梭框常常是在构建一个有序的东西——一组列、一份播放列表、一串步骤。
+    /// 找不到对应选项的值不会出现在任一窗格里，但会原样留在绑定集合中：
+    /// 选项可能迟到，也可能引用了已下线的项，静默丢弃等于替用户删数据。
     /// </remarks>
     [Parameter]
     public IEnumerable<TValue>? Values { get; set; }
@@ -205,11 +207,13 @@ public partial class PickList<TValue> : ComponentBase
     protected override void OnParametersSet()
     {
         allOptions = [.. Options?.Where(o => o is not null) ?? []];
-        var known = allOptions.Select(o => o.Value).ToHashSet();
 
-        // A bound value with no matching option cannot be shown or moved, so it is dropped rather
-        // than silently disappearing from the pane while still counting as picked.
-        picked = [.. (Values ?? []).Where(known.Contains).Distinct()];
+        // A bound value with no matching option cannot be shown or moved, but it must still survive
+        // the round-trip: MoveAsync writes picked back through ValuesChanged, so filtering here
+        // would permanently erase entries the caller never asked to remove (options arriving late,
+        // or a saved selection referencing a retired option). TargetOptions below already skips
+        // unmatched values, which is what keeps them out of the pane.
+        picked = [.. (Values ?? []).Distinct()];
 
         var pickedSet = picked.ToHashSet();
         SourceOptions = [.. allOptions.Where(o => !pickedSet.Contains(o.Value))];

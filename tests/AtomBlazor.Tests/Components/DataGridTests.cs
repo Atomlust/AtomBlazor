@@ -1,7 +1,6 @@
 using AtomBlazor.Primitives;
 using System.Linq.Expressions;
 using AtomBlazor;
-using Microsoft.AspNetCore.Components;
 using Xunit;
 
 namespace AtomBlazor.Tests.Components;

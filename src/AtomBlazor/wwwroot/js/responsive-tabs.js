@@ -36,30 +36,10 @@ export function initialize(dotNetRef, componentId, containerElement) {
   const observer = new ResizeObserver(() => check());
   observer.observe(containerElement);
 
-  states.set(componentId, { observer, dotNetRef, tablist, remeasure });
+  states.set(componentId, { observer, dotNetRef, tablist });
 
   // 初始检查
   check();
-
-  /**
-   * 重新测量标签的自然宽度。在标签增删时调用。
-   */
-  function remeasure() {
-    tabsNaturalWidth = tablist.scrollWidth;
-    lastOverflowing = null;
-    check();
-  }
-}
-
-/**
- * 触发一次标签自然宽度的重测。
- * @param {string} componentId - 实例的唯一标识
- */
-export function remeasure(componentId) {
-  const state = states.get(componentId);
-  if (state) {
-    state.remeasure();
-  }
 }
 
 /**

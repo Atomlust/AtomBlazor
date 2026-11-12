@@ -314,7 +314,6 @@ public class SeriesBaseBehaviorTests
     [Fact]
     public void 叠放系列把组名写入选项而不叠者省键()
     {
-        var chart = ChartWith(new[] { new Sample("一月", 10, 4, 1) });
         var stacked = new TestStackableSeries { DataKey = "Revenue", Stacked = true };
         var plain = new TestStackableSeries { DataKey = "Revenue", StackGroup = "alt" };
 

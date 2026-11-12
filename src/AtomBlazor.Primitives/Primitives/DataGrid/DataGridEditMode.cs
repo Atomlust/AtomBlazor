@@ -1,6 +1,6 @@
 // In the AtomBlazor.Primitives namespace rather than AtomBlazor.Primitives.DataGrid,
 // alongside SortDirection and DataGridSelectionBehavior: an app that imports
-// AtomBlazor.Components cannot also import AtomBlazor.Primitives.DataGrid without making
+// AtomBlazor cannot also import AtomBlazor.Primitives.DataGrid without making
 // the name DataGrid ambiguous, so an enum a consumer has to name in markup goes here.
 namespace AtomBlazor.Primitives;
 
